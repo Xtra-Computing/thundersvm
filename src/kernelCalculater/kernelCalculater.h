@@ -31,9 +31,6 @@ public:
 	virtual bool GetHessianDiag(const string &strFileName, const int &nNumofTrainingSamples, float_point *pfHessianDiag) = 0;
 
 	virtual bool ComputeHessianRows(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows,
-									const int &nNumofSamples, const int &nNumofDimensions,
-									const int &nNumofRows, const int &nStartRow) = 0;
-	virtual bool ComputeHessianRows(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows,
 										float_point *pfDevSelfDot, const int &nNumofCols, const int &nNumofDim,
 										const int &nNumofRows, int nStartRow, int nStartCol) = 0;
 
