@@ -14,7 +14,7 @@ CUDA 6.0 or later
 FAQ:
 
 1. How can I use the source code?
-Please download the repository and then issue "make" command under the fold where our Makefile is located. After the command is completed, you will see a binary file named "mascot" in the "bin" folder. To start playing it, try command "./mascot -g 0.382 -c 100 -f 200 data/gisette_scale". The gisette_scale dataset is available <a href="http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary.html#gisette">here</a> in LibSVM site.
+Please download the repository and then issue "make" command under the fold where our Makefile is located. After the command is completed, you will see a binary file named "mascot" in the "bin" folder. To start playing it, try command "./mascot -g 0.382 -c 100 -f 200 gisette_scale". The gisette_scale dataset is available <a href="http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary.html#gisette">here</a> in LibSVM site.
 
 2. What is the format of the input file?
 The file format is the same as the format of files in LibSVM site.
@@ -27,3 +27,6 @@ No. MASCOT works fine with HDDs, although SSDs would help improve the efficiency
 
 5. What are the meanings of the options?
 -g is for setting the gamma value; -c is for setting the penalty value of C; -f is to let MASCOT know the data dimensionality (this parameter may be removed in latter version).
+
+6. I got "error while loading shared libraries: libcudart.so.6.0: wrong ELF class: ELFCLASS32", when I run the executable file "mascot".
+Running the command ''sudo ldconfig /usr/local/cuda/lib64'' should resolve the problem.
