@@ -8,6 +8,7 @@ You may report bugs to: name@domain, where name=zeyiw and domain=student.unimelb
 
 ---------
 FAQ:
+
 1. How can I use the source code?
 Please download the repository and then issue "make" command under the fold where our Makefile is located. After the command is completed, you will see a binary file named "mascot" in the "bin" folder. To start playing it, try command "./mascot -g 0.382 -c 100 -f 200 data/gisette_scale".
 
