@@ -1,7 +1,10 @@
 CCFLAGS := -O2 -Wall
 NVCCFLAGS := -O2 -arch=sm_20 -lrt -lcuda -lcudadevrt -lcudart -lcublas
-LDFLAGS   := -I/usr/local/cuda-6.0/include -I/usr/local/cuda-6.0/samples/common/inc
-NVCC	:= /usr/local/cuda-6.0/bin/nvcc
+LDFLAGS   := -I/usr/local/cuda/include -I/usr/local/cuda/samples/common/inc
+NVCC	:= /usr/local/cuda/bin/nvcc
+
+ODIR = bin
+dummy_build_folder := $(shell mkdir -p $(ODIR))
 
 bin/mascot: classificationKernel_cu.o commandLineParser.o cvFunction.o fileOps.o gpu_global_utility.o initCuda_cu.o modelSelector_cu.o smoGPUHelper_cu.o smoSolver_cu.o svmMain.o svmPredictor_cu.o svmTrainer_cu.o trainingFunction_cu.o cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o ReadHelper.o hessianIO_cu.o parHessianIO.o seqHessianIO.o LinearCalculater_cu.o LinearCalGPUHelper_cu.o PolynomialCalGPUHelper_cu.o PolynomialCalulater_cu.o RBFCalculater_cu.o RBFCalGPUHelper_cu.o SigmoidCalculater_cu.o SigmoidCalGPUHelper_cu.o
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o bin/mascot classificationKernel_cu.o commandLineParser.o cvFunction.o fileOps.o gpu_global_utility.o initCuda_cu.o modelSelector_cu.o smoGPUHelper_cu.o smoSolver_cu.o svmMain.o svmPredictor_cu.o svmTrainer_cu.o trainingFunction_cu.o cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o ReadHelper.o hessianIO_cu.o parHessianIO.o seqHessianIO.o LinearCalculater_cu.o LinearCalGPUHelper_cu.o PolynomialCalGPUHelper_cu.o PolynomialCalulater_cu.o RBFCalculater_cu.o RBFCalGPUHelper_cu.o SigmoidCalculater_cu.o SigmoidCalGPUHelper_cu.o
