@@ -1,0 +1,45 @@
+/**
+ * svmPredictor.h
+ * Created on: May 21, 2012
+ * Author: Zeyi Wen
+ * Copyright @DBGroup University of Melbourne
+ **/
+
+#ifndef SVMPREDICTOR_H_
+#define SVMPREDICTOR_H_
+
+#include "kernelCalculater/kernelCalculater.h"
+#include "gpu_global_utility.h"
+#include "HessianIO/hessianIO.h"
+#include "classificationKernel.h"
+
+using std::cerr;
+/*
+ * @brief: predictor class of SVM
+ */
+class CSVMPredictor
+{
+public:
+	CKernelCalculater *m_pKernelCalculater;
+	CHessianIOOps *m_pHessianReader;
+	int m_nTestStart;
+public:
+	//CSVMPredictor(){}
+	CSVMPredictor(CHessianIOOps *pHessianOps){m_pHessianReader = pHessianOps;}
+	~CSVMPredictor(){}
+
+	void SetCalculater(CKernelCalculater *p){m_pKernelCalculater = p;}
+	bool ComputeYiAlphaKValue(float_point **pyfSVHessian, float_point *pfAlphaofSVs,
+							  float_point *pfYiofSVs, float_point **pyfSVYiAlhpaHessian);
+
+	bool SetInvolvePredictionData(int nStart1, int nEnd1);
+	float_point* Predict(svm_model*, int *pnTestSampleId, const int&);
+	float_point* ComputeClassLabel(int nNumofTestingSamples,
+						   float_point *pfSVYiAlhpaHessian, const int &nNumofSVs,
+						   float_point fBias, float_point *pfFinalResult);
+
+	void ReadKVbasedOnSV(float_point *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs, int nNumofTestSamples);
+	void ReadKVbasedOnTest(float_point *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs, int nNumofTestSamples);
+};
+
+#endif /* SVMPREDICTOR_H_ */
