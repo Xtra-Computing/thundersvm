@@ -1,4 +1,4 @@
-mascot
+mascot svmcv
 ======
 MASCOT is a GPU-based implementation for SVM cross-validation.
 
