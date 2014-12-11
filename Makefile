@@ -1,6 +1,6 @@
 CCFLAGS := -O2 -Wall
-NVCCFLAGS := -O2 -arch=sm_20 -lrt -lcuda -lcudadevrt -lcudart -lcublas
-LDFLAGS   := -I/usr/local/cuda/include -I/usr/local/cuda/samples/common/inc
+NVCCFLAGS := -O2 -arch=sm_20 -lrt
+LDFLAGS   := -I/usr/local/cuda/include -I/usr/local/cuda/samples/common/inc -lcuda -lcudadevrt -lcudart -lcublas
 NVCC	:= /usr/local/cuda/bin/nvcc
 
 ODIR = bin
