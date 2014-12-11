@@ -4,7 +4,7 @@ MASCOT is a GPU-based implementation for SVM cross-validation.
 
 The associated paper of this source code is: "MASCOT: Fast and Highly Scalable SVM Cross-validation using GPUs and SSDs" published in ICDM 2014.
 
-Report bugs to: Zeyi Wen zeyiw@student.unimelb.edu.au
+Report bugs to: name@domain where name=zeyiw and domain=student.unimelb.edu.au
 
 ---------
 Requirement(s):
@@ -12,8 +12,9 @@ CUDA 6.0 or later
 
 ---------
 FAQ:
+
 1. How can I use the source code?
-Please download the repository and then issue "make" command under the fold where our Makefile is located. After the command is completed, you will see a binary file named "mascot" in the "bin" folder. To start playing it, try command "./mascot -g 0.382 -c 100 -f 200 data/gisette_scale".
+Please download the repository and then issue "make" command under the fold where our Makefile is located. After the command is completed, you will see a binary file named "mascot" in the "bin" folder. To start playing it, try command "./mascot -g 0.382 -c 100 -f 200 data/gisette_scale". The gisette_scale dataset is available <a href="http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary.html#gisette">here</a> in LibSVM site.
 
 2. What is the format of the input file?
 The file format is the same as the format of files in LibSVM site.
