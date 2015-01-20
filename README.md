@@ -29,4 +29,4 @@ FAQ:
 <b>A</b>: -g is for setting the gamma value; -c is for setting the penalty value of C; -f is to let MASCOT know the data dimensionality (this parameter may be removed in latter version).
 
 6. I got "error while loading shared libraries: libcudart.so.6.0: wrong ELF class: ELFCLASS32", when I run the executable file "mascot".<br>
-<b>A</b>: Running the command ''sudo ldconfig /usr/local/cuda/lib64'' should resolve the problem.
+<b>A</b>: Running the command ''sudo ldconfig /usr/local/cuda/lib64'' should resolve the problem..
