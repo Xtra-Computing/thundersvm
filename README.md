@@ -1,10 +1,10 @@
 mascot svmcv
 ======
-MASCOT is a GPU-based implementation for SVM cross-validation.
+MASCOT is a GPU-based implementation for SVM cross-validation. It also has modula for SVM classification. We will upgrade the software to support SVM regression soon.
 
 The associated paper of this source code is: "MASCOT: Fast and Highly Scalable SVM Cross-validation using GPUs and SSDs" published in ICDM 2014.
 
-Report bugs to: name@domain where name=zeyiw and domain=student.unimelb.edu.au
+Report bugs to: name@domain where name=zeyi.wen and domain=unimelb.edu.au
 
 ---------
 Requirement(s):
@@ -20,7 +20,7 @@ FAQ:
 <b>A</b>: The file format is the same as the format of files in LibSVM site.
 
 3. Does this version support the Windows OS?<br>
-<b>A</b>: No. We will release a new version that supports both Linux and Windows soon, when we finish some basic testing.
+<b>A</b>: No. However, the code should work on Windows OS.
 
 4. Do I have to install an SSD if I want to use MASCOT?<br>
 <b>A</b>: No. MASCOT works fine with HDDs, although SSDs would help improve the efficiency.
@@ -29,8 +29,4 @@ FAQ:
 <b>A</b>: -g is for setting the gamma value; -c is for setting the penalty value of C; -f is to let MASCOT know the data dimensionality (this parameter may be removed in latter version).
 
 6. I got "error while loading shared libraries: libcudart.so.6.0: wrong ELF class: ELFCLASS32", when I run the executable file "mascot".<br>
-<<<<<<< HEAD
 <b>A</b>: Running the command ''sudo ldconfig /usr/local/cuda/lib64'' should resolve the problem..
-=======
-<b>A</b>: Running the command ''sudo ldconfig /usr/local/cuda/lib64'' should resolve the problem
->>>>>>> 6fd81f342c8bac3a8f9dfde65f9e8d9b69350ba8
