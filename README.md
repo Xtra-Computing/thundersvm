@@ -1,6 +1,6 @@
 mascot svmcv
 ======
-MASCOT is a GPU-based implementation for SVM cross-validation. It also has modula for SVM classification. We will upgrade the software to support SVM regression soon.
+MASCOT is a GPU-based implementation for SVM cross-validation. It also has modules for SVM classification. We will upgrade the software to support SVM regression soon.
 
 The associated paper of this source code is: "MASCOT: Fast and Highly Scalable SVM Cross-validation using GPUs and SSDs" published in ICDM 2014.
 
