@@ -29,7 +29,8 @@ struct grid
 /* */
 struct data_info
 {
-	int *pnLabel;					//labels for each training sample
+	float_point *pfSampleData; 		//a pointer to sample data (or index for pre-computed Hessian)
+	float *pnLabel;					//labels for each training sample
 	int nNumofExample;				//the number of training samples
 	int nNumofDim;					//the number of dimensions
 };
@@ -90,8 +91,5 @@ template <class T> static inline T max(T x,T y) { return (x>y)?x:y; }
 #define Ceil(a, b) (a%b!=0)?((a/b)+1):(a/b)
 
 //#define CUDA_KERNEL_DIM(a, b)  <<< a, b >>>
-
-//get the size of free GPU memory in the form of float point
-int GetFreeGPUMem();
 
 #endif /* UTILITY_H_ */

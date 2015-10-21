@@ -14,14 +14,14 @@ CCache::~CCache()
 
 }
 /* *
- /*
  * @brief: initialize caching vector
  */
 void CLRUCache::InitVector(const int &nNumofSamples)
 {
-	LRUEntry lruEntry;
+
 	for(int i = 0; i < nNumofSamples; i++)
 	{
+		LRUEntry lruEntry;
 		lruEntry.m_nLocationInCache = -1;
 		lruEntry.m_nStatus = NEVER;
 		v_LRUContainer.push_back(lruEntry);
@@ -30,23 +30,14 @@ void CLRUCache::InitVector(const int &nNumofSamples)
 }
 
 /*
- * @brief: LRUCache constructor
- */
-/*CLRUCache::CLRUCache(const int &nNumofSamples)
-{
-	//v_LRUContainer.reserve(nNumofSamples);
-	//InitVector(nNumofSamples);
-	m_nNumofSamples = nNumofSamples;
-}*/
-
-/*
  * @brief: initialize cache
  */
 void CLRUCache::InitializeCache(const int &nCacheSize, const int &nNumofSamples)
 {
 	m_nNumofSamples = nNumofSamples;
-	v_LRUContainer.reserve(m_nNumofSamples);
+	v_LRUContainer.reserve(nNumofSamples);
 	InitVector(nNumofSamples);
+//	cout << "size of cache container " << v_LRUContainer.size() << endl;
 }
 
 /*
@@ -75,25 +66,17 @@ int nGlobal = 0;
 bool CLRUCache::GetDataFromCache(const int &nIndex, int &nLocationInCache, bool &bIsCacheFull)
 {
 	nGlobal++;
-	//assert(nIndex > v_LRUContainer.size() && nIndex >= 0);
-	vector<LRUEntry>::iterator itCheckEntry = v_LRUContainer.begin() + nIndex; //Zeyi: check the container
+	assert(nIndex > v_LRUContainer.size() && nIndex >= 0 && bIsCacheFull == false);
+	vector<LRUEntry>::iterator itCheckEntry = v_LRUContainer.begin() + nIndex; //check the container
 	if(itCheckEntry->m_nStatus == CACHED)
-	{ //Zeyi: in cache
+	{//in cache
 		m_nNumofHits++;
-		if(itCheckEntry->itLRUList == LRUList.begin())
-		{
-			nLocationInCache = itCheckEntry->m_nLocationInCache; //Zeyi: assign location
-			bIsCacheFull = false;
-			return true;//cache hits
+		if(itCheckEntry->itLRUList != LRUList.begin())
+		{//put the latest used entry to the front of the list
+			LRUList.erase(itCheckEntry->itLRUList);
+			LRUList.push_front(nIndex);
+			itCheckEntry->itLRUList = LRUList.begin();
 		}
-		//put the latest used entry to the front of the list
-		//cout << LRUList.front() << " back: " << LRUList.back() << endl;
-
-		LRUList.erase(itCheckEntry->itLRUList);
-		LRUList.push_front(nIndex);
-		itCheckEntry->itLRUList = LRUList.begin();
-
-		//cout << LRUList.front() << " back(after): " << LRUList.back() << endl;
 
 		nLocationInCache = itCheckEntry->m_nLocationInCache;
 		bIsCacheFull = false;
@@ -106,16 +89,19 @@ bool CLRUCache::GetDataFromCache(const int &nIndex, int &nLocationInCache, bool 
 		//Cache has empty space
 		m_nCompulsoryMisses++;
 		itCheckEntry->m_nLocationInCache = m_nCacheOccupancy;
+		nLocationInCache = m_nCacheOccupancy;
 		itCheckEntry->m_nStatus = CACHED;
 		LRUList.push_front(nIndex);
 		itCheckEntry->itLRUList = LRUList.begin();
 		m_nCacheOccupancy++;
-		nLocationInCache = itCheckEntry->m_nLocationInCache;
 		bIsCacheFull = false;
+//		cout << "cache list " << LRUList.size() << endl;
 		return false;//cache misses
 	}
 
+	assert(nLocationInCache < m_nCacheSize);
 	//Cache is full
+//	cout << "cache is full; occupancy is " << m_nCacheOccupancy << "; cache size is " << m_nCacheSize << endl;
 	bIsCacheFull = true;
 	return false;
 }
@@ -170,7 +156,8 @@ void CLRUCache::PrintCachingStatistics()
 		 << m_nCompulsoryMisses << " compulsory misses, "
 		 << m_nCapacityMisses << " capacity misses"
 		 << endl;
-	//printf("%d accesses, %d hits, %d compulsory misses, %d capacity misses\n", accesses, m_nNumofHits, m_nCompulsoryMisses, m_nCapacityMisses);
+	cout << "cache size v.s. ins is " << m_nCacheSize << " v.s. " << m_nNumofSamples << endl;
+	cout << "cache occupancy is " << m_nCacheOccupancy << endl;
 	return;
 }
 

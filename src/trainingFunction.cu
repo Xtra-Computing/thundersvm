@@ -49,7 +49,7 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature)
 	SDataInfo.nNumofExample = v_v_DocVector.size();
 	//get labels of data
 	int nSizeofSample = v_nLabel.size();
-	SDataInfo.pnLabel = new int[nSizeofSample];
+	SDataInfo.pnLabel = new float[nSizeofSample];
 
 	for(int l = 0; l < nSizeofSample; l++)
 	{
@@ -71,7 +71,7 @@ void trainingByGPU(vector<vector<float_point> > &v_v_DocVector, data_info &SData
 	float_point pfGamma = param.gamma;
 	CRBFKernel rbf(pfGamma);//ignore
 	CSeqHessianOp ops(&rbf);
-	CGradientStrategy cacheStrategy(SDataInfo.nNumofExample);
+	CLATCache cacheStrategy(SDataInfo.nNumofExample);
 	cout << "using " << cacheStrategy.GetStrategy() << endl;
 	CSMOSolver s(&ops, &cacheStrategy);
 	CSVMTrainer svmTrainer(&s);
@@ -145,7 +145,7 @@ void trainingByGPU(vector<vector<float_point> > &v_v_DocVector, data_info &SData
 	writeOut << "Gamma=" << pfGamma << "; Cost=" << pfCost << endl;
 
 	//copy training information from input parameters
-	int *pnLabelAll = SDataInfo.pnLabel;
+	float *pnLabelAll = SDataInfo.pnLabel;
 	int nTotalNumofSamples = SDataInfo.nNumofExample;
 
 	/* allocate GPU device memory */
@@ -198,7 +198,7 @@ void trainingByGPU(vector<vector<float_point> > &v_v_DocVector, data_info &SData
 	svm_model model;
 	svmTrainer.SetInvolveTrainingData(0, nNumofTrainingSamples - 1, -1, -1);
 	bool bTrain = svmTrainer.TrainModel(model, pfDevYiGValueSubset, pfDevAlphaSubset,
-										pnDevLabelSubset, nNumofTrainingSamples);
+										pnDevLabelSubset, nNumofTrainingSamples, NULL);
 	if (bTrain == false)
 	{
 		cerr << "can't find an optimal classifier" << endl;

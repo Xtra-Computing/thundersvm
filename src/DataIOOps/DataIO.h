@@ -12,9 +12,9 @@
 #include <stdlib.h>
 #include <fstream>
 #include <vector>
-#include "../my_assert.h"
-#include "../constant.h"
-#include "../gpu_global_utility.h"
+#include "my_assert.h"
+#include "constant.h"
+#include "gpu_global_utility.h"
 
 using std::string;
 using std::vector;

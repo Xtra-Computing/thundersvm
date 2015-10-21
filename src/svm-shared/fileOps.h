@@ -47,18 +47,30 @@ public:
 	{
 		//bool bReturn = false;
 
-		//assert(readIn != NULL && pContent != NULL && nNumofElementsToRead > 0 && nIndexof1stElement >= 0);
+		assert(readIn != NULL && pContent != NULL && nNumofElementsToRead > 0 && nIndexof1stElement >= 0);
 		//find the position of this Hessian row
+		fseek(readIn, 0, SEEK_END);
+		assert(ftell(readIn) != 0);
+
 		long long nSeekPos = sizeof(float_point) * nIndexof1stElement;
 		fseek(readIn, nSeekPos, SEEK_SET);
-		//assert(ftell(readIn) != -1);
+//		cout << ftell(readIn) << endl;
+		assert(ftell(readIn) != -1);
 
 		int nNumofRead = fread(pContent, sizeof(float_point), nNumofElementsToRead, readIn);
-		//assert(nNumofRead > 0);
+
+//		cout << ftell(readIn) << endl;
+//		assert(nNumofRead > 0);
+//		cout << "the number of kernel values read " << nNumofRead << endl;
+		if(ferror(readIn) == true)
+		{
+			cout  << "read kernel values from file error" << endl;
+		}
 
 		//clean eof bit, when pointer reaches end of file
 		if(feof(readIn))
 		{
+//			cout << "end of file is reached" << endl;
 			rewind(readIn);
 		}
 	}

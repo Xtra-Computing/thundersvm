@@ -3,8 +3,7 @@
 #include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 
-/* *
- /*
+/*
  * @brief: write a few Hessian rows to file at one time
  * @return: a set of starting positions for Hessian rows in file
  */

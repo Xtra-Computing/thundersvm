@@ -30,9 +30,9 @@ public:
 
 	virtual bool GetHessianDiag(const string &strFileName, const int &nNumofTrainingSamples, float_point *pfHessianDiag) = 0;
 
-	virtual bool ComputeHessianRows(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows,
-										float_point *pfDevSelfDot, const int &nNumofCols, const int &nNumofDim,
-										const int &nNumofRows, int nStartRow, int nStartCol) = 0;
+	virtual bool ComputeHessianRows(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows, float_point *pfDevSelfDot,
+									const int &nNumofSamples, const int &nNumofDim,
+									const int &nNumofRows, int nStartRow, int nStartCol) = 0;
 
 	virtual string GetType() = 0;
 
@@ -82,7 +82,7 @@ class CRBFKernel: public CKernelCalculater
 public:
 	float_point m_fGamma;
 public:
-	CRBFKernel(float_point fGamma){m_fGamma = fGamma;}
+	CRBFKernel(float_point fGamma){m_fGamma = fGamma; cout << "gamma is: " << fGamma << endl;}
 	~CRBFKernel(){}
 	void SetGamma(float_point fGamma){m_fGamma = fGamma;}
 
@@ -91,16 +91,11 @@ public:
 	virtual bool GetHessianDiag(const string &strFileName, const int &nNumofTrainingSamples, float_point *pfHessianDiag);
 
 	virtual bool ComputeHessianRows(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows,
-									const int &nNumofSamples, const int &nNumofDim,
-									const int &nNumofRows, const int &nStartRow);
-
-	virtual bool ComputeHessianRows(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows,
-										float_point *pfDevSelfDot, const int &nNumofCols, const int &nNumofDim,
-										const int &nNumofRows, int nStartRow, int nStartCol);
+									float_point *pfDevSelfDot, const int &nNumofCols, const int &nNumofDim,
+									const int &nNumofRows, int nStartRow, int nStartCol);
 	bool ComputeHessianMatrix(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevSelfDot,
-								  float_point *pfDevHessianRows, const int &nNumofSamples,const int &nDim,
-								  const int &nNumofRows, int nStartRow, int nStartCol);
-
+							  float_point *pfDevHessianRows, const int &nNumofSamples,const int &nDim,
+							  const int &nNumofRows, int nStartRow, int nStartCol);
 	bool ComputeHessianRowsByCPU(float_point *pfSamples, float_point *pfHessianRows,
 								 const int &nNumofSamples, const int &nNumofDim,
 								 const int &nStartRow);
@@ -123,6 +118,8 @@ public:
 	virtual bool ComputeHessianRows(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows,
 									const int &nNumofSamples, const int &nNumofDim,
 									const int &nNumofRows, const int &nStartRow);
+private:
+	using CKernelCalculater::ComputeHessianRows;
 };
 
 /*
@@ -144,6 +141,8 @@ public:
 	virtual bool ComputeHessianRows(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows,
 										const int &nNumofSamples, const int &nNumofDim,
 										const int &nNumofRows, const int &nStartRow);
+private:
+	using CKernelCalculater::ComputeHessianRows;
 };
 
 /*
@@ -164,6 +163,8 @@ public:
 	virtual bool ComputeHessianRows(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows,
 											const int &nNumofSamples, const int &nNumofDim,
 											const int &nNumofRows, const int &nStartRow);
+private:
+	using CKernelCalculater::ComputeHessianRows;
 };
 
 

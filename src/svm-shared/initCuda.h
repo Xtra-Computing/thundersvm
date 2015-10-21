@@ -8,6 +8,6 @@
 #ifndef INITCUDA_H_
 #define INITCUDA_H_
 
-bool InitCUDA();
+bool InitCUDA(char);
 
 #endif /* INITCUDA_H_ */

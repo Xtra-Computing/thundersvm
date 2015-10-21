@@ -35,8 +35,9 @@ __device__ void RBFOneRow(float_point *pfDevSamples, float_point *pfDevTransSamp
 __global__ void RBFKernel(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows,
 						  int nNumofSamples, int nNumofDim, int nNumofRows, int nStartRow, float_point fGamma);
 
-__global__ void ObtainRBFKernel(float_point *pfDevHessianRows, float_point *pfDevSelfDot, int nNumofSamples,
+__global__ void ObtainRBFKernel(float_point *pfDevHessianRows,float_point *selfDot, int nNumofSamples,
 								int nNumofRows, float_point fGamma, int nStartRow, int nStartCol);
+__global__ void UpdateDiag(float_point *pfDevHessianRows, int nNumofSamples, int nNumofRows);
 
 /****************** Linear Kernel ********************************/
 /*

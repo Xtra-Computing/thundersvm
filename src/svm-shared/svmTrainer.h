@@ -12,7 +12,6 @@
 
 #include "gpu_global_utility.h"
 #include "kernelCalculater/kernelCalculater.h"
-#include "DataIOOps/DataIO.h"
 #include "constant.h"
 #include "smoSolver.h"
 
@@ -24,6 +23,9 @@ extern long nTimeOfSelect2ndSample;
 extern long nTimeOfUpdateYiFValue;
 extern long nTimeOfLoop;
 extern long nTimeOfPrep;
+extern double dAverageLenS1;
+extern double dAverageLenS2;
+extern long nNumofCallSearch;
 
 extern long nTimeofGetHessian;
 
@@ -44,7 +46,13 @@ public:
 
 	//train SVM model
 	bool TrainModel(svm_model&, float_point *pfDevYiFValueSubset,
-					float_point *pfDevAlphaSubset, int *pnDevLabelSubset, int);
+					float_point *pfDevAlphaSubset, int *pnDevLabelSubset, int, float_point*);
+
+	void TrainStarting(int nNumofInstance, int nNumofTrainingExample,
+					   float_point *pfDevYiFValueSubset, float_point *pfDevAlphaSubset, int *pnDevLabelSubset);
+	void TrainEnding(int nIter, int nNumofTrainingExample, int nNumofInstance, svm_model &model,
+			  	  	 int *pnDevLabelSubset, float_point *pfDevAlphaSubset, float_point *pfDevYiFValueSubset,
+			  	  	 float_point *pfP);
 
 	//set size of data participate in training
 	bool SetInvolveTrainingData(int nStart1, int nEnd1, int nStart2, int nEnd2);

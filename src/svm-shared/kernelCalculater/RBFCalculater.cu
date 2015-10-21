@@ -1,6 +1,10 @@
 #include "kernelCalculater.h"
 #include "../my_assert.h"
 #include "cublas.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <helper_cuda.h>
+#include <sys/time.h>
 
 /* *
  /*
@@ -14,36 +18,6 @@ bool CRBFKernel::GetHessianDiag(const string &strFileName, const int &nNumofTrai
 	{
 		//the value of diagonal of RBF kernel is always 1
 		pfHessianDiag[i] = 1.0;
-	}
-
-	return bReturn;
-}
-
-/*
- * @brief: compute a certain # of rows of the Hessian Matrix by RBF function
- * @param: pfDevSamples: a device pointer to the whole samples. These samples indicate which rows are computed in this round
- * @param: pfDevTransSamples: a device pointer to the whole samples with transposition
- * @param: pfdevHessianRows: a device pointer to a certain # of Hessian Matrix rows to be computed
- * @param: nNumofRows:
- */
-bool CRBFKernel::ComputeHessianRows(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows,
-									const int &nNumofSamples, const int &nNumofDim,
-									const int &nNumofRows, const int &nStartRow)
-{
-	bool bReturn = true;
-
-	int nBlockSize = 0;
-	dim3 dimGrid;
-	GetGPUSpec(dimGrid, nBlockSize, nNumofSamples, nNumofRows);
-	assert(nBlockSize >= 0);
-//	cout << "gamma=" << m_fGamma << endl;
-	RBFKernel<<<dimGrid, nBlockSize, nBlockSize * sizeof(float_point)>>>(pfDevSamples,
-			pfDevTransSamples, pfDevHessianRows, nNumofSamples, nNumofDim, nNumofRows, nStartRow, m_fGamma);
-	cudaDeviceSynchronize();
-	if(cudaGetLastError() != cudaSuccess)
-	{
-		cerr << "cuda error in ComputeHessianRows" << endl;
-		bReturn = false;
 	}
 
 	return bReturn;

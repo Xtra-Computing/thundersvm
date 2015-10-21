@@ -3,8 +3,9 @@
 #include "svmTrainer.h"
 #include "HessianIO/hessianIO.h"
 #include "HessianIO/parHessianIO.h"
+#include "HessianIO/seqHessianIO.h"
 #include <helper_cuda.h>
-#include <sys/sysinfo.h>
+#include "storageManager.h"
 
 /**
  * @brief: search the best pair of parameters
@@ -20,20 +21,18 @@ bool CModelSelector::GridSearch(const grid &SGrid, vector<vector<float_point> > 
 
 	int nNumofSample = v_vDocVector.size();
 	int *pnPredictedLabel = new int[nNumofSample];
-	svm_param param;
 	int nNumofFold = 10;//10 means 10-fold cross
 
 
 	CHessianIOOps::m_nTotalNumofInstance = v_vDocVector.size();
-	CGradientStrategy cacheStrategy(v_vDocVector.size());
+	CLATCache cacheStrategy(v_vDocVector.size());
 	cout << "using " << cacheStrategy.GetStrategy() << " caching strategy"<< endl;
 
 	for(int j = 0; j < nNumofGamma; j++)
 	{
-		param.gamma = pfGamma[j];
 
 		CRBFKernel rbf(pfGamma[j]);//ignore
-		CParHessianOp hessianIOOps(&rbf);
+		CSeqHessianOp hessianIOOps(&rbf);
 		CSVMPredictor svmPredicter(&hessianIOOps);
 
 		PrecomputeKernelMatrix(v_vDocVector, &hessianIOOps);
@@ -42,7 +41,6 @@ bool CModelSelector::GridSearch(const grid &SGrid, vector<vector<float_point> > 
 		for(int k = 0; k < nNumofC; k++)
 		{
 			CSMOSolver s(&hessianIOOps, &cacheStrategy);
-			s.m_fPC = s.m_fNC = pfCost[k];
 
 			CSVMTrainer svmTrainer(&s);
 			m_pTrainer = &svmTrainer;
@@ -100,31 +98,9 @@ void CModelSelector::PrecomputeKernelMatrix(vector<vector<float_point> > &v_vDoc
 	CHessianIOOps::m_nNumofDimensions = v_vDocVector.front().size();
 	CHessianIOOps::m_nTotalNumofInstance = nNumofRowsOfHessianMatrix;
 
-	//cache part of hessian matrix in memory
-	struct sysinfo info;
-	sysinfo(&info);
-	long long nFreeMemInFloat = (info.freeram / sizeof(float_point));
-	//memory for storing sample data, both original and transposed forms. That's why we use "2" here.
-	long long nMemForSamples = (hessianIOOps->m_nNumofDimensions * (long long)hessianIOOps->m_nTotalNumofInstance * 2);
-	nFreeMemInFloat -= nMemForSamples;	//get the number of available memory in the form of number of float
-	nFreeMemInFloat *= 0.9;				//use 80% of the memory for caching
-	long nNumofHessianRow = (nFreeMemInFloat / nNumofSample);
-	assert(nFreeMemInFloat > 0);
-	if(nNumofHessianRow > nNumofSample)
-	{
-		//if the available memory is available to store the whole hessian matrix
-		nNumofHessianRow = nNumofSample;
-	}
-//			if(nNumofHessianRow > 21500)nNumofHessianRow = 21500;
-//			assert(nNumofHessianRow == 21500);
-/*	long nRAMForRow = RAM_SIZE * 1024;
-	nRAMForRow *= 1024;
-	nRAMForRow *= 1024;
-	nRAMForRow /= sizeof(float_point);
-	nNumofHessianRow = (nRAMForRow / nNumofSample);
-*/
-	if(nNumofHessianRow > nNumofSample)
-		nNumofHessianRow = nNumofSample;
+	StorageManager manager;
+	int nNumofHessianRow = manager.RowInRAM(CHessianIOOps::m_nNumofDimensions, CHessianIOOps::m_nTotalNumofInstance, nNumofSample);
+
 	cout << nNumofHessianRow << " rows cached in RAM" << endl;
 	long lSizeofCachedHessia = sizeof(float_point) * (long long)nNumofHessianRow * nNumofSample;
 	checkCudaErrors(cudaMallocHost((void**)&CHessianIOOps::m_pfHessianRowsInHostMem, sizeof(float_point) * (long long)nNumofHessianRow * nNumofSample));
@@ -316,7 +292,7 @@ bool CModelSelector::CrossValidation(const int &nFold, vector<int> &vnLabel, int
 
 		svm_model model;
 		m_pTrainer->SetInvolveTrainingData(nSampleStart1, nSampleEnd1, nSampleStart2, nSampleEnd2);
-		bool bTrain = m_pTrainer->TrainModel(model, pfDevYiGValueSubset, pfDevAlphaSubset, pnDevLabelSubset, nNumofTrainingSamples);
+		bool bTrain = m_pTrainer->TrainModel(model, pfDevYiGValueSubset, pfDevAlphaSubset, pnDevLabelSubset, nNumofTrainingSamples, NULL);
 		if(bTrain == false)
 		{
 			cerr << "can't find an optimal classifier" << endl;

@@ -73,9 +73,9 @@ __device__ void RBFOneRow(float_point *pfDevSamples, float_point *pfDevTransSamp
 		fKernelValue = fKernelValue * fGamma;
 		fKernelValue = -fKernelValue; //Gaussian kernel use "-gamma"
 		if(sizeof(float_point) == sizeof(double))
-			fKernelValue = expf(fKernelValue);
+			fKernelValue = exp(fKernelValue);
 		else
-			fKernelValue = __expf(fKernelValue);
+			fKernelValue = expf(fKernelValue);
 
 		pfDevHessianRows[nGlobalIndex] = fKernelValue;
 	}
@@ -127,5 +127,20 @@ __global__ void ObtainRBFKernel(float_point *pfDevHessianRows, float_point *pfDe
 		//	printf("%f, %f, %f, %f, %d\n", pfDevSelfDot[nCol], pfDevSelfDot[nRow], pfDevHessianRows[nGlobalIndex], fKernelValue, nGlobalIndex);
 
 		pfDevHessianRows[nGlobalIndex] = fKernelValue;
+	}
+}
+
+//a few blocks compute one row of the Hessian matrix. The # of threads involved in a row is equal to the # of samples
+//one thread an element of the row
+//the # of thread is equal to the # of dimensions or the available size of shared memory
+__global__ void UpdateDiag(float_point *pfDevHessianRows, int nNumofSamples, int nNumofRows)
+{
+	int nGlobalIndex = (blockIdx.y * gridDim.x + blockIdx.x) * blockDim.x + threadIdx.x;//global index for thread
+	if(nGlobalIndex < nNumofSamples * nNumofRows)
+	{
+		int nRow = nGlobalIndex / nNumofSamples;
+		int nCol = nGlobalIndex % nNumofSamples;
+		if(nRow == nCol)
+			pfDevHessianRows[nGlobalIndex] = 1;
 	}
 }

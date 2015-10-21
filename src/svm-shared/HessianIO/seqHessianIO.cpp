@@ -73,7 +73,7 @@ bool CSeqHessianOp::ReadHessianRow(FILE *&readIn, const int &nIndexofRow, float_
 
 	//compute the index of row in the hessian file
 	int nRowIndexInFile = nIndexofRow - m_nNumofCachedHessianRow;
-	assert(nRowIndexInFile >= 0);
+//	assert(nRowIndexInFile >= 0);
 
 	long long nIndexofFirstElement;
 	int nSizeofFirstPart = 0;
@@ -99,11 +99,6 @@ bool CSeqHessianOp::ReadHessianRow(FILE *&readIn, const int &nIndexofRow, float_
 		{
 			cout << "hi" << endl;
 		}
-	}*/
-	//check valid read
-	/*if(nSizeofSecondPart + nSizeofFirstPart != nNumofInvolveElements)
-	{
-		cerr << "warning: reading hessian rows has potential error" << endl;
 	}*/
 
 /*	clock_gettime(CLOCK_REALTIME, &time2);

@@ -27,9 +27,9 @@ using std::ios;
  */
 CParHessianOp::CParHessianOp(CKernelCalculater *pCalculater): CHessianIOOps(pCalculater)
 {
-	m_nNumofThread = gnNumofThread;//4;
+	m_nNumofThread = 8;//4;
 	m_nValueSize = 4;
-	m_nPageSize = 1024*16;
+	m_nPageSize = 1024*24;
 	m_nBlockSize = 5;//8;
 	m_nOffset = 8 * 1024;
 	m_isFirst = true;
@@ -184,7 +184,7 @@ bool CParHessianOp::ReadHessianRow(FILE *&readIn, const int &nHessianIndexofRow,
 		for(int t = 0; t < m_nNumofThread; t++)
 		{
 			m_pThreadArg[t].nRowId = nSSDRowIndex;
-			m_pThreadArg[t].pfHessianRow = pfHessianFullRow;
+			m_pThreadArg[t].pfHessianRow = pfHessianRow;
 			pthread_create(&m_pFileReader[t], NULL, ReadRow, (void*)&m_pThreadArg[t]);
 		}
 		for(int t = 0; t < m_nNumofThread; t++)
@@ -201,7 +201,6 @@ bool CParHessianOp::ReadHessianRow(FILE *&readIn, const int &nHessianIndexofRow,
 		if(m_nRowStartPos2 != -1)
 			memcpy(pfHessianRow + nSizeofFirstPart, pfHessianFullRow + m_nRowStartPos2, nSizeofSecondPart * sizeof(float_point));
 
-//		cout << "read" << endl;
 		//////
 		/*for(int i = 0; i < m_nPagesForARow; i++)
 		{

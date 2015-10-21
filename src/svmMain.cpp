@@ -16,7 +16,7 @@
 
 int main(int argc, char **argv)
 {
-/*	argc = 8;
+	argc = 8;
 	argv = new char*[argc];
 	argv[1] = "-g";
 	argv[2] = "0.382";
@@ -25,13 +25,13 @@ int main(int argc, char **argv)
 	argv[5] = "-f";
 	argv[6] = "123";
 	argv[argc - 1] = "dataset/a9a.txt";
-*/
+/**/
 	char fileName[1024];
 	char savedFileName[1024];
 	Parser parser;
 	parser.ParseLine(argc, argv, fileName, savedFileName);
 
-	if(!InitCUDA())
+	if(!InitCUDA('T'))
 	{
 		return 0;
 	}

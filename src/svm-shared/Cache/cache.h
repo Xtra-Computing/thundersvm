@@ -46,11 +46,13 @@ enum
 class CCache
 {
 public:
-	int m_nCacheOccupancy;
-	int m_nNumofHits;
 	int m_nCompulsoryMisses;
 	int m_nCapacityMisses;
 	int m_nCacheSize;
+
+protected:
+	int m_nNumofHits;
+	int m_nCacheOccupancy;
 	int m_nNumofSamples;
 
 public:
@@ -74,7 +76,7 @@ public:
 			 << m_nCompulsoryMisses << " compulsory misses, "
 			 << m_nCapacityMisses << " capacity misses"
 			 << endl;
-		//printf("%d accesses, %d hits, %d compulsory misses, %d capacity misses\n", accesses, m_nNumofHits, m_nCompulsoryMisses, m_nCapacityMisses);
+		cout << "cache size v.s. ins is " << m_nCacheSize << " v.s. " << m_nNumofSamples << endl;
 /*		ofstream writeOut("cache.txt", ios::app);
 		writeOut << GetStrategy() << "hits:\t" << m_nNumofHits
 				 << "\t accesses:\t" << accesses << endl;
@@ -153,6 +155,7 @@ protected:
 		LRUEntry()
 		{
 			m_nStatus = NEVER;
+			m_nLocationInCache = -1;
 		}
 		int m_nStatus;
 		int m_nLocationInCache;
@@ -216,11 +219,11 @@ extern int nInterater;
  */
 extern long lCountLatest;
 extern long lCountNormal;
-class CGradientStrategy: public CCache
+class CLATCache: public CCache
 {
 public:
-	CGradientStrategy(const int&);
-	~CGradientStrategy(){m_GSContainer.clear();}
+	CLATCache(const int&);
+	~CLATCache(){m_GSContainer.clear();}
 
 	virtual void InitializeCache(const int &nCacheSize, const int &nNumofSamples);
 	virtual void CleanCache();

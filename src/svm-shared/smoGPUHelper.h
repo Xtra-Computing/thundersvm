@@ -9,12 +9,10 @@
 #define WORKINGSETGPUHELPER_H_
 
 //GPU header files
-#include <cuda_runtime.h>
-#include "gpu_global_utility.h"
-#include <iostream>
-#include <cstdio>
+#include <helper_cuda.h>
+
 #include "constant.h"
-//#include "devUtility.h"
+#include "gpu_global_utility.h"
 
 //device function for CPairSelector
 
@@ -82,6 +80,7 @@ __global__ void UpdateYiFValueKernel(float_point *pfAlpha, float_point *pDevBuff
  */
 __global__ void GetBigBlockMinYiGValue(float_point *pfYiFValue, float_point *pfAlpha, int *pnLabel, float_point fPCost,
 									int nNumofTraingSamples, float_point *pfBlockMin, int *pnBlockMinGlobalKey);
+
 /*
  * @brief: for selecting the second sample to optimize
  * @param: pfYiFValue: the gradient of data samples
@@ -96,7 +95,7 @@ __global__ void GetBigBlockMinYiGValue(float_point *pfYiFValue, float_point *pfA
  * @param: pfBlockMinYiFValue: the block minimum gradient (the output of this kernel. for convergence check)
  */
 __global__ void GetBigBlockMinLowValue(float_point *pfYiFValue, float_point *pfAlpha, int *pnLabel, float_point fNCost,
-									int nNumofTrainingSamples, float_point *pfDiagHessian, float_point *pfHessianRow,
+									int nNumofTrainingSamples, int nNumofInstance, float_point *pfDiagHessian, float_point *pfHessianRow,
 									float_point fMinusYiUpValue, float_point fUpValueKernel, float_point *pfBlockMin,
 									int *pnBlockMinGlobalKey, float_point *pfBlockMinYiFValue);
 

@@ -13,6 +13,7 @@
 #include "../gpu_global_utility.h"
 #include "../constant.h"
 #include "cublas.h"
+#include "storageManager.h"
 
 using std::endl;
 //initialize the static variables for Hessian Operator
@@ -416,8 +417,9 @@ bool CHessianIOOps::ComputeSubHessianMatrix(float_point *pfDevTotalSamples, floa
 	}
 
 	//compute a few rows of Hessian matrix
-	int nHessianRowsSpace = nSubMatrixRow * nSubMatrixCol;
-	checkCudaErrors(cudaMemset(pfDevNumofHessianRows, 0, sizeof(float_point) * nHessianRowsSpace));
+	long long nHessianRowsSpace = nSubMatrixRow * (long long)nSubMatrixCol;
+	long long nHessianRowSpaceInByte = sizeof(float_point) * nHessianRowsSpace;
+	checkCudaErrors(cudaMemset(pfDevNumofHessianRows, 0, nHessianRowSpaceInByte));
 
 	timeval t1, t2;
 	float_point elapsedTime;
@@ -533,46 +535,15 @@ bool CHessianIOOps::WriteHessian(const string &strHessianMatrixFileName,
 	}
 
 	//compute the minimum number of sub matrices that are required to calculate the whole Hessian matrix
-	int nMaxNumofFloatPoint = GetFreeGPUMem();
-	int nMaxNumofAllowedSampleInGPU = ((nMaxNumofFloatPoint / (2 * m_nNumofDimensions)));//2 is for two copies of samples, original and transposed samples
-//nMaxNumofAllowedSampleInGPU *= 0.8;	//use 80% of the available memory on GPU
-	//compute the number of partitions in column
-	int nNumofPartForARow = Ceil(m_nTotalNumofInstance, nMaxNumofAllowedSampleInGPU);
-	if(nNumofPartForARow > 1)//if all the samples cannot fit into the GPU memory
-		nNumofPartForARow = Ceil(nNumofPartForARow, 2);	//divided by 2 because in the extreme case, the row and column share 0 samples.
-	//compute the number of partitions in row
-nNumofPartForARow = 3;
-	//in the worst case, the number of column equals to the number of row
-	int nNumofPartForACol = nNumofPartForARow;//divide the matrix into sub matrices. default is the same for row and col
-	if(nNumofPartForARow == 1)//can compute a hessian row once
-	{//check the maximum number of rows for each computation
-		//how many we can compute based on GPU memory constrain
-		long nNumofFloatARow = m_nTotalNumofInstance * sizeof(float_point) / nNumofPartForARow;//space for a row
-		long lRemainingNumofFloat = nMaxNumofFloatPoint - ((m_nTotalNumofInstance / nNumofPartForARow) * m_nNumofDimensions);
+	StorageManager *manager = StorageManager::getManager();
+	int nNumofPartForARow = manager->PartOfRow(m_nTotalNumofInstance,m_nNumofDimensions);
+	int nNumofPartForACol = manager->PartOfCol(nNumofPartForARow, m_nTotalNumofInstance, m_nNumofDimensions);
 
-		long nMaxNumofHessianSubRow = lRemainingNumofFloat / nNumofFloatARow;
-		//nMaxNumofHessianSubRow *= 0.8; //use 80% of the available memory on GPU
-		if(nMaxNumofHessianSubRow < 0)
-		{
-			nMaxNumofHessianSubRow = nNumofPartForACol;
-		}
-
-		//how many we can compute based on RAM constrain
-		struct sysinfo info;
-		sysinfo(&info);
-		long nNumofFloatPoint = info.freeram / sizeof(float_point);
-		long nNumofHessianSubRowCPU = nNumofFloatPoint / nNumofFloatARow;
-
-		nMaxNumofHessianSubRow = (nNumofHessianSubRowCPU < nMaxNumofHessianSubRow ? nNumofHessianSubRowCPU : nMaxNumofHessianSubRow);
-		nNumofPartForACol = Ceil(m_nTotalNumofInstance, nMaxNumofHessianSubRow);
-
-	}
-//nNumofPartForACol = 500;
-
-//	cout << nNumofPartForARow << " parts of row; " << nNumofPartForACol << " parts of col." << endl;
+	cout << nNumofPartForARow << " parts of row; " << nNumofPartForACol << " parts of col.";
+	cout.flush();
 
 	/*********** process the whole matrix at once *****************/
-	if(nNumofPartForARow == 1 && nNumofPartForACol == 1)
+	if(nNumofPartForARow == nNumofPartForACol && nNumofPartForACol == 1)
 	{
 		ComputeHessianAtOnce(pfTotalSamples, pfTransSamples, pfSelfDot);
 
@@ -584,10 +555,15 @@ nNumofPartForARow = 3;
 
 	//open file to write. When the file is open, the content is empty
 
-//1/4
-	FILE *writeOut;
+//If the kernel matrix has been computed, you can use 1/4 to 4/4 to save some computation
+//1/5
+FILE *writeOut;
 writeOut = fopen(strHessianMatrixFileName.c_str(), "wb");
-assert(writeOut != NULL);
+if(writeOut == NULL)
+{
+	cout << "open " << strHessianMatrixFileName << " failed" << endl;
+	exit(0);
+}
 /**/
 	//length for sub row
 	int *pLenofEachSubRow = new int[nNumofPartForARow];
@@ -653,8 +629,8 @@ assert(writeOut != NULL);
 				nSubMatrixCol = nAveLenofSubRow;
 
 //			cout << "row= " << nSubMatrixRow << " col= " << nSubMatrixCol << endl;
-			cout << ".";
-			cout.flush();
+//			cout << ".";
+//			cout.flush();
 			//allocate memory for this sub matrix
 			long int nHessianSubMatrixSpace = nSubMatrixRow * nSubMatrixCol;
 			memset(pfSubMatrix, 0, sizeof(float_point) * nHessianSubMatrixSpace);
@@ -708,10 +684,11 @@ assert(writeOut != NULL);
 			float_point elapsedWritingTime;
 			gettimeofday(&t3, NULL);
 			long lColStartPos = jPartofRow * nAveLenofSubRow;
-			//copy the host memory
-			if((iPartofCol * nAveLenofSubCol + nSubMatrixRow) <= m_nNumofCachedHessianRow)//the sub matrix should be stored in RAM
+
+			//the sub matrix should be stored in RAM
+			if((iPartofCol * nAveLenofSubCol + nSubMatrixRow) <= m_nNumofCachedHessianRow)
 			{
-				//cout << "copying to host " << lColStartPos << endl;
+//				cout << "copying to host " << lColStartPos << endl;
 				for(int k = 0; k < nSubMatrixRow; k++)
 				{
 					long long lPosInHessian =  (long long)(iPartofCol * nAveLenofSubCol + k) * m_nTotalNumofInstance + lColStartPos;
@@ -734,7 +711,7 @@ assert(writeOut != NULL);
 						memcpy(m_pfHessianRowsInHostMem + lPosInHessian, pfSubMatrix + lPosInSubMatrix, sizeof(float_point) * nSubMatrixCol);
 					}
 				}
-//2/4
+//2/5
 /*delete[] pfSubMatrix;
 delete[] pfTransSamplesForAColInSubMatrix;
 delete[] pLenofEachSubRow;
@@ -750,7 +727,7 @@ checkCudaErrors(cudaFree(pfDevSelfDot));
 return true;
 */
 				int nNumofRowsToWrite = nSubMatrixRow - nNumofRowsStoredInHost;
-				//cout << "writing " << nNumofRowsToWrite << " Hessian sub rows" << endl;
+//				cout << "writing " << nNumofRowsToWrite << " Hessian sub rows" << endl;
 				//the results of this function are: 1. write rows to file; 2. return the index of (start pos of) the rows
 				long long lUnstoredStartPos =  (long long)nNumofRowsStoredInHost * nSubMatrixCol;
 				//hessian sub matrix info
@@ -763,7 +740,7 @@ return true;
 				assert(subMatrix.nRowIndex >= 0);
 
 				subMatrix.nRowSize = nNumofRowsToWrite;
-//3/4
+//3/5
 //bool bWriteRows = true;
 bool bWriteRows = WriteHessianRows(writeOut, pfSubMatrix + lUnstoredStartPos, subMatrix);
 
@@ -778,11 +755,11 @@ bool bWriteRows = WriteHessianRows(writeOut, pfSubMatrix + lUnstoredStartPos, su
 				elapsedWritingTime += (t4.tv_usec - t3.tv_usec) / 1000.0;
 				//cout << "storing time " << elapsedWritingTime << " ms.\n";
 			}//end store sub matrix to file
-			//cout << "one sub matrix stored" << endl;
-
-		}//for each part of a row
-	}//for each part of a column
-
+//			cout << "one sub matrix stored" << endl;
+		}
+		cout << ".";
+		cout.flush();
+	}
 	delete[] pfSubMatrix;
 	delete[] pfTransSamplesForAColInSubMatrix;
 
@@ -797,8 +774,8 @@ bool bWriteRows = WriteHessianRows(writeOut, pfSubMatrix + lUnstoredStartPos, su
 	checkCudaErrors(cudaFree(pfDevTransSamples));
 	checkCudaErrors(cudaFree(pfDevNumofHessianRows));
 	checkCudaErrors(cudaFree(pfDevSelfDot));
-//4/4
+//4/5
 fclose(writeOut);
-
+//5/5 is in smoSolver.h
 	return bReturn;
 }

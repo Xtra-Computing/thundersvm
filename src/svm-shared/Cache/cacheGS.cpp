@@ -15,7 +15,7 @@ using std::make_pair;
 /**
  * @brief: CGradientStrategy constructor
  */
-CGradientStrategy::CGradientStrategy(const int &nNumofSamples):CCache()
+CLATCache::CLATCache(const int &nNumofSamples):CCache()
 {
 	m_nNumofSamples = nNumofSamples;
 	m_nReplaceCandidate1 = -1;
@@ -29,10 +29,9 @@ CGradientStrategy::CGradientStrategy(const int &nNumofSamples):CCache()
 }
 
 /* *
- /*
  * @brief: initialise caching map
  */
-void CGradientStrategy::InitMap(const int &nNumofSamples)
+void CLATCache::InitMap(const int &nNumofSamples)
 {
 	GSEntry hlruEntry;
 	for(int i = 0; i < nNumofSamples; i++)
@@ -45,7 +44,7 @@ void CGradientStrategy::InitMap(const int &nNumofSamples)
 /*
  * @brief: initialise cache
  */
-void CGradientStrategy::InitializeCache(const int &nCacheSize, const int &nNumofSamples)
+void CLATCache::InitializeCache(const int &nCacheSize, const int &nNumofSamples)
 {
 	m_nNumofSamples = nNumofSamples;
 	InitMap(nNumofSamples);
@@ -54,7 +53,7 @@ void CGradientStrategy::InitializeCache(const int &nCacheSize, const int &nNumof
 /*
  * @brief: clean cache
  */
-void CGradientStrategy::CleanCache()
+void CLATCache::CleanCache()
 {
 	m_GSContainer.clear();
 	m_setGS.clear();
@@ -68,7 +67,7 @@ void CGradientStrategy::CleanCache()
  * @bIsCacheFull: variable for checking whether the cache is full
  * @return: true if cache hits, otherwise return false
  */
-bool CGradientStrategy::GetDataFromCache(const int &nIndex, int &nLocationInCache, bool &bIsCacheFull)
+bool CLATCache::GetDataFromCache(const int &nIndex, int &nLocationInCache, bool &bIsCacheFull)
 {
 	nGlobal++;
 	assert(nIndex < m_GSContainer.size() && nIndex >= 0 && m_GSContainer.size() == m_nNumofSamples);
@@ -122,7 +121,7 @@ bool CGradientStrategy::GetDataFromCache(const int &nIndex, int &nLocationInCach
 /*
  * @brief: replace expired sample
  */
-void CGradientStrategy::ReplaceExpired(int nIndex, int &nLocationInCache, float_point *pGradient)
+void CLATCache::ReplaceExpired(int nIndex, int &nLocationInCache, float_point *pGradient)
 {
 	m_nMissCount++;
 	vector<GSEntry>::iterator itCheckEntry = m_GSContainer.begin() + nIndex; //check if the entry is cached in the container
@@ -169,7 +168,7 @@ void CGradientStrategy::ReplaceExpired(int nIndex, int &nLocationInCache, float_
 int nCount = 0;
 long lCountLatest = 0;
 long lCountNormal = 0;
-int CGradientStrategy::GetExpiredSample2(float_point *pGradient, int nIndex)
+int CLATCache::GetExpiredSample2(float_point *pGradient, int nIndex)
 {
 	//return *(m_setGS.rbegin());
 	int nExpiredSample = -1;
@@ -289,7 +288,7 @@ int CGradientStrategy::GetExpiredSample2(float_point *pGradient, int nIndex)
 	return nExpiredSample;
 }
 
-int CGradientStrategy::GetExpiredSample(float_point *pGradient, int nIndex)
+int CLATCache::GetExpiredSample(float_point *pGradient, int nIndex)
 {
 	/*if(m_nCapacityMisses == 120995 || m_nMissCount > (m_nNumofSamples / m_nCacheSize))
 	{
@@ -354,7 +353,7 @@ int CGradientStrategy::GetExpiredSample(float_point *pGradient, int nIndex)
 	return nExpiredSample;
 }
 
-int CGradientStrategy::GetExpiredSample3(float_point *pGradient, int nIndex)
+int CLATCache::GetExpiredSample3(float_point *pGradient, int nIndex)
 {
 	set<int>::reverse_iterator itSet = m_setGS.rbegin();
 	if(*itSet == m_nIndexOfTop3)
@@ -367,7 +366,7 @@ int CGradientStrategy::GetExpiredSample3(float_point *pGradient, int nIndex)
 	if(m_nTop3rdStableCount > (m_nNumofSamples / m_nCacheSize))
 	{
 		m_nMissCount = 0;
-		int nExpiredSample = -1;
+//		int nExpiredSample = -1;
 		//cache replacement indicators
 		float_point fIupMax = pGradient[m_nReplaceCandidate1];
 		float_point fIlowMin = pGradient[m_nReplaceCandidate2];
@@ -437,7 +436,7 @@ int CGradientStrategy::GetExpiredSample3(float_point *pGradient, int nIndex)
 /*
  * @brief: update group
  */
-bool CGradientStrategy::UpdateGroup(float_point fAlpha, int nLabel, float_point fCost, int nIndexofSample)
+bool CLATCache::UpdateGroup(float_point fAlpha, int nLabel, float_point fCost, int nIndexofSample)
 {
 	if((fAlpha < fCost && nLabel > 0) || (fAlpha > 0 && nLabel < 0))
 	{
@@ -479,7 +478,7 @@ bool CGradientStrategy::UpdateGroup(float_point fAlpha, int nLabel, float_point 
  * @brief: lock an cached entry
  * @param: nIndex: entry index in gradient array
  */
-void CGradientStrategy::LockCacheEntry(int nIndex)
+void CLATCache::LockCacheEntry(int nIndex)
 {
 	m_nLockedSample = nIndex;
 	assert(m_setGS.find(nIndex) != m_setGS.end());
@@ -490,7 +489,7 @@ void CGradientStrategy::LockCacheEntry(int nIndex)
  * @brief: unlock an cached entry
  * @param: nIndex: entry index in gradient array
  */
-void CGradientStrategy::UnlockCacheEntry(int nIndex)
+void CLATCache::UnlockCacheEntry(int nIndex)
 {
 	m_nLockedSample = -1;
 	assert(m_setGS.find(nIndex) == m_setGS.end());
@@ -500,12 +499,12 @@ void CGradientStrategy::UnlockCacheEntry(int nIndex)
 /*
  * @brief: check the content of the cache
  */
-void CGradientStrategy::PrintCache()
+void CLATCache::PrintCache()
 {
 	vector<GSEntry>::iterator itCheckEntry = m_GSContainer.begin(); //check if the entry is cached in the container
 	ofstream out;
 	out.open("cache_stat2.txt", ios::out | ios::app);
-	for(int i = 0; i < m_GSContainer.size(); i++)
+	for(int i = 0; i < int(m_GSContainer.size()); i++)
 	{
 		out << i << "\t" << itCheckEntry->m_used.size();
 		/*for(int j = 0; j < itCheckEntry->m_used.size(); j++)
