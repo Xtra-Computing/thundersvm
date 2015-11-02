@@ -176,7 +176,6 @@ void CSVMTrainer::TrainEnding(int nIter, int nNumofTrainingExample, int nNumofIn
 	model.nSV[0] = nNumofPSV;
 	model.nSV[1] = nNumofNSV;
 
-	model.nNumofSV = nNumofSVs;
 	model.pnIndexofSV = new int[nNumofSVs];
 	//sv_coef is a second level pointer, which is for multiclasses SVM
 	model.sv_coef = new float_point*[3];
@@ -239,7 +238,7 @@ bool CSVMTrainer::SaveModel(string strFileName, const svm_model *model, vector<v
 	//stable output
 	writeOut << "gamma " << gfGamma << endl;
 	writeOut << "nr_class " << 2 << endl;
-	writeOut << "total_sv " << model->nNumofSV << endl;
+	writeOut << "total_sv " << model->nSV[0] + model->nSV[1] << endl;
 	writeOut << "rho " << model->rho[0] << endl;
 
 	//have potential risk
@@ -253,13 +252,13 @@ bool CSVMTrainer::SaveModel(string strFileName, const svm_model *model, vector<v
 
 	const float_point * const *sv_coef = model->sv_coef;
 	int *pnIndexofSV = model->pnIndexofSV;
-	int nNumofSVs = model->nNumofSV;
+	int nNumofSVs = model->nSV[0] + model->nSV[1];
 
 	for(int i = 0; i < nNumofSVs; i++)
 	{
 		writeOut << sv_coef[0][i] << " ";
 
-		for(int j = 0; j < model->nDimension; j++)
+		for(int j = 0; j < v_vTrainingExample[0].size(); j++)//for each of dimension
 		{
 			writeOut << j << ":" << v_vTrainingExample[pnIndexofSV[i]][j]<< " ";
 		}

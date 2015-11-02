@@ -14,7 +14,7 @@
 #include <iomanip>
 #include <boost/interprocess/mapped_region.hpp>
 
-#include "gpu_global_utility.h"
+#include "host_constant.h"
 
 using std::string;
 using std::fstream;
@@ -43,7 +43,7 @@ public:
 	 * @param: nNumofElementsToRead: the number of elements read by this function
 	 * @param: nIndexof1stElement: the start point of this reading procedure.
 	 */
-	void ReadPartOfRowFromFile(FILE *&readIn, float_point *pContent, int nNumofElementsToRead, long long nIndexof1stElement)
+	static void ReadPartOfRowFromFile(FILE *&readIn, float_point *pContent, int nNumofElementsToRead, long long nIndexof1stElement)
 	{
 		//bool bReturn = false;
 
@@ -57,7 +57,7 @@ public:
 //		cout << ftell(readIn) << endl;
 		assert(ftell(readIn) != -1);
 
-		int nNumofRead = fread(pContent, sizeof(float_point), nNumofElementsToRead, readIn);
+		fread(pContent, sizeof(float_point), nNumofElementsToRead, readIn);
 
 //		cout << ftell(readIn) << endl;
 //		assert(nNumofRead > 0);

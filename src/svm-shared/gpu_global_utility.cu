@@ -16,5 +16,3 @@ float_point gfPCost = 4;	//cost for positive samples in training SVM model (i.e.
 float_point gfNCost = 4;	//cost for negative samples in training SVM model
 float_point gfGamma = 1;
 int gNTest = 0;
-int gnNumofThread = 0;
-

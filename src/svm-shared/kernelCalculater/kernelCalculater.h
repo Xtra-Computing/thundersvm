@@ -110,7 +110,7 @@ public:
 	CLinearKernel(){}
 	CLinearKernel(float_point){}
 	~CLinearKernel(){}
-	virtual string GetType(){return LINEAR;}
+	virtual string GetType(){return SVMLINEAR;}
 	virtual bool GetHessianDiag(const string &strFileName, const int &nNumofTrainingSamples, float_point *pfHessianDiag)
 	{
 		return true;
@@ -133,7 +133,7 @@ public:
 	CPolynomialKernel(){}
 	CPolynomialKernel(float_point d){m_fDegree = d;}
 	~CPolynomialKernel(){}
-	virtual string GetType(){return POLYNOMIAL;}
+	virtual string GetType(){return SVMPOLYNOMIAL;}
 	virtual bool GetHessianDiag(const string &strFileName, const int &nNumofTrainingSamples, float_point *pfHessianDiag)
 	{
 		return true;
@@ -155,7 +155,7 @@ public:
 	CSigmoidKernel(){}
 	CSigmoidKernel(float_point r){m_fCoef = r;}
 	~CSigmoidKernel(){}
-	virtual string GetType(){return SIGMOID;}
+	virtual string GetType(){return SVMSIGMOID;}
 	virtual bool GetHessianDiag(const string &strFileName, const int &nNumofTrainingSamples, float_point *pfHessianDiag)
 	{
 		return true;

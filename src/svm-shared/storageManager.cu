@@ -40,13 +40,6 @@ long long StorageManager::GetFreeGPUMem()
 
 StorageManager::StorageManager()
 {
-	struct sysinfo info;
-	sysinfo(&info);
-	m_nFreeMemInFloat = (info.freeram / sizeof(float_point));
-	m_nFreeMemInFloat *= 0.8; //use 80% of the memory for caching
-	cout << "size of the available memory: " << m_nFreeMemInFloat * 4.0/(1024 * 1024 * 1024) << "GB" << endl;
-	assert(m_nFreeMemInFloat > 0);
-
 	m_nMaxNumofFloatPointInGPU = GetFreeGPUMem();
 	assert(m_nMaxNumofFloatPointInGPU > 0);
 }
@@ -61,41 +54,6 @@ StorageManager* StorageManager::getManager()
 	if(manager == NULL)
 		manager = new StorageManager();
 	return manager;
-}
-
-/**
- * @brief: compute the number of rows stored in main memory
- * @nTotalNumofInstance and @nNumofSample may be the same. The parameters of this function may change
- */
-int StorageManager::RowInRAM(int nNumofDim, int nTotalNumofInstance, int nNumofSample)
-{
-	long long nFreeMemInFloat = m_nFreeMemInFloat;
-	//memory for storing sample data, both original and transposed forms. That's why we use "2" here.
-	long long nMemForSamples = (nNumofDim * (long long)nTotalNumofInstance * 2);
-	nFreeMemInFloat -= nMemForSamples; //get the number of available memory in the form of number of float
-	if(nFreeMemInFloat <= 0)
-	{
-		cerr << "the size of free memory is " << nFreeMemInFloat << endl;
-		exit(0);
-	}
-
-	long nNumofHessianRow = (nFreeMemInFloat / nNumofSample);
-	if (nNumofHessianRow > nNumofSample)
-	{
-		//if the available memory is available to store the whole hessian matrix
-		nNumofHessianRow = nNumofSample;
-	}
-
-	/*
-	long nRAMForRow = (RAM_SIZE + 22) * 1024;
-	nRAMForRow *= 1024;
-	nRAMForRow *= 1024;
-	nRAMForRow /= sizeof(float_point);
-	nNumofHessianRow = (nRAMForRow / nNumofSample);
-	if(nNumofHessianRow > nNumofSample)
-		nNumofHessianRow = nNumofSample;
-*/
-	return nNumofHessianRow;
 }
 
 /**

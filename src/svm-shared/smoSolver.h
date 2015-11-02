@@ -16,7 +16,7 @@
 //Self define header files
 #include "Cache/cache.h"
 #include "smoGPUHelper.h"
-#include "HessianIO/hessianIO.h"
+#include "HessianIO/deviceHessian.h"
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 
@@ -34,12 +34,9 @@ public:
 	int m_nIndexofSampleTwo;
 	float_point m_fUpValue;
 	float_point m_fLowValue;
-	FILE *m_pFile;
-	boost::interprocess::file_mapping *pFm;
-	boost::interprocess::mapped_region *pRegion;
 
 	CCache *m_pGPUCache;
-	CHessianIOOps *m_pHessianReader;
+	DeviceHessian *m_pHessianReader;
 
 	int m_nStart1, m_nEnd1, m_nStart2, m_nEnd2;
 	//members for cpu, gpu communication
@@ -73,7 +70,7 @@ public:
 	float_point *m_pfDevHessianSampleRow2;
 
 public:
-	CSMOSolver(CHessianIOOps *pHessianOps, CCache *pCache)
+	CSMOSolver(DeviceHessian *pHessianOps, CCache *pCache)
 	{
 		m_nIndexofSampleOne = m_nIndexofSampleTwo = -1;
 		m_fUpValue = -1;
@@ -108,19 +105,8 @@ public:
 		}
 		fclose(m_pFile);
 */
-		m_pFile = fopen(HESSIAN_FILE, "rb");
-		if(m_pFile == NULL)
-		{
-			cerr << "failed to open: \"" << HESSIAN_FILE << "\" as Hessian file" << endl;
-			exit(0);
-		}
-		//pFm = new boost::interprocess::file_mapping(HESSIAN_FILE, boost::interprocess::read_only);
-		//pRegion = new boost::interprocess::mapped_region(*pFm, boost::interprocess::read_only);
 	}
-	~CSMOSolver()
-	{
-		fclose(m_pFile);
-	}
+	~CSMOSolver(){}
 
 	void SetCacheStrategy(CCache *pCache){m_pGPUCache = pCache;}
 	void SetCacheSize(int nCacheSize){m_pGPUCache->SetCacheSize(nCacheSize);}

@@ -8,14 +8,13 @@
 #ifndef UTILITY_H_
 #define UTILITY_H_
 
-typedef float float_point; //this type is for facilitating interchangeability of float and double
+#include "host_constant.h"
 
 extern float_point gfPCost;	//cost for positive samples in training SVM model (i.e., error tolerance)
 extern float_point gfNCost;	//cost for negative samples in training SVM model
 extern float_point gfGamma;
 
 extern int gNTest;
-extern int gnNumofThread;
 
 /* a set of parameters which looks like a grid*/
 struct grid
@@ -78,9 +77,6 @@ struct svm_model
 				/* 0 if svm_model is created by svm_train */
 
 	//new content
-	float_point* supportVectors;	//support vector data
-	int nDimension;		//data dimension
-	int nNumofSV;		//total number of support vectors
 	int *pnIndexofSV;	//index of support vectors
 };
 

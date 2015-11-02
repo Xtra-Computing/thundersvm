@@ -229,30 +229,7 @@ float_point* CSMOSolver::GetHessianRow(const int &nNumofInstance, const int &nPo
 		assert(bMapIndex == true);
 
 		memset(m_pfHessianRow, 0, sizeof(float_point) * nNumofInstance);
-		//if the hessian row is in host memory
-		if(m_pHessianReader->m_nNumofCachedHessianRow > nPosofRowAtHessian)
-		{
-			lRamHitCount++;
-			int nSizeofFirstPart = 0;
-			if(m_pHessianReader->m_nRowStartPos1 != -1)
-			{
-				nSizeofFirstPart = m_pHessianReader->m_nRowEndPos1 - m_pHessianReader->m_nRowStartPos1 + 1;//the size of first part (include the last element of the part)
-				long long nIndexofFirstElement = (long long)nPosofRowAtHessian * (m_pHessianReader->m_nTotalNumofInstance) + m_pHessianReader->m_nRowStartPos1;
-				memcpy(m_pfHessianRow, m_pHessianReader->m_pfHessianRowsInHostMem + nIndexofFirstElement, nSizeofFirstPart * sizeof(float_point));
-			}
-			if(m_pHessianReader->m_nRowStartPos2 != -1)
-			{
-				int nSizeofSecondPart = m_pHessianReader->m_nRowEndPos2 - m_pHessianReader->m_nRowStartPos2 + 1;
-				long long nIndexofFirstElement = (long long)nPosofRowAtHessian * (m_pHessianReader->m_nTotalNumofInstance) + m_pHessianReader->m_nRowStartPos2;
-				memcpy(m_pfHessianRow + nSizeofFirstPart, m_pHessianReader->m_pfHessianRowsInHostMem + nIndexofFirstElement,
-					   nSizeofSecondPart * sizeof(float_point));
-			}
-		}
-		else//the hessian row is in SSD
-		{
-			lSSDHitCount++;
-			m_pHessianReader->ReadHessianRow(m_pFile, nPosofRowAtHessian, m_pfHessianRow);
-		}
+		m_pHessianReader->ReadRow(nPosofRowAtHessian, m_pfHessianRow);
 
 //		cout << nCacheLocation << "; cache is full=" << bIsCacheFull << endl;
 		lCachePosStart = (long long)nCacheLocation * m_lNumofElementEachRowInCache;
@@ -432,64 +409,4 @@ void CSMOSolver::UpdateTwoWeight(float_point fMinLowValue, float_point fMinValue
 	fY1AlphaDiff = nLabel1 * fAlpha1 - fY1AlphaDiff; //(alpha1' - alpha1) * y1
 	fY2AlphaDiff = nLabel2 * fAlpha2 - fY2AlphaDiff;
 }
-
-/*
- * @brief: read a few Hessian rows to GPU cache
- * @param: nNumofTrainingSamples: the number of samples for training
- * @param: sizeOfEachRowInCache: the size of each row in cache. This value is usually larger than nNumofTrainingSamples because of memory alignment
- * @param: pfDevHessianCacheEndPos: GPU cache end position
- */
-//////////// This function is not used anymore
-bool CSMOSolver::ReadToCache(const int &nStartRow, const int &nEndRow, const int &nNumofTrainingSamples, float_point *pfDevHessianCacheEndPos)
-{
-	bool bReturn = true;
-
-	bool bReadHessian = true;
-
-	int nNumofRows = nEndRow - nStartRow + 1;
-	//separate the large batch read into two read
-	int nNumofRowsToRead1 = 0;
-	int nNumofRowsToRead2 = 0;
-	if(nNumofRows < (MAX_SIZE_PER_READ / (nNumofTrainingSamples * sizeof(float_point))))
-	{
-		nNumofRowsToRead1 = nNumofRows;
-	}
-	else
-	{
-		nNumofRowsToRead1 = nNumofRows / 2;
-		nNumofRowsToRead2 = nNumofRows - nNumofRowsToRead1;
-	}
-
-	int nNumofRowsToRead = nNumofRowsToRead1;
-	int nNumofRowsRead = 0;	//the # of rows has been read
-	do
-	{
-		//long long nSpaceForCache = nNumofRowsToRead * nNumofTrainingSamples;
-		long long nSpaceForCache = nNumofRowsToRead * m_lNumofElementEachRowInCache;//compute CPU cache size via size of each row in GPU cache due to the memory alignment
-		float_point *pfHessianMatrixCache = new float_point[nSpaceForCache];
-		memset(pfHessianMatrixCache, 0, sizeof(float_point) * nSpaceForCache);
-
-		//start row and end row position
-		int nTempStartRow = nStartRow + nNumofRowsRead;
-		int nTempEndRow = nTempStartRow + nNumofRowsToRead - 1;	//as the index of nTempEndRow will be read
-		//read Hessian rows
-		m_pHessianReader->AllocateBuffer(nTempEndRow - nTempStartRow + 1);
-		bReadHessian = m_pHessianReader->ReadHessianRows(m_pFile, nTempStartRow, nTempEndRow, nNumofTrainingSamples, pfHessianMatrixCache, m_lNumofElementEachRowInCache);
-		m_pHessianReader->ReleaseBuffer();
-		if(bReadHessian == false)
-		{
-			bReturn = false;
-			break;
-		}
-		//end of cache location on GPU
-		float_point *pfDevCacheEndPos = pfDevHessianCacheEndPos + nNumofRowsRead * m_lNumofElementEachRowInCache;
-		checkCudaErrors(cudaMemcpy(pfDevCacheEndPos, pfHessianMatrixCache, sizeof(float_point) * nSpaceForCache, cudaMemcpyHostToDevice));
-		nNumofRowsRead += nNumofRowsToRead;
-		nNumofRowsToRead = nNumofRowsToRead2;
-		delete[] pfHessianMatrixCache;
-	}while(nNumofRowsRead < nNumofRows);
-
-	return bReturn;
-}
-
 
