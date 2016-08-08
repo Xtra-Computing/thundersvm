@@ -6,6 +6,8 @@ The associated paper of this source code is: "MASCOT: Fast and Highly Scalable S
 
 Report bugs to: name@domain where name=zeyi.wen and domain=unimelb.edu.au
 
+This software is licensed under Apache Software License v2.0.
+
 ---------
 Requirement(s):
 CUDA 6.0 or later
