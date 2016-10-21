@@ -1,103 +1,125 @@
-CCFLAGS := -O2 -Wall
-NVCCFLAGS := -O2 -arch=sm_20 -lrt
+CFLAGS	  := -O2 -Wall
+NVCCFLAGS := -O2 -arch=sm_30 -lrt -Wno-deprecated-gpu-targets -dc
+LASTFLAG  := -O2 -Wno-deprecated-gpu-targets
 LDFLAGS   := -I/usr/local/cuda/include -I/usr/local/cuda/samples/common/inc -lcuda -lcudadevrt -lcudart -lcublas
-NVCC	:= /usr/local/cuda/bin/nvcc
+NVCC	  := /usr/local/cuda/bin/nvcc
 
 ODIR = bin
 dummy_build_folder := $(shell mkdir -p $(ODIR))
 
-bin/mascot: classificationKernel_cu.o commandLineParser.o cvFunction.o fileOps.o gpu_global_utility.o initCuda_cu.o modelSelector_cu.o smoGPUHelper_cu.o smoSolver_cu.o svmMain.o svmPredictor_cu.o svmTrainer_cu.o trainingFunction_cu.o cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o ReadHelper.o hessianIO_cu.o parHessianIO.o seqHessianIO.o LinearCalculater_cu.o LinearCalGPUHelper_cu.o PolynomialCalGPUHelper_cu.o PolynomialCalulater_cu.o RBFCalculater_cu.o RBFCalGPUHelper_cu.o SigmoidCalculater_cu.o SigmoidCalGPUHelper_cu.o
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o bin/mascot classificationKernel_cu.o commandLineParser.o cvFunction.o fileOps.o gpu_global_utility.o initCuda_cu.o modelSelector_cu.o smoGPUHelper_cu.o smoSolver_cu.o svmMain.o svmPredictor_cu.o svmTrainer_cu.o trainingFunction_cu.o cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o ReadHelper.o hessianIO_cu.o parHessianIO.o seqHessianIO.o LinearCalculater_cu.o LinearCalGPUHelper_cu.o PolynomialCalGPUHelper_cu.o PolynomialCalulater_cu.o RBFCalculater_cu.o RBFCalGPUHelper_cu.o SigmoidCalculater_cu.o SigmoidCalGPUHelper_cu.o
+bin/mascot: classificationKernel_cu.o commandLineParser.o cvFunction.o fileOps.o gpu_global_utility.o initCuda_cu.o modelSelector_cu.o smoGPUHelper_cu.o smoSolver_cu.o svmMain.o svmPredictor_cu.o svmTrainer_cu.o trainingFunction_cu.o cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o ReadHelper.o accessHessian.o baseHessian.o parAccessor.o seqAccessor.o deviceHessian_cu.o LinearCalculater_cu.o LinearCalGPUHelper_cu.o PolynomialCalGPUHelper_cu.o PolynomialCalculater_cu.o RBFCalculater_cu.o RBFCalGPUHelper_cu.o SigmoidCalculater_cu.o SigmoidCalGPUHelper_cu.o storageManager_cu.o hostStorageManager.o smoSharedSolver_cu.o svmSharedTrainer_cu.o baseLibsvmReader.o
+	$(NVCC) $(LASTFLAG) $(LDFLAGS) -o bin/mascot cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o ReadHelper.o baseHessian.o accessHessian.o parAccessor.o seqAccessor.o deviceHessian_cu.o LinearCalculater_cu.o LinearCalGPUHelper_cu.o PolynomialCalGPUHelper_cu.o PolynomialCalculater_cu.o RBFCalculater_cu.o RBFCalGPUHelper_cu.o SigmoidCalculater_cu.o SigmoidCalGPUHelper_cu.o storageManager_cu.o hostStorageManager.o classificationKernel_cu.o commandLineParser.o cvFunction.o fileOps.o gpu_global_utility.o initCuda_cu.o smoGPUHelper_cu.o smoSharedSolver_cu.o smoSolver_cu.o svmMain.o svmPredictor_cu.o svmSharedTrainer_cu.o svmTrainer_cu.o modelSelector_cu.o trainingFunction_cu.o 
+cvFunction.o: mascot/cvFunction.cpp
+	g++ $(CCFLAGS) $(LDFLAGS) -o cvFunction.o -c mascot/cvFunction.cpp
 
-cvFunction.o: src/cvFunction.cpp
-	g++ $(CCFLAGS) $(LDFLAGS) -o cvFunction.o -c src/cvFunction.cpp
+fileOps.o: svm-shared/fileOps.cpp
+	g++ $(CCFLAGS) -o fileOps.o -c svm-shared/fileOps.cpp
 
-fileOps.o: src/fileOps.cpp
-	g++ $(CCFLAGS) -o fileOps.o -c src/fileOps.cpp
+baseLibsvmReader.o: mascot/DataIOOps/BaseLibsvmReader.cpp mascot/DataIOOps/BaseLibsvmReader.h
+	g++ $(CCFLAGS) -o baseLibsvmReader.o -c mascot/DataIOOps/BaseLibsvmReader.cpp
 
-classificationKernel_cu.o: src/classificationKernel.h src/classificationKernel.cu
-	$(NVCC) $(NVCCFLAGS) -o classificationKernel_cu.o -c src/classificationKernel.cu
+classificationKernel_cu.o: mascot/classificationKernel.h mascot/classificationKernel.cu
+	$(NVCC) $(NVCCFLAGS) -o classificationKernel_cu.o -c mascot/classificationKernel.cu
 
-commandLineParser.o: src/commandLineParser.h src/commandLineParser.cpp
-	g++ $(CCFLAGS) -o commandLineParser.o -c src/commandLineParser.cpp
+commandLineParser.o: mascot/commandLineParser.h mascot/commandLineParser.cpp
+	g++ $(CCFLAGS) -o commandLineParser.o -c mascot/commandLineParser.cpp
 
-gpu_global_utility.o: src/gpu_global_utility.h src/gpu_global_utility.cpp
-	g++ $(CCFLAGS) $(LDFLAGS) -o gpu_global_utility.o -c src/gpu_global_utility.cpp
+gpu_global_utility.o: svm-shared/gpu_global_utility.h svm-shared/gpu_global_utility.cu
+	$(NVCC) $(CCFLAGS) $(LDFLAGS) -o gpu_global_utility.o -c svm-shared/gpu_global_utility.cu
 
-initCuda_cu.o: src/initCuda.h src/initCuda.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o initCuda_cu.o -c src/initCuda.cu
+initCuda_cu.o: svm-shared/initCuda.h svm-shared/initCuda.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o initCuda_cu.o -c svm-shared/initCuda.cu
 
-modelSelector_cu.o: src/modelSelector.h src/modelSelector.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o modelSelector_cu.o -c src/modelSelector.cu
+storageManager_cu.o: svm-shared/storageManager.h svm-shared/storageManager.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o storageManager_cu.o -c svm-shared/storageManager.cu
 
-smoGPUHelper_cu.o: src/smoGPUHelper.h src/smoGPUHelper.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o smoGPUHelper_cu.o -c src/smoGPUHelper.cu
+hostStorageManager.o: svm-shared/hostStorageManager.h svm-shared/hostStorageManager.cpp
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o hostStorageManager.o -c svm-shared/hostStorageManager.cpp
 
-smoSolver_cu.o: src/smoSolver.h src/smoSolver.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o smoSolver_cu.o -c src/smoSolver.cu
+modelSelector_cu.o: mascot/modelSelector.h mascot/modelSelector.cu svm-shared/HessianIO/deviceHessian.h svm-shared/HessianIO/baseHessian.h svm-shared/HessianIO/parAccessor.h svm-shared/HessianIO/seqAccessor.h svm-shared/storageManager.h svm-shared/svmTrainer.h
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o modelSelector_cu.o -c mascot/modelSelector.cu
 
-svmMain.o: src/svmMain.cpp
-	g++ $(CCFLAGS) -o svmMain.o -c src/svmMain.cpp
+smoGPUHelper_cu.o: svm-shared/smoGPUHelper.h svm-shared/smoGPUHelper.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o smoGPUHelper_cu.o -c svm-shared/smoGPUHelper.cu
 
-svmPredictor_cu.o: src/svmPredictor.h src/svmPredictor.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o svmPredictor_cu.o -c src/svmPredictor.cu
+smoSharedSolver_cu.o: svm-shared/smoSolver.h svm-shared/smoSharedSolver.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o smoSharedSolver_cu.o -c svm-shared/smoSharedSolver.cu
 
-svmTrainer_cu.o: src/svmTrainer.h src/svmTrainer.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o svmTrainer_cu.o -c src/svmTrainer.cu
+smoSolver_cu.o: svm-shared/smoSolver.h mascot/smoSolver.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o smoSolver_cu.o -c mascot/smoSolver.cu
 
-trainingFunction_cu.o: src/trainingFunction.h src/trainingFunction.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o trainingFunction_cu.o -c src/trainingFunction.cu
+svmMain.o: mascot/svmMain.cpp
+	g++ $(CCFLAGS) -o svmMain.o -c mascot/svmMain.cpp
 
-cacheGS.o: src/Cache/cache.h src/Cache/cacheGS.cpp
-	g++ $(CCFLAGS) -o cacheGS.o -c src/Cache/cacheGS.cpp
+svmPredictor_cu.o: mascot/svmPredictor.h mascot/svmPredictor.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o svmPredictor_cu.o -c mascot/svmPredictor.cu
 
-cacheLRU.o: src/Cache/cache.h src/Cache/cacheLRU.cpp
-	g++ $(CCFLAGS) -o cacheLRU.o -c src/Cache/cacheLRU.cpp
+svmSharedTrainer_cu.o: svm-shared/svmTrainer.h svm-shared/svmSharedTrainer.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o svmSharedTrainer_cu.o -c svm-shared/svmSharedTrainer.cu
 
-cacheMLRU.o: src/Cache/cache.h src/Cache/cacheMLRU.cpp
-	g++ $(CCFLAGS) -o cacheMLRU.o -c src/Cache/cacheMLRU.cpp
+svmTrainer_cu.o: svm-shared/svmTrainer.h mascot/svmTrainer.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o svmTrainer_cu.o -c mascot/svmTrainer.cu
 
-cacheMRU.o: src/Cache/cache.h src/Cache/cacheMRU.cpp
-	g++ $(CCFLAGS) -o cacheMRU.o -c src/Cache/cacheMRU.cpp
+trainingFunction_cu.o: mascot/trainingFunction.h mascot/trainingFunction.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o trainingFunction_cu.o -c mascot/trainingFunction.cu
 
-DataIO.o: src/DataIOOps/DataIO.h src/DataIOOps/DataIO.cpp
-	g++ $(CCFLAGS) -o DataIO.o -c src/DataIOOps/DataIO.cpp
+cacheGS.o: svm-shared/Cache/cache.h svm-shared/Cache/cacheGS.cpp
+	g++ $(CCFLAGS) -o cacheGS.o -c svm-shared/Cache/cacheGS.cpp
 
-ReadHelper.o: src/DataIOOps/ReadHelper.cpp
-	g++ $(CCFLAGS) -o ReadHelper.o -c src/DataIOOps/ReadHelper.cpp
+cacheLRU.o: svm-shared/Cache/cache.h svm-shared/Cache/cacheLRU.cpp
+	g++ $(CCFLAGS) -o cacheLRU.o -c svm-shared/Cache/cacheLRU.cpp
 
-hessianIO_cu.o: src/HessianIO/hessianIO.h src/HessianIO/hessianIO.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o hessianIO_cu.o -c src/HessianIO/hessianIO.cu
+cacheMLRU.o: svm-shared/Cache/cache.h svm-shared/Cache/cacheMLRU.cpp
+	g++ $(CCFLAGS) -o cacheMLRU.o -c svm-shared/Cache/cacheMLRU.cpp
 
-parHessianIO.o: src/HessianIO/parHessianIO.h src/HessianIO/parHessianIO.cpp
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o parHessianIO.o -c src/HessianIO/parHessianIO.cpp
+cacheMRU.o: svm-shared/Cache/cache.h svm-shared/Cache/cacheMRU.cpp
+	g++ $(CCFLAGS) -o cacheMRU.o -c svm-shared/Cache/cacheMRU.cpp
 
-seqHessianIO.o: src/HessianIO/seqHessianIO.h src/HessianIO/seqHessianIO.cpp
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o seqHessianIO.o -c src/HessianIO/seqHessianIO.cpp
+DataIO.o: mascot/DataIOOps/DataIO.h mascot/DataIOOps/DataIO.cpp
+	g++ $(CCFLAGS) -o DataIO.o -c mascot/DataIOOps/DataIO.cpp
 
-LinearCalculater_cu.o: src/kernelCalculater/kernelCalculater.h src/kernelCalculater/LinearCalculater.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o LinearCalculater_cu.o -c src/kernelCalculater/LinearCalculater.cu
+ReadHelper.o: mascot/DataIOOps/ReadHelper.cpp
+	g++ $(CCFLAGS) -o ReadHelper.o -c mascot/DataIOOps/ReadHelper.cpp
 
-LinearCalGPUHelper_cu.o: src/kernelCalculater/kernelCalculater.h src/kernelCalculater/LinearCalGPUHelper.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o LinearCalGPUHelper_cu.o -c src/kernelCalculater/LinearCalGPUHelper.cu
+baseHessian.o: svm-shared/HessianIO/baseHessian.h svm-shared/HessianIO/baseHessian.cpp
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o baseHessian.o -c svm-shared/HessianIO/baseHessian.cpp
 
-PolynomialCalGPUHelper_cu.o: src/kernelCalculater/kernelCalculater.h src/kernelCalculater/PolynomialCalGPUHelper.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o PolynomialCalGPUHelper_cu.o -c src/kernelCalculater/PolynomialCalGPUHelper.cu
+accessHessian.o: svm-shared/HessianIO/accessHessian.h svm-shared/HessianIO/accessHessian.cpp
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o accessHessian.o -c svm-shared/HessianIO/accessHessian.cpp
 
-PolynomialCalulater_cu.o: src/kernelCalculater/kernelCalculater.h src/kernelCalculater/PolynomialCalulater.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o PolynomialCalulater_cu.o -c src/kernelCalculater/PolynomialCalulater.cu
+parAccessor.o: svm-shared/HessianIO/parAccessor.h svm-shared/HessianIO/parAccessor.cpp svm-shared/HessianIO/accessHessian.h
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o parAccessor.o -c svm-shared/HessianIO/parAccessor.cpp
 
-RBFCalculater_cu.o: src/kernelCalculater/kernelCalculater.h src/kernelCalculater/RBFCalculater.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o RBFCalculater_cu.o -c src/kernelCalculater/RBFCalculater.cu
+seqAccessor.o: svm-shared/HessianIO/seqAccessor.h svm-shared/HessianIO/seqAccessor.cpp svm-shared/HessianIO/accessHessian.h
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o seqAccessor.o -c svm-shared/HessianIO/seqAccessor.cpp
 
-RBFCalGPUHelper_cu.o: src/kernelCalculater/kernelCalculater.h src/kernelCalculater/RBFCalGPUHelper.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o RBFCalGPUHelper_cu.o -c src/kernelCalculater/RBFCalGPUHelper.cu
+deviceHessian_cu.o: svm-shared/HessianIO/baseHessian.h svm-shared/HessianIO/baseHessian.cpp svm-shared/HessianIO/deviceHessian.h svm-shared/HessianIO/deviceHessian.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o deviceHessian_cu.o -c svm-shared/HessianIO/deviceHessian.cu
 
-SigmoidCalculater_cu.o: src/kernelCalculater/kernelCalculater.h src/kernelCalculater/SigmoidCalculater.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o SigmoidCalculater_cu.o -c src/kernelCalculater/SigmoidCalculater.cu
+LinearCalculater_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-shared/kernelCalculater/LinearCalculater.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o LinearCalculater_cu.o -c svm-shared/kernelCalculater/LinearCalculater.cu
 
-SigmoidCalGPUHelper_cu.o: src/kernelCalculater/kernelCalculater.h src/kernelCalculater/SigmoidCalGPUHelper.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o SigmoidCalGPUHelper_cu.o -c src/kernelCalculater/SigmoidCalGPUHelper.cu
+LinearCalGPUHelper_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-shared/kernelCalculater/LinearCalGPUHelper.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o LinearCalGPUHelper_cu.o -c svm-shared/kernelCalculater/LinearCalGPUHelper.cu
+
+PolynomialCalGPUHelper_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-shared/kernelCalculater/PolynomialCalGPUHelper.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o PolynomialCalGPUHelper_cu.o -c svm-shared/kernelCalculater/PolynomialCalGPUHelper.cu
+
+PolynomialCalculater_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-shared/kernelCalculater/PolynomialCalculater.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o PolynomialCalculater_cu.o -c svm-shared/kernelCalculater/PolynomialCalculater.cu
+
+RBFCalculater_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-shared/kernelCalculater/RBFCalculater.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o RBFCalculater_cu.o -c svm-shared/kernelCalculater/RBFCalculater.cu
+
+RBFCalGPUHelper_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-shared/kernelCalculater/RBFCalGPUHelper.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o RBFCalGPUHelper_cu.o -c svm-shared/kernelCalculater/RBFCalGPUHelper.cu
+
+SigmoidCalculater_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-shared/kernelCalculater/SigmoidCalculater.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o SigmoidCalculater_cu.o -c svm-shared/kernelCalculater/SigmoidCalculater.cu
+
+SigmoidCalGPUHelper_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-shared/kernelCalculater/SigmoidCalGPUHelper.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o SigmoidCalGPUHelper_cu.o -c svm-shared/kernelCalculater/SigmoidCalGPUHelper.cu
 
 clean:
 	rm -f *.o bin/hessian2.bin bin/result.txt
+
