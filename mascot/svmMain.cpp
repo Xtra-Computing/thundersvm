@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 	Parser parser;
 	parser.ParseLine(argc, argv, fileName, savedFileName);
 
-	if(!InitCUDA('T'))
+	if(!InitCUDA())
 	{
 		return 0;
 	}

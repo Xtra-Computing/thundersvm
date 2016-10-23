@@ -8,6 +8,6 @@
 #ifndef INITCUDA_H_
 #define INITCUDA_H_
 
-bool InitCUDA(char);
+bool InitCUDA(char gpuType = 'T');
 
 #endif /* INITCUDA_H_ */

@@ -17,7 +17,7 @@ using std::endl;
  * @brief: initialize CUDA device
  */
 
-bool InitCUDA(char gpuType)
+bool InitCUDA(char gpuType = 'T')
 {
     int count;
 
@@ -37,7 +37,7 @@ bool InitCUDA(char gpuType)
         if(cudaGetDeviceProperties(&prop, i) == cudaSuccess) {
         	cout << prop.name << endl;
         	if(prop.name[0] == gpuType && prop.name[1] == 'e')
-        	{
+        	{//prefere to use Tesla card
         		cout << "Using " << prop.name << endl;
        			bUseTesla = true;
         		checkCudaErrors(cudaSetDevice(i));
