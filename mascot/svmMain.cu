@@ -8,6 +8,8 @@
 #include <iostream>
 #include <cassert>
 #include <stdio.h>
+#include <helper_cuda.h>
+#include <cuda.h>
 
 #include "trainingFunction.h"
 #include "cvFunction.h"
@@ -32,12 +34,31 @@ int main(int argc, char **argv)
 	Parser parser;
 	parser.ParseLine(argc, argv, fileName, savedFileName);
 
-	if(!InitCUDA())
+    CUcontext context;
+	if(!InitCUDA(context))
 	{
 		return 0;
 	}
-
+/*
+	 cudaError_t error = cudaGetLastError();
+    if(error != cudaSuccess)
+    {
+             printf("CUDA error: %s before allocate pinned memory\n", cudaGetErrorString(error));
+             exit(-1);
+    }
+*/
 	printf("CUDA initialized.\n");
+	float *temp;
+	long long lSizeofCachedHessian = 45;
+     cudaMallocHost((void**)&temp, lSizeofCachedHessian);
+     error = cudaGetLastError();
+    if(error != cudaSuccess)
+     {
+             printf("CUDA error: %s after allocate pinned memory\n", cudaGetErrorString(error));
+             exit(-1);
+     }
+	return -1;
+
 
 	if(parser.cross_validation == 1)
 	{

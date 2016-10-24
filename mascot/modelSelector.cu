@@ -110,11 +110,32 @@ void CModelSelector::PrecomputeKernelMatrix(vector<vector<float_point> > &v_vDoc
 
 	StorageManager *manager = StorageManager::getManager();
 	int nNumofHessianRow = manager->RowInRAM(BaseHessian::m_nNumofDim, BaseHessian::m_nTotalNumofInstance, nNumofSample);
+//nNumofHessianRow = 1;
 
 	cout << nNumofHessianRow << " rows cached in RAM" << endl;
-	long long lSizeofCachedHessia = sizeof(float_point) * (long long)nNumofHessianRow * nNumofSample;
-	checkCudaErrors(cudaMallocHost((void**)&BaseHessian::m_pfHessianRowsInHostMem, sizeof(float_point) * (long long)nNumofHessianRow * nNumofSample));
-	memset(BaseHessian::m_pfHessianRowsInHostMem, 0, lSizeofCachedHessia);
+	long long lSizeofCachedHessian = sizeof(float_point) * (long long)nNumofHessianRow * nNumofSample;
+  
+
+	cout << "numRow " << nNumofHessianRow << "; numIns " << nNumofSample << "; numBytes " << lSizeofCachedHessian << endl;
+	if(lSizeofCachedHessian < 0)
+	{
+		cerr << "locate negative amount of host memory" << endl;
+		exit(-1);
+	}
+	if(BaseHessian::m_pfHessianRowsInHostMem == NULL)
+	{
+		cout <<	"pointer is null" << endl;
+	}
+//checkCudaErrors(cudaHostAlloc((void**)&(BaseHessian::m_pfHessianRowsInHostMem), lSizeofCachedHessian, cudaHostAllocMapped));
+	cudaMallocHost((void**)&(BaseHessian::m_pfHessianRowsInHostMem), lSizeofCachedHessian);
+	cudaError_t error = cudaGetLastError();
+  	if(error != cudaSuccess)
+  	{
+    		printf("CUDA error: %s before allocate pinned memory\n", cudaGetErrorString(error));
+    		exit(-1);
+  	}
+
+	memset(BaseHessian::m_pfHessianRowsInHostMem, 0, lSizeofCachedHessian);
 	BaseHessian::m_nNumofCachedHessianRow = nNumofHessianRow;
 	BaseHessian::m_pfHessianDiag = new float_point[hessianIOOps->m_nTotalNumofInstance];
 	//hessianIOOps->m_pfHessianDiagTest = new float_point[hessianIOOps->m_nTotalNumofInstance];

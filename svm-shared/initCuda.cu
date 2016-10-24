@@ -17,7 +17,7 @@ using std::endl;
  * @brief: initialize CUDA device
  */
 
-bool InitCUDA(char gpuType = 'T')
+bool InitCUDA(CUcontext &context, char gpuType = 'T')
 {
     int count;
 
@@ -28,7 +28,6 @@ bool InitCUDA(char gpuType = 'T')
     }
 
     CUdevice device;
-    CUcontext context;
     int i;
     bool bUseTesla = false;
     for(i = 0; i < count; i++) {
@@ -38,12 +37,17 @@ bool InitCUDA(char gpuType = 'T')
         	cout << prop.name << endl;
         	if(prop.name[0] == gpuType && prop.name[1] == 'e')
         	{//prefere to use Tesla card
-        		cout << "Using " << prop.name << endl;
+        		cout << "Using " << prop.name << "; device id is " << i << endl;
        			bUseTesla = true;
         		checkCudaErrors(cudaSetDevice(i));
         		cuDeviceGet(&device, i);
-        		cuCtxCreate(&context, CU_CTX_SCHED_AUTO, device);
-        		break;
+        		cuCtxCreate(&context, CU_CTX_MAP_HOST, device);
+
+    			cudaGetDeviceProperties(&prop, i);
+    			if(!prop.canMapHostMemory)
+					fprintf(stderr, "Device %d cannot map host memory!\n", i);
+
+    			break;
         	}
             if(prop.major >= 1)
             {
@@ -62,7 +66,6 @@ bool InitCUDA(char gpuType = 'T')
     {
     	checkCudaErrors(cudaSetDevice(0));
     }
-
     return true;
 }
 

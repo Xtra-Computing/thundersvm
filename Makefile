@@ -48,8 +48,8 @@ smoSharedSolver_cu.o: svm-shared/smoSolver.h svm-shared/smoSharedSolver.cu
 smoSolver_cu.o: svm-shared/smoSolver.h mascot/smoSolver.cu
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o smoSolver_cu.o -c mascot/smoSolver.cu
 
-svmMain.o: mascot/svmMain.cpp
-	g++ $(CCFLAGS) -o svmMain.o -c mascot/svmMain.cpp
+svmMain.o: mascot/svmMain.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o svmMain.o -c mascot/svmMain.cu
 
 svmPredictor_cu.o: mascot/svmPredictor.h mascot/svmPredictor.cu
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o svmPredictor_cu.o -c mascot/svmPredictor.cu
