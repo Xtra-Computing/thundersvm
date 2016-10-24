@@ -12,7 +12,8 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
-#include <boost/interprocess/mapped_region.hpp>
+#include<cassert>
+//#include <boost/interprocess/mapped_region.hpp>
 
 #include "host_constant.h"
 
@@ -34,7 +35,7 @@ public:
 
 	static bool ReadRowsFromFile(FILE *&readIn, float_point *&pContent, const int &nNumofElementsPerRow,
 						  int nNumofRowsToRead, const int &nIndexofRow);
-	static bool ReadPartOfRowFromFile(boost::interprocess::mapped_region*, float_point *pContent, int nFullRowSize, int nNumofElementsToRead, long long nIndexof1stElement);
+	//static bool ReadPartOfRowFromFile(boost::interprocess::mapped_region*, float_point *pContent, int nFullRowSize, int nNumofElementsToRead, long long nIndexof1stElement);
 
 	/*
 	 * @brief: read a continuous part from a file
