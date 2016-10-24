@@ -34,6 +34,7 @@ public:
 
 	bool SetInvolvePredictionData(int nStart1, int nEnd1);
 	float_point* Predict(svm_model*, int *pnTestSampleId, const int&);
+	float_point* Predict(svm_model*, svm_node **pInstance, const int &numInstance);
 	float_point* ComputeClassLabel(int nNumofTestingSamples,
 						   float_point *pfSVYiAlhpaHessian, const int &nNumofSVs,
 						   float_point fBias, float_point *pfFinalResult);

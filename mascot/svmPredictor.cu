@@ -243,6 +243,124 @@ float_point* CSVMPredictor::Predict(svm_model *pModel, int *pnTestSampleId, cons
 }
 
 /*
+float_point* CSVMPredictor::Predict(svm_model *pModel, svm_node **pInstance, const int &numInstance)
+{
+	float_point *pfReturn = NULL;
+	if(pModel == NULL)
+	{
+		cerr << "error in Predict function: invalid input params" << endl;
+		return pfReturn;
+	}
+
+	//get infomation from SVM model
+	int nNumofSVs = pModel->nSV[0] + pModel->nSV[1];
+	float_point fBias = *(pModel->rho);
+	float_point **pyfSVsYiAlpha = pModel->sv_coef;
+	float_point *pfSVsYiAlpha = pyfSVsYiAlpha[0];
+	int *pnSVsLabel = pModel->label;
+	int *pnSVSampleId = pModel->pnIndexofSV;
+
+	//store sub Hessian Matrix
+	float_point *pfSVsKernelValues = new float_point[numInstance * nNumofSVs];
+	memset(pfSVsKernelValues, 0, sizeof(float_point) * numInstance * nNumofSVs);
+
+	float_point *pfYiAlphaofSVs;
+
+	//get Hessian rows of support vectors
+	m_pHessianReader->AllocateBuffer(1);
+	if(nNumofSVs >= numInstance)
+	{
+		m_pHessianReader->SetInvolveData(-1, -1, 0, m_pHessianReader->m_nTotalNumofInstance - 1);
+		ReadKVbasedOnTest(pfSVsKernelValues, pnSVSampleId, nNumofSVs, numInstance);
+	}
+	else
+	{
+		m_pHessianReader->SetInvolveData(-1, -1, pnTestSampleId[0], pnTestSampleId[nNumofTestSamples - 1]);
+		ReadKVbasedOnSV(pfSVsKernelValues, pnSVSampleId, nNumofSVs, numInstance);
+	}
+	m_pHessianReader->ReleaseBuffer();
+
+	/*compute y_i*alpha_i*K(i, z) by GPU, where i is id of support vector.
+	 * pfDevSVYiAlphaHessian stores in the order of T1 sv1 sv2 ... T2 sv1 sv2 ... T3 sv1 sv2 ...
+	 */
+/*	float_point *pfDevSVYiAlphaHessian;
+	float_point *pfDevSVsYiAlpha;
+	int *pnDevSVsLabel;
+
+	//if the memory is not enough for the storage when classifying all testing samples at once, divide it into multiple parts
+
+	StorageManager *manager = StorageManager::getManager();
+	int nMaxNumofFloatPoint = manager->GetFreeGPUMem();
+	int nNumofPart = Ceil(nNumofSVs * numInstance, nMaxNumofFloatPoint);
+
+//	cout << "cache size is: " << nMaxNumofFloatPoint << " v.s.. " << nNumofSVs * nNumofTestSamples << endl;
+//	cout << "perform classification in " << nNumofPart << " time(s)" << endl;
+
+	//allocate memory for storing classification result
+	float_point *pfClassificaitonResult = new float_point[numInstance];
+	//initialise the size of each part
+	int *pSizeofPart = new int[nNumofPart];
+	int nAverageSize = numInstance / nNumofPart;
+	for(int i = 0; i < nNumofPart; i++)
+	{
+		if(i != nNumofPart - 1)
+		{
+			pSizeofPart[i] = nAverageSize;
+		}
+		else
+		{
+			pSizeofPart[i] = numInstance - nAverageSize * i;
+		}
+	}
+
+	//perform classification for each part
+	for(int i = 0; i < nNumofPart; i++)
+	{
+	checkCudaErrors(cudaMalloc((void**)&pfDevSVYiAlphaHessian, sizeof(float_point) * nNumofSVs * pSizeofPart[i]));
+	checkCudaErrors(cudaMalloc((void**)&pfDevSVsYiAlpha, sizeof(float_point) * nNumofSVs));
+	checkCudaErrors(cudaMalloc((void**)&pnDevSVsLabel, sizeof(int) * nNumofSVs));
+
+	checkCudaErrors(cudaMemset(pfDevSVYiAlphaHessian, 0, sizeof(float_point) * nNumofSVs * pSizeofPart[i]));
+	checkCudaErrors(cudaMemset(pfDevSVsYiAlpha, 0, sizeof(float_point) * nNumofSVs));
+	checkCudaErrors(cudaMemset(pnDevSVsLabel, 0, sizeof(int) * nNumofSVs));
+
+	checkCudaErrors(cudaMemcpy(pfDevSVYiAlphaHessian, pfSVsKernelValues + i * nAverageSize * nNumofSVs,
+				  	  	  	   sizeof(float_point) * nNumofSVs * pSizeofPart[i], cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(pfDevSVsYiAlpha, pfSVsYiAlpha, sizeof(float_point) * nNumofSVs, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(pnDevSVsLabel, pnSVsLabel, sizeof(int) * nNumofSVs, cudaMemcpyHostToDevice));
+
+	//compute y_i*alpha_i*K(i, z)
+	int nVecMatxMulGridDimY = pSizeofPart[i];
+	int nVecMatxMulGridDimX = Ceil(nNumofSVs, BLOCK_SIZE);
+	dim3 vecMatxMulGridDim(nVecMatxMulGridDimX, nVecMatxMulGridDimY);
+	VectorMatrixMul<<<vecMatxMulGridDim, BLOCK_SIZE>>>(pfDevSVsYiAlpha, pfDevSVYiAlphaHessian, pSizeofPart[i], nNumofSVs);
+
+	//perform classification
+	ComputeClassLabel(pSizeofPart[i], pfDevSVYiAlphaHessian,
+					  nNumofSVs, fBias, pfClassificaitonResult + i * nAverageSize);
+
+	if(pfClassificaitonResult == NULL)
+	{
+		cerr << "error in ComputeClassLabel" << endl;
+		return pfReturn;
+	}
+
+
+	//free memory
+	checkCudaErrors(cudaFree(pfDevSVYiAlphaHessian));
+	pfDevSVYiAlphaHessian = NULL;
+	checkCudaErrors(cudaFree(pfDevSVsYiAlpha));
+	checkCudaErrors(cudaFree(pnDevSVsLabel));
+	}
+
+	delete[] pfSVsKernelValues;
+
+	pfReturn = pfClassificaitonResult;
+	return pfReturn;
+}
+*/
+
+/*
  * @brief: compute/predict the labels of testing samples
  * @output: a set of class labels, associated to testing samples
  */
