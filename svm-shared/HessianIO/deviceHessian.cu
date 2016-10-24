@@ -225,6 +225,15 @@ bool DeviceHessian::PrecomputeHessian(const string &strHessianMatrixFileName,
 	cout << nNumofPartForARow << " parts of row; " << nNumofPartForACol << " parts of col.";
 	cout.flush();
 
+	//If the kernel matrix has been computed (for debugging your code), you can use 1/5 to 5/5 to save some computation
+	//1/5
+	pHessianFile = fopen(strHessianMatrixFileName.c_str(), "wb");
+	if(pHessianFile == NULL)
+	{
+		cout << "open " << strHessianMatrixFileName << " failed" << endl;
+		exit(0);
+	}
+	/**/
 	/*********** process the whole matrix at once *****************/
 	if(nNumofPartForARow == nNumofPartForACol && nNumofPartForACol == 1)
 	{
@@ -238,15 +247,7 @@ bool DeviceHessian::PrecomputeHessian(const string &strHessianMatrixFileName,
 
 	//open file to write. When the file is open, the content is empty
 
-//If the kernel matrix has been computed, you can use 1/4 to 4/4 to save some computation
-//1/5
-pHessianFile = fopen(strHessianMatrixFileName.c_str(), "wb");
-if(pHessianFile == NULL)
-{
-	cout << "open " << strHessianMatrixFileName << " failed" << endl;
-	exit(0);
-}
-/**/
+
 	//length for sub row
 	int *pLenofEachSubRow = new int[nNumofPartForARow];
 	int nAveLenofSubRow = Ceil(m_nTotalNumofInstance, nNumofPartForARow);

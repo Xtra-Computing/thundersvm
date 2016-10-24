@@ -9,8 +9,8 @@
 #define HOST_CONSTANT_H_
 
 //for hessian matrix
-#define HESSIAN_FILE "/media/zeyi/SSD/hessian_par.bin"
-#define HESSIAN_DIAG_FILE "/media/zeyi/SSD/hessian.bin"
+#define HESSIAN_FILE 		"bin/hessian.bin"
+#define HESSIAN_DIAG_FILE 	"bin/hessian_diag.bin"
 
 #define RBFKERNEL		"RBF"
 #define SVMLINEAR 		"Linear"

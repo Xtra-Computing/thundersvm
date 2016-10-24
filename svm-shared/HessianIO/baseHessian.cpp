@@ -94,6 +94,11 @@ void BaseHessian::ReadDiagFromHessianMatrix()
 	float_point *hessianRow = new float_point[m_nTotalNumofInstance];
 
 	FILE *readIn = fopen(HESSIAN_FILE, "rb");
+	if(readIn == NULL)
+	{
+		cerr << "opening file \"" << HESSIAN_FILE << "\" failed" << endl;
+		exit(-1);
+	}
 	for(int i = 0; i < m_nTotalNumofInstance; i++)
 	{
 		//if the hessian row is in host memory

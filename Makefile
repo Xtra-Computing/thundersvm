@@ -1,6 +1,6 @@
 CFLAGS	  := -O2 -Wall
-NVCCFLAGS := -O2 -arch=sm_30 -lrt -Wno-deprecated-gpu-targets -dc
-LASTFLAG  := -O2 -Wno-deprecated-gpu-targets
+NVCCFLAGS := -G -O2 -arch=sm_30 -lrt -Wno-deprecated-gpu-targets -dc
+LASTFLAG  := -G -O2 -Wno-deprecated-gpu-targets
 LDFLAGS   := -I/usr/local/cuda/include -I/usr/local/cuda/samples/common/inc -lcuda -lcudadevrt -lcudart -lcublas
 NVCC	  := /usr/local/cuda/bin/nvcc
 
@@ -36,7 +36,7 @@ storageManager_cu.o: svm-shared/storageManager.h svm-shared/storageManager.cu
 hostStorageManager.o: svm-shared/hostStorageManager.h svm-shared/hostStorageManager.cpp
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o hostStorageManager.o -c svm-shared/hostStorageManager.cpp
 
-modelSelector_cu.o: mascot/modelSelector.h mascot/modelSelector.cu svm-shared/HessianIO/deviceHessian.h svm-shared/HessianIO/baseHessian.h svm-shared/HessianIO/parAccessor.h svm-shared/HessianIO/seqAccessor.h svm-shared/storageManager.h svm-shared/svmTrainer.h
+modelSelector_cu.o: mascot/modelSelector.h mascot/modelSelector.cu svm-shared/HessianIO/deviceHessian.h svm-shared/HessianIO/baseHessian.h svm-shared/HessianIO/parAccessor.h svm-shared/HessianIO/seqAccessor.h svm-shared/storageManager.h svm-shared/svmTrainer.h svm-shared/host_constant.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o modelSelector_cu.o -c mascot/modelSelector.cu
 
 devUtility_cu.o: svm-shared/devUtility.h svm-shared/devUtility.cu
@@ -54,7 +54,7 @@ smoSolver_cu.o: svm-shared/smoSolver.h mascot/smoSolver.cu
 svmMain.o: mascot/svmMain.cu
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o svmMain.o -c mascot/svmMain.cu
 
-svmPredictor_cu.o: mascot/svmPredictor.h mascot/svmPredictor.cu
+svmPredictor_cu.o: mascot/svmPredictor.h mascot/svmPredictor.cu svm-shared/host_constant.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o svmPredictor_cu.o -c mascot/svmPredictor.cu
 
 svmSharedTrainer_cu.o: svm-shared/svmTrainer.h svm-shared/svmSharedTrainer.cu
@@ -63,7 +63,7 @@ svmSharedTrainer_cu.o: svm-shared/svmTrainer.h svm-shared/svmSharedTrainer.cu
 svmTrainer_cu.o: svm-shared/svmTrainer.h mascot/svmTrainer.cu
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o svmTrainer_cu.o -c mascot/svmTrainer.cu
 
-trainingFunction_cu.o: mascot/trainingFunction.h mascot/trainingFunction.cu
+trainingFunction_cu.o: mascot/trainingFunction.h mascot/trainingFunction.cu svm-shared/host_constant.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o trainingFunction_cu.o -c mascot/trainingFunction.cu
 
 cacheGS.o: svm-shared/Cache/cache.h svm-shared/Cache/cacheGS.cpp
@@ -84,13 +84,13 @@ DataIO.o: mascot/DataIOOps/DataIO.h mascot/DataIOOps/DataIO.cpp
 ReadHelper.o: mascot/DataIOOps/ReadHelper.cpp
 	g++ $(CCFLAGS) -o ReadHelper.o -c mascot/DataIOOps/ReadHelper.cpp
 
-baseHessian.o: svm-shared/HessianIO/baseHessian.h svm-shared/HessianIO/baseHessian.cpp
+baseHessian.o: svm-shared/HessianIO/baseHessian.h svm-shared/HessianIO/baseHessian.cpp svm-shared/host_constant.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o baseHessian.o -c svm-shared/HessianIO/baseHessian.cpp
 
 accessHessian.o: svm-shared/HessianIO/accessHessian.h svm-shared/HessianIO/accessHessian.cpp
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o accessHessian.o -c svm-shared/HessianIO/accessHessian.cpp
 
-parAccessor.o: svm-shared/HessianIO/parAccessor.h svm-shared/HessianIO/parAccessor.cpp svm-shared/HessianIO/accessHessian.h
+parAccessor.o: svm-shared/HessianIO/parAccessor.h svm-shared/HessianIO/parAccessor.cpp svm-shared/HessianIO/accessHessian.h svm-shared/host_constant.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o parAccessor.o -c svm-shared/HessianIO/parAccessor.cpp
 
 seqAccessor.o: svm-shared/HessianIO/seqAccessor.h svm-shared/HessianIO/seqAccessor.cpp svm-shared/HessianIO/accessHessian.h
