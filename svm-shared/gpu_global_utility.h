@@ -34,6 +34,12 @@ struct data_info
 	int nNumofDim;					//the number of dimensions
 };
 
+//for sparse data
+struct svm_node
+{
+	int index;
+	double value;
+};
 
 struct svm_param
 {
@@ -61,7 +67,7 @@ struct svm_model
 	struct svm_param param;	/* parameter */
 	int nr_class;		/* number of classes, = 2 in regression/one class svm */
 	int l;			/* total #SV */
-	//struct svm_node **SV;		/* SVs (SV[l]) */
+	struct svm_node **SV;		/* SVs (SV[l]) */
 	float_point **sv_coef;	/* coefficients for SVs in decision functions (sv_coef[k-1][l]) */
 	float_point *rho;		/* constants in decision functions (rho[k*(k-1)/2]) */
 	float_point *probA;		/* pariwise probability information */
