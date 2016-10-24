@@ -38,7 +38,7 @@ struct data_info
 struct svm_node
 {
 	int index;
-	double value;
+	float_point value;
 };
 
 struct svm_param

@@ -177,6 +177,7 @@ void CSVMTrainer::TrainEnding(int nIter, int nNumofTrainingExample, int nNumofIn
 	model.nSV[1] = nNumofNSV;
 
 	model.pnIndexofSV = new int[nNumofSVs];
+	model.SV = new svm_node*[nNumofSVs];
 	//sv_coef is a second level pointer, which is for multiclasses SVM
 	model.sv_coef = new float_point*[3];
 	model.sv_coef[0] = new float_point[nNumofSVs]; 	//this coef is for GPU computation convenience
@@ -248,8 +249,6 @@ bool CSVMTrainer::SaveModel(string strFileName, const svm_model *model, vector<v
 	//data of support vectors
 	writeOut << "SV" << endl;
 
-
-
 	const float_point * const *sv_coef = model->sv_coef;
 	int *pnIndexofSV = model->pnIndexofSV;
 	int nNumofSVs = model->nSV[0] + model->nSV[1];
@@ -258,21 +257,31 @@ bool CSVMTrainer::SaveModel(string strFileName, const svm_model *model, vector<v
 	{
 		writeOut << sv_coef[0][i] << " ";
 
+		int nonzeroDimCounter = 0;
 		for(int j = 0; j < v_vTrainingExample[0].size(); j++)//for each of dimension
 		{
-			writeOut << j << ":" << v_vTrainingExample[pnIndexofSV[i]][j]<< " ";
+			if(v_vTrainingExample[pnIndexofSV[i]][j] > 0)//for the support vector i
+			{
+				writeOut << j << ":" << v_vTrainingExample[pnIndexofSV[i]][j]<< " ";
+				nonzeroDimCounter++;
+			}
 		}
-/*			const svm_node *p = SV[i];
+		model->SV[i] = new svm_node[nonzeroDimCounter + 1];//the last node to indicate the end of SV
 
-			if(param.kernel_type == PRECOMPUTED)
-				fprintf(fp,"0:%d ",(int)(p->value));
-			else
-				while(p->index != -1)
-				{
-					fprintf(fp,"%d:%.8g ",p->index,p->value);
-					p++;
-				}
-*/		writeOut << endl;
+		int curDimCounter = 0;
+		for(int j = 0; j < v_vTrainingExample[0].size(); j++)//for each of dimension
+		{
+			if(v_vTrainingExample[pnIndexofSV[i]][j] > 0)//for the support vector i
+			{
+				model->SV[i][curDimCounter++].index = j;
+				model->SV[i][curDimCounter++].value = v_vTrainingExample[pnIndexofSV[i]][j];
+			}
+		}
+		//set the end of support vect
+		model->SV[i][curDimCounter++].index = -1;
+		model->SV[i][curDimCounter++].value = -1;
+
+		writeOut << endl;
 	}
 	writeOut.close();
 	return bReturn;
