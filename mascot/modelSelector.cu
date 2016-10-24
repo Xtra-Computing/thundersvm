@@ -122,10 +122,7 @@ void CModelSelector::PrecomputeKernelMatrix(vector<vector<float_point> > &v_vDoc
 		cerr << "locate negative amount of host memory" << endl;
 		exit(-1);
 	}
-	if(BaseHessian::m_pfHessianRowsInHostMem == NULL)
-	{
-		cout <<	"pointer is null" << endl;
-	}
+	
 //checkCudaErrors(cudaHostAlloc((void**)&(BaseHessian::m_pfHessianRowsInHostMem), lSizeofCachedHessian, cudaHostAllocMapped));
 	cudaMallocHost((void**)&(BaseHessian::m_pfHessianRowsInHostMem), lSizeofCachedHessian);
 	cudaError_t error = cudaGetLastError();

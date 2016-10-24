@@ -39,27 +39,9 @@ int main(int argc, char **argv)
 	{
 		return 0;
 	}
-/*
-	 cudaError_t error = cudaGetLastError();
-    if(error != cudaSuccess)
-    {
-             printf("CUDA error: %s before allocate pinned memory\n", cudaGetErrorString(error));
-             exit(-1);
-    }
-*/
+
 	printf("CUDA initialized.\n");
-	float *temp;
-	long long lSizeofCachedHessian = 45;
-     cudaMallocHost((void**)&temp, lSizeofCachedHessian);
-     error = cudaGetLastError();
-    if(error != cudaSuccess)
-     {
-             printf("CUDA error: %s after allocate pinned memory\n", cudaGetErrorString(error));
-             exit(-1);
-     }
-	return -1;
-
-
+	
 	if(parser.cross_validation == 1)
 	{
 		//perform cross validation

@@ -7,8 +7,8 @@ NVCC	  := /usr/local/cuda/bin/nvcc
 ODIR = bin
 dummy_build_folder := $(shell mkdir -p $(ODIR))
 
-bin/mascot: classificationKernel_cu.o commandLineParser.o cvFunction.o fileOps.o gpu_global_utility.o initCuda_cu.o modelSelector_cu.o smoGPUHelper_cu.o smoSolver_cu.o svmMain.o svmPredictor_cu.o svmTrainer_cu.o trainingFunction_cu.o cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o ReadHelper.o accessHessian.o baseHessian.o parAccessor.o seqAccessor.o deviceHessian_cu.o LinearCalculater_cu.o LinearCalGPUHelper_cu.o PolynomialCalGPUHelper_cu.o PolynomialCalculater_cu.o RBFCalculater_cu.o RBFCalGPUHelper_cu.o SigmoidCalculater_cu.o SigmoidCalGPUHelper_cu.o storageManager_cu.o hostStorageManager.o smoSharedSolver_cu.o svmSharedTrainer_cu.o baseLibsvmReader.o
-	$(NVCC) $(LASTFLAG) $(LDFLAGS) -o bin/mascot cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o ReadHelper.o baseHessian.o accessHessian.o parAccessor.o seqAccessor.o deviceHessian_cu.o LinearCalculater_cu.o LinearCalGPUHelper_cu.o PolynomialCalGPUHelper_cu.o PolynomialCalculater_cu.o RBFCalculater_cu.o RBFCalGPUHelper_cu.o SigmoidCalculater_cu.o SigmoidCalGPUHelper_cu.o storageManager_cu.o hostStorageManager.o classificationKernel_cu.o commandLineParser.o cvFunction.o fileOps.o gpu_global_utility.o initCuda_cu.o smoGPUHelper_cu.o smoSharedSolver_cu.o smoSolver_cu.o svmMain.o svmPredictor_cu.o svmSharedTrainer_cu.o svmTrainer_cu.o modelSelector_cu.o trainingFunction_cu.o 
+bin/mascot: classificationKernel_cu.o commandLineParser.o cvFunction.o fileOps.o gpu_global_utility.o initCuda_cu.o modelSelector_cu.o smoGPUHelper_cu.o smoSolver_cu.o svmMain.o svmPredictor_cu.o svmTrainer_cu.o trainingFunction_cu.o cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o ReadHelper.o accessHessian.o baseHessian.o parAccessor.o seqAccessor.o deviceHessian_cu.o LinearCalculater_cu.o LinearCalGPUHelper_cu.o PolynomialCalGPUHelper_cu.o PolynomialCalculater_cu.o RBFCalculater_cu.o RBFCalGPUHelper_cu.o SigmoidCalculater_cu.o SigmoidCalGPUHelper_cu.o storageManager_cu.o hostStorageManager.o smoSharedSolver_cu.o svmSharedTrainer_cu.o baseLibsvmReader.o devUtility_cu.o
+	$(NVCC) $(LASTFLAG) $(LDFLAGS) -o bin/mascot cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o ReadHelper.o baseHessian.o accessHessian.o parAccessor.o seqAccessor.o deviceHessian_cu.o LinearCalculater_cu.o LinearCalGPUHelper_cu.o PolynomialCalGPUHelper_cu.o PolynomialCalculater_cu.o RBFCalculater_cu.o RBFCalGPUHelper_cu.o SigmoidCalculater_cu.o SigmoidCalGPUHelper_cu.o devUtility_cu.o storageManager_cu.o hostStorageManager.o classificationKernel_cu.o commandLineParser.o cvFunction.o fileOps.o gpu_global_utility.o initCuda_cu.o smoGPUHelper_cu.o smoSharedSolver_cu.o smoSolver_cu.o svmMain.o svmPredictor_cu.o svmSharedTrainer_cu.o svmTrainer_cu.o modelSelector_cu.o trainingFunction_cu.o 
 cvFunction.o: mascot/cvFunction.cpp
 	g++ $(CCFLAGS) $(LDFLAGS) -o cvFunction.o -c mascot/cvFunction.cpp
 
@@ -39,7 +39,10 @@ hostStorageManager.o: svm-shared/hostStorageManager.h svm-shared/hostStorageMana
 modelSelector_cu.o: mascot/modelSelector.h mascot/modelSelector.cu svm-shared/HessianIO/deviceHessian.h svm-shared/HessianIO/baseHessian.h svm-shared/HessianIO/parAccessor.h svm-shared/HessianIO/seqAccessor.h svm-shared/storageManager.h svm-shared/svmTrainer.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o modelSelector_cu.o -c mascot/modelSelector.cu
 
-smoGPUHelper_cu.o: svm-shared/smoGPUHelper.h svm-shared/smoGPUHelper.cu
+devUtility_cu.o: svm-shared/devUtility.h svm-shared/devUtility.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o devUtility_cu.o -c svm-shared/devUtility.cu
+
+smoGPUHelper_cu.o: svm-shared/smoGPUHelper.h svm-shared/devUtility.h svm-shared/smoGPUHelper.cu
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o smoGPUHelper_cu.o -c svm-shared/smoGPUHelper.cu
 
 smoSharedSolver_cu.o: svm-shared/smoSolver.h svm-shared/smoSharedSolver.cu
