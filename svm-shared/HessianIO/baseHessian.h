@@ -13,6 +13,8 @@
 #include "accessHessian.h"
 #include <iostream>
 #include <vector>
+#include<cstring>
+#include<cstdlib>
 using std::string;
 using std::vector;
 

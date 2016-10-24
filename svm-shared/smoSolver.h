@@ -17,8 +17,8 @@
 #include "Cache/cache.h"
 #include "smoGPUHelper.h"
 #include "HessianIO/deviceHessian.h"
-#include <boost/interprocess/file_mapping.hpp>
-#include <boost/interprocess/mapped_region.hpp>
+//#include <boost/interprocess/file_mapping.hpp>
+//#include <boost/interprocess/mapped_region.hpp>
 
 using std::string;
 using std::ifstream;

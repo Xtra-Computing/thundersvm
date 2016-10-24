@@ -9,6 +9,8 @@
 #define PARHESSIANIO_H_
 
 #include "accessHessian.h"
+#include<cstdlib>
+#include<cstring>
 
 struct ThreadParameter
 {

@@ -1,7 +1,8 @@
 
 #include "fileOps.h"
-#include <boost/interprocess/shared_memory_object.hpp>
-#include <boost/interprocess/file_mapping.hpp>
+#include<cstdlib>
+//#include <boost/interprocess/shared_memory_object.hpp>
+//#include <boost/interprocess/file_mapping.hpp>
 
 /*
  * @brief: write a few Hessian rows to file at one time
@@ -102,21 +103,21 @@ bool CFileOps::ReadRowsFromFile(FILE *&readIn, float_point *&pContent, const int
 	return bReturn;
 }
 
-bool CFileOps::ReadPartOfRowFromFile(boost::interprocess::mapped_region *pRegion, float_point *pContent, int nFullRowSize, int nNumofElementsToRead, long long nIndexof1stElement)
-{
-	bool bReturn = false;
+//bool CFileOps::ReadPartOfRowFromFile(boost::interprocess::mapped_region *pRegion, float_point *pContent, int nFullRowSize, int nNumofElementsToRead, long long nIndexof1stElement)
+//{
+	//bool bReturn = false;
 
-	if(pContent == NULL || nFullRowSize <= 0 || nNumofElementsToRead <= 0 || nIndexof1stElement < 0)
-	{
-		cerr << "error in ReadPartOfRowFromFile: invalid param" << endl;
-		return bReturn;
-	}
+	//if(pContent == NULL || nFullRowSize <= 0 || nNumofElementsToRead <= 0 || nIndexof1stElement < 0)
+	//{
+		//cerr << "error in ReadPartOfRowFromFile: invalid param" << endl;
+		//return bReturn;
+	//}
 
-	float_point *pStartPos = static_cast<float_point*>(pRegion->get_address());
-	//find the position of this Hessian row
-	pStartPos = pStartPos + nIndexof1stElement;
-	memcpy(pContent, pStartPos, sizeof(float_point) * nNumofElementsToRead);
+	//float_point *pStartPos = static_cast<float_point*>(pRegion->get_address());
+	////find the position of this Hessian row
+	//pStartPos = pStartPos + nIndexof1stElement;
+	//memcpy(pContent, pStartPos, sizeof(float_point) * nNumofElementsToRead);
 
-	bReturn = true;
-	return bReturn;
-}
+	//bReturn = true;
+	//return bReturn;
+//}
