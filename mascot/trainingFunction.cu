@@ -203,6 +203,8 @@ void trainingByGPU(vector<vector<float_point> > &v_v_DocVector, data_info &SData
 	clock_gettime(CLOCK_REALTIME, &timeTrainS);
 
 	svm_model model;
+	model.param.C = param.C;
+	model.param.gamma = param.gamma;
 	svmTrainer.SetInvolveTrainingData(0, nNumofTrainingSamples - 1, -1, -1);
 	bool bTrain = svmTrainer.TrainModel(model, pfDevYiGValueSubset, pfDevAlphaSubset,
 										pnDevLabelSubset, nNumofTrainingSamples, NULL);

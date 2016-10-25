@@ -282,6 +282,59 @@ float_point* CSVMPredictor::Predict(svm_model *pModel, int *pnTestSampleId, cons
 	return pfReturn;
 }
 
+double k_function(const svm_node *x, const svm_node *y,
+			  const svm_param &param)
+{
+	switch(param.kernel_type)
+	{
+		case RBF:
+		{
+			double sum = 0;
+			while(x->index != -1 && y->index !=-1)
+			{
+				if(x->index == y->index)
+				{
+					double d = x->value - y->value;
+					sum += d*d;
+					++x;
+					++y;
+				}
+				else
+				{
+					if(x->index > y->index)
+					{
+						sum += y->value * y->value;
+						++y;
+					}
+					else
+					{
+						sum += x->value * x->value;
+						++x;
+					}
+				}
+			}
+
+			while(x->index != -1)
+			{
+				sum += x->value * x->value;
+				++x;
+			}
+
+			while(y->index != -1)
+			{
+				sum += y->value * y->value;
+				++y;
+			}
+
+			return exp(-param.gamma*sum);
+		}
+		case PRECOMPUTED:  //x: test (validation), y: SV
+			return x[(int)(y->value)].value;
+		default:
+			return 0;  // Unreachable
+	}
+}
+
 /**
  * @brief: compute kernel values on-the-fly
  */
@@ -289,59 +342,15 @@ void CSVMPredictor::ComputeOnTheFly(float_point *pfSVsKernelValues, svm_model *m
 {
 	int nr_class = model->nr_class;
 	int l = model->l;
-/*
+
 	//store kernel values in a matrix with the form that row is testing samples, column is SVs.
-	for(int i=0;i<l;i++)
+	for(int j = 0; j < numInstance; j++)
 	{
-		pfSVsKernelValues[i] = Kernel::k_function(x,model->SV[i],model->param);
-	}
-
-	int *start = Malloc(int,nr_class);
-	start[0] = 0;
-	for(i=1;i<nr_class;i++)
-		start[i] = start[i-1]+model->nSV[i-1];
-
-	int *vote = Malloc(int,nr_class);
-	for(i=0;i<nr_class;i++)
-		vote[i] = 0;
-
-	int p=0;
-	for(i=0;i<nr_class;i++)
-		for(int j=i+1;j<nr_class;j++)
+		for(int i=0;i<l;i++)
 		{
-			double sum = 0;
-			int si = start[i];
-			int sj = start[j];
-			int ci = model->nSV[i];
-			int cj = model->nSV[j];
-
-			int k;
-			double *coef1 = model->sv_coef[j-1];
-			double *coef2 = model->sv_coef[i];
-			for(k=0;k<ci;k++)
-				sum += coef1[si+k] * kvalue[si+k];
-			for(k=0;k<cj;k++)
-				sum += coef2[sj+k] * kvalue[sj+k];
-			sum -= model->rho[p];
-			dec_values[p] = sum;
-
-			if(dec_values[p] > 0)
-				++vote[i];
-			else
-				++vote[j];
-			p++;
+			pfSVsKernelValues[i] = k_function(pInstance[j], model->SV[i], model->param);
 		}
-
-	int vote_max_idx = 0;
-	for(i=1;i<nr_class;i++)
-		if(vote[i] > vote[vote_max_idx])
-			vote_max_idx = i;
-
-	free(kvalue);
-	free(start);
-	free(vote);
-	return model->label[vote_max_idx];
-*/
+	}
 }
 
 /**
