@@ -123,6 +123,28 @@ void CSVMPredictor::ReadKVbasedOnTest(float_point *pfSVsKernelValues, int *pnSVS
 	delete[] pfSVHessianSubRow;
 	delete[] pfHessianRow;
 }
+
+/**
+ * @brief: read kernel values from precomputed results
+ */
+void CSVMPredictor::ReadFromHessian(float_point *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs,
+									int *pnTestSampleId, int nNumofTestSamples)
+{
+	//get Hessian rows of support vectors
+	m_pHessianReader->AllocateBuffer(1);
+	if(nNumofSVs >= nNumofTestSamples)
+	{
+		m_pHessianReader->SetInvolveData(-1, -1, 0, m_pHessianReader->m_nTotalNumofInstance - 1);
+		ReadKVbasedOnTest(pfSVsKernelValues, pnSVSampleId, nNumofSVs, nNumofTestSamples);
+	}
+	else
+	{
+		m_pHessianReader->SetInvolveData(-1, -1, pnTestSampleId[0], pnTestSampleId[nNumofTestSamples - 1]);
+		ReadKVbasedOnSV(pfSVsKernelValues, pnSVSampleId, nNumofSVs, nNumofTestSamples);
+	}
+	m_pHessianReader->ReleaseBuffer();
+}
+
 /*
  * @brief: predict class labels
  */
@@ -150,18 +172,7 @@ float_point* CSVMPredictor::Predict(svm_model *pModel, int *pnTestSampleId, cons
 	float_point *pfYiAlphaofSVs;
 
 	//get Hessian rows of support vectors
-	m_pHessianReader->AllocateBuffer(1);
-	if(nNumofSVs >= nNumofTestSamples)
-	{
-		m_pHessianReader->SetInvolveData(-1, -1, 0, m_pHessianReader->m_nTotalNumofInstance - 1);
-		ReadKVbasedOnTest(pfSVsKernelValues, pnSVSampleId, nNumofSVs, nNumofTestSamples);
-	}
-	else
-	{
-		m_pHessianReader->SetInvolveData(-1, -1, pnTestSampleId[0], pnTestSampleId[nNumofTestSamples - 1]);
-		ReadKVbasedOnSV(pfSVsKernelValues, pnSVSampleId, nNumofSVs, nNumofTestSamples);
-	}
-	m_pHessianReader->ReleaseBuffer();
+	ReadFromHessian(pfSVsKernelValues, pnSVSampleId, nNumofSVs, pnTestSampleId, nNumofTestSamples);
 
 	/*compute y_i*alpha_i*K(i, z) by GPU, where i is id of support vector.
 	 * pfDevSVYiAlphaHessian stores in the order of T1 sv1 sv2 ... T2 sv1 sv2 ... T3 sv1 sv2 ...

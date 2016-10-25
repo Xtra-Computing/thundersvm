@@ -41,6 +41,10 @@ public:
 
 	void ReadKVbasedOnSV(float_point *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs, int nNumofTestSamples);
 	void ReadKVbasedOnTest(float_point *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs, int nNumofTestSamples);
+private:
+	void ReadFromHessian(float_point *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs,
+						 int *pnTestSampleId, int nNumofTestSamples);
+	void ComputeOnTheFly();
 };
 
 #endif /* SVMPREDICTOR_H_ */
