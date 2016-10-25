@@ -156,29 +156,21 @@ float_point *CSVMPredictor::AllocateKVMem(int nNumofSVs, const int &nNumofTestSa
 	return pfSVsKernelValues;
 }
 
-/*
- * @brief: predict class labels
+/**
+ * @return the number of support vectors in the model
  */
-float_point* CSVMPredictor::Predict(svm_model *pModel, int *pnTestSampleId, const int &nNumofTestSamples)
+int CSVMPredictor::GetNumSV(svm_model *pModel)
 {
-	float_point *pfReturn = NULL;
-	if(pModel == NULL)
-	{
-		cerr << "error in Predict function: invalid input params" << endl;
-		return pfReturn;
-	}
+	return (pModel->nSV[0] + pModel->nSV[1]);
+}
 
+/**
+ * @brief: predict the labels
+ */
+float_point* CSVMPredictor::PredictLabel(svm_model *pModel, int nNumofTestSamples, float_point *pfSVsKernelValues)
+{
 	//get infomation from SVM model
-	int nNumofSVs = pModel->nSV[0] + pModel->nSV[1];
-	int *pnSVSampleId = pModel->pnIndexofSV;
-
-	//store sub Hessian Matrix
-	float_point *pfSVsKernelValues = AllocateKVMem(nNumofSVs, nNumofTestSamples);
-
-	//get Hessian rows of support vectors
-	ReadFromHessian(pfSVsKernelValues, pnSVSampleId, nNumofSVs, pnTestSampleId, nNumofTestSamples);
-
-	//get infomation from SVM model
+	int nNumofSVs = GetNumSV(pModel);
 	float_point fBias = *(pModel->rho);
 	float_point **pyfSVsYiAlpha = pModel->sv_coef;
 	float_point *pfSVsYiAlpha = pyfSVsYiAlpha[0];
@@ -247,7 +239,7 @@ float_point* CSVMPredictor::Predict(svm_model *pModel, int *pnTestSampleId, cons
 	if(pfClassificaitonResult == NULL)
 	{
 		cerr << "error in ComputeClassLabel" << endl;
-		return pfReturn;
+		exit(-1);
 	}
 
 
@@ -258,9 +250,35 @@ float_point* CSVMPredictor::Predict(svm_model *pModel, int *pnTestSampleId, cons
 	checkCudaErrors(cudaFree(pnDevSVsLabel));
 	}
 
+	return pfClassificaitonResult;
+}
+
+/*
+ * @brief: predict class labels
+ */
+float_point* CSVMPredictor::Predict(svm_model *pModel, int *pnTestSampleId, const int &nNumofTestSamples)
+{
+	float_point *pfReturn = NULL;
+	if(pModel == NULL)
+	{
+		cerr << "error in Predict function: invalid input params" << endl;
+		return pfReturn;
+	}
+
+	//get infomation from SVM model
+	int nNumofSVs = GetNumSV(pModel);
+	int *pnSVSampleId = pModel->pnIndexofSV;
+
+	//store sub Hessian Matrix
+	float_point *pfSVsKernelValues = AllocateKVMem(nNumofSVs, nNumofTestSamples);
+
+	//get Hessian rows of support vectors
+	ReadFromHessian(pfSVsKernelValues, pnSVSampleId, nNumofSVs, pnTestSampleId, nNumofTestSamples);
+
+	pfReturn = PredictLabel(pModel, nNumofTestSamples, pfSVsKernelValues);
+
 	delete[] pfSVsKernelValues;
 
-	pfReturn = pfClassificaitonResult;
 	return pfReturn;
 }
 

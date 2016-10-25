@@ -42,7 +42,9 @@ public:
 	void ReadKVbasedOnSV(float_point *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs, int nNumofTestSamples);
 	void ReadKVbasedOnTest(float_point *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs, int nNumofTestSamples);
 private:
+	int GetNumSV(svm_model *pModel);
 	float_point* AllocateKVMem(int nNumofSVs, const int &nNumofTestSamples);
+	float_point* PredictLabel(svm_model *pModel, int nNumofTestSamples, float_point *pfSVsKernelValues);
 	void ReadFromHessian(float_point *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs,
 						 int *pnTestSampleId, int nNumofTestSamples);
 	void ComputeOnTheFly();
