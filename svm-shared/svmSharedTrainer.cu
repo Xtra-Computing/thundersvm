@@ -214,13 +214,10 @@ void CSVMTrainer::TrainEnding(int nIter, int nNumofTrainingExample, int nNumofIn
 	m_pSMOSolver->CleanCache();
 }
 
-
-
-
 /*
  * @brief: save SVM model to file
  */
-bool CSVMTrainer::SaveModel(string strFileName, const svm_model *model, vector<vector<float_point> >& v_vTrainingExample)
+bool CSVMTrainer::SaveModel(string strFileName, svm_model *model, vector<vector<float_point> >& v_vTrainingExample)
 {
 	bool bReturn = false;
 	ofstream writeOut;
@@ -251,7 +248,8 @@ bool CSVMTrainer::SaveModel(string strFileName, const svm_model *model, vector<v
 
 	const float_point * const *sv_coef = model->sv_coef;
 	int *pnIndexofSV = model->pnIndexofSV;
-	int nNumofSVs = model->nSV[0] + model->nSV[1];
+	int nNumofSVs = model->nSV[0] + model->nSV[1];//Better to use as a function (similar to GetNumSV as in svmPredictor.cu)
+	model->l = nNumofSVs;
 
 	for(int i = 0; i < nNumofSVs; i++)
 	{

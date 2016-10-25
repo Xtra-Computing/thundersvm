@@ -165,7 +165,7 @@ int CSVMPredictor::GetNumSV(svm_model *pModel)
 }
 
 /**
- * @brief: predict the labels
+ * @brief: predict the label helper function
  */
 float_point* CSVMPredictor::PredictLabel(svm_model *pModel, int nNumofTestSamples, float_point *pfSVsKernelValues)
 {
@@ -254,7 +254,7 @@ float_point* CSVMPredictor::PredictLabel(svm_model *pModel, int nNumofTestSample
 }
 
 /*
- * @brief: predict class labels
+ * @brief: predict class labels using precomputed kernel valules
  */
 float_point* CSVMPredictor::Predict(svm_model *pModel, int *pnTestSampleId, const int &nNumofTestSamples)
 {
@@ -282,8 +282,72 @@ float_point* CSVMPredictor::Predict(svm_model *pModel, int *pnTestSampleId, cons
 	return pfReturn;
 }
 
-/*
-float_point* CSVMPredictor::Predict(svm_model *pModel, svm_node **pInstance, const int &numInstance)
+/**
+ * @brief: compute kernel values on-the-fly
+ */
+void CSVMPredictor::ComputeOnTheFly(float_point *pfSVsKernelValues, svm_model *model, svm_node **pInstance, int numInstance)
+{
+	int nr_class = model->nr_class;
+	int l = model->l;
+
+	//store kernel values in a matrix with the form that row is testing samples, column is SVs.
+	for(int i=0;i<l;i++)
+	{
+		pfSVsKernelValues[i] = Kernel::k_function(x,model->SV[i],model->param);
+	}
+
+	int *start = Malloc(int,nr_class);
+	start[0] = 0;
+	for(i=1;i<nr_class;i++)
+		start[i] = start[i-1]+model->nSV[i-1];
+
+	int *vote = Malloc(int,nr_class);
+	for(i=0;i<nr_class;i++)
+		vote[i] = 0;
+
+	int p=0;
+	for(i=0;i<nr_class;i++)
+		for(int j=i+1;j<nr_class;j++)
+		{
+			double sum = 0;
+			int si = start[i];
+			int sj = start[j];
+			int ci = model->nSV[i];
+			int cj = model->nSV[j];
+
+			int k;
+			double *coef1 = model->sv_coef[j-1];
+			double *coef2 = model->sv_coef[i];
+			for(k=0;k<ci;k++)
+				sum += coef1[si+k] * kvalue[si+k];
+			for(k=0;k<cj;k++)
+				sum += coef2[sj+k] * kvalue[sj+k];
+			sum -= model->rho[p];
+			dec_values[p] = sum;
+
+			if(dec_values[p] > 0)
+				++vote[i];
+			else
+				++vote[j];
+			p++;
+		}
+
+	int vote_max_idx = 0;
+	for(i=1;i<nr_class;i++)
+		if(vote[i] > vote[vote_max_idx])
+			vote_max_idx = i;
+
+	free(kvalue);
+	free(start);
+	free(vote);
+	return model->label[vote_max_idx];
+
+}
+
+/**
+ * @brief: predict labels with computing kernel values on-the-fly
+ */
+float_point* CSVMPredictor::Predict(svm_model *pModel, svm_node **pInstance, int numInstance)
 {
 	float_point *pfReturn = NULL;
 	if(pModel == NULL)
@@ -293,112 +357,21 @@ float_point* CSVMPredictor::Predict(svm_model *pModel, svm_node **pInstance, con
 	}
 
 	//get infomation from SVM model
-	int nNumofSVs = pModel->nSV[0] + pModel->nSV[1];
-	float_point fBias = *(pModel->rho);
-	float_point **pyfSVsYiAlpha = pModel->sv_coef;
-	float_point *pfSVsYiAlpha = pyfSVsYiAlpha[0];
-	int *pnSVsLabel = pModel->label;
-	int *pnSVSampleId = pModel->pnIndexofSV;
+	int nNumofSVs = GetNumSV(pModel);
 
 	//store sub Hessian Matrix
-	float_point *pfSVsKernelValues = new float_point[numInstance * nNumofSVs];
-	memset(pfSVsKernelValues, 0, sizeof(float_point) * numInstance * nNumofSVs);
-
-	float_point *pfYiAlphaofSVs;
+	float_point *pfSVsKernelValues = AllocateKVMem(nNumofSVs, numInstance);
 
 	//get Hessian rows of support vectors
-	m_pHessianReader->AllocateBuffer(1);
-	if(nNumofSVs >= numInstance)
-	{
-		m_pHessianReader->SetInvolveData(-1, -1, 0, m_pHessianReader->m_nTotalNumofInstance - 1);
-		ReadKVbasedOnTest(pfSVsKernelValues, pnSVSampleId, nNumofSVs, numInstance);
-	}
-	else
-	{
-		m_pHessianReader->SetInvolveData(-1, -1, pnTestSampleId[0], pnTestSampleId[nNumofTestSamples - 1]);
-		ReadKVbasedOnSV(pfSVsKernelValues, pnSVSampleId, nNumofSVs, numInstance);
-	}
-	m_pHessianReader->ReleaseBuffer();
+	ComputeOnTheFly(pfSVsKernelValues, pModel, pInstance, numInstance);
 
-	/*compute y_i*alpha_i*K(i, z) by GPU, where i is id of support vector.
-	 * pfDevSVYiAlphaHessian stores in the order of T1 sv1 sv2 ... T2 sv1 sv2 ... T3 sv1 sv2 ...
-	 */
-/*	float_point *pfDevSVYiAlphaHessian;
-	float_point *pfDevSVsYiAlpha;
-	int *pnDevSVsLabel;
-
-	//if the memory is not enough for the storage when classifying all testing samples at once, divide it into multiple parts
-
-	StorageManager *manager = StorageManager::getManager();
-	int nMaxNumofFloatPoint = manager->GetFreeGPUMem();
-	int nNumofPart = Ceil(nNumofSVs * numInstance, nMaxNumofFloatPoint);
-
-//	cout << "cache size is: " << nMaxNumofFloatPoint << " v.s.. " << nNumofSVs * nNumofTestSamples << endl;
-//	cout << "perform classification in " << nNumofPart << " time(s)" << endl;
-
-	//allocate memory for storing classification result
-	float_point *pfClassificaitonResult = new float_point[numInstance];
-	//initialise the size of each part
-	int *pSizeofPart = new int[nNumofPart];
-	int nAverageSize = numInstance / nNumofPart;
-	for(int i = 0; i < nNumofPart; i++)
-	{
-		if(i != nNumofPart - 1)
-		{
-			pSizeofPart[i] = nAverageSize;
-		}
-		else
-		{
-			pSizeofPart[i] = numInstance - nAverageSize * i;
-		}
-	}
-
-	//perform classification for each part
-	for(int i = 0; i < nNumofPart; i++)
-	{
-	checkCudaErrors(cudaMalloc((void**)&pfDevSVYiAlphaHessian, sizeof(float_point) * nNumofSVs * pSizeofPart[i]));
-	checkCudaErrors(cudaMalloc((void**)&pfDevSVsYiAlpha, sizeof(float_point) * nNumofSVs));
-	checkCudaErrors(cudaMalloc((void**)&pnDevSVsLabel, sizeof(int) * nNumofSVs));
-
-	checkCudaErrors(cudaMemset(pfDevSVYiAlphaHessian, 0, sizeof(float_point) * nNumofSVs * pSizeofPart[i]));
-	checkCudaErrors(cudaMemset(pfDevSVsYiAlpha, 0, sizeof(float_point) * nNumofSVs));
-	checkCudaErrors(cudaMemset(pnDevSVsLabel, 0, sizeof(int) * nNumofSVs));
-
-	checkCudaErrors(cudaMemcpy(pfDevSVYiAlphaHessian, pfSVsKernelValues + i * nAverageSize * nNumofSVs,
-				  	  	  	   sizeof(float_point) * nNumofSVs * pSizeofPart[i], cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(pfDevSVsYiAlpha, pfSVsYiAlpha, sizeof(float_point) * nNumofSVs, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(pnDevSVsLabel, pnSVsLabel, sizeof(int) * nNumofSVs, cudaMemcpyHostToDevice));
-
-	//compute y_i*alpha_i*K(i, z)
-	int nVecMatxMulGridDimY = pSizeofPart[i];
-	int nVecMatxMulGridDimX = Ceil(nNumofSVs, BLOCK_SIZE);
-	dim3 vecMatxMulGridDim(nVecMatxMulGridDimX, nVecMatxMulGridDimY);
-	VectorMatrixMul<<<vecMatxMulGridDim, BLOCK_SIZE>>>(pfDevSVsYiAlpha, pfDevSVYiAlphaHessian, pSizeofPart[i], nNumofSVs);
-
-	//perform classification
-	ComputeClassLabel(pSizeofPart[i], pfDevSVYiAlphaHessian,
-					  nNumofSVs, fBias, pfClassificaitonResult + i * nAverageSize);
-
-	if(pfClassificaitonResult == NULL)
-	{
-		cerr << "error in ComputeClassLabel" << endl;
-		return pfReturn;
-	}
-
-
-	//free memory
-	checkCudaErrors(cudaFree(pfDevSVYiAlphaHessian));
-	pfDevSVYiAlphaHessian = NULL;
-	checkCudaErrors(cudaFree(pfDevSVsYiAlpha));
-	checkCudaErrors(cudaFree(pnDevSVsLabel));
-	}
+	pfReturn = PredictLabel(pModel, numInstance, pfSVsKernelValues);
 
 	delete[] pfSVsKernelValues;
 
-	pfReturn = pfClassificaitonResult;
 	return pfReturn;
 }
-*/
+
 
 /*
  * @brief: compute/predict the labels of testing samples

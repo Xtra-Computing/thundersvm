@@ -34,7 +34,7 @@ public:
 
 	bool SetInvolvePredictionData(int nStart1, int nEnd1);
 	float_point* Predict(svm_model*, int *pnTestSampleId, const int&);
-	float_point* Predict(svm_model*, svm_node **pInstance, const int &numInstance);
+	float_point* Predict(svm_model*, svm_node **pInstance, int numInstance);
 	float_point* ComputeClassLabel(int nNumofTestingSamples,
 						   float_point *pfSVYiAlhpaHessian, const int &nNumofSVs,
 						   float_point fBias, float_point *pfFinalResult);
@@ -45,9 +45,10 @@ private:
 	int GetNumSV(svm_model *pModel);
 	float_point* AllocateKVMem(int nNumofSVs, const int &nNumofTestSamples);
 	float_point* PredictLabel(svm_model *pModel, int nNumofTestSamples, float_point *pfSVsKernelValues);
+
 	void ReadFromHessian(float_point *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs,
 						 int *pnTestSampleId, int nNumofTestSamples);
-	void ComputeOnTheFly();
+	void ComputeOnTheFly(float_point *pfSVsKernelValues, svm_model *pModel, svm_node **pInstance, int numInstance);
 };
 
 #endif /* SVMPREDICTOR_H_ */

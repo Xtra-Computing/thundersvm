@@ -59,7 +59,7 @@ public:
 	/**** haven't implemented functions **********/
 
 	//for future prediction purpose
-	bool SaveModel(string strFileName, const svm_model *model, vector<vector<float_point> >&);
+	bool SaveModel(string strFileName, svm_model *model, vector<vector<float_point> >&);
 };
 
 #endif /* SVMTRAINER_H_ */

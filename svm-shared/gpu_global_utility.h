@@ -34,6 +34,8 @@ struct data_info
 	int nNumofDim;					//the number of dimensions
 };
 
+enum { LINEAR, POLY, RBF, SIGMOID, PRECOMPUTED }; /* kernel_type */
+
 //for sparse data
 struct svm_node
 {

@@ -210,8 +210,18 @@ void trainingByGPU(vector<vector<float_point> > &v_v_DocVector, data_info &SData
 	{
 		cerr << "can't find an optimal classifier" << endl;
 	}
+	if(ops.m_pKernelCalculater.GetType().compare(RBFKERNEL) == 0)
+	{
+		model.param.kernel_type = RBF;
+	}
+	else
+	{
+		cerr << "unsupported kernel type; Please contact the developers" << endl;
+		exit(-1);
+	}
+
 	model.nDimension = v_v_DocVector[0].size();
-	svmTrainer.SaveModel("adult_svm.model", &model, v_v_DocVector);
+	svmTrainer.SaveModel("svm.model", &model, v_v_DocVector);
 	cout << " rho = " << model.rho[0] << "; # of SVs = " << model.nSV[0] + model.nSV[1] << endl;
 	gettimeofday(&tTraining2, NULL);
 	clock_gettime(CLOCK_REALTIME, &timeTrainE);
