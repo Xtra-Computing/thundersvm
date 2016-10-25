@@ -210,7 +210,7 @@ void trainingByGPU(vector<vector<float_point> > &v_v_DocVector, data_info &SData
 	{
 		cerr << "can't find an optimal classifier" << endl;
 	}
-	if(ops.m_pKernelCalculater.GetType().compare(RBFKERNEL) == 0)
+	if(ops.m_pKernelCalculater->GetType().compare(RBFKERNEL) == 0)
 	{
 		model.param.kernel_type = RBF;
 	}

@@ -289,7 +289,7 @@ void CSVMPredictor::ComputeOnTheFly(float_point *pfSVsKernelValues, svm_model *m
 {
 	int nr_class = model->nr_class;
 	int l = model->l;
-
+/*
 	//store kernel values in a matrix with the form that row is testing samples, column is SVs.
 	for(int i=0;i<l;i++)
 	{
@@ -341,7 +341,7 @@ void CSVMPredictor::ComputeOnTheFly(float_point *pfSVsKernelValues, svm_model *m
 	free(start);
 	free(vote);
 	return model->label[vote_max_idx];
-
+*/
 }
 
 /**

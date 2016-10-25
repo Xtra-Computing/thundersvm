@@ -4,7 +4,7 @@ MASCOT is a GPU-based implementation for SVM cross-validation. It also has modul
 
 The associated paper of this source code is: "MASCOT: Fast and Highly Scalable SVM Cross-validation using GPUs and SSDs" published in ICDM 2014.
 
-Report bugs to: name@domain where name=zeyi.wen and domain=unimelb.edu.au
+Report bugs to: name@domain where name=wenzeyi and domain=(google's email)
 
 This software is licensed under Apache Software License v2.0.
 
@@ -22,7 +22,7 @@ FAQ:
 <b>A</b>: The file format is the same as the format of files in LibSVM site.
 
 3. Does this version support the Windows OS?<br>
-<b>A</b>: No. However, the code should work on Windows OS.
+<b>A</b>: No. However, the code should work on Windows OS, although we have tested it on Windows.
 
 4. Do I have to install an SSD if I want to use MASCOT?<br>
 <b>A</b>: No. MASCOT works fine with HDDs, although SSDs would help improve the efficiency.
