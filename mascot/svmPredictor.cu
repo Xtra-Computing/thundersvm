@@ -145,6 +145,17 @@ void CSVMPredictor::ReadFromHessian(float_point *pfSVsKernelValues, int *pnSVSam
 	m_pHessianReader->ReleaseBuffer();
 }
 
+/**
+ * @brief: allocate memory for kernel values involved in the prediction
+ */
+float_point *CSVMPredictor::AllocateKVMem(int nNumofSVs, const int &nNumofTestSamples)
+{
+	//store sub Hessian Matrix
+	float_point *pfSVsKernelValues = new float_point[nNumofTestSamples * nNumofSVs];
+	memset(pfSVsKernelValues, 0, sizeof(float_point) * nNumofTestSamples * nNumofSVs);
+	return pfSVsKernelValues;
+}
+
 /*
  * @brief: predict class labels
  */
@@ -159,20 +170,20 @@ float_point* CSVMPredictor::Predict(svm_model *pModel, int *pnTestSampleId, cons
 
 	//get infomation from SVM model
 	int nNumofSVs = pModel->nSV[0] + pModel->nSV[1];
+	int *pnSVSampleId = pModel->pnIndexofSV;
+
+	//store sub Hessian Matrix
+	float_point *pfSVsKernelValues = AllocateKVMem(nNumofSVs, nNumofTestSamples);
+
+	//get Hessian rows of support vectors
+	ReadFromHessian(pfSVsKernelValues, pnSVSampleId, nNumofSVs, pnTestSampleId, nNumofTestSamples);
+
+	//get infomation from SVM model
 	float_point fBias = *(pModel->rho);
 	float_point **pyfSVsYiAlpha = pModel->sv_coef;
 	float_point *pfSVsYiAlpha = pyfSVsYiAlpha[0];
 	int *pnSVsLabel = pModel->label;
-	int *pnSVSampleId = pModel->pnIndexofSV;
-
-	//store sub Hessian Matrix
-	float_point *pfSVsKernelValues = new float_point[nNumofTestSamples * nNumofSVs];
-	memset(pfSVsKernelValues, 0, sizeof(float_point) * nNumofTestSamples * nNumofSVs);
-
 	float_point *pfYiAlphaofSVs;
-
-	//get Hessian rows of support vectors
-	ReadFromHessian(pfSVsKernelValues, pnSVSampleId, nNumofSVs, pnTestSampleId, nNumofTestSamples);
 
 	/*compute y_i*alpha_i*K(i, z) by GPU, where i is id of support vector.
 	 * pfDevSVYiAlphaHessian stores in the order of T1 sv1 sv2 ... T2 sv1 sv2 ... T3 sv1 sv2 ...
