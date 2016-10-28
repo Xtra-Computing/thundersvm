@@ -25,6 +25,7 @@
 #include "../svm-shared/smoSolver.h"
 #include "../svm-shared/Cache/cache.h"
 #include "DataIOOps/DataIO.h"
+#include "DataIOOps/BaseLibsvmReader.h"
 #include <helper_cuda.h>
 using std::cout;
 using std::endl;
@@ -42,6 +43,9 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature)
 	vector<int> v_nLabel;
 
 	CDataIOOps rawDataRead;
+    int nNumofInstance = 0;     //not used
+    long long nNumofValue = 0;  //not used
+    BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
 	rawDataRead.ReadFromFile(strTrainingFileName, nNumofFeature, v_v_DocVector, v_nLabel);
 	//cout << v_v_DocVector.size() << " : " << v_nLabel.size() << endl;
 
