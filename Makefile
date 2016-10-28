@@ -1,6 +1,9 @@
-CFLAGS	  := -O2 -Wall
-NVCCFLAGS := -O2 -arch=sm_30 -lrt -Wno-deprecated-gpu-targets -dc
-LASTFLAG  := -O2 -Wno-deprecated-gpu-targets
+RELEASE_MODE  := -O2
+DEBUG_MODE	  := -g
+MODE = $(DEBUG_MODE)
+CFLAGS	  := -Wall $(MODE) 
+NVCCFLAGS := -arch=sm_30 -lrt -Wno-deprecated-gpu-targets -dc $(MODE) 
+LASTFLAG  := -Wno-deprecated-gpu-targets
 LDFLAGS   := -I/usr/local/cuda/include -I/usr/local/cuda/samples/common/inc -lcuda -lcudadevrt -lcudart -lcublas
 NVCC	  := /usr/local/cuda/bin/nvcc
 
