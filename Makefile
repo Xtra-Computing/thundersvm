@@ -1,9 +1,9 @@
 RELEASE_MODE  := -O2
 DEBUG_MODE	  := -g
 MODE = $(DEBUG_MODE)
-CFLAGS	  := -Wall $(MODE) 
-NVCCFLAGS := -arch=sm_30 -lrt -Wno-deprecated-gpu-targets -dc $(MODE) 
-LASTFLAG  := -Wno-deprecated-gpu-targets
+CCFLAGS	  := $(MODE) -Wall 
+NVCCFLAGS := $(MODE) -arch=sm_30 -lrt -Wno-deprecated-gpu-targets -dc
+LASTFLAG  := $(MODE) -Wno-deprecated-gpu-targets
 LDFLAGS   := -I/usr/local/cuda/include -I/usr/local/cuda/samples/common/inc -lcuda -lcudadevrt -lcudart -lcublas
 NVCC	  := /usr/local/cuda/bin/nvcc
 
@@ -28,7 +28,7 @@ commandLineParser.o: mascot/commandLineParser.h mascot/commandLineParser.cpp
 	g++ $(CCFLAGS) -o commandLineParser.o -c mascot/commandLineParser.cpp
 
 gpu_global_utility.o: svm-shared/gpu_global_utility.h svm-shared/gpu_global_utility.cu
-	$(NVCC) $(CCFLAGS) $(LDFLAGS) -o gpu_global_utility.o -c svm-shared/gpu_global_utility.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o gpu_global_utility.o -c svm-shared/gpu_global_utility.cu
 
 initCuda_cu.o: svm-shared/initCuda.h svm-shared/initCuda.cu
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o initCuda_cu.o -c svm-shared/initCuda.cu
