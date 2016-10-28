@@ -16,7 +16,7 @@
  * @param: pnBlockMinGlobalKey: the index of the min value of this block
  */
 __global__ void GetBlockMinYiGValue(float_point *pfYiFValue, float_point *pfAlpha, int *pnLabel, float_point fPCost,
-									int nNumofTraingSamples, float_point *pfBlockMin, int *pnBlockMinGlobalKey)
+									int nNumofTrainingSamples, float_point *pfBlockMin, int *pnBlockMinGlobalKey)
 {
 	__shared__ float_point fTempLocalYiFValue[BLOCK_SIZE];
 	__shared__ int nTempLocalKeys[BLOCK_SIZE];
@@ -26,19 +26,22 @@ __global__ void GetBlockMinYiGValue(float_point *pfYiFValue, float_point *pfAlph
 	//global index for thread
 	nGlobalIndex = (blockIdx.y * gridDim.x + blockIdx.x) * blockDim.x + threadIdx.x;
 
-	float_point fAlpha;
-	int nLabel;
-	fAlpha = pfAlpha[nGlobalIndex];
-	nLabel = pnLabel[nGlobalIndex];
 	fTempLocalYiFValue[nThreadId] = FLT_MAX;
-	//fill yi*GValue in a block
-	if(nGlobalIndex < nNumofTraingSamples && ((nLabel > 0 && fAlpha < fPCost) || (nLabel < 0 && fAlpha > 0)))
-	{
-		//I_0 is (fAlpha > 0 && fAlpha < fCostP). This condition is covered by the following condition
-		//index set I_up
-		fTempLocalYiFValue[nThreadId] = pfYiFValue[nGlobalIndex];
-		nTempLocalKeys[nThreadId] = nGlobalIndex;
-	}
+    if(nGlobalIndex < nNumofTrainingSamples)
+    {
+    	float_point fAlpha;
+	    int nLabel;
+	    fAlpha = pfAlpha[nGlobalIndex];
+	    nLabel = pnLabel[nGlobalIndex];
+	    //fill yi*GValue in a block
+	    if((nLabel > 0 && fAlpha < fPCost) || (nLabel < 0 && fAlpha > 0))
+	    {
+		    //I_0 is (fAlpha > 0 && fAlpha < fCostP). This condition is covered by the following condition
+		    //index set I_up
+		    fTempLocalYiFValue[nThreadId] = pfYiFValue[nGlobalIndex];
+		    nTempLocalKeys[nThreadId] = nGlobalIndex;
+	    }
+    }
 	__syncthreads();	//synchronize threads within a block, and start to do reduce
 
 	GetMinValueOriginal(fTempLocalYiFValue, nTempLocalKeys, blockDim.x);
@@ -84,7 +87,6 @@ __global__ void GetBlockMinLowValue(float_point *pfYiFValue, float_point *pfAlph
 	int nReduce = NOREDUCE;
 	float_point fAUp_j;
 	float_point fBUp_j;
-	int nLabel = pnLabel[nGlobalIndex];
 
 	if(nGlobalIndex < nNumofTrainingSamples)
 	{
@@ -94,6 +96,7 @@ __global__ void GetBlockMinLowValue(float_point *pfYiFValue, float_point *pfAlph
 
 		nTempKey[nThreadId] = nGlobalIndex;
 
+	    int nLabel = pnLabel[nGlobalIndex];
 		/*************** calculate b_ij ****************/
 		//b_ij = -Gi + Gj in paper, but b_ij = -Gi + y_j * Gj in the code of libsvm. Here we follow the code of libsvm
 		fBUp_j = fUpValue + fYiGValue;
