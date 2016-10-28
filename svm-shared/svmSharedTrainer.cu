@@ -125,7 +125,7 @@ void CSVMTrainer::TrainEnding(int nIter, int nNumofTrainingExample, int nNumofIn
 	float sum_alpha = 0;
 	for(int i = 0; i < nNumofInstance; i++)
 	{
-		pfAlpha[i] = pfAlpha[i] - pfAlpha[i+nNumofInstance];
+		//pfAlpha[i] = pfAlpha[i] - pfAlpha[i+nNumofInstance]; //this line is for regression
 		sum_alpha += fabs(pfAlpha[i]);
 		/*if(pfAlpha[i] == 0)
 		{
@@ -167,7 +167,7 @@ void CSVMTrainer::TrainEnding(int nIter, int nNumofTrainingExample, int nNumofIn
 	}
 
 	cout << "nu=" << sum_alpha/nNumofInstance << endl;
-	cout << "# free SV " << nNumofFreeAlpha << endl;
+	cout << "# free SV " << nNumofFreeAlpha << "; # of SV " << nNumofSVs << endl;
 	/**************** store result to SVM model ***********************/
 	model.label = new int[2];
 	model.nSV = new int[2];
