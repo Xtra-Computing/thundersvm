@@ -7,6 +7,7 @@
 
 
 #include "baseHessian.h"
+#include <helper_cuda.h>
 #include <sys/time.h>
 #include <sys/sysinfo.h>
 #include "../gpu_global_utility.h"
@@ -398,5 +399,69 @@ void BaseHessian::PrintHessianInfo()
 	cout <<	"part1_end=" << m_nRowEndPos1 << "\t";
 	cout <<	"part2_start=" << m_nRowStartPos2 << "\t";
 	cout << "part2_end=" << m_nRowEndPos2 << endl;
+}
+
+
+/**
+ * @brief: kernel matrix precomputation
+ */
+void BaseHessian::PrecomputeKernelMatrix(vector<vector<float_point> > &v_vDocVector, BaseHessian *hessianIOOps)
+{
+	//compute Hessian Matrix
+	string strHessianMatrixFileName = HESSIAN_FILE;
+	string strDiagHessianFileName = HESSIAN_DIAG_FILE;
+
+	int nNumofSample = v_vDocVector.size();
+
+	//initialize Hessian IO operator
+	//CLinearKernel RBF(pfGamma[j]);
+
+	int nNumofRowsOfHessianMatrix = v_vDocVector.size();
+	//space of row-index-in-file is for improving reading performace
+	BaseHessian::m_nNumofDim = v_vDocVector.front().size();
+	BaseHessian::m_nTotalNumofInstance = nNumofRowsOfHessianMatrix;
+
+	StorageManager *manager = StorageManager::getManager();
+	int nNumofHessianRow = manager->RowInRAM(BaseHessian::m_nNumofDim, BaseHessian::m_nTotalNumofInstance, nNumofSample);
+
+	cout << nNumofHessianRow << " rows cached in RAM" << endl;
+	long long lSizeofCachedHessian = sizeof(float_point) * (long long)nNumofHessianRow * nNumofSample;
+
+
+	cout << "numRow " << nNumofHessianRow << "; numIns " << nNumofSample << "; numBytes " << lSizeofCachedHessian << endl;
+	if(lSizeofCachedHessian < 0)
+	{
+		cerr << "locate negative amount of host memory" << endl;
+		exit(-1);
+	}
+
+	checkCudaErrors(cudaMallocHost((void**)&(BaseHessian::m_pfHessianRowsInHostMem), lSizeofCachedHessian));
+
+	memset(BaseHessian::m_pfHessianRowsInHostMem, 0, lSizeofCachedHessian);
+	BaseHessian::m_nNumofCachedHessianRow = nNumofHessianRow;
+	BaseHessian::m_pfHessianDiag = new float_point[hessianIOOps->m_nTotalNumofInstance];
+	//hessianIOOps->m_pfHessianDiagTest = new float_point[hessianIOOps->m_nTotalNumofInstance];
+
+	//pre-compute Hessian Matrix and store the result into a file
+	cout << "precomputing kernel matrix...";
+	cout.flush();
+
+	timeval t1, t2;
+	float_point elapsedTime;
+	gettimeofday(&t1, NULL);
+	bool bWriteHessian = hessianIOOps->PrecomputeHessian(strHessianMatrixFileName, strDiagHessianFileName, v_vDocVector);
+	hessianIOOps->ReadDiagFromHessianMatrix();
+
+	gettimeofday(&t2, NULL);
+	elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
+	elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
+	//cout << "Done" << elapsedTime << " ms.\n";
+	cout << " Done" << endl;
+
+	if(bWriteHessian == false)
+	{
+		cerr << "write matrix to file failed" << endl;
+		exit(0);
+	}
 }
 
