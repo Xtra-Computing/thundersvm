@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 
 	printf("CUDA initialized.\n");
 	
-	if(parser.cross_validation == 1)
+	if(parser.cross_validation == 0)
 	{
 		//perform cross validation
 		cout << "performing cross-validation" << endl;

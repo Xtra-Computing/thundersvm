@@ -100,45 +100,12 @@ void trainingByGPU(vector<vector<float_point> > &v_v_DocVector, data_info &SData
 	ops.SetAccessor(&accessor);
 
 	//cache part of hessian matrix in memory
-	struct sysinfo info;
-	sysinfo(&info);
-	long nFreeMemInFloat = (info.freeram / sizeof(float_point));
-	//memory for storing sample data, both original and transposed forms. That's why we use "2" here.
-	long nMemForSamples = (ops.m_nNumofDim * ops.m_nTotalNumofInstance * 2);
-	nFreeMemInFloat -= nMemForSamples; //get the number of available memory in the form of number of float
-	nFreeMemInFloat *= 0.9; //use 80% of the memory for caching
-	long nNumofHessianRow = (nFreeMemInFloat / nNumofSample);
-	assert(nFreeMemInFloat > 0);
-	if (nNumofHessianRow > nNumofSample)
-	{
-		//if the available memory is available to store the whole hessian matrix
-		nNumofHessianRow = nNumofSample;
-	}
-	//			if(nNumofHessianRow > 21500)nNumofHessianRow = 21500;
-	//			assert(nNumofHessianRow == 21500);
-/*	long nRAMForRow = RAM_SIZE * 1024;
-	nRAMForRow *= 1024;
-	nRAMForRow *= 1024;
-	nRAMForRow /= sizeof(float_point);
-	nNumofHessianRow = (nRAMForRow / nNumofSample);
-	if(nNumofHessianRow > nNumofSample)
-		nNumofHessianRow = nNumofSample;
-*/	cout << nNumofHessianRow << " rows cached in RAM" << endl;
-	long lSizeofCachedHessia = sizeof(float_point) * nNumofHessianRow * nNumofSample;
-	checkCudaErrors(cudaMallocHost((void**)&DeviceHessian::m_pfHessianRowsInHostMem,
-					sizeof(float_point) * nNumofHessianRow * nNumofSample));
-	memset(DeviceHessian::m_pfHessianRowsInHostMem, 0, lSizeofCachedHessia);
-	DeviceHessian::m_nNumofCachedHessianRow = nNumofHessianRow;
-	DeviceHessian::m_pfHessianDiag = new float_point[ops.m_nTotalNumofInstance];
-//	ops.m_pfHessianDiagTest = new float_point[ops.m_nTotalNumofInstance];
-
-	//pre-compute Hessian Matrix and store the result into a file
 	timeval t1, t2;
 	float_point elapsedTime;
 	gettimeofday(&t1, NULL);
 	gettimeofday(&t1, NULL);
-	bool bWriteHessian = ops.PrecomputeHessian(strHessianMatrixFileName, strDiagHessianFileName, v_v_DocVector);
-	ops.ReadDiagFromHessianMatrix();
+
+    ops.PrecomputeKernelMatrix(v_v_DocVector, &ops);
 
 	gettimeofday(&t2, NULL);
 	elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
