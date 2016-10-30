@@ -12,6 +12,7 @@
 #include <sys/sysinfo.h>
 #include "../gpu_global_utility.h"
 #include "../constant.h"
+#include "../storageManager.h"
 
 using std::endl;
 

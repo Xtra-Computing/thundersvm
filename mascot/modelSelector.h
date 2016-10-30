@@ -36,7 +36,6 @@ public:
 
 	bool GridSearch(const grid&, vector<vector<float_point> >&, vector<int> &vnLabel);
 	bool CrossValidation(const int&, vector<int> &vnLabel, int *&);
-	void PrecomputeKernelMatrix(vector<vector<float_point> > &v_vDocVector, BaseHessian *hessianIOOps);
 
 private:
 	bool DestroySVMModel(svm_model&);
