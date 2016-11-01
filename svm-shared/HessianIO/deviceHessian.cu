@@ -186,7 +186,7 @@ bool DeviceHessian::PrecomputeHessian(const string &strHessianMatrixFileName,
 		}
 	}
 
-	v_v_DocVector.clear();
+//	v_v_DocVector.clear();
 	float_point *pfTransSamples = new float_point[nSpaceForSamples];
 	memset(pfTransSamples, 0, sizeof(float_point) * nSpaceForSamples);
 	//copy samples to a linear array
