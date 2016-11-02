@@ -21,13 +21,13 @@ public:
         this->groupClasses();
     }
     void groupClasses();
-    svmProblem getSubProblem(const int i, const int j);
+    svmProblem getSubProblem(int i, int j) const;
 
-    unsigned long getNumOfLabels();
+    unsigned int getNumOfLabels() const;
 
-    unsigned long long getNumOfSamples();
+    unsigned long long getNumOfSamples() const;
 
-    unsigned long getNumOfFeatures();
+    unsigned long getNumOfFeatures() const;
 };
 
 

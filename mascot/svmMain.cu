@@ -15,7 +15,6 @@
 #include "cvFunction.h"
 #include "commandLineParser.h"
 #include "../svm-shared/initCuda.h"
-
 using std::cout;
 using std::endl;
 
@@ -53,7 +52,7 @@ int main(int argc, char **argv)
 	{
 		//perform svm training
 		cout << "performing training" << endl;
-		trainSVM(parser.param, fileName, parser.nNumofFeature);
+		svmModel model = trainSVM(parser.param, fileName, parser.nNumofFeature);
 	}
 
 	return 0;

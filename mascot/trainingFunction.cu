@@ -36,7 +36,7 @@ void trainingByGPU(vector<vector<float_point> > &v_v_DocVector, data_info &SData
 
 svm_model trainBinarySVM(svmProblem &problem, SVMParam &param);
 
-void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature) {
+svmModel trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature) {
 
     vector<vector<float_point> > v_v_DocVector;
     vector<int> v_nLabel;
@@ -47,14 +47,16 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature) {
     BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
     rawDataRead.ReadFromFile(strTrainingFileName, nNumofFeature, v_v_DocVector, v_nLabel);
     svmProblem problem(v_v_DocVector, v_nLabel);
-    vector<svm_model> models;
+    svmModel model(problem.getNumOfLabels());
     for (int i = 0; i < problem.getNumOfLabels(); ++i) {
         for (int j = i + 1; j < problem.getNumOfLabels(); ++j) {
             svmProblem subProblem = problem.getSubProblem(i, j);
             printf("training classifier with label %d and %d\n", i, j);
-            models.push_back(trainBinarySVM(subProblem, param));
+            svm_model binaryModel = trainBinarySVM(subProblem, param);
+            model.addBinaryModel(subProblem, binaryModel,i,j);
         }
     }
+    return model;
 }
 
 svm_model trainBinarySVM(svmProblem &problem, SVMParam &param) {
@@ -110,7 +112,7 @@ svm_model trainBinarySVM(svmProblem &problem, SVMParam &param) {
     writeOut << "Gamma=" << pfGamma << "; Cost=" << pfCost << endl;
 
     //copy training information from input parameters
-    int *pnLabelAll = problem.v_nLabels.data();
+    const int *pnLabelAll = problem.v_nLabels.data();
     int nTotalNumofSamples = (int) problem.getNumOfSamples();
 
     /* allocate GPU device memory */

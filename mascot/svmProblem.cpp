@@ -22,7 +22,7 @@ void svmProblem::groupClasses() {
         }
     }
     start.push_back(0);
-    for (int i = 0; i < count.size(); ++i) {
+    for (int i = 1; i < count.size(); ++i) {
         start.push_back(start[i - 1] + count[i - 1]);
     }
     vector<int> _start(start);
@@ -48,7 +48,7 @@ void svmProblem::groupClasses() {
 //    }
 }
 
-svmProblem svmProblem::getSubProblem(const int i, const int j) {
+svmProblem svmProblem::getSubProblem(int i, int j) const{
     vector<vector<float_point> > v_vSamples;
     vector<int> v_nLabels;
     int si = start[i];
@@ -66,14 +66,14 @@ svmProblem svmProblem::getSubProblem(const int i, const int j) {
     return svmProblem(v_vSamples, v_nLabels);
 }
 
-unsigned long svmProblem::getNumOfLabels() {
-    return label.size();
+unsigned int svmProblem::getNumOfLabels() const{
+    return (unsigned int) label.size();
 }
 
-unsigned long long svmProblem::getNumOfSamples() {
+unsigned long long svmProblem::getNumOfSamples() const{
     return v_vSamples.size();
 }
 
-unsigned long svmProblem::getNumOfFeatures() {
+unsigned long svmProblem::getNumOfFeatures() const{
     return v_vSamples.front().size();
 }

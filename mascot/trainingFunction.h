@@ -9,10 +9,10 @@
 #define TESTTRAINER_H_
 
 #include "svmParam.h"
+#include "../svm-shared/gpu_global_utility.h"
+#include "svmModel.h"
 #include <iostream>
-
 using std::string;
-
-void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature);
+svmModel trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature);
 
 #endif /* TESTTRAINER_H_ */
