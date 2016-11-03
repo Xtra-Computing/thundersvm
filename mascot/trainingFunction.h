@@ -15,4 +15,5 @@
 using std::string;
 svmModel trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature);
 
+svm_model trainBinarySVM(svmProblem &problem, const SVMParam &param);
 #endif /* TESTTRAINER_H_ */

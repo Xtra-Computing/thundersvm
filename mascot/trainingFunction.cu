@@ -34,7 +34,6 @@ using std::endl;
 
 void trainingByGPU(vector<vector<float_point> > &v_v_DocVector, data_info &SDataInfo, SVMParam &param);
 
-svm_model trainBinarySVM(svmProblem &problem, SVMParam &param);
 
 svmModel trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature) {
 
@@ -47,19 +46,13 @@ svmModel trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature
     BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
     rawDataRead.ReadFromFile(strTrainingFileName, nNumofFeature, v_v_DocVector, v_nLabel);
     svmProblem problem(v_v_DocVector, v_nLabel);
-    svmModel model(problem.getNumOfLabels());
-    for (int i = 0; i < problem.getNumOfLabels(); ++i) {
-        for (int j = i + 1; j < problem.getNumOfLabels(); ++j) {
-            svmProblem subProblem = problem.getSubProblem(i, j);
-            printf("training classifier with label %d and %d\n", i, j);
-            svm_model binaryModel = trainBinarySVM(subProblem, param);
-            model.addBinaryModel(subProblem, binaryModel,i,j);
-        }
-    }
+    svmModel model;
+    model.fit(problem,param);
+    model.predict(v_v_DocVector);
     return model;
 }
 
-svm_model trainBinarySVM(svmProblem &problem, SVMParam &param) {
+svm_model trainBinarySVM(svmProblem &problem, const SVMParam &param) {
     float_point pfCost = param.C;
     float_point pfGamma = param.gamma;
     CRBFKernel rbf(pfGamma);//ignore

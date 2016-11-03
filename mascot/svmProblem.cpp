@@ -66,7 +66,7 @@ svmProblem svmProblem::getSubProblem(int i, int j) const{
     return svmProblem(v_vSamples, v_nLabels);
 }
 
-unsigned int svmProblem::getNumOfLabels() const{
+unsigned int svmProblem::getNumOfClasses() const{
     return (unsigned int) label.size();
 }
 

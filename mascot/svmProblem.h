@@ -16,14 +16,14 @@ public:
     vector<int> start;
     vector<int> perm;
     vector<int> label;
-    svmProblem(const vector<vector<float_point> > v_vSamples, const vector<int> v_nLabels):
+    svmProblem(const vector<vector<float_point> > &v_vSamples, const vector<int> &v_nLabels):
             v_vSamples(v_vSamples),v_nLabels(v_nLabels){
         this->groupClasses();
     }
     void groupClasses();
     svmProblem getSubProblem(int i, int j) const;
 
-    unsigned int getNumOfLabels() const;
+    unsigned int getNumOfClasses() const;
 
     unsigned long long getNumOfSamples() const;
 

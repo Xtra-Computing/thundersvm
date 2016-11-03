@@ -348,7 +348,7 @@ void CSVMPredictor::ComputeOnTheFly(float_point *pfSVsKernelValues, svm_model *m
 	{
 		for(int i=0;i<l;i++)
 		{
-			pfSVsKernelValues[i] = k_function(pInstance[j], model->SV[i], model->param);
+			pfSVsKernelValues[j*l+i] = k_function(pInstance[j], model->SV[i], model->param);
 		}
 	}
 }
