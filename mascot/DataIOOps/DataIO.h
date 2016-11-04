@@ -50,6 +50,8 @@ public:
 							  string strFileName, int nNumofFeatures, int nNumofSamples);
 	static void ReadMultiClassData(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
 			  string strFileName, int nNumofFeatures, int nNumofSamples);
+	static void ReadLibSVMMultiClassData(vector<vector<float_point> > &v_vSamples, vector<int> &v_nLabels, const string strFileName,
+        const long nNumofFeatures);
 };
 
 

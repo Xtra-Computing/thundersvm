@@ -15,7 +15,6 @@
 #include "cvFunction.h"
 #include "commandLineParser.h"
 #include "../svm-shared/initCuda.h"
-
 using std::cout;
 using std::endl;
 
@@ -27,7 +26,8 @@ int main(int argc, char **argv)
 	argv[2] = "0.382";
 	argv[3] = "-c";
 	argv[4] = "100";
-	argv[argc - 1] = "dataset/a9a.txt";
+	argv[argc - 1] = "dataset/iris.scale";
+//	argv[argc - 1] = "dataset/a1a";
 /**/
 	char fileName[1024];
 	char savedFileName[1024];
@@ -42,17 +42,17 @@ int main(int argc, char **argv)
 
 	printf("CUDA initialized.\n");
 	
-	if(parser.cross_validation == 1)
-	{
-		//perform cross validation
-		cout << "performing cross-validation" << endl;
-		crossValidation(parser.param, fileName);
-	}
-	else
+	/*if(parser.cross_validation == 1)*/
+	/*{*/
+		/*//perform cross validation*/
+		/*cout << "performing cross-validation" << endl;*/
+		/*crossValidation(parser.param, fileName);*/
+	/*}*/
+	/*else*/
 	{
 		//perform svm training
 		cout << "performing training" << endl;
-		trainSVM(parser.param, fileName, parser.nNumofFeature);
+		svmModel model = trainSVM(parser.param, fileName, parser.nNumofFeature);
 	}
 
 	return 0;
