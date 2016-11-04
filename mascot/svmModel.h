@@ -39,6 +39,7 @@ public:
 
     void fit(const svmProblem& problem, const SVMParam &param);
     vector<int> predict(const vector<vector<float_point> > &) const;
+    vector<float_point* > predictValues(const vector<vector<float_point> >&) const;
 };
 
 

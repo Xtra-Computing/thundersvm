@@ -31,24 +31,27 @@ void svmProblem::groupClasses() {
         perm[_start[dataLabel[i]]] = i;
         _start[dataLabel[i]]++;
     }
-//
+
 // Labels are ordered by their first occurrence in the training set.
 // However, for two-class sets with -1/+1 labels and -1 appears first,
 // we swap labels to ensure that internally the binary SVM has positive data corresponding to the +1 instances.
-//
-//    if (nr_class == 2 && label[0] == -1 && label[1] == 1) {
-//        swap(label[0], label[1]);
-//        swap(count[0], count[1]);
-//        for (i = 0; i < l; i++) {
-//            if (data_label[i] == 0)
-//                data_label[i] = 1;
-//            else
-//                data_label[i] = 0;
-//        }
-//    }
+
+    if (label.size() == 2 && label[0] == -1 && label[1] == 1) {
+        label[0] = 1;
+        label[1] = -1;
+        int t = count[0];
+        count[0] = count[1];
+        count[1] = t;
+        for (int i = 0; i < dataLabel.size(); i++) {
+            if (dataLabel[i] == 0)
+                dataLabel[i] = 1;
+            else
+                dataLabel[i] = 0;
+        }
+    }
 }
 
-svmProblem svmProblem::getSubProblem(int i, int j) const{
+svmProblem svmProblem::getSubProblem(int i, int j) const {
     vector<vector<float_point> > v_vSamples;
     vector<int> v_nLabels;
     int si = start[i];
@@ -66,14 +69,14 @@ svmProblem svmProblem::getSubProblem(int i, int j) const{
     return svmProblem(v_vSamples, v_nLabels);
 }
 
-unsigned int svmProblem::getNumOfClasses() const{
+unsigned int svmProblem::getNumOfClasses() const {
     return (unsigned int) label.size();
 }
 
-unsigned long long svmProblem::getNumOfSamples() const{
+unsigned long long svmProblem::getNumOfSamples() const {
     return v_vSamples.size();
 }
 
-unsigned long svmProblem::getNumOfFeatures() const{
+unsigned long svmProblem::getNumOfFeatures() const {
     return v_vSamples.front().size();
 }

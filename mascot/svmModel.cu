@@ -23,6 +23,8 @@ void svmModel::fit(const svmProblem &problem, const SVMParam &param) {
     probA.clear();
     probB.clear();
     supportVectors.clear();
+    label.clear();
+
     coef.resize(cnr2);
     rho.resize(cnr2);
     probA.resize(cnr2);
@@ -53,18 +55,39 @@ void svmModel::addBinaryModel(const svmProblem &problem, const svm_model &bModel
     rho[k] = bModel.rho[0];
 }
 
-vector<int> svmModel::predict(const vector<vector<float_point> > &v_vSamples) const {
+vector<float_point*> svmModel::predictValues(const vector<vector<float_point> > &v_vSamples) const {
     vector<float_point *> decisionValues(cnr2);
-    for (int i = 0; i < nrClass; ++i) {
-        for (int j = i + 1; j < nrClass; ++j) {
-            int k = getK(i, j);
+    for (int k = 0; k < cnr2; ++k) {
             float_point *kernelValues = new float_point[v_vSamples.size() * supportVectors[k].size()];
             computeKernelValuesOnFly(v_vSamples, supportVectors[k], kernelValues);
             decisionValues[k] = predictLabels(kernelValues, (int) v_vSamples.size(), k);
             delete[] kernelValues;
         }
+    return decisionValues;
+}
+
+vector<int> svmModel::predict(const vector<vector<float_point> > &v_vSamples) const {
+    vector<float_point*> decisionValues = predictValues(v_vSamples);
+    vector<int> labels;
+    for (int l = 0; l < v_vSamples.size(); ++l) {
+        vector<int> votes(nrClass,0);
+        int k = 0;
+        for (int i = 0; i < nrClass; ++i) {
+            for (int j = i+1; j < nrClass; ++j) {
+                if(decisionValues[k++][l]>0)
+                    votes[i]++;
+                else
+                    votes[j]++;
+            }
+        }
+        int maxVoteClass = 0;
+        for (int i = 0; i < nrClass; ++i) {
+            if (votes[i]>votes[maxVoteClass])
+                maxVoteClass = i;
+        }
+        labels.push_back(this->label[maxVoteClass]);
     }
-    return vector<int>();
+    return labels;
 }
 
 void
@@ -73,12 +96,13 @@ svmModel::computeKernelValuesOnFly(const vector<vector<float_point> > &samples,
                                    float_point *kernelValues) const {
     for (int i = 0; i < samples.size(); ++i) {
         for (int j = 0; j < supportVectors.size(); ++j) {
+            //rbf kernel
             float_point sum = 0;
             for (int k = 0; k < supportVectors[j].size(); ++k) {
                 float_point d = samples[i][k] - supportVectors[j][k];
                 sum += d * d;
             }
-            kernelValues[i * supportVectors.size() + j] = (float_point) exp(param.gamma * sum);
+            kernelValues[i * supportVectors.size() + j] = (float_point) exp(-param.gamma * sum);
         }
     }
 }
