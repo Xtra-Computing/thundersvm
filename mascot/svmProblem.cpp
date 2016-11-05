@@ -21,16 +21,6 @@ void svmProblem::groupClasses() {
             count.push_back(1);
         }
     }
-    start.push_back(0);
-    for (int i = 1; i < count.size(); ++i) {
-        start.push_back(start[i - 1] + count[i - 1]);
-    }
-    vector<int> _start(start);
-    perm = vector<int>(v_nLabels.size());
-    for (int i = 0; i < v_nLabels.size(); ++i) {
-        perm[_start[dataLabel[i]]] = i;
-        _start[dataLabel[i]]++;
-    }
 
 // Labels are ordered by their first occurrence in the training set.
 // However, for two-class sets with -1/+1 labels and -1 appears first,
@@ -48,6 +38,17 @@ void svmProblem::groupClasses() {
             else
                 dataLabel[i] = 0;
         }
+    }
+
+    start.push_back(0);
+    for (int i = 1; i < count.size(); ++i) {
+        start.push_back(start[i - 1] + count[i - 1]);
+    }
+    vector<int> _start(start);
+    perm = vector<int>(v_nLabels.size());
+    for (int i = 0; i < v_nLabels.size(); ++i) {
+        perm[_start[dataLabel[i]]] = i;
+        _start[dataLabel[i]]++;
     }
 }
 
