@@ -47,12 +47,17 @@ svmModel trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature
     rawDataRead.ReadFromFile(strTrainingFileName, nNumofFeature, v_v_DocVector, v_nLabel);
     svmProblem problem(v_v_DocVector, v_nLabel);
     svmModel model;
+    param.probability = 1;//train with probability
     model.fit(problem, param);
-    vector<int> predictLabels = model.predict(v_v_DocVector);
+    vector<int> predictLabels = model.predict(v_v_DocVector, true);
     int numOfCorrect = 0;
     for (int i = 0; i < v_v_DocVector.size(); ++i) {
         if (predictLabels[i] == v_nLabel[i])
             numOfCorrect++;
+//        for (int j = 0; j < problem.getNumOfClasses(); ++j) {
+//            printf("%.2f,",prob[i][j]);
+//        }
+//        printf("\n");
     }
     printf("training accuracy = %.2f%%(%d/%d)\n", numOfCorrect / (float) v_v_DocVector.size()*100, numOfCorrect,
            (int) v_v_DocVector.size());
