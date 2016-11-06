@@ -1,8 +1,8 @@
-mascot svmcv
+GPU-SVM
 ======
-MASCOT is a GPU-based implementation for SVM cross-validation. It also has modules for SVM classification. We will upgrade the software to support SVM regression soon.
+This GPU-SVM project is based on MASCOT which is a GPU-based implementation for SVM cross-validation. GPU-SVM now has modules for SVM classification. We are currently upgrading GPU-SVM to support SVM with probability output and SVM regression.
 
-The associated paper of this source code is: "MASCOT: Fast and Highly Scalable SVM Cross-validation using GPUs and SSDs" published in ICDM 2014.
+The associated paper of this source code is: <i>Wen, Zeyi, et al. "MASCOT: fast and highly scalable SVM cross-validation using GPUs and SSDs." 2014 IEEE International Conference on Data Mining</i>.
 
 Report bugs to: name@domain where name=wenzeyi and domain=(google's email)
 
@@ -10,7 +10,7 @@ This software is licensed under Apache Software License v2.0.
 
 ---------
 Requirement(s):
-CUDA 6.0 or later
+CUDA 7.5 or later
 
 ---------
 FAQ:
