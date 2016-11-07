@@ -46,11 +46,12 @@ void svmModel::fit(const svmProblem &problem, const SVMParam &param) {
                 probParam.C = 1.0;
                 svmModel model;
                 model.fit(subProblem, probParam);
-                vector<float_point *> decValues;
+                vector<vector<float_point> > decValues;
                 //todo predict with cross validation
                 model.predictValues(subProblem.v_vSamples, decValues);
                 //binary model has only one sub-model
-                sigmoidTrain(decValues.front(), subProblem.getNumOfSamples(), subProblem.v_nLabels, probA[k], probB[k]);
+                sigmoidTrain(decValues.front().data(), subProblem.getNumOfSamples(), subProblem.v_nLabels, probA[k],
+                             probB[k]);
                 probability = true;
             }
             svm_model binaryModel = trainBinarySVM(subProblem, param);
@@ -182,19 +183,20 @@ void svmModel::addBinaryModel(const svmProblem &problem, const svm_model &bModel
 }
 
 void
-svmModel::predictValues(const vector<vector<float_point> > &v_vSamples, vector<float_point *> &decisionValues) const {
+svmModel::predictValues(const vector<vector<float_point> > &v_vSamples,
+                        vector<vector<float_point> > &decisionValues) const {
     decisionValues.clear();
     for (int k = 0; k < cnr2; ++k) {
-        float_point *kernelValues = new float_point[v_vSamples.size() * supportVectors[k].size()];
+        vector<float_point> kernelValues(v_vSamples.size() * supportVectors[k].size());
         computeKernelValuesOnFly(v_vSamples, supportVectors[k], kernelValues);
-        decisionValues.push_back(
-                predictLabels(kernelValues, (int) v_vSamples.size(), k));//TODO not return local pointer in function
-        delete[] kernelValues;
+        vector<float_point> decValues41BinaryModel(v_vSamples.size() * supportVectors[k].size());
+        predictLabels(kernelValues, decValues41BinaryModel, k);
+        decisionValues.push_back(decValues41BinaryModel);
     }
 }
 
 vector<int> svmModel::predict(const vector<vector<float_point> > &v_vSamples, bool probability) const {
-    vector<float_point *> decisionValues;
+    vector<vector<float_point> > decisionValues;
     predictValues(v_vSamples, decisionValues);
     vector<int> labels;
     if (!probability) {
@@ -233,7 +235,7 @@ vector<int> svmModel::predict(const vector<vector<float_point> > &v_vSamples, bo
     return labels;
 }
 
-float_point svmModel::sigmoid_predict(float_point decValue, float_point A, float_point B) const {
+float_point svmModel::sigmoidPredict(float_point decValue, float_point A, float_point B) const {
     double fApB = decValue * A + B;
     // 1-p used later; avoid catastrophic cancellation
     if (fApB >= 0)
@@ -242,7 +244,7 @@ float_point svmModel::sigmoid_predict(float_point decValue, float_point A, float
         return 1.0 / (1 + exp(fApB));
 }
 
-void svmModel::multiclass_probability(const vector<vector<float_point> > &r, vector<float_point> &p) const {
+void svmModel::multiClassProbability(const vector<vector<float_point> > &r, vector<float_point> &p) const {
     int t, j;
     int iter = 0, max_iter = max(100, nrClass);
     double **Q = (double **) malloc(sizeof(double *) * nrClass);
@@ -301,7 +303,7 @@ void svmModel::multiclass_probability(const vector<vector<float_point> > &r, vec
 
 vector<vector<float_point> > svmModel::predictProbability(const vector<vector<float_point> > &v_vSamples) const {
     vector<vector<float_point> > result;
-    vector<float_point *> decValues;
+    vector<vector<float_point> > decValues;
     predictValues(v_vSamples, decValues);
     for (int l = 0; l < v_vSamples.size(); ++l) {
         vector<vector<float_point> > r(nrClass, vector<float_point>(nrClass));
@@ -310,21 +312,20 @@ vector<vector<float_point> > svmModel::predictProbability(const vector<vector<fl
         for (int i = 0; i < nrClass; i++)
             for (int j = i + 1; j < nrClass; j++) {
                 r[i][j] = min(
-                        max(sigmoid_predict(decValues[k][l], probA[k], probB[k]), min_prob), 1 - min_prob);
+                        max(sigmoidPredict(decValues[k][l], probA[k], probB[k]), min_prob), 1 - min_prob);
                 r[j][i] = 1 - r[i][j];
                 k++;
             }
         vector<float_point> p(nrClass);
-        multiclass_probability(r, p);
+        multiClassProbability(r, p);
         result.push_back(p);
     }
     return result;
 }
 
-void
-svmModel::computeKernelValuesOnFly(const vector<vector<float_point> > &samples,
-                                   const vector<vector<float_point> > &supportVectors,
-                                   float_point *kernelValues) const {
+void svmModel::computeKernelValuesOnFly(const vector<vector<float_point> > &samples,
+                                        const vector<vector<float_point> > &supportVectors,
+                                        vector<float_point> &kernelValues) const {
     for (int i = 0; i < samples.size(); ++i) {
         for (int j = 0; j < supportVectors.size(); ++j) {
             //rbf kernel
@@ -338,7 +339,8 @@ svmModel::computeKernelValuesOnFly(const vector<vector<float_point> > &samples,
     }
 }
 
-float_point *svmModel::predictLabels(const float_point *kernelValues, int nNumofTestSamples, int k) const {
+void svmModel::predictLabels(const vector<float_point> &kernelValues, vector<float_point> &classificationResult,
+                             int k) const {
     //get infomation from SVM model
     int nNumofSVs = (int) supportVectors[k].size();
 //	int nNumofSVs = GetNumSV(pModel);
@@ -360,21 +362,21 @@ float_point *svmModel::predictLabels(const float_point *kernelValues, int nNumof
 
     StorageManager *manager = StorageManager::getManager();
     long long int nMaxNumofFloatPoint = manager->GetFreeGPUMem();
-    long long int nNumofPart = Ceil(nNumofSVs * nNumofTestSamples, nMaxNumofFloatPoint);
+    long long int nNumofPart = Ceil(nNumofSVs * kernelValues.size(), nMaxNumofFloatPoint);
 
 //	cout << "cache size is: " << nMaxNumofFloatPoint << " v.s.. " << nNumofSVs * nNumofTestSamples << endl;
 //	cout << "perform classification in " << nNumofPart << " time(s)" << endl;
 
     //allocate memory for storing classification result
-    float_point *pfClassificaitonResult = new float_point[nNumofTestSamples];
+//    float_point *pfClassificaitonResult = new float_point[kernelValues.size()];
     //initialise the size of each part
     int *pSizeofPart = new int[nNumofPart];
-    int nAverageSize = (int) (nNumofTestSamples / nNumofPart);
+    int nAverageSize = (int) (kernelValues.size() / nNumofPart);
     for (int i = 0; i < nNumofPart; i++) {
         if (i != nNumofPart - 1) {
             pSizeofPart[i] = nAverageSize;
         } else {
-            pSizeofPart[i] = nNumofTestSamples - nAverageSize * i;
+            pSizeofPart[i] = kernelValues.size() - nAverageSize * i;
         }
     }
 
@@ -388,7 +390,7 @@ float_point *svmModel::predictLabels(const float_point *kernelValues, int nNumof
         checkCudaErrors(cudaMemset(pfDevSVsYiAlpha, 0, sizeof(float_point) * nNumofSVs));
 //	checkCudaErrors(cudaMemset(pnDevSVsLabel, 0, sizeof(int) * nNumofSVs));
 
-        checkCudaErrors(cudaMemcpy(pfDevSVYiAlphaHessian, kernelValues + i * nAverageSize * nNumofSVs,
+        checkCudaErrors(cudaMemcpy(pfDevSVYiAlphaHessian, kernelValues.data() + i * nAverageSize * nNumofSVs,
                                    sizeof(float_point) * nNumofSVs * pSizeofPart[i], cudaMemcpyHostToDevice));
         checkCudaErrors(
                 cudaMemcpy(pfDevSVsYiAlpha, pfSVsYiAlpha, sizeof(float_point) * nNumofSVs, cudaMemcpyHostToDevice));
@@ -403,12 +405,7 @@ float_point *svmModel::predictLabels(const float_point *kernelValues, int nNumof
 
         //perform classification
         ComputeClassLabel(pSizeofPart[i], pfDevSVYiAlphaHessian,
-                          nNumofSVs, fBias, pfClassificaitonResult + i * nAverageSize);
-
-        if (pfClassificaitonResult == NULL) {
-            cerr << "error in ComputeClassLabel" << endl;
-            exit(-1);
-        }
+                          nNumofSVs, fBias, classificationResult.data() + i * nAverageSize);
 
 
         //free memory
@@ -417,8 +414,6 @@ float_point *svmModel::predictLabels(const float_point *kernelValues, int nNumof
         checkCudaErrors(cudaFree(pfDevSVsYiAlpha));
 //	checkCudaErrors(cudaFree(pnDevSVsLabel));
     }
-
-    return pfClassificaitonResult;
 }
 
 /*

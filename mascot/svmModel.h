@@ -27,20 +27,20 @@ private:
 
     unsigned int inline getK(int i, int j) const;
 
-    float_point *predictLabels(const float_point *kernelValues, int, int) const;
+    void predictLabels(const vector<float_point> &kernelValues, vector<float_point> &classificationResult, int) const;
 
     float_point *ComputeClassLabel(int nNumofTestSamples,
                                    float_point *pfDevSVYiAlphaHessian, const int &nNumofSVs,
                                    float_point fBias, float_point *pfFinalResult) const;
 
     void computeKernelValuesOnFly(const vector<vector<float_point> > &samples,
-                                  const vector<vector<float_point> > &supportVectors, float_point *kernelValues) const;
+                                  const vector<vector<float_point> > &supportVectors, vector<float_point> &kernelValues) const;
 
     void addBinaryModel(const svmProblem &, const svm_model &, int i, int j);
 
-    float_point sigmoid_predict(float_point decValue, float_point A, float_point B) const;
+    float_point sigmoidPredict(float_point decValue, float_point A, float_point B) const;
 
-    void multiclass_probability(const vector<vector<float_point> > &, vector<float_point> &) const;
+    void multiClassProbability(const vector<vector<float_point> > &, vector<float_point> &) const;
 
     void
     sigmoidTrain(const float_point *decValues, const int, const vector<int> &labels, float_point &A, float_point &B);
@@ -53,7 +53,7 @@ public:
 
     vector<vector<float_point> > predictProbability(const vector<vector<float_point> > &) const;
 
-    void predictValues(const vector<vector<float_point> > &, vector<float_point *> &) const;
+    void predictValues(const vector<vector<float_point> > &, vector<vector<float_point> > &) const;
 };
 
 
