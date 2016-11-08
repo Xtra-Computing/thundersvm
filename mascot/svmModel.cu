@@ -1,6 +1,8 @@
-//
-// Created by ss on 16-11-2.
-//
+/*
+   * @author: created by ss on 16-11-2.
+   * @brief: multi-class svm training, prediction, svm with probability output 
+   *
+*/
 
 #include <cstdio>
 #include "svmModel.h"

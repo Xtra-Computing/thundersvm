@@ -32,8 +32,6 @@
 using std::cout;
 using std::endl;
 
-void trainingByGPU(vector<vector<float_point> > &v_v_DocVector, data_info &SDataInfo, SVMParam &param);
-
 svmModel trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature) {
 
     vector<vector<float_point> > v_v_DocVector;
@@ -169,6 +167,20 @@ svm_model trainBinarySVM(svmProblem &problem, const SVMParam &param) {
     }
 
     model.nDimension = problem.getNumOfFeatures();
+
+    //free device memory
+    checkCudaErrors(cudaFree(pfDevAlphaSubset));
+    checkCudaErrors(cudaFree(pnDevLabelSubset));
+    checkCudaErrors(cudaFree(pfDevYiGValueSubset));
+
+    //release pinned memory
+    cudaFreeHost(DeviceHessian::m_pfHessianRowsInHostMem);
+
+    //release host memory
+    delete[] DeviceHessian::m_pfHessianDiag;
+    delete[] pfAlphaAll;
+    delete[] pfYiGValueAll;
+
     return model;
 }
 
