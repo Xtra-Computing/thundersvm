@@ -46,7 +46,6 @@ svmModel trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature
     rawDataRead.ReadFromFile(strTrainingFileName, nNumofFeature, v_v_DocVector, v_nLabel);
     svmProblem problem(v_v_DocVector, v_nLabel);
     svmModel model;
-    param.probability = 0;//train with probability
     model.fit(problem, param);
     return model;
 }

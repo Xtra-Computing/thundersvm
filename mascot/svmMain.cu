@@ -20,16 +20,6 @@ using std::endl;
 
 int main(int argc, char **argv)
 {
-	argc = 6;
-	argv = new char*[argc];
-	argv[1] = "-g";
-	argv[2] = "0.382";
-	argv[3] = "-c";
-	argv[4] = "100";
-//	argv[argc - 1] = "dataset/iris.scale";
-	argv[argc - 1] = "dataset/a1a";
-    parser.cross_validation = 0;//0 for cross-validation; 1 for training; 2 for evaluation
-
 	char fileName[1024];
 	char savedFileName[1024];
 	Parser parser;
