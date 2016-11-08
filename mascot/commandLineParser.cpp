@@ -45,10 +45,6 @@ void Parser::ParseLine(int argc, char **argv, char *pcFileName, char *pcSavedFil
 	param.weight_label = NULL;
 	param.weight = NULL;
 
-	if(argc != 6)
-	{
-		HelpInfo();
-	}
 	// parse options
 	for(i=1;i<argc;i++)
 	{
@@ -63,7 +59,20 @@ void Parser::ParseLine(int argc, char **argv, char *pcFileName, char *pcSavedFil
 			case 'c':
 				param.C = atof(argv[i]);
 				break;
-				/*
+			case 'b':
+				param.probability = atoi(argv[i]);
+				break;
+			case 'f':
+				nNumofFeature = atoi(argv[i]);
+				if(nNumofFeature < 1)
+				{
+					HelpInfo();
+				}
+				break;
+            case 'o':
+                cross_validation = atoi(argv[i]);
+                break;
+		/*
 			case 's':
 				param.svm_type = atoi(argv[i]);
 				break;
@@ -91,9 +100,6 @@ void Parser::ParseLine(int argc, char **argv, char *pcFileName, char *pcSavedFil
 			case 'h':
 				param.shrinking = atoi(argv[i]);
 				break;
-			case 'b':
-				param.probability = atoi(argv[i]);
-				break;
 			case 'q':
 				print_func = &print_null;
 				i--;
@@ -115,13 +121,6 @@ void Parser::ParseLine(int argc, char **argv, char *pcFileName, char *pcSavedFil
 				param.weight[param.nr_weight-1] = atof(argv[i]);
 				break;
 				*/
-			case 'f':
-				nNumofFeature = atoi(argv[i]);
-				if(nNumofFeature < 1)
-				{
-					HelpInfo();
-				}
-				break;
 			default:
 				fprintf(stderr,"Unknown option: -%c\n", argv[i-1][1]);
 				HelpInfo();
