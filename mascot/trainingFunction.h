@@ -12,7 +12,7 @@
 #include "../svm-shared/gpu_global_utility.h"
 #include <iostream>
 
-#include "SvmModel.h"
+#include "svmModel.h"
 using std::string;
 
 SvmModel trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature);

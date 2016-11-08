@@ -4,7 +4,7 @@
    *
 */
 
-#include "SvmModel.h"
+#include "svmModel.h"
 
 #include <cstdio>
 #include "svmPredictor.h"

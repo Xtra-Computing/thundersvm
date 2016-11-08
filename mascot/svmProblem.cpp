@@ -2,7 +2,7 @@
 // Created by shijiashuai on 2016/11/1.
 //
 
-#include "SvmProblem.h"
+#include "svmProblem.h"
 
 void SvmProblem::groupClasses() {
     vector<int> dataLabel(v_nLabels.size());

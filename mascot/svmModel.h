@@ -8,7 +8,7 @@
 #include <vector>
 #include "../svm-shared/gpu_global_utility.h"
 #include "svmParam.h"
-#include "SvmProblem.h"
+#include "svmProblem.h"
 
 using std::vector;
 

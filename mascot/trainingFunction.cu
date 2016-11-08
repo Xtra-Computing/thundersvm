@@ -28,7 +28,7 @@
 #include "DataIOOps/BaseLibsvmReader.h"
 #include <helper_cuda.h>
 
-#include "SvmProblem.h"
+#include "svmProblem.h"
 
 using std::cout;
 using std::endl;
