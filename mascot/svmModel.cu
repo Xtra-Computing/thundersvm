@@ -187,9 +187,9 @@ svmModel::predictValues(const vector<vector<float_point> > &v_vSamples,
                         vector<vector<float_point> > &decisionValues) const {
     decisionValues.clear();
     for (int k = 0; k < cnr2; ++k) {
-        vector<float_point> kernelValues(v_vSamples.size() * supportVectors[k].size());
+        vector<float_point> kernelValues;
         computeKernelValuesOnFly(v_vSamples, supportVectors[k], kernelValues);
-        vector<float_point> decValues41BinaryModel(v_vSamples.size() * supportVectors[k].size());
+        vector<float_point> decValues41BinaryModel;
         predictLabels(kernelValues, decValues41BinaryModel, k);
         decisionValues.push_back(decValues41BinaryModel);
     }
@@ -326,6 +326,7 @@ vector<vector<float_point> > svmModel::predictProbability(const vector<vector<fl
 void svmModel::computeKernelValuesOnFly(const vector<vector<float_point> > &samples,
                                         const vector<vector<float_point> > &supportVectors,
                                         vector<float_point> &kernelValues) const {
+    kernelValues.resize(samples.size()*supportVectors.size());
     for (int i = 0; i < samples.size(); ++i) {
         for (int j = 0; j < supportVectors.size(); ++j) {
             //rbf kernel
@@ -343,6 +344,8 @@ void svmModel::predictLabels(const vector<float_point> &kernelValues, vector<flo
                              int k) const {
     //get infomation from SVM model
     int nNumofSVs = (int) supportVectors[k].size();
+    int numOfSamples = (int) (kernelValues.size() / nNumofSVs);
+    classificationResult.resize(kernelValues.size());
 //	int nNumofSVs = GetNumSV(pModel);
     float_point fBias = rho[k];
 //	float_point fBias = *(pModel->rho);
@@ -362,21 +365,20 @@ void svmModel::predictLabels(const vector<float_point> &kernelValues, vector<flo
 
     StorageManager *manager = StorageManager::getManager();
     long long int nMaxNumofFloatPoint = manager->GetFreeGPUMem();
-    long long int nNumofPart = Ceil(nNumofSVs * kernelValues.size(), nMaxNumofFloatPoint);
+    long long int nNumofPart = Ceil(nNumofSVs * numOfSamples, nMaxNumofFloatPoint);
 
 //	cout << "cache size is: " << nMaxNumofFloatPoint << " v.s.. " << nNumofSVs * nNumofTestSamples << endl;
 //	cout << "perform classification in " << nNumofPart << " time(s)" << endl;
 
     //allocate memory for storing classification result
-//    float_point *pfClassificaitonResult = new float_point[kernelValues.size()];
     //initialise the size of each part
     int *pSizeofPart = new int[nNumofPart];
-    int nAverageSize = (int) (kernelValues.size() / nNumofPart);
+    int nAverageSize = (int) (numOfSamples / nNumofPart);
     for (int i = 0; i < nNumofPart; i++) {
         if (i != nNumofPart - 1) {
             pSizeofPart[i] = nAverageSize;
         } else {
-            pSizeofPart[i] = kernelValues.size() - nAverageSize * i;
+            pSizeofPart[i] = numOfSamples - nAverageSize * i;
         }
     }
 
