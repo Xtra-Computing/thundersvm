@@ -16,4 +16,6 @@ using std::string;
 svmModel trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature);
 
 svm_model trainBinarySVM(svmProblem &problem, const SVMParam &param);
+void evaluateSVMClassifier(svmModel &model, string strTrainingFileName, int nNumofFeature);
+
 #endif /* TESTTRAINER_H_ */
