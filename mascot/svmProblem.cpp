@@ -2,9 +2,9 @@
 // Created by shijiashuai on 2016/11/1.
 //
 
-#include "svmProblem.h"
+#include "SvmProblem.h"
 
-void svmProblem::groupClasses() {
+void SvmProblem::groupClasses() {
     vector<int> dataLabel(v_nLabels.size());
     for (int i = 0; i < v_nLabels.size(); ++i) {
         int j;
@@ -52,7 +52,7 @@ void svmProblem::groupClasses() {
     }
 }
 
-svmProblem svmProblem::getSubProblem(int i, int j) const {
+SvmProblem SvmProblem::getSubProblem(int i, int j) const {
     vector<vector<float_point> > v_vSamples;
     vector<int> v_nLabels;
     int si = start[i];
@@ -67,17 +67,17 @@ svmProblem svmProblem::getSubProblem(int i, int j) const {
         v_vSamples.push_back(this->v_vSamples[perm[sj + k]]);
         v_nLabels.push_back(-1);
     }
-    return svmProblem(v_vSamples, v_nLabels);
+    return SvmProblem(v_vSamples, v_nLabels);
 }
 
-unsigned int svmProblem::getNumOfClasses() const {
+unsigned int SvmProblem::getNumOfClasses() const {
     return (unsigned int) label.size();
 }
 
-unsigned long long svmProblem::getNumOfSamples() const {
+unsigned long long SvmProblem::getNumOfSamples() const {
     return v_vSamples.size();
 }
 
-unsigned long svmProblem::getNumOfFeatures() const {
+unsigned long SvmProblem::getNumOfFeatures() const {
     return v_vSamples.front().size();
 }

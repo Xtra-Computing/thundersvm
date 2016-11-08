@@ -4,8 +4,9 @@
    *
 */
 
+#include "SvmModel.h"
+
 #include <cstdio>
-#include "svmModel.h"
 #include "svmPredictor.h"
 #include "../svm-shared/HessianIO/deviceHessian.h"
 #include "../svm-shared/storageManager.h"
@@ -14,11 +15,11 @@
 #include <cuda_runtime_api.h>
 #include "trainingFunction.h"
 
-unsigned int svmModel::getK(int i, int j) const {
+unsigned int SvmModel::getK(int i, int j) const {
     return ((nrClass - 1) + (nrClass - i)) * i / 2 + j - i - 1;
 }
 
-void svmModel::fit(const svmProblem &problem, const SVMParam &param) {
+void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
     nrClass = problem.getNumOfClasses();
     cnr2 = (nrClass) * (nrClass - 1) / 2;
     coef.clear();
@@ -40,13 +41,13 @@ void svmModel::fit(const svmProblem &problem, const SVMParam &param) {
     int k = 0;
     for (int i = 0; i < nrClass; ++i) {
         for (int j = i + 1; j < nrClass; ++j) {
-            svmProblem subProblem = problem.getSubProblem(i, j);
+            SvmProblem subProblem = problem.getSubProblem(i, j);
             printf("training classifier with label %d and %d\n", i, j);
             if (param.probability) {
                 SVMParam probParam = param;
                 probParam.probability = 0;
                 probParam.C = 1.0;
-                svmModel model;
+                SvmModel model;
                 model.fit(subProblem, probParam);
                 vector<vector<float_point> > decValues;
                 //todo predict with cross validation
@@ -63,7 +64,7 @@ void svmModel::fit(const svmProblem &problem, const SVMParam &param) {
     }
 }
 
-void svmModel::sigmoidTrain(const float_point *decValues, const int l, const vector<int> &labels, float_point &A,
+void SvmModel::sigmoidTrain(const float_point *decValues, const int l, const vector<int> &labels, float_point &A,
                             float_point &B) {
     double prior1 = 0, prior0 = 0;
     int i;
@@ -172,7 +173,7 @@ void svmModel::sigmoidTrain(const float_point *decValues, const int l, const vec
     free(t);
 }
 
-void svmModel::addBinaryModel(const svmProblem &problem, const svm_model &bModel, int i, int j) {
+void SvmModel::addBinaryModel(const SvmProblem &problem, const svm_model &bModel, int i, int j) {
     unsigned int k = getK(i, j);
     for (int l = 0; l < bModel.nSV[0] + bModel.nSV[1]; ++l) {
 //        printf("%d:%f.2|",bModel.pnIndexofSV[l],bModel.sv_coef[0][l]);
@@ -185,7 +186,7 @@ void svmModel::addBinaryModel(const svmProblem &problem, const svm_model &bModel
 }
 
 void
-svmModel::predictValues(const vector<vector<float_point> > &v_vSamples,
+SvmModel::predictValues(const vector<vector<float_point> > &v_vSamples,
                         vector<vector<float_point> > &decisionValues) const {
     decisionValues.clear();
     for (int k = 0; k < cnr2; ++k) {
@@ -197,7 +198,7 @@ svmModel::predictValues(const vector<vector<float_point> > &v_vSamples,
     }
 }
 
-vector<int> svmModel::predict(const vector<vector<float_point> > &v_vSamples, bool probability) const {
+vector<int> SvmModel::predict(const vector<vector<float_point> > &v_vSamples, bool probability) const {
     vector<vector<float_point> > decisionValues;
     predictValues(v_vSamples, decisionValues);
     vector<int> labels;
@@ -237,7 +238,7 @@ vector<int> svmModel::predict(const vector<vector<float_point> > &v_vSamples, bo
     return labels;
 }
 
-float_point svmModel::sigmoidPredict(float_point decValue, float_point A, float_point B) const {
+float_point SvmModel::sigmoidPredict(float_point decValue, float_point A, float_point B) const {
     double fApB = decValue * A + B;
     // 1-p used later; avoid catastrophic cancellation
     if (fApB >= 0)
@@ -246,7 +247,7 @@ float_point svmModel::sigmoidPredict(float_point decValue, float_point A, float_
         return 1.0 / (1 + exp(fApB));
 }
 
-void svmModel::multiClassProbability(const vector<vector<float_point> > &r, vector<float_point> &p) const {
+void SvmModel::multiClassProbability(const vector<vector<float_point> > &r, vector<float_point> &p) const {
     int t, j;
     int iter = 0, max_iter = max(100, nrClass);
     double **Q = (double **) malloc(sizeof(double *) * nrClass);
@@ -303,7 +304,7 @@ void svmModel::multiClassProbability(const vector<vector<float_point> > &r, vect
     free(Qp);
 }
 
-vector<vector<float_point> > svmModel::predictProbability(const vector<vector<float_point> > &v_vSamples) const {
+vector<vector<float_point> > SvmModel::predictProbability(const vector<vector<float_point> > &v_vSamples) const {
     vector<vector<float_point> > result;
     vector<vector<float_point> > decValues;
     predictValues(v_vSamples, decValues);
@@ -325,7 +326,7 @@ vector<vector<float_point> > svmModel::predictProbability(const vector<vector<fl
     return result;
 }
 
-void svmModel::computeKernelValuesOnFly(const vector<vector<float_point> > &samples,
+void SvmModel::computeKernelValuesOnFly(const vector<vector<float_point> > &samples,
                                         const vector<vector<float_point> > &supportVectors,
                                         vector<float_point> &kernelValues) const {
     kernelValues.resize(samples.size()*supportVectors.size());
@@ -342,7 +343,7 @@ void svmModel::computeKernelValuesOnFly(const vector<vector<float_point> > &samp
     }
 }
 
-void svmModel::predictLabels(const vector<float_point> &kernelValues, vector<float_point> &classificationResult,
+void SvmModel::predictLabels(const vector<float_point> &kernelValues, vector<float_point> &classificationResult,
                              int k) const {
     //get infomation from SVM model
     int nNumofSVs = (int) supportVectors[k].size();
@@ -424,7 +425,7 @@ void svmModel::predictLabels(const vector<float_point> &kernelValues, vector<flo
  * @brief: compute/predict the labels of testing samples
  * @output: a set of class labels, associated to testing samples
  */
-float_point *svmModel::ComputeClassLabel(int nNumofTestSamples,
+float_point *SvmModel::ComputeClassLabel(int nNumofTestSamples,
                                          float_point *pfDevSVYiAlphaHessian, const int &nNumofSVs,
                                          float_point fBias, float_point *pfFinalResult) const {
     float_point *pfReturn = NULL;

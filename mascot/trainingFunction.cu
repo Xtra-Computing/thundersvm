@@ -27,12 +27,13 @@
 #include "DataIOOps/DataIO.h"
 #include "DataIOOps/BaseLibsvmReader.h"
 #include <helper_cuda.h>
-#include "svmProblem.h"
+
+#include "SvmProblem.h"
 
 using std::cout;
 using std::endl;
 
-svmModel trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature) {
+SvmModel trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature) {
 
     vector<vector<float_point> > v_v_DocVector;
     vector<int> v_nLabel;
@@ -42,13 +43,13 @@ svmModel trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature
     long long nNumofValue = 0;  //not used
     BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
     rawDataRead.ReadFromFile(strTrainingFileName, nNumofFeature, v_v_DocVector, v_nLabel);
-    svmProblem problem(v_v_DocVector, v_nLabel);
-    svmModel model;
+    SvmProblem problem(v_v_DocVector, v_nLabel);
+    SvmModel model;
     model.fit(problem, param);
     return model;
 }
 
-svm_model trainBinarySVM(svmProblem &problem, const SVMParam &param) {
+svm_model trainBinarySVM(SvmProblem &problem, const SVMParam &param) {
     float_point pfCost = param.C;
     float_point pfGamma = param.gamma;
     CRBFKernel rbf(pfGamma);//ignore
@@ -90,10 +91,6 @@ svm_model trainBinarySVM(svmProblem &problem, const SVMParam &param) {
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
     cout << elapsedTime << " ms.\n";
 
-    /*FILE *pFile = fopen(strHessianMatrixFileName.c_str(), "rb");
-    m_pTrainer->m_pSMOSolver->m_pHessianOps->ReadHessianFullRow(pFile, 0, nNumofHessianRow,  CHessianIOOps::m_pfHessianRowsInHostMem);
-    fclose(pFile);*/
-
     gfNCost = pfCost;
     gfPCost = pfCost;
     gfGamma = pfGamma;
@@ -130,10 +127,6 @@ svm_model trainBinarySVM(svmProblem &problem, const SVMParam &param) {
     checkCudaErrors(cudaMalloc((void **) &pfDevYiGValueSubset, sizeof(float_point) * nNumofTrainingSamples));
     checkCudaErrors(cudaMalloc((void **) &pnDevLabelSubset, sizeof(int) * nNumofTrainingSamples));
 
-    //set GPU memory
-    checkCudaErrors(cudaMemset(pfDevAlphaSubset, 0, sizeof(float_point) * nNumofTrainingSamples));
-    checkCudaErrors(cudaMemset(pfDevYiGValueSubset, -1, sizeof(float_point) * nNumofTrainingSamples));
-    checkCudaErrors(cudaMemset(pnDevLabelSubset, 0, sizeof(int) * nNumofTrainingSamples));
     //copy training information to GPU for current training
     checkCudaErrors(cudaMemcpy(pfDevAlphaSubset, pfAlphaAll,
                                sizeof(float_point) * nTotalNumofSamples, cudaMemcpyHostToDevice));
@@ -184,7 +177,7 @@ svm_model trainBinarySVM(svmProblem &problem, const SVMParam &param) {
     return model;
 }
 
-void evaluateSVMClassifier(svmModel &model, string strTrainingFileName, int nNumofFeature)
+void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNumofFeature)
 { 
     vector<vector<float_point> > v_v_DocVector;
     vector<int> v_nLabel;

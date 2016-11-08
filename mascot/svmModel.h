@@ -7,12 +7,12 @@
 
 #include <vector>
 #include "../svm-shared/gpu_global_utility.h"
-#include "svmProblem.h"
 #include "svmParam.h"
+#include "SvmProblem.h"
 
 using std::vector;
 
-class svmModel {
+class SvmModel {
 private:
     SVMParam param;
     unsigned int nrClass;
@@ -36,7 +36,7 @@ private:
     void computeKernelValuesOnFly(const vector<vector<float_point> > &samples,
                                   const vector<vector<float_point> > &supportVectors, vector<float_point> &kernelValues) const;
 
-    void addBinaryModel(const svmProblem &, const svm_model &, int i, int j);
+    void addBinaryModel(const SvmProblem &, const svm_model &, int i, int j);
 
     float_point sigmoidPredict(float_point decValue, float_point A, float_point B) const;
 
@@ -47,7 +47,7 @@ private:
 
 public:
 
-    void fit(const svmProblem &problem, const SVMParam &param);
+    void fit(const SvmProblem &problem, const SVMParam &param);
 
     vector<int> predict(const vector<vector<float_point> > &, bool probability=false) const;
 
