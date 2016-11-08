@@ -10,8 +10,18 @@ NVCC	  := /usr/local/cuda/bin/nvcc
 ODIR = bin
 dummy_build_folder := $(shell mkdir -p $(ODIR))
 
-bin/mascot: classificationKernel_cu.o commandLineParser.o cvFunction.o fileOps.o gpu_global_utility.o svmProblem.o initCuda_cu.o modelSelector_cu.o smoGPUHelper_cu.o smoSolver_cu.o svmMain.o svmPredictor_cu.o svmTrainer_cu.o trainingFunction_cu.o cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o ReadHelper.o accessHessian.o baseHessian_cu.o parAccessor.o seqAccessor.o deviceHessian_cu.o LinearCalculater_cu.o LinearCalGPUHelper_cu.o PolynomialCalGPUHelper_cu.o PolynomialCalculater_cu.o RBFCalculater_cu.o RBFCalGPUHelper_cu.o SigmoidCalculater_cu.o SigmoidCalGPUHelper_cu.o storageManager_cu.o hostStorageManager.o smoSharedSolver_cu.o svmSharedTrainer_cu.o baseLibsvmReader.o devUtility_cu.o svmModel_cu.o
-	$(NVCC) $(LASTFLAG) $(LDFLAGS) -o bin/mascot cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o ReadHelper.o baseHessian_cu.o accessHessian.o parAccessor.o seqAccessor.o svmProblem.o deviceHessian_cu.o LinearCalculater_cu.o LinearCalGPUHelper_cu.o PolynomialCalGPUHelper_cu.o PolynomialCalculater_cu.o RBFCalculater_cu.o RBFCalGPUHelper_cu.o SigmoidCalculater_cu.o SigmoidCalGPUHelper_cu.o devUtility_cu.o storageManager_cu.o hostStorageManager.o classificationKernel_cu.o commandLineParser.o cvFunction.o fileOps.o gpu_global_utility.o initCuda_cu.o smoGPUHelper_cu.o smoSharedSolver_cu.o smoSolver_cu.o svmMain.o svmPredictor_cu.o svmSharedTrainer_cu.o svmTrainer_cu.o modelSelector_cu.o trainingFunction_cu.o svmModel_cu.o
+OBJ = cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o ReadHelper.o\
+	  baseHessian_cu.o accessHessian.o parAccessor.o seqAccessor.o svmProblem.o deviceHessian_cu.o\
+	  LinearCalculater_cu.o LinearCalGPUHelper_cu.o PolynomialCalGPUHelper_cu.o PolynomialCalculater_cu.o\
+	  RBFCalculater_cu.o RBFCalGPUHelper_cu.o SigmoidCalculater_cu.o SigmoidCalGPUHelper_cu.o\
+	  devUtility_cu.o storageManager_cu.o hostStorageManager.o classificationKernel_cu.o\
+	  commandLineParser.o cvFunction.o fileOps.o gpu_global_utility.o initCuda_cu.o\
+	  smoGPUHelper_cu.o smoSharedSolver_cu.o smoSolver_cu.o svmMain.o svmPredictor_cu.o\
+	  svmSharedTrainer_cu.o svmTrainer_cu.o modelSelector_cu.o trainingFunction_cu.o svmModel_cu.o
+
+bin/mascot: $(OBJ)
+	$(NVCC) $(LASTFLAG) $(LDFLAGS) -o bin/mascot $(OBJ)
+
 cvFunction.o: mascot/cvFunction.cpp
 	g++ $(CCFLAGS) $(LDFLAGS) -o cvFunction.o -c mascot/cvFunction.cpp
 
@@ -39,7 +49,9 @@ storageManager_cu.o: svm-shared/storageManager.h svm-shared/storageManager.cu
 hostStorageManager.o: svm-shared/hostStorageManager.h svm-shared/hostStorageManager.cpp
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o hostStorageManager.o -c svm-shared/hostStorageManager.cpp
 
-modelSelector_cu.o: mascot/modelSelector.h mascot/modelSelector.cu svm-shared/HessianIO/deviceHessian.h svm-shared/HessianIO/baseHessian.h svm-shared/HessianIO/parAccessor.h svm-shared/HessianIO/seqAccessor.h svm-shared/storageManager.h svm-shared/svmTrainer.h svm-shared/host_constant.h
+modelSelector_cu.o: mascot/modelSelector.h mascot/modelSelector.cu svm-shared/HessianIO/deviceHessian.h\
+					svm-shared/HessianIO/baseHessian.h svm-shared/HessianIO/parAccessor.h svm-shared/HessianIO/seqAccessor.h\
+					svm-shared/storageManager.h svm-shared/svmTrainer.h svm-shared/host_constant.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o modelSelector_cu.o -c mascot/modelSelector.cu
 
 devUtility_cu.o: svm-shared/devUtility.h svm-shared/devUtility.cu
@@ -87,10 +99,10 @@ DataIO.o: mascot/DataIOOps/DataIO.h mascot/DataIOOps/DataIO.cpp
 ReadHelper.o: mascot/DataIOOps/ReadHelper.cpp
 	g++ $(CCFLAGS) -o ReadHelper.o -c mascot/DataIOOps/ReadHelper.cpp
 
-svmProblem.o: mascot/svmProblem.cpp
+svmProblem.o: mascot/svmProblem.cpp mascot/svmProblem.h
 	g++ $(CCFLAGS) -o svmProblem.o -c mascot/svmProblem.cpp
 
-svmModel_cu.o: mascot/svmModel.cu
+svmModel_cu.o: mascot/svmModel.cu mascot/svmModel.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o svmModel_cu.o -c mascot/svmModel.cu
 
 baseHessian_cu.o: svm-shared/HessianIO/baseHessian.h svm-shared/HessianIO/baseHessian.cu svm-shared/host_constant.h
