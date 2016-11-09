@@ -149,6 +149,10 @@ void DeviceHessian::ComputeHessianAtOnce(float_point *pfTotalSamples, float_poin
 
 	checkCudaErrors(cudaMemcpy(m_pfHessianRowsInHostMem, pfDevNumofHessianRows,
 							  sizeof(float_point) * lResult, cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaFree(pfDevTotalSamples));
+	checkCudaErrors(cudaFree(pfDevTransSamples));
+	checkCudaErrors(cudaFree(pfDevNumofHessianRows));
+	checkCudaErrors(cudaFree(pfDevSelfDot));
 
 }
 
