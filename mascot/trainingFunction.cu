@@ -189,7 +189,7 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNum
     rawDataRead.ReadFromFile(strTrainingFileName, nNumofFeature, v_v_DocVector, v_nLabel);
 
     //perform svm classification
-    vector<int> predictLabels = model.predict(v_v_DocVector, true);
+    vector<int> predictLabels = model.predict(v_v_DocVector, model.isProbability());
     int numOfCorrect = 0;
     for (int i = 0; i < v_v_DocVector.size(); ++i) 
     {

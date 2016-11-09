@@ -54,6 +54,8 @@ public:
     vector<vector<float_point> > predictProbability(const vector<vector<float_point> > &) const;
 
     void predictValues(const vector<vector<float_point> > &, vector<vector<float_point> > &) const;
+
+    bool isProbability() const;
 };
 
 

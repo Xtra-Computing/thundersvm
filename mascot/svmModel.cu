@@ -533,3 +533,7 @@ float_point *SvmModel::ComputeClassLabel(int nNumofTestSamples,
     return pfReturn;
 }
 
+bool SvmModel::isProbability() const {
+    return probability;
+}
+
