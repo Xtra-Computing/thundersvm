@@ -27,17 +27,15 @@ private:
 
     unsigned int inline getK(int i, int j) const;
 
-    void predictLabels(const vector<float_point> &kernelValues, vector<float_point> &classificationResult, int) const;
+    void
+    predictLabels(float_point *devKernelValues, int numOfSamples, vector<float_point> &classificationResult, int) const;
 
     float_point *ComputeClassLabel(int nNumofTestSamples,
                                    float_point *pfDevSVYiAlphaHessian, const int &nNumofSVs,
                                    float_point fBias, float_point *pfFinalResult) const;
 
-    void computeKernelValuesOnFly(const vector<vector<float_point> > &samples,
-                                  const vector<vector<float_point> > &supportVectors, vector<float_point> &kernelValues) const;
-
     void computeKernelValuesOnGPU(const vector<vector<float_point> > &samples,
-                                  const vector<vector<float_point> > &supportVectors, vector<float_point> &kernelValues) const;
+                                  const vector<vector<float_point> > &supportVectors, float_point *devKernelValues) const;
     void addBinaryModel(const SvmProblem &, const svm_model &, int i, int j);
 
     float_point sigmoidPredict(float_point decValue, float_point A, float_point B) const;
