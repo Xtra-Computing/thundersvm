@@ -36,6 +36,8 @@ private:
     void computeKernelValuesOnFly(const vector<vector<float_point> > &samples,
                                   const vector<vector<float_point> > &supportVectors, vector<float_point> &kernelValues) const;
 
+    void computeKernelValuesOnGPU(const vector<vector<float_point> > &samples,
+                                  const vector<vector<float_point> > &supportVectors, vector<float_point> &kernelValues) const;
     void addBinaryModel(const SvmProblem &, const svm_model &, int i, int j);
 
     float_point sigmoidPredict(float_point decValue, float_point A, float_point B) const;

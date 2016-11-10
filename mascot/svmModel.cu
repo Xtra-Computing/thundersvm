@@ -1,6 +1,6 @@
 /*
    * @author: created by ss on 16-11-2.
-   * @brief: multi-class svm training, prediction, svm with probability output 
+   * @brief: multi-class svm training, prediction, svm with probability output
    *
 */
 
@@ -191,7 +191,7 @@ SvmModel::predictValues(const vector<vector<float_point> > &v_vSamples,
     decisionValues.clear();
     for (int k = 0; k < cnr2; ++k) {
         vector<float_point> kernelValues;
-        computeKernelValuesOnFly(v_vSamples, supportVectors[k], kernelValues);
+        computeKernelValuesOnGPU(v_vSamples, supportVectors[k], kernelValues);
         vector<float_point> decValues41BinaryModel;
         predictLabels(kernelValues, decValues41BinaryModel, k);
         decisionValues.push_back(decValues41BinaryModel);
@@ -341,6 +341,53 @@ void SvmModel::computeKernelValuesOnFly(const vector<vector<float_point> > &samp
             kernelValues[i * supportVectors.size() + j] = (float_point) exp(-param.gamma * sum);
         }
     }
+}
+
+__global__ void
+rbfKernel(float_point *samples, int numOfSamples, float_point *supportVectors, int numOfSVs, int numOfFeatures,
+          float_point *kernelValues, float_point gamma) {
+    int idx = blockDim.x * blockIdx.x + threadIdx.x;
+    int row = idx / numOfSVs;
+    int col = idx % numOfSVs;
+    if (row < numOfSamples) {
+        float_point *sample = samples + row * numOfFeatures;
+        float_point *supportVector = supportVectors + col * numOfFeatures;
+        float_point sum = 0;
+        for (int i = 0; i < numOfFeatures; ++i) {
+            float_point d = sample[i] - supportVector[i];
+            sum += d * d;
+        }
+        kernelValues[idx] = exp(-gamma * sum);
+    }
+};
+
+void SvmModel::computeKernelValuesOnGPU(const vector<vector<float_point> > &samples,
+                                        const vector<vector<float_point> > &supportVectors,
+                                        vector<float_point> &kernelValues) const {
+    kernelValues.resize(samples.size() * supportVectors.size());
+    int numOfFeatures = (int) samples.front().size();
+    float_point *devSamples, *devSupportVectors, *devKernelValues;
+    checkCudaErrors(cudaMalloc((void **) &devSamples, sizeof(float_point) * samples.size() * numOfFeatures));
+    checkCudaErrors(
+            cudaMalloc((void **) &devSupportVectors, sizeof(float_point) * supportVectors.size() * numOfFeatures));
+    checkCudaErrors(cudaMalloc((void **) &devKernelValues, sizeof(float_point) * kernelValues.size()));
+    size_t vectorSize = sizeof(float_point) * numOfFeatures;
+    for (int i = 0; i < samples.size(); ++i) {
+        checkCudaErrors(
+                cudaMemcpy(devSamples + i * numOfFeatures, samples[i].data(), vectorSize, cudaMemcpyHostToDevice));
+    }
+    for (int i = 0; i < supportVectors.size(); ++i) {
+        checkCudaErrors(cudaMemcpy(devSupportVectors + i * numOfFeatures, supportVectors[i].data(), vectorSize,
+                                   cudaMemcpyHostToDevice));
+    }
+    int numOfBlock = (int) (Ceil(kernelValues.size(), BLOCK_SIZE));
+    rbfKernel << < numOfBlock, BLOCK_SIZE >> > (devSamples, samples.size(), devSupportVectors, supportVectors.size(),
+            numOfFeatures, devKernelValues, param.gamma);
+    checkCudaErrors(cudaMemcpy(kernelValues.data(), devKernelValues, sizeof(float_point) * kernelValues.size(),
+                               cudaMemcpyDeviceToHost));
+    checkCudaErrors(cudaFree(devSamples));
+    checkCudaErrors(cudaFree(devSupportVectors));
+    checkCudaErrors(cudaFree(devKernelValues));
 }
 
 void SvmModel::predictLabels(const vector<float_point> &kernelValues, vector<float_point> &classificationResult,
