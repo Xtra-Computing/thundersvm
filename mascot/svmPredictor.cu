@@ -238,7 +238,7 @@ float_point* CSVMPredictor::PredictLabel(svm_model *pModel, int nNumofTestSample
 
 	if(pfClassificaitonResult == NULL)
 	{
-		cerr << "error in ComputeClassLabel" << endl;
+		cerr << "error in computeSVYiAlphaHessianSum" << endl;
 		exit(-1);
 	}
 
@@ -395,7 +395,7 @@ float_point* CSVMPredictor::ComputeClassLabel(int nNumofTestSamples,
 	   pfDevSVYiAlphaHessian == NULL ||
 	   nNumofSVs <= 0)
 	{
-		cerr << "error in ComputeClassLabel: invalid input params" << endl;
+		cerr << "error in computeSVYiAlphaHessianSum: invalid input params" << endl;
 		return pfReturn;
 	}
 
@@ -467,7 +467,7 @@ float_point* CSVMPredictor::ComputeClassLabel(int nNumofTestSamples,
 		cudaError_t error = cudaDeviceSynchronize();
 		if(error != cudaSuccess)
 		{
-			cerr << "cuda error in ComputeClassLabel: failed at ComputePartialSum: " << cudaGetErrorString(error) << endl;
+			cerr << "cuda error in computeSVYiAlphaHessianSum: failed at ComputePartialSum: " << cudaGetErrorString(error) << endl;
 			return pfReturn;
 		}
 
@@ -481,7 +481,7 @@ float_point* CSVMPredictor::ComputeClassLabel(int nNumofTestSamples,
 		error = cudaGetLastError();
 		if(error != cudaSuccess)
 		{
-			cerr << "cuda error in ComputeClassLabel: failed at ComputeGlobalSum: " << cudaGetErrorString(error) << endl;
+			cerr << "cuda error in computeSVYiAlphaHessianSum: failed at ComputeGlobalSum: " << cudaGetErrorString(error) << endl;
 			return pfReturn;
 		}
 
