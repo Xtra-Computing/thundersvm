@@ -15,7 +15,7 @@
 #include "svmModel.h"
 using std::string;
 
-SvmModel trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature);
+void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, SvmModel &model);
 svm_model trainBinarySVM(SvmProblem &problem, const SVMParam &param);
 void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNumofFeature);
 

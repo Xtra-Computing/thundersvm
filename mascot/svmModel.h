@@ -6,6 +6,7 @@
 #define MASCOT_SVM_SVMMODEL_H
 
 #include <vector>
+#include <cstdio>
 #include "../svm-shared/gpu_global_utility.h"
 #include "svmParam.h"
 #include "svmProblem.h"
@@ -17,6 +18,7 @@ private:
     SVMParam param;
     unsigned int nrClass;
     unsigned int cnr2;
+    int numOfFeatures;
     vector<vector<vector<float_point> > > supportVectors;
     vector<vector<float_point> > coef;
     vector<float_point> rho;
@@ -25,6 +27,14 @@ private:
     vector<int> label;
     bool probability;
 
+    //for device
+    float_point *devSVs = NULL;
+    float_point *devCoef = NULL;
+    float_point *devRho = NULL;
+    float_point *devProbA = NULL;
+    float_point *devProbB = NULL;
+    int *devSVStart = NULL;
+    int *devSVCount = NULL;
     unsigned int inline getK(int i, int j) const;
 
     void
@@ -45,9 +55,15 @@ private:
 
     void
     sigmoidTrain(const float_point *decValues, const int, const vector<int> &labels, float_point &A, float_point &B);
+    void transferToGPU();
+
+    //SvmModel has device pointer, so duplicating SvmModel is not allowed
+    SvmModel&operator=(const SvmModel&);
+    SvmModel(const SvmModel&);
 
 public:
-
+~SvmModel();
+    SvmModel(){};
     void fit(const SvmProblem &problem, const SVMParam &param);
 
     vector<int> predict(const vector<vector<float_point> > &, bool probability=false) const;

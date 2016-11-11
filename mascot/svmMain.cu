@@ -43,13 +43,15 @@ int main(int argc, char **argv)
     {
 		//perform svm training
 		cout << "performing training" << endl;
-		SvmModel model = trainSVM(parser.param, fileName, parser.nNumofFeature);    
+		SvmModel model;
+		trainSVM(parser.param, fileName, parser.nNumofFeature, model);
     }
     else if(parser.cross_validation == 2)
     {
  		//perform svm evaluation 
 		cout << "performing evaluation" << endl;
-		SvmModel model = trainSVM(parser.param, fileName, parser.nNumofFeature);    
+		SvmModel model;
+		trainSVM(parser.param, fileName, parser.nNumofFeature, model);
         evaluateSVMClassifier(model, fileName, parser.nNumofFeature);
        
     }

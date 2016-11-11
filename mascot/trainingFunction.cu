@@ -33,7 +33,7 @@
 using std::cout;
 using std::endl;
 
-SvmModel trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature) {
+void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, SvmModel &model) {
 
     vector<vector<float_point> > v_v_DocVector;
     vector<int> v_nLabel;
@@ -44,9 +44,7 @@ SvmModel trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature
     BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
     rawDataRead.ReadFromFile(strTrainingFileName, nNumofFeature, v_v_DocVector, v_nLabel);
     SvmProblem problem(v_v_DocVector, v_nLabel);
-    SvmModel model;
     model.fit(problem, param);
-    return model;
 }
 
 svm_model trainBinarySVM(SvmProblem &problem, const SVMParam &param) {

@@ -6,7 +6,6 @@
 
 #include "svmModel.h"
 
-#include <cstdio>
 #include "svmPredictor.h"
 #include "../svm-shared/HessianIO/deviceHessian.h"
 #include "../svm-shared/storageManager.h"
@@ -15,6 +14,16 @@
 #include <cuda_runtime_api.h>
 #include "trainingFunction.h"
 
+SvmModel::~SvmModel() {
+    checkCudaErrors(cudaFree(devSVs));
+    checkCudaErrors(cudaFree(devSVStart));
+    checkCudaErrors(cudaFree(devSVCount));
+    checkCudaErrors(cudaFree(devCoef));
+    checkCudaErrors(cudaFree(devProbA));
+    checkCudaErrors(cudaFree(devProbB));
+    checkCudaErrors(cudaFree(devRho));
+}
+
 unsigned int SvmModel::getK(int i, int j) const {
     return ((nrClass - 1) + (nrClass - i)) * i / 2 + j - i - 1;
 }
@@ -22,6 +31,7 @@ unsigned int SvmModel::getK(int i, int j) const {
 void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
     nrClass = problem.getNumOfClasses();
     cnr2 = (nrClass) * (nrClass - 1) / 2;
+    numOfFeatures = problem.v_vSamples.front().size();
     coef.clear();
     rho.clear();
     probA.clear();
@@ -62,6 +72,41 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
             k++;
         }
     }
+    transferToGPU();
+}
+
+void SvmModel::transferToGPU() {
+    vector<int> start, count;
+    int numOfSVs = 0;
+    for (int i = 0; i < cnr2; ++i) {
+        start.push_back(numOfSVs);
+        count.push_back(supportVectors[i].size());
+        numOfSVs += count[i];
+    }
+    int svLength = numOfFeatures;
+    checkCudaErrors(cudaMalloc((void **) &devSVs, sizeof(float_point) * numOfSVs * svLength));
+    checkCudaErrors(cudaMalloc((void **) &devSVStart, sizeof(int) * cnr2));
+    checkCudaErrors(cudaMalloc((void **) &devSVCount, sizeof(int) * cnr2));
+    checkCudaErrors(cudaMalloc((void **) &devCoef, sizeof(float_point) * numOfSVs));
+    checkCudaErrors(cudaMalloc((void **) &devProbA, sizeof(float_point) * cnr2));
+    checkCudaErrors(cudaMalloc((void **) &devProbB, sizeof(float_point) * cnr2));
+    checkCudaErrors(cudaMalloc((void **) &devRho, sizeof(float_point) * cnr2));
+    for (int i = 0; i < cnr2; ++i) {
+        float_point *sv4BinaryModel = new float_point[supportVectors[i].size() * svLength];
+        for (int j = 0; j < supportVectors[i].size(); ++j) {
+            memcpy(sv4BinaryModel + j * svLength, supportVectors[i][j].data(), sizeof(float_point) * svLength);
+        }
+        checkCudaErrors(cudaMemcpy(devSVs + start[i] * svLength, sv4BinaryModel,
+                                   sizeof(float_point) * supportVectors[i].size() * svLength, cudaMemcpyHostToDevice));
+        delete[] sv4BinaryModel;
+        checkCudaErrors(cudaMemcpy(devCoef + start[i], coef[i].data(), sizeof(float_point) * coef[i].size(),
+                                   cudaMemcpyHostToDevice));
+    }
+    checkCudaErrors(cudaMemcpy(devSVStart, start.data(), sizeof(int) * cnr2, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(devSVCount, count.data(), sizeof(int) * cnr2, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(devProbA, probA.data(), sizeof(float_point) * cnr2, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(devProbB, probB.data(), sizeof(float_point) * cnr2, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(devRho, rho.data(), sizeof(float_point) * cnr2, cudaMemcpyHostToDevice));
 }
 
 void SvmModel::sigmoidTrain(const float_point *decValues, const int l, const vector<int> &labels, float_point &A,
@@ -179,6 +224,7 @@ void SvmModel::addBinaryModel(const SvmProblem &problem, const svm_model &bModel
         coef[k].push_back(bModel.sv_coef[0][l]);
         supportVectors[k].push_back(problem.v_vSamples[bModel.pnIndexofSV[l]]);
     }
+    printf("cls %d, %d #SV=%d\n",i,j,supportVectors[k].size());
     rho[k] = bModel.rho[0];
 }
 
@@ -483,7 +529,8 @@ float_point *SvmModel::computeSVYiAlphaHessianSum(int nNumofTestSamples,
                                                                                     nPartialReduceStepSize);
         cudaError_t error = cudaDeviceSynchronize();
         if (error != cudaSuccess) {
-            cerr << "cuda error in computeSVYiAlphaHessianSum: failed at ComputePartialSum: " << cudaGetErrorString(error)
+            cerr << "cuda error in computeSVYiAlphaHessianSum: failed at ComputePartialSum: "
+                 << cudaGetErrorString(error)
                  << endl;
             return pfReturn;
         }
@@ -497,7 +544,8 @@ float_point *SvmModel::computeSVYiAlphaHessianSum(int nNumofTestSamples,
 
         error = cudaGetLastError();
         if (error != cudaSuccess) {
-            cerr << "cuda error in computeSVYiAlphaHessianSum: failed at ComputeGlobalSum: " << cudaGetErrorString(error)
+            cerr << "cuda error in computeSVYiAlphaHessianSum: failed at ComputeGlobalSum: "
+                 << cudaGetErrorString(error)
                  << endl;
             return pfReturn;
         }
