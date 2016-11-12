@@ -19,34 +19,28 @@ private:
     unsigned int nrClass;
     unsigned int cnr2;
     int numOfFeatures;
+    int numOfSVs;
     vector<vector<vector<float_point> > > supportVectors;
     vector<vector<float_point> > coef;
+    vector<int> start;
+    vector<int> count;
     vector<float_point> rho;
     vector<float_point> probA;
     vector<float_point> probB;
     vector<int> label;
     bool probability;
 
-    //for device
+    //device pointers
     float_point *devSVs = NULL;
     float_point *devCoef = NULL;
+    int *devStart = NULL;
+    int *devCount = NULL;
     float_point *devRho = NULL;
     float_point *devProbA = NULL;
     float_point *devProbB = NULL;
-    int *devSVStart = NULL;
-    int *devSVCount = NULL;
+
     unsigned int inline getK(int i, int j) const;
 
-    void
-    computeDecValues(float_point *devKernelValues, int numOfSamples, vector<float_point> &classificationResult, int) const;
-
-    float_point *computeSVYiAlphaHessianSum(int nNumofTestSamples,
-                                            float_point *pfDevSVYiAlphaHessian, const int &nNumofSVs,
-                                            float_point fBias, float_point *pfFinalResult) const;
-
-    void computeKernelValuesOnGPU(const float_point *devSamples, int numOfSamples,
-                                      const vector<vector<float_point> > &supportVectors,
-                                      float_point *devKernelValues) const;
     void addBinaryModel(const SvmProblem &, const svm_model &, int i, int j);
 
     float_point sigmoidPredict(float_point decValue, float_point A, float_point B) const;
@@ -55,18 +49,22 @@ private:
 
     void
     sigmoidTrain(const float_point *decValues, const int, const vector<int> &labels, float_point &A, float_point &B);
-    void transferToGPU();
+
+    void transferToDevice();
 
     //SvmModel has device pointer, so duplicating SvmModel is not allowed
-    SvmModel&operator=(const SvmModel&);
-    SvmModel(const SvmModel&);
+    SvmModel &operator=(const SvmModel &);
+
+    SvmModel(const SvmModel &);
 
 public:
-~SvmModel();
-    SvmModel(){};
+    ~SvmModel();
+
+    SvmModel() {};
+
     void fit(const SvmProblem &problem, const SVMParam &param);
 
-    vector<int> predict(const vector<vector<float_point> > &, bool probability=false) const;
+    vector<int> predict(const vector<vector<float_point> > &, bool probability = false) const;
 
     vector<vector<float_point> > predictProbability(const vector<vector<float_point> > &) const;
 

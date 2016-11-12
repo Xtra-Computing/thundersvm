@@ -14,11 +14,48 @@
 #include <cuda_runtime_api.h>
 #include "trainingFunction.h"
 
+//todo move this kernel function to a proper file
+__global__ void
+rbfKernel(const float_point *samples, int numOfSamples, const float_point *supportVectors, int numOfSVs,
+          int numOfFeatures,
+          float_point *kernelValues, float_point gamma,
+          const float_point *coef) {
+    int idx = blockDim.x * blockIdx.x + threadIdx.x;
+    int sampleId = idx / numOfSVs;
+    int SVId = idx % numOfSVs;
+    if (sampleId < numOfSamples) {
+        const float_point *sample = samples + sampleId * numOfFeatures;
+        const float_point *supportVector = supportVectors + SVId * numOfFeatures;
+        float_point sum = 0;
+        for (int i = 0; i < numOfFeatures; ++i) {
+            float_point d = sample[i] - supportVector[i];
+            sum += d * d;
+        }
+        kernelValues[idx] = coef[SVId] * exp(-gamma * sum);
+    }
+};
+
+__global__ void sumKernelValues(const float *kernelValues, int numOfSamples, int numOfSVs, int cnr2,
+                                const int *start, const int *count,
+                                const float* bias, float_point *decValues) {
+    int idx = blockDim.x * blockIdx.x + threadIdx.x;
+    int sampleId = idx / cnr2;
+    int modelId = idx % cnr2;
+    if (sampleId < numOfSamples) {
+        float_point sum = 0;
+        const float_point *kernelValue = kernelValues + sampleId * numOfSVs + start[modelId];
+        for (int i = 0; i < count[modelId]; ++i) {
+            sum += kernelValue[i];
+        }
+        decValues[idx] = sum - bias[modelId];
+    }
+}
+
 SvmModel::~SvmModel() {
     checkCudaErrors(cudaFree(devSVs));
-    checkCudaErrors(cudaFree(devSVStart));
-    checkCudaErrors(cudaFree(devSVCount));
     checkCudaErrors(cudaFree(devCoef));
+    checkCudaErrors(cudaFree(devStart));
+    checkCudaErrors(cudaFree(devCount));
     checkCudaErrors(cudaFree(devProbA));
     checkCudaErrors(cudaFree(devProbB));
     checkCudaErrors(cudaFree(devRho));
@@ -32,12 +69,15 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
     nrClass = problem.getNumOfClasses();
     cnr2 = (nrClass) * (nrClass - 1) / 2;
     numOfFeatures = problem.v_vSamples.front().size();
+    numOfSVs = 0;
     coef.clear();
     rho.clear();
     probA.clear();
     probB.clear();
     supportVectors.clear();
     label.clear();
+    start.clear();
+    count.clear();
     probability = false;
 
     coef.resize(cnr2);
@@ -72,22 +112,21 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
             k++;
         }
     }
-    transferToGPU();
+    int _start = 0;
+    for (int i = 0; i < cnr2; ++i) {
+        start.push_back(_start);
+        count.push_back(supportVectors[i].size());
+        _start += count[i];
+    }
+    transferToDevice();
 }
 
-void SvmModel::transferToGPU() {
-    vector<int> start, count;
-    int numOfSVs = 0;
-    for (int i = 0; i < cnr2; ++i) {
-        start.push_back(numOfSVs);
-        count.push_back(supportVectors[i].size());
-        numOfSVs += count[i];
-    }
+void SvmModel::transferToDevice() {
     int svLength = numOfFeatures;
     checkCudaErrors(cudaMalloc((void **) &devSVs, sizeof(float_point) * numOfSVs * svLength));
-    checkCudaErrors(cudaMalloc((void **) &devSVStart, sizeof(int) * cnr2));
-    checkCudaErrors(cudaMalloc((void **) &devSVCount, sizeof(int) * cnr2));
     checkCudaErrors(cudaMalloc((void **) &devCoef, sizeof(float_point) * numOfSVs));
+    checkCudaErrors(cudaMalloc((void **) &devStart, sizeof(float_point) * cnr2));
+    checkCudaErrors(cudaMalloc((void **) &devCount, sizeof(float_point) * cnr2));
     checkCudaErrors(cudaMalloc((void **) &devProbA, sizeof(float_point) * cnr2));
     checkCudaErrors(cudaMalloc((void **) &devProbB, sizeof(float_point) * cnr2));
     checkCudaErrors(cudaMalloc((void **) &devRho, sizeof(float_point) * cnr2));
@@ -97,15 +136,15 @@ void SvmModel::transferToGPU() {
             memcpy(sv4BinaryModel + j * svLength, supportVectors[i][j].data(), sizeof(float_point) * svLength);
         }
         checkCudaErrors(cudaMemcpy(devSVs + start[i] * svLength, sv4BinaryModel,
-                                   sizeof(float_point) * supportVectors[i].size() * svLength, cudaMemcpyHostToDevice));
+                                   sizeof(float_point) * count[i] * svLength, cudaMemcpyHostToDevice));
         delete[] sv4BinaryModel;
-        checkCudaErrors(cudaMemcpy(devCoef + start[i], coef[i].data(), sizeof(float_point) * coef[i].size(),
+        checkCudaErrors(cudaMemcpy(devCoef + start[i], coef[i].data(), sizeof(float_point) * count[i],
                                    cudaMemcpyHostToDevice));
     }
-    checkCudaErrors(cudaMemcpy(devSVStart, start.data(), sizeof(int) * cnr2, cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(devSVCount, count.data(), sizeof(int) * cnr2, cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(devProbA, probA.data(), sizeof(float_point) * cnr2, cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(devProbB, probB.data(), sizeof(float_point) * cnr2, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(devStart, start.data(), sizeof(int) * cnr2, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(devCount, count.data(), sizeof(int) * cnr2, cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(devRho, rho.data(), sizeof(float_point) * cnr2, cudaMemcpyHostToDevice));
 }
 
@@ -224,34 +263,40 @@ void SvmModel::addBinaryModel(const SvmProblem &problem, const svm_model &bModel
         coef[k].push_back(bModel.sv_coef[0][l]);
         supportVectors[k].push_back(problem.v_vSamples[bModel.pnIndexofSV[l]]);
     }
-    printf("cls %d, %d #SV=%d\n",i,j,supportVectors[k].size());
     rho[k] = bModel.rho[0];
+    numOfSVs += bModel.nSV[0] + bModel.nSV[1];
 }
 
 void
 SvmModel::predictValues(const vector<vector<float_point> > &v_vSamples,
                         vector<vector<float_point> > &decisionValues) const {
-    decisionValues.clear();
+    //copy samples to device
     float_point *devSamples;
-    int numOfFeatures = v_vSamples.front().size();
     checkCudaErrors(cudaMalloc((void **) &devSamples, sizeof(float_point) * v_vSamples.size() * numOfFeatures));
-    size_t vectorSize = sizeof(float_point) * numOfFeatures;
     for (int i = 0; i < v_vSamples.size(); ++i) {
-        checkCudaErrors(
-                cudaMemcpy(devSamples + i * numOfFeatures, v_vSamples[i].data(), vectorSize, cudaMemcpyHostToDevice));
+        checkCudaErrors(cudaMemcpy(devSamples + i * numOfFeatures, v_vSamples[i].data(),
+                                   sizeof(float_point) * numOfFeatures, cudaMemcpyHostToDevice));
     }
-    for (int k = 0; k < cnr2; ++k) {
-        //todo predict cnr2 models in parallel
-        float_point *devKernelValues;
-        checkCudaErrors(cudaMalloc((void **) &devKernelValues,
-                                   sizeof(float_point) * v_vSamples.size() * supportVectors[k].size()));
-        computeKernelValuesOnGPU(devSamples, v_vSamples.size(), supportVectors[k], devKernelValues);
-        vector<float_point> decValues41BinaryModel;
-        computeDecValues(devKernelValues, v_vSamples.size(), decValues41BinaryModel, k);
-        decisionValues.push_back(decValues41BinaryModel);
-        checkCudaErrors(cudaFree(devKernelValues));
+
+
+    float_point *devKernelValues;
+    checkCudaErrors(cudaMalloc((void **) &devKernelValues,
+                               sizeof(float_point) * v_vSamples.size() * numOfSVs));
+    int numOfBlock = Ceil(v_vSamples.size() * numOfSVs, BLOCK_SIZE);
+    rbfKernel << < numOfBlock, BLOCK_SIZE >> > (devSamples, v_vSamples.size(),
+            devSVs, numOfSVs, numOfFeatures, devKernelValues, param.gamma, devCoef);
+    numOfBlock = Ceil(v_vSamples.size() * cnr2, BLOCK_SIZE);
+    float_point *devDecisionValues;
+    checkCudaErrors(cudaMalloc((void **) &devDecisionValues, sizeof(float_point) * v_vSamples.size() * cnr2));
+    sumKernelValues << < numOfBlock, BLOCK_SIZE >> > (devKernelValues, v_vSamples.size(),
+            numOfSVs, cnr2, devStart, devCount, devRho, devDecisionValues);
+    decisionValues = vector<vector<float_point> >(v_vSamples.size(),vector<float_point>(cnr2));
+    for (int i = 0; i < decisionValues.size(); ++i) {
+        checkCudaErrors(cudaMemcpy(decisionValues[i].data(),devDecisionValues + i * cnr2,
+                                   sizeof(float_point) * cnr2,cudaMemcpyDeviceToHost));
     }
     checkCudaErrors(cudaFree(devSamples));
+    checkCudaErrors(cudaFree(devDecisionValues));
 }
 
 vector<int> SvmModel::predict(const vector<vector<float_point> > &v_vSamples, bool probability) const {
@@ -264,7 +309,7 @@ vector<int> SvmModel::predict(const vector<vector<float_point> > &v_vSamples, bo
             int k = 0;
             for (int i = 0; i < nrClass; ++i) {
                 for (int j = i + 1; j < nrClass; ++j) {
-                    if (decisionValues[k++][l] > 0)
+                    if (decisionValues[l][k++] > 0)
                         votes[i]++;
                     else
                         votes[j]++;
@@ -371,7 +416,7 @@ vector<vector<float_point> > SvmModel::predictProbability(const vector<vector<fl
         for (int i = 0; i < nrClass; i++)
             for (int j = i + 1; j < nrClass; j++) {
                 r[i][j] = min(
-                        max(sigmoidPredict(decValues[k][l], probA[k], probB[k]), min_prob), 1 - min_prob);
+                        max(sigmoidPredict(decValues[l][k], probA[k], probB[k]), min_prob), 1 - min_prob);
                 r[j][i] = 1 - r[i][j];
                 k++;
             }
@@ -380,186 +425,6 @@ vector<vector<float_point> > SvmModel::predictProbability(const vector<vector<fl
         result.push_back(p);
     }
     return result;
-}
-
-//todo move this kernel function to a proper file
-__global__ void
-rbfKernel(const float_point *samples, int numOfSamples, const float_point *supportVectors, int numOfSVs,
-          int numOfFeatures,
-          float_point *kernelValues, float_point gamma) {
-    int idx = blockDim.x * blockIdx.x + threadIdx.x;
-    int row = idx / numOfSVs;
-    int col = idx % numOfSVs;
-    if (row < numOfSamples) {
-        const float_point *sample = samples + row * numOfFeatures;
-        const float_point *supportVector = supportVectors + col * numOfFeatures;
-        float_point sum = 0;
-        for (int i = 0; i < numOfFeatures; ++i) {
-            float_point d = sample[i] - supportVector[i];
-            sum += d * d;
-        }
-        kernelValues[idx] = exp(-gamma * sum);
-    }
-};
-
-void SvmModel::computeKernelValuesOnGPU(const float_point *devSamples, int numOfSamples,
-                                        const vector<vector<float_point> > &supportVectors,
-                                        float_point *devKernelValues) const {
-    //copy samples and support vectors to device
-    float_point *devSupportVectors;
-    int numOfFeatures = supportVectors.front().size();
-    checkCudaErrors(
-            cudaMalloc((void **) &devSupportVectors, sizeof(float_point) * supportVectors.size() * numOfFeatures));
-    for (int i = 0; i < supportVectors.size(); ++i) {
-        checkCudaErrors(cudaMemcpy(devSupportVectors + i * numOfFeatures, supportVectors[i].data(),
-                                   sizeof(float_point) * numOfFeatures,
-                                   cudaMemcpyHostToDevice));
-    }
-
-    //compute kernel values
-    int numOfBlock = (int) (Ceil(numOfSamples * supportVectors.size(), BLOCK_SIZE));
-    rbfKernel << < numOfBlock, BLOCK_SIZE >> > (devSamples, numOfSamples, devSupportVectors, supportVectors.size(),
-            numOfFeatures, devKernelValues, param.gamma);
-
-    checkCudaErrors(cudaFree(devSupportVectors));
-}
-
-void SvmModel::computeDecValues(float_point *devKernelValues, int numOfSamples,
-                                vector<float_point> &classificationResult,
-                                int k) const {
-    //get information from SVM model
-    int nNumofSVs = (int) supportVectors[k].size();
-    classificationResult.resize(numOfSamples * nNumofSVs);
-    float_point fBias = rho[k];
-    const float_point *pfSVsYiAlpha = coef[k].data();
-    float_point *pfDevSVsYiAlpha;
-    checkCudaErrors(cudaMalloc((void **) &pfDevSVsYiAlpha, sizeof(float_point) * nNumofSVs));
-    checkCudaErrors(
-            cudaMemcpy(pfDevSVsYiAlpha, pfSVsYiAlpha, sizeof(float_point) * nNumofSVs, cudaMemcpyHostToDevice));
-    //compute y_i*alpha_i*K(i, z)
-    int nVecMatxMulGridDimY = numOfSamples;
-    int nVecMatxMulGridDimX = Ceil(nNumofSVs, BLOCK_SIZE);
-    dim3 vecMatxMulGridDim(nVecMatxMulGridDimX, nVecMatxMulGridDimY);
-    VectorMatrixMul << < vecMatxMulGridDim, BLOCK_SIZE >> >
-                                            (pfDevSVsYiAlpha, devKernelValues, numOfSamples, nNumofSVs);
-    //perform classification
-    computeSVYiAlphaHessianSum(numOfSamples, devKernelValues,
-                               nNumofSVs, fBias, classificationResult.data());
-    checkCudaErrors(cudaFree(pfDevSVsYiAlpha));
-}
-
-/*
- * @brief: compute/predict the labels of testing samples
- * @output: a set of class labels, associated to testing samples
- */
-float_point *SvmModel::computeSVYiAlphaHessianSum(int nNumofTestSamples,
-                                                  float_point *pfDevSVYiAlphaHessian, const int &nNumofSVs,
-                                                  float_point fBias, float_point *pfFinalResult) const {
-    float_point *pfReturn = NULL;
-    if (nNumofTestSamples <= 0 ||
-        pfDevSVYiAlphaHessian == NULL ||
-        nNumofSVs <= 0) {
-        cerr << "error in computeSVYiAlphaHessianSum: invalid input params" << endl;
-        return pfReturn;
-    }
-
-    //compute the size of current processing testing samples
-/*	size_t nFreeMemory,nTotalMemory;
-	cudaMemGetInfo(&nFreeMemory,&nTotalMemory);
-*/    int nMaxSizeofProcessingSample = ((CACHE_SIZE) * 1024 * 1024 * 4 / (sizeof(float_point) * nNumofSVs));
-
-    //reduce by half
-    nMaxSizeofProcessingSample = nMaxSizeofProcessingSample / 2;
-
-    //if the number of samples in small
-    if (nMaxSizeofProcessingSample > nNumofTestSamples) {
-        nMaxSizeofProcessingSample = nNumofTestSamples;
-    }
-    //compute grid size, and block size for partial sum
-    int nPartialGridDimX = Ceil(nNumofSVs, BLOCK_SIZE);
-    int nPartialGridDimY = nMaxSizeofProcessingSample;
-    dim3 dimPartialSumGrid(nPartialGridDimX, nPartialGridDimY);
-    dim3 dimPartialSumBlock(BLOCK_SIZE);
-
-    //compute grid size, and block size for global sum and class label computing
-    int nGlobalGridDimX = 1;
-    int nGlobalGridDimY = nMaxSizeofProcessingSample;
-    dim3 dimGlobalSumGrid(nGlobalGridDimX, nGlobalGridDimY); //can use 1D grid
-    dim3 dimGlobalSumBlock(nPartialGridDimX);
-
-    //memory for computing partial sum by GPU
-    float_point *pfDevPartialSum;
-//	cout << "dimx=" << nPartialGridDimX << "; dimy=" << nPartialGridDimY << endl;
-    checkCudaErrors(cudaMalloc((void **) &pfDevPartialSum, sizeof(float_point) * nPartialGridDimX * nPartialGridDimY));
-    checkCudaErrors(cudaMemset(pfDevPartialSum, 0, sizeof(float_point) * nPartialGridDimX * nPartialGridDimY));
-
-    //memory for computing global sum by GPU
-    float_point *pfDevClassificationResult;
-    checkCudaErrors(cudaMalloc((void **) &pfDevClassificationResult, sizeof(float_point) * nGlobalGridDimY));
-    checkCudaErrors(cudaMemset(pfDevClassificationResult, 0, sizeof(float_point) * nGlobalGridDimY));
-
-    //reduce step size of partial sum, and global sum
-    int nPartialReduceStepSize = 0;
-    nPartialReduceStepSize = (int) pow(2, (ceil(log2((float) BLOCK_SIZE)) - 1));
-    int nGlobalReduceStepSize = 0;
-    nGlobalReduceStepSize = (int) pow(2, ceil(log2((float) nPartialGridDimX)) - 1);
-
-    for (int nStartPosofTestSample = 0;
-         nStartPosofTestSample < nNumofTestSamples; nStartPosofTestSample += nMaxSizeofProcessingSample) {
-        if (nStartPosofTestSample + nMaxSizeofProcessingSample > nNumofTestSamples) {
-            //the last part of the testing samples
-            nMaxSizeofProcessingSample = nNumofTestSamples - nStartPosofTestSample;
-            nPartialGridDimY = nMaxSizeofProcessingSample;
-            dimPartialSumGrid = dim3(nPartialGridDimX, nPartialGridDimY);
-            nGlobalGridDimY = nMaxSizeofProcessingSample;
-            dimGlobalSumGrid = dim3(nGlobalGridDimX, nGlobalGridDimY);
-
-            checkCudaErrors(cudaFree(pfDevPartialSum));
-            checkCudaErrors(
-                    cudaMalloc((void **) &pfDevPartialSum, sizeof(float_point) * nPartialGridDimX * nPartialGridDimY));
-            checkCudaErrors(cudaMemset(pfDevPartialSum, 0, sizeof(float_point) * nPartialGridDimX * nPartialGridDimY));
-
-            checkCudaErrors(cudaFree(pfDevClassificationResult));
-            checkCudaErrors(cudaMalloc((void **) &pfDevClassificationResult, sizeof(float_point) * nGlobalGridDimY));
-            checkCudaErrors(cudaMemset(pfDevClassificationResult, 0, sizeof(float_point) * nGlobalGridDimY));
-        }
-        /********* compute partial sum **********/
-        ComputeKernelPartialSum << < dimPartialSumGrid, dimPartialSumBlock, BLOCK_SIZE * sizeof(float_point) >> >
-                                                                            (pfDevSVYiAlphaHessian, nNumofSVs, pfDevPartialSum,
-                                                                                    nPartialReduceStepSize);
-        cudaError_t error = cudaDeviceSynchronize();
-        if (error != cudaSuccess) {
-            cerr << "cuda error in computeSVYiAlphaHessianSum: failed at ComputePartialSum: "
-                 << cudaGetErrorString(error)
-                 << endl;
-            return pfReturn;
-        }
-
-        /********** compute global sum and class label *********/
-        //compute global sum
-        ComputeKernelGlobalSum << < dimGlobalSumGrid, dimGlobalSumBlock, nPartialGridDimX * sizeof(float_point) >> >
-                                                                         (pfDevClassificationResult, fBias,
-                                                                                 pfDevPartialSum, nGlobalReduceStepSize);
-        cudaDeviceSynchronize();
-
-        error = cudaGetLastError();
-        if (error != cudaSuccess) {
-            cerr << "cuda error in computeSVYiAlphaHessianSum: failed at ComputeGlobalSum: "
-                 << cudaGetErrorString(error)
-                 << endl;
-            return pfReturn;
-        }
-
-        //copy classification result back
-        checkCudaErrors(cudaMemcpy(pfFinalResult + nStartPosofTestSample, pfDevClassificationResult,
-                                   nMaxSizeofProcessingSample * sizeof(float_point), cudaMemcpyDeviceToHost));
-    }
-
-    checkCudaErrors(cudaFree(pfDevPartialSum));
-    checkCudaErrors(cudaFree(pfDevClassificationResult));
-
-    pfReturn = pfFinalResult;
-    return pfReturn;
 }
 
 bool SvmModel::isProbability() const {
