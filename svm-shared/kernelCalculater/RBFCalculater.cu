@@ -39,37 +39,6 @@ bool CRBFKernel::ComputeHessianRows(float_point *pfDevSamples, float_point *pfDe
 	ComputeHessianMatrix(pfDevSamples, pfDevTransSamples, pfDevSelfDot, pfDevHessianRows,
 						 nNumofCols, nNumofDim, nNumofRows, nStartRow, nStartCol);
 
-//	float *pMatrix1 = new float[nNumofCols * nNumofRows];
-
-//	checkCudaErrors(cudaMemcpy(pMatrix1, pfDevHessianRows, sizeof(float) * nNumofCols * nNumofRows, cudaMemcpyDeviceToHost));
-
-/*	int nBlockSize = 0;
-	dim3 dimGrid;
-	GetGPUSpec(dimGrid, nBlockSize, nNumofCols, nNumofRows);
-	assert(nBlockSize >= 0);
-	cout << "gamma=" << m_fGamma << endl;
-	cout << dimGrid.x << " " << dimGrid.y << " " << dimGrid.z << endl;
-	cout << nBlockSize << " " << nNumofCols << " " << nNumofRows << endl;
-	RBFKernel<<<dimGrid, nBlockSize, nBlockSize * sizeof(float_point)>>>(pfDevSamples,
-			pfDevTransSamples, pfDevHessianRows, nNumofCols, nNumofDim, nNumofRows, 0, m_fGamma);
-	cudaDeviceSynchronize();
-	if(cudaGetLastError() != cudaSuccess)
-	{
-		cerr << "cuda error in ComputeHessianRows" << endl;
-		exit(0);
-	}
-
-	float *pMatrix2 = new float[nNumofCols * nNumofRows];
-	checkCudaErrors(cudaMemcpy(pMatrix2, pfDevHessianRows, sizeof(float) * nNumofCols * nNumofRows, cudaMemcpyDeviceToHost));
-	for(int i = 0; i < nNumofCols * nNumofRows; i++)
-	{
-		if(abs(pMatrix2[i] - pMatrix1[i]) > 0.001)
-		{
-			cout << "diff: " << i << "; " << pMatrix1[i] << " v.s. " << pMatrix2[i] << endl;
-			exit(0);
-		}
-	}
-*/
 	return bReturn;
 }
 
@@ -89,90 +58,16 @@ bool CRBFKernel::ComputeHessianMatrix(float_point *pfDevSamples, float_point *pf
 //	cublasSgemm ('n', 'n', nNumofRows, nNumofRows, nNumofDim, 1,
 //			pfDevTransSamples, nNumofRows, pfDevSamples, nNumofDim,
 //				 0, pfDevHessianRows, nNumofRows);
+
+	/* Compute dot product of every two instances.
+	 * COLUMN MAJOR format is used.
+	 * The following function equals to: pfDevHessianRows = 1 * pfDevTransSamples * pfDevSamples + 0 * pfDevHessianRows
+	 */
 	cublasSgemm ('n', 'n', nNumofCols, nNumofRows, nNumofDim, 1,
 				 pfDevTransSamples, nNumofCols, pfDevSamples, nNumofDim,
 				 0, pfDevHessianRows, nNumofCols);
-/*	 float *pHostRow100 = new float[nNumofCols];
-	 cudaMemcpy(pHostRow100, pfDevHessianRows + 299 * nNumofCols, sizeof(float) * nNumofCols, cudaMemcpyDeviceToHost);*/
 
-/*	 float *pDevRow100;
-	 cudaMalloc((void**)&pDevRow100, sizeof(float) * nNumofCols);
-	cublasSgemm ('n', 'n', nNumofCols, 1, nNumofDim, 1,
-				 pfDevTransSamples, nNumofCols, pfDevSamples + 299 * nNumofDim, nNumofDim,
-				 0, pDevRow100, nNumofCols);
-		 float *pHostRow100 = new float[nNumofCols];
-		 cudaMemcpy(pHostRow100, pDevRow100, sizeof(float) * nNumofCols, cudaMemcpyDeviceToHost);
-		 for(int i = 0; i < 900; i++)
-		 {
-			 printf("%.9f ", pHostRow100[i]);
-			 if(i != 0 && i % 10 == 0)
-				 cout << endl;
-		 }
-		 cout << endl;
-
-		 float *pRow100;
-		 cudaMalloc((void**)&pRow100, sizeof(float) * nNumofCols);
-		 cublasSgemv ('n', nNumofCols, nNumofDim, 1,
-				 	  pfDevTransSamples, nNumofCols, pfDevSamples + 299 * nNumofDim, 1,
-				 	  0, pRow100, 1);
-		 float *pHost2Row100 = new float[nNumofCols];
-		 	 cudaMemcpy(pHost2Row100, pRow100, sizeof(float) * nNumofCols, cudaMemcpyDeviceToHost);
-		 	 for(int i = 0; i < 900; i++)
-		 	 {
-		 		 if(pHost2Row100[i] != pHostRow100[i])
-		 		 {
-		 			 printf("%.9f or %.9f\n", pHost2Row100[i] , pHostRow100[i]);
-		 			 if(i > 10)
-		 				 exit(0);
-		 		 }
-
-		 	 }
-
-		 	 for(int i = 0; i < 900; i++)
-		 	 {
-		 		 printf("%.9f ", pHost2Row100[i]);
-		 		 if(i != 0 && i % 10 == 0)
-		 			 cout << endl;
-		 	 }
-*/
-/*	float *pSample299 = new float[nNumofDim];
-	cudaMemcpy(pSample299, pfDevSamples + 299* nNumofDim, sizeof(float) * nNumofDim, cudaMemcpyDeviceToHost);
-	 for(int i = 0; i < 100; i++)
-	 {
-		 printf("%.9f ", pSample299[i]);
-		 if(i != 0 && i % 10 == 0)
-			 cout << endl;
-	 }
-	 cout << endl;
-*/
-/*	float *pRow100;
-	cudaMalloc((void**)&pRow100, sizeof(float) * nNumofCols);
-	 cublasSgemv ('n', nNumofCols, nNumofDim, 1,pfDevTransSamples, nNumofCols,
-			 	  pfDevSamples + 299 * nNumofDim, 1, 0, pRow100, 1);
-	 float *pHostRow100 = new float[nNumofCols];
-	 cudaMemcpy(pHostRow100, pRow100, sizeof(float) * nNumofCols, cudaMemcpyDeviceToHost);
-	 for(int i = 0; i < 900; i++)
-	 {
-		 printf("%.9f ", pHostRow100[i]);
-		 if(i != 0 && i % 10 == 0)
-			 cout << endl;
-	 }
-	 cout << endl;
-*/
-/*   float v100;
-    cudaMemcpy(&v100, pfDevHessianRows+299*nNumofCols + 100, sizeof(float), cudaMemcpyDeviceToHost);
-    cout << "v100=" << v100 << "; index=" << 299*nNumofCols + 100 << endl;
-
-*/
-
-//	cublasSgemm ('n', 'n', nNumofRows, nNumofCols, nNumofDim, 1,
-//				 pfDevSamples, nNumofRows, pfDevTransSamples, nNumofDim,
-//				 0, pfDevHessianRows, nNumofRows);//at once
-
-//	cublasSgemm ('n', 'n', nNumofRows, nNumofCols, nNumofDim, 1,
-//				 pfDevTransSamples, nNumofDim, pfDevSamples, nNumofRows,
-//				 0, pfDevHessianRows, nNumofRows);
-
+	//compute the kernel values
 	int nBlockSize = 0;
 	int nTotal = nNumofCols * nNumofRows;
 	nBlockSize = ((nTotal > BLOCK_SIZE) ? BLOCK_SIZE : nTotal);
@@ -187,28 +82,12 @@ bool CRBFKernel::ComputeHessianMatrix(float_point *pfDevSamples, float_point *pf
 		nGridDimX = nNumofBlocks;
 	dim3 dimGrid(nGridDimX, nGridDimY);
 
-	//cout << dimGrid.x << " " << dimGrid.y << " " << dimGrid.z << " " << nBlockSize << endl;
-	//exit(0);
 	assert(nBlockSize >= 0);
 //	cout << "gamma=" << m_fGamma << endl;
 ///################# problem here. nNumofCols should be nNumofTotalSample
 	ObtainRBFKernel<<<dimGrid, nBlockSize>>>(pfDevHessianRows, pfDevSelfDot, nNumofCols, nNumofRows, m_fGamma, nStartRow, nStartCol);
 	cudaDeviceSynchronize();
 //	UpdateDiag<<<dimGrid, nBlockSize>>>(pfDevHessianRows, nNumofSamples, nNumofRows);
-
-	/*float *pMatrix = new float[nNumofSamples * nNumofRows];
-	cudaMemcpy(pMatrix, pfDevHessianRows, sizeof(float) * nNumofSamples * nNumofRows, cudaMemcpyDeviceToHost);
-	for(int i = 0; i < nNumofSamples; i++)
-	{
-		for(int j = 0; j < nNumofRows; j++)
-		{
-			if(abs(pMatrix[i * nNumofRows + j] - pMatrix[j * nNumofSamples + i]) > 0.001)
-			{
-				cout << pMatrix[i * nNumofRows + j] << " != " << pMatrix[j * nNumofSamples + i] << endl;
-				exit(0);
-			}
-		}
-	}*/
 
 	cudaDeviceSynchronize();
 	if(cudaGetLastError() != cudaSuccess)
