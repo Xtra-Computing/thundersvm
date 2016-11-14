@@ -246,6 +246,7 @@ bool DeviceHessian::PrecomputeHessian(const string &strHessianMatrixFileName,
 		delete[] pfTotalSamples;
 		delete[] pfTransSamples;
 		delete[] pfSelfDot;
+        fclose(pHessianFile);
 		return true;
 	}
 
