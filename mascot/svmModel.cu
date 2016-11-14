@@ -425,13 +425,11 @@ vector<vector<float_point> > SvmModel::predictProbability(const vector<vector<fl
         int k = 0;
         for (int i = 0; i < nrClass; i++)
             for (int j = i + 1; j < nrClass; j++) {
-                printf("%.2f|%.2f|%.2f,",decValues[l][k],probA[k],probB[k]);
                 r[i][j] = min(
                         max(sigmoidPredict(decValues[l][k], probA[k], probB[k]), min_prob), 1 - min_prob);
                 r[j][i] = 1 - r[i][j];
                 k++;
             }
-        printf("\n");
         vector<float_point> p(nrClass);
         multiClassProbability(r, p);
         result.push_back(p);

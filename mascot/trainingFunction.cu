@@ -193,10 +193,6 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNum
     {
         if (predictLabels[i] == v_nLabel[i])
             numOfCorrect++;
-//        for (int j = 0; j < problem.getNumOfClasses(); ++j) {
-//            printf("%.2f,",prob[i][j]);
-//        }
-//        printf("\n");
     }
     printf("training accuracy = %.2f%%(%d/%d)\n", numOfCorrect / (float) v_v_DocVector.size()*100, 
             numOfCorrect, (int) v_v_DocVector.size());
