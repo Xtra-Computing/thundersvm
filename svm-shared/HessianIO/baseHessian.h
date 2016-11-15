@@ -65,7 +65,7 @@ public:
 	bool ReleaseBuffer();
 
 	void SaveRows(float_point *pfSubMatrix, const SubMatrix &subMatrix);
-	static void ReadRow(int nPosofRowAtHessian, float_point *pfHessianRow);
+	void ReadRow(int nPosofRowAtHessian, float_point *pfHessianRow);
 
 	void PrecomputeKernelMatrix(vector<vector<float_point> > &v_vDocVector, BaseHessian *hessianIOOps);
 	virtual bool PrecomputeHessian(const string &strHessianMatrixFileName, const string &strDiagHessianFileName, vector<vector<float_point> > &v_v_DocVector) = 0;
