@@ -36,7 +36,7 @@ public:
 	float_point m_fLowValue;
 
 	CCache *m_pGPUCache;
-	DeviceHessian *m_pHessianReader;
+	BaseHessian *m_pHessianReader;
 
 	int m_nStart1, m_nEnd1, m_nStart2, m_nEnd2;
 	//members for cpu, gpu communication
@@ -70,7 +70,7 @@ public:
 	float_point *m_pfDevHessianSampleRow2;
 
 public:
-	CSMOSolver(DeviceHessian *pHessianOps, CCache *pCache)
+	CSMOSolver(BaseHessian *pHessianOps, CCache *pCache)
 	{
 		m_nIndexofSampleOne = m_nIndexofSampleTwo = -1;
 		m_fUpValue = -1;
