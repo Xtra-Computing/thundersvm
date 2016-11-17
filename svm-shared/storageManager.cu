@@ -21,7 +21,6 @@ using std::cout;
 using std::endl;
 using std::cerr;
 
-StorageManager *StorageManager::manager = NULL;
 
 /*
  * @brief: get the size of free memory in the form of float point representation
@@ -51,9 +50,8 @@ StorageManager::~StorageManager()
 
 StorageManager* StorageManager::getManager()
 {
-	if(manager == NULL)
-		manager = new StorageManager();
-	return manager;
+    static StorageManager storageManager;
+	return &storageManager;
 }
 
 /**
