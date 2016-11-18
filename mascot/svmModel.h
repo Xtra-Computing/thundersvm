@@ -7,10 +7,11 @@
 
 #include <vector>
 #include <cstdio>
+#include <driver_types.h>
 #include "../svm-shared/gpu_global_utility.h"
 #include "svmParam.h"
 #include "svmProblem.h"
-
+#include"pthread.h"
 using std::vector;
 
 class SvmModel {
@@ -52,6 +53,7 @@ private:
 
     void transferToDevice();
 
+    static void* trainWork(void *);
     //SvmModel has device pointer, so duplicating SvmModel is not allowed
     SvmModel &operator=(const SvmModel &);
 
@@ -72,6 +74,16 @@ public:
 
     bool isProbability() const;
 };
-
+struct WorkParam{
+    int i;
+    int j;
+    cudaStream_t stream;
+    SvmModel *model;
+    const SvmProblem *problem;
+    const SVMParam *param;
+    WorkParam(int i, int j,cudaStream_t stream, SvmModel *model,const SvmProblem *problem, const SVMParam *param):
+            i(i),j(j),model(model),problem(problem),param(param){};
+    WorkParam(){};
+};
 
 #endif //MASCOT_SVM_SVMMODEL_H

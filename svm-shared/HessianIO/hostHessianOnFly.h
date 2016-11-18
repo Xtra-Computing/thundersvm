@@ -9,6 +9,8 @@
 #include "baseHessian.h"
 #include "hostKernelCalculater/kernelFunction.h"
 #include "hostKernelCalculater/rbfKernelFunction.h"
+#include"cuda_runtime.h"
+#include"helper_cuda.h"
 
 class HostHessianOnFly : public BaseHessian {
 public:
@@ -22,6 +24,10 @@ public:
 
     virtual bool
     GetHessianDiag(const string &strFileName, const int &nNumofTraingSamples, float_point *pfHessianDiag) override;
+
+    virtual bool AllocateBuffer(int nNumofRows) override;
+
+    virtual bool ReleaseBuffer() override;
 
 private:
     vector<vector<float_point> > &samples;

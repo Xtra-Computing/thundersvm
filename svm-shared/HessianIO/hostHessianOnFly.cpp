@@ -21,3 +21,15 @@ bool HostHessianOnFly::GetHessianDiag(const string &strFileName, const int &nNum
     return true;
 }
 
+bool HostHessianOnFly::AllocateBuffer(int nNumofRows) {
+    checkCudaErrors(cudaMallocHost((void**)&m_pfHessianRows,sizeof(float_point)*m_nTotalNumofInstance*nNumofRows));
+//    return BaseHessian::AllocateBuffer(nNumofRows);
+    return true;
+}
+
+bool HostHessianOnFly::ReleaseBuffer() {
+//    return BaseHessian::ReleaseBuffer();
+    checkCudaErrors(cudaFreeHost(m_pfHessianRows));
+    return true;
+}
+

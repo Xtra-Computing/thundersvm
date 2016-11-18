@@ -12,8 +12,9 @@
 #include <cuda.h>
 #include <helper_cuda.h>
 #include <cuda_runtime_api.h>
+#include <zconf.h>
 #include "trainingFunction.h"
-
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 //todo move these kernel functions to a proper file
 __global__ void
 rbfKernel(const float_point *samples, int numOfSamples, const float_point *supportVectors, int numOfSVs,
@@ -91,32 +92,50 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
     label = problem.label;
 
     //train nrClass*(nrClass-1)/2 binary models
+    cudaStream_t stream[cnr2];
+    pthread_t pid[cnr2];
+    WorkParam args[cnr2];
+    pthread_mutex_init(&mutex,NULL);
     int k = 0;
     for (int i = 0; i < nrClass; ++i) {
         for (int j = i + 1; j < nrClass; ++j) {
-            SvmProblem subProblem = problem.getSubProblem(i, j);
             printf("training classifier with label %d and %d\n", i, j);
-            if (param.probability) {
-                SVMParam probParam = param;
-                probParam.probability = 0;
-                probParam.C = 1.0;
-                SvmModel model;
-                model.fit(subProblem, probParam);
-                vector<vector<float_point> > decValues;
-                //todo predict with cross validation
-                model.predictValues(subProblem.v_vSamples, decValues);
-                for (int l = 1; l < subProblem.v_vSamples.size(); ++l) {
-                    decValues[0].push_back(decValues[l][0]);
-                }
-                sigmoidTrain(decValues.front().data(), subProblem.getNumOfSamples(), subProblem.v_nLabels, probA[k],
-                             probB[k]);
-                probability = true;
-            }
-            svm_model binaryModel = trainBinarySVM(subProblem, param);
-            addBinaryModel(subProblem, binaryModel, i, j);
+            checkCudaErrors(cudaStreamCreate(&stream[k]));
+            args[k] = WorkParam(i,j,stream[k],this,&problem,&param);
+
+            if (pthread_create(&pid[k],NULL,SvmModel::trainWork, static_cast<void*>(&args[k])))
+                printf("thread %d creation failed\n",k);
             k++;
+//            if (param.probability) {
+//                SVMParam probParam = param;
+//                probParam.probability = 0;
+//                probParam.C = 1.0;
+//                SvmModel model;
+//                model.fit(subProblem, probParam);
+//                vector<vector<float_point> > decValues;
+//                //todo predict with cross validation
+//                model.predictValues(subProblem.v_vSamples, decValues);
+//                for (int l = 1; l < subProblem.v_vSamples.size(); ++l) {
+//                    decValues[0].push_back(decValues[l][0]);
+//                }
+//                sigmoidTrain(decValues.front().data(), subProblem.getNumOfSamples(), subProblem.v_nLabels, probA[k],
+//                             probB[k]);
+//                probability = true;
+//            }
+//            svm_model binaryModel = trainBinarySVM(subProblem, param, stream[0]);
+//            cudaStreamSynchronize(stream[0]);
+//            addBinaryModel(subProblem, binaryModel, i, j);
+//            k++;
+
         }
     }
+    for (int i = 0; i < cnr2; ++i) {
+        void *status;
+        if(pthread_join(pid[i],&status))
+            printf("thread %d join failed\n",i);
+        checkCudaErrors(cudaStreamDestroy(stream[i]));
+    }
+    pthread_mutex_destroy(&mutex);
     int _start = 0;
     for (int i = 0; i < cnr2; ++i) {
         start.push_back(_start);
@@ -263,7 +282,7 @@ void SvmModel::sigmoidTrain(const float_point *decValues, const int l, const vec
 }
 
 void SvmModel::addBinaryModel(const SvmProblem &problem, const svm_model &bModel, int i, int j) {
-    unsigned int k = getK(i, j);
+    int k = getK(i,j);
     supportVectors[k].resize(bModel.nSV[0] + bModel.nSV[1]);
     for (int l = 0; l < bModel.nSV[0] + bModel.nSV[1]; ++l) {
         coef[k].push_back(bModel.sv_coef[0][l]);
@@ -439,5 +458,19 @@ vector<vector<float_point> > SvmModel::predictProbability(const vector<vector<fl
 
 bool SvmModel::isProbability() const {
     return probability;
+}
+
+void *SvmModel::trainWork(void *args) {
+    WorkParam *param = (WorkParam*)(args);
+    SvmModel *model = param->model;
+    const SVMParam *svmParam = param->param;
+    SvmProblem subProblem = param->problem->getSubProblem(param->i,param->j);
+    svm_model binaryModel = trainBinarySVM(subProblem, *svmParam, param->stream);
+    cudaStreamSynchronize(param->stream);
+    printf("training classifier with label %d and %d complete\n",param->i, param->j);
+    pthread_mutex_lock(&mutex);
+    model->addBinaryModel(subProblem, binaryModel, param->i, param->j);
+    pthread_mutex_unlock(&mutex);
+    pthread_exit(NULL);
 }
 

@@ -60,9 +60,10 @@ public:
 
 	bool MapIndexToHessian(int &nIndex);
 
-	//allocate reading buffer
+    virtual //allocate reading buffer
 	bool AllocateBuffer(int nNumofRows);
-	bool ReleaseBuffer();
+
+	virtual bool ReleaseBuffer();
 
 	void SaveRows(float_point *pfSubMatrix, const SubMatrix &subMatrix);
 

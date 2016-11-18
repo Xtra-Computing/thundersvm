@@ -63,14 +63,15 @@ void CSVMTrainer::TrainStarting(int nNumofInstance, int nNumofTrainingExample,
 	//allocate memory for reading hessian row
 	m_pSMOSolver->m_pHessianReader->AllocateBuffer(1);
 
-	cudaStreamCreate(&m_pSMOSolver->m_stream1_Hessian_row);//for overlapping memcpy
+//	cudaStreamCreate(&m_pSMOSolver->m_stream1_Hessian_row);//for overlapping memcpy
 	m_pSMOSolver->m_pfDevGValue = pfDevYiFValueSubset;
-	checkCudaErrors(cudaMemcpy(m_pSMOSolver->m_pnLabel, pnDevLabelSubset,
-					sizeof(int) * nNumofTrainingExample, cudaMemcpyDeviceToHost));
-	checkCudaErrors(cudaMemcpy(m_pSMOSolver->m_pfGValue, pfDevYiFValueSubset,
-					sizeof(float_point) * nNumofTrainingExample, cudaMemcpyDeviceToHost));
-	checkCudaErrors(cudaMemcpy(m_pSMOSolver->m_pfAlpha, pfDevAlphaSubset,
-					sizeof(float_point) * nNumofTrainingExample, cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemcpyAsync(m_pSMOSolver->m_pnLabel, pnDevLabelSubset,
+					sizeof(int) * nNumofTrainingExample, cudaMemcpyDeviceToHost, stream));
+	checkCudaErrors(cudaMemcpyAsync(m_pSMOSolver->m_pfGValue, pfDevYiFValueSubset,
+					sizeof(float_point) * nNumofTrainingExample, cudaMemcpyDeviceToHost, stream));
+	checkCudaErrors(cudaMemcpyAsync(m_pSMOSolver->m_pfAlpha, pfDevAlphaSubset,
+					sizeof(float_point) * nNumofTrainingExample, cudaMemcpyDeviceToHost, stream));
+	cudaStreamSynchronize(stream);
 }
 
 /*
@@ -81,7 +82,7 @@ void CSVMTrainer::TrainEnding(int nIter, int nNumofTrainingExample, int nNumofIn
 							  int *pnDevLabelSubset, float_point *pfDevAlphaSubset, float_point *pfDevYiFValueSubset,
 							  float_point *pfP)
 {
-	cudaStreamDestroy(m_pSMOSolver->m_stream1_Hessian_row);//destroy stream
+//	cudaStreamDestroy(m_pSMOSolver->m_stream1_Hessian_row);//destroy stream
 	//release buffer for reading hessian row
 	m_pSMOSolver->m_pHessianReader->ReleaseBuffer();
 
@@ -90,16 +91,27 @@ void CSVMTrainer::TrainEnding(int nIter, int nNumofTrainingExample, int nNumofIn
 	cout << "# of iteration: " << nIter << endl;
 
 	//store classification result in SVM Model
-	int *pnLabel = new int[nNumofTrainingExample];
-	float_point *pfAlpha = new float_point[nNumofTrainingExample];
-	float_point *pfYiFValue = new float_point[nNumofTrainingExample];
-	memset(pnLabel, 0, sizeof(int) * nNumofTrainingExample);
-	memset(pfAlpha, 0, sizeof(float_point) * nNumofTrainingExample);
-	memset(pfYiFValue, 0, sizeof(float_point) * nNumofTrainingExample);
+//	int *pnLabel = new int[nNumofTrainingExample];
+//	float_point *pfAlpha = new float_point[nNumofTrainingExample];
+//	float_point *pfYiFValue = new float_point[nNumofTrainingExample];
+//	memset(pnLabel, 0, sizeof(int) * nNumofTrainingExample);
+//	memset(pfAlpha, 0, sizeof(float_point) * nNumofTrainingExample);
+//	memset(pfYiFValue, 0, sizeof(float_point) * nNumofTrainingExample);
+    int *pnLabel;
+	float_point *pfYiFValue;
+	float_point *pfAlpha;
+	checkCudaErrors(cudaMallocHost((void**)&pnLabel,sizeof(int)*nNumofTrainingExample));
+	checkCudaErrors(cudaMallocHost((void**)&pfYiFValue,sizeof(float_point)*nNumofTrainingExample));
+	checkCudaErrors(cudaMallocHost((void**)&pfAlpha,sizeof(float_point)*nNumofTrainingExample));
 
-	checkCudaErrors(cudaMemcpy(pnLabel, pnDevLabelSubset, sizeof(int) * nNumofTrainingExample, cudaMemcpyDeviceToHost));
-	checkCudaErrors(cudaMemcpy(pfAlpha, pfDevAlphaSubset, sizeof(float_point) * nNumofTrainingExample, cudaMemcpyDeviceToHost));
-	checkCudaErrors(cudaMemcpy(pfYiFValue, pfDevYiFValueSubset, sizeof(float_point) * nNumofTrainingExample, cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemsetAsync(pnLabel,0,sizeof(int)*nNumofTrainingExample, stream));
+	checkCudaErrors(cudaMemsetAsync(pfAlpha,0,sizeof(float_point)*nNumofTrainingExample, stream));
+	checkCudaErrors(cudaMemsetAsync(pfYiFValue,0,sizeof(float_point)*nNumofTrainingExample, stream));
+
+	checkCudaErrors(cudaMemcpyAsync(pnLabel, pnDevLabelSubset, sizeof(int) * nNumofTrainingExample, cudaMemcpyDeviceToHost, stream));
+	checkCudaErrors(cudaMemcpyAsync(pfAlpha, pfDevAlphaSubset, sizeof(float_point) * nNumofTrainingExample, cudaMemcpyDeviceToHost, stream));
+	checkCudaErrors(cudaMemcpyAsync(pfYiFValue, pfDevYiFValueSubset, sizeof(float_point) * nNumofTrainingExample, cudaMemcpyDeviceToHost, stream));
+    cudaStreamSynchronize(stream);
 
 	//compute the # of support vectors, and get bias of the model
 	float_point *pfYiAlphaTemp = new float_point[nNumofTrainingExample];
@@ -199,13 +211,16 @@ void CSVMTrainer::TrainEnding(int nIter, int nNumofTrainingExample, int nNumofIn
 		model.rho[0] = (-m_pSMOSolver->m_fUpValue + m_pSMOSolver->m_fLowValue) / 2;
 	//}
 
-	delete[] pnLabel;
-	delete[] pfAlpha;
+//	delete[] pnLabel;
+//	delete[] pfAlpha;
 	delete[] pfYiAlphaTemp;
+    checkCudaErrors(cudaFreeHost(pnLabel));
+	checkCudaErrors(cudaFreeHost(pfAlpha));
+	checkCudaErrors(cudaFreeHost(pfYiFValue));
 	delete[] pfPositiveAlphaTemp;
 	delete[] pfNegativeAlphaTemp;
 	delete[] pnIndexofSVTemp;
-	delete[] pfYiFValue;
+//	delete[] pfYiFValue;
 
 	cout << m_pSMOSolver->m_fUpValue << " v.s. " << m_pSMOSolver->m_fLowValue << endl;
 	cout << "bias=" << model.rho[0] << endl;

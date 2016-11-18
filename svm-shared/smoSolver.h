@@ -30,6 +30,7 @@ extern long lSSDHitCount;
 class CSMOSolver
 {
 public:
+    cudaStream_t stream;
 	int m_nIndexofSampleOne;
 	int m_nIndexofSampleTwo;
 	float_point m_fUpValue;
@@ -60,8 +61,8 @@ public:
 	//kernel launching parameters
 	dim3 dimGridThinThread;
 	int m_nNumofBlock;
-	cudaStream_t m_stream1_Hessian_row;
-	cudaStream_t m_stream_memcpy;
+//	cudaStream_t m_stream1_Hessian_row;
+//	cudaStream_t m_stream_memcpy;
 
 	//for Hessian Matrix
 	float_point *m_pfDevDiagHessian;
@@ -136,6 +137,7 @@ public:
 
 	int Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int *npDevLabel, const int &nNumofTrainingSamples);
 	int IterateAdv(float_point*, int*, const int &nNumofTrainingSamples);
+    void setStream(const cudaStream_t &stream);
 
 	/***************** functions for testing purposes *************************/
 private:
