@@ -33,20 +33,20 @@ int main(int argc, char **argv)
 
 	printf("CUDA initialized.\n");
 	
-	if(parser.cross_validation == 1)
+	if(parser.task_type == 1)
 	{
 		//perform cross validation*/
 		cout << "performing cross-validation" << endl;
 		crossValidation(parser.param, fileName);
 	}
-    else if(parser.cross_validation == 0)
+    else if(parser.task_type == 0)
     {
 		//perform svm training
 		cout << "performing training" << endl;
 		SvmModel model;
 		trainSVM(parser.param, fileName, parser.nNumofFeature, model);
     }
-    else if(parser.cross_validation == 2)
+    else if(parser.task_type == 2)
     {
  		//perform svm evaluation 
 		cout << "performing evaluation" << endl;

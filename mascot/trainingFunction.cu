@@ -45,6 +45,7 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
     BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
     rawDataRead.ReadFromFile(strTrainingFileName, nNumofFeature, v_v_DocVector, v_nLabel);
     SvmProblem problem(v_v_DocVector, v_nLabel);
+    cout << "Training data loaded. Start training..." << endl;
     model.fit(problem, param);
 }
 
@@ -113,6 +114,7 @@ svm_model trainBinarySVM(SvmProblem &problem, const SVMParam &param, cudaStream_
     model.param.gamma = param.gamma;
     svmTrainer.SetInvolveTrainingData(0, nNumofTrainingSamples - 1, -1, -1);
     svmTrainer.setStream(stream);
+    cout << "completed data and model preparation. Start training SVM model" << endl;
     bool bTrain = svmTrainer.TrainModel(model, pfDevYiGValueSubset, pfDevAlphaSubset,
                                         pnDevLabelSubset, nNumofTrainingSamples, NULL);
     if (bTrain == false) {

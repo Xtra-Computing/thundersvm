@@ -19,7 +19,7 @@ bool CDataIOOps::ReadFromFile(string strFileName, int nNumofFeature, vector<vect
     cout << "reading multi-class data..." << endl;
     //read data from file
     CReadHelper::ReadLibSVMMultiClassData(v_vSampleData, v_nLabel, strFileName, nNumofFeature);
-    printf("dataset size:%d, #feature:%d\n", v_vSampleData.size(), nNumofFeature);
+    printf("dataset size:%d, # of features:%d\n", v_vSampleData.size(), nNumofFeature);
     return nReturn;
 }
 

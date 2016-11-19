@@ -11,7 +11,7 @@
 class Parser
 {
 public:
-	static int cross_validation;
+	static int task_type;
 	static int nr_fold;
 	static int nNumofFeature;
 	static SVMParam param;

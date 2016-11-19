@@ -13,7 +13,7 @@
 #include "kernelType.h"
 #include "commandLineParser.h"
 
-int Parser::cross_validation = 1;
+int Parser::task_type = 1;
 int Parser::nr_fold = 0;
 int Parser::nNumofFeature = 0;
 SVMParam Parser::param;
@@ -70,7 +70,7 @@ void Parser::ParseLine(int argc, char **argv, char *pcFileName, char *pcSavedFil
 				}
 				break;
             case 'o':
-                cross_validation = atoi(argv[i]);
+                task_type = atoi(argv[i]);
                 break;
 		/*
 			case 's':
