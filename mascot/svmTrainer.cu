@@ -95,3 +95,8 @@ bool CSVMTrainer::TrainModel(svm_model &model, float_point *pfDevYiFValueSubset,
 	}
 	return bReturn;
 }
+
+void CSVMTrainer::setStream(const cudaStream_t &stream) {
+    this->stream = stream;
+    this->m_pSMOSolver->setStream(stream);
+}

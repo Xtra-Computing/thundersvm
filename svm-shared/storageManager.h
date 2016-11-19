@@ -15,12 +15,13 @@ class StorageManager: public HostStorageManager
 {
 private:
 	long long m_nMaxNumofFloatPointInGPU;
+//	static StorageManager *manager;
 	StorageManager();
-	static StorageManager *manager;
-
+	virtual ~StorageManager();
+    StorageManager&operator=(const StorageManager&);
+	StorageManager(const StorageManager&);
 public:
 	static StorageManager* getManager();
-	virtual ~StorageManager();
 	int PartOfRow(int, int);
 	int PartOfCol(int, int, int);
 

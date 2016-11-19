@@ -16,7 +16,6 @@ using std::vector;
 class KernelFunction
 {
 public:
-	virtual ~KernelFunction(){}
 
 	virtual void ComputeRow(vector<vector<float> > &v_v_DocVector, int rowId, int nNumofRows, float *pRow) = 0;
 

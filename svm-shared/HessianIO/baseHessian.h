@@ -60,15 +60,20 @@ public:
 
 	bool MapIndexToHessian(int &nIndex);
 
-	//allocate reading buffer
+    virtual //allocate reading buffer
 	bool AllocateBuffer(int nNumofRows);
-	bool ReleaseBuffer();
+
+	virtual bool ReleaseBuffer();
 
 	void SaveRows(float_point *pfSubMatrix, const SubMatrix &subMatrix);
-	void ReadRow(int nPosofRowAtHessian, float_point *pfHessianRow);
+
+    virtual void ReadRow(int nPosofRowAtHessian, float_point *pfHessianRow);
 
 	void PrecomputeKernelMatrix(vector<vector<float_point> > &v_vDocVector, BaseHessian *hessianIOOps);
 	virtual bool PrecomputeHessian(const string &strHessianMatrixFileName, const string &strDiagHessianFileName, vector<vector<float_point> > &v_v_DocVector) = 0;
+    virtual bool GetHessianDiag(const string &strFileName, const int &nNumofTraingSamples, float_point *pfHessianDiag) {
+		return false;
+	}
 
 private:
 	//read a full row of Hessian Matrix. Getting sub row may need to get the full row of Hessian Matrix

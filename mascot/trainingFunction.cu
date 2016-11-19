@@ -29,6 +29,7 @@
 #include <helper_cuda.h>
 
 #include "svmProblem.h"
+#include "../svm-shared/HessianIO/hostHessianOnFly.h"
 
 using std::cout;
 using std::endl;
@@ -47,70 +48,44 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
     model.fit(problem, param);
 }
 
-svm_model trainBinarySVM(SvmProblem &problem, const SVMParam &param) {
+svm_model trainBinarySVM(SvmProblem &problem, const SVMParam &param, cudaStream_t stream) {
     float_point pfCost = param.C;
     float_point pfGamma = param.gamma;
-    CRBFKernel rbf(pfGamma);//ignore
-    DeviceHessian ops(&rbf);
+    RBFKernelFunction f = RBFKernelFunction(param.gamma);
+    HostHessianOnFly ops(f,problem.v_vSamples);
 
     CLATCache cacheStrategy((const int &) problem.getNumOfSamples());
     cout << "using " << cacheStrategy.GetStrategy() << endl;
     CSMOSolver s(&ops, &cacheStrategy);
     CSVMTrainer svmTrainer(&s);
-
-    //compute Hessian Matrix
-    string strHessianMatrixFileName = HESSIAN_FILE;
-    string strDiagHessianFileName = HESSIAN_DIAG_FILE;
-
-    //initialize Hessian IO operator
-
-    int nNumofRowsOfHessianMatrix = (int) problem.getNumOfSamples();
-    //space of row-index-in-file is for improving reading performace
-    DeviceHessian::m_nNumofDim = (int) problem.getNumOfFeatures();
-    DeviceHessian::m_nTotalNumofInstance = nNumofRowsOfHessianMatrix;
-
-    //initial Hessian accessor
-    SeqAccessor accessor;
-    accessor.m_nTotalNumofInstance = DeviceHessian::m_nTotalNumofInstance;
-    accessor.SetInvolveData(0, problem.getNumOfSamples() - 1, -1, -1);
-
-    ops.SetAccessor(&accessor);
-
-    //cache part of hessian matrix in memory
-    timeval t1, t2;
-    float_point elapsedTime;
-    gettimeofday(&t1, NULL);
-    gettimeofday(&t1, NULL);
-
-    ops.PrecomputeKernelMatrix(problem.v_vSamples, &ops);
-
-    gettimeofday(&t2, NULL);
-    elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
-    elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
-    cout << elapsedTime << " ms.\n";
+    svmTrainer.setStream(stream);
 
     gfNCost = pfCost;
     gfPCost = pfCost;
-    gfGamma = pfGamma;
-    ofstream writeOut(OUTPUT_FILE, ios::app | ios::out);
-    writeOut << "Gamma=" << pfGamma << "; Cost=" << pfCost << endl;
 
     //copy training information from input parameters
-    const int *pnLabelAll = problem.v_nLabels.data();
+//    const int *pnLabelAll = problem.v_nLabels.data();
     int nTotalNumofSamples = (int) problem.getNumOfSamples();
 
     /* allocate GPU device memory */
     //set default value at
-    float_point *pfAlphaAll = new float_point[nTotalNumofSamples];
-    float_point *pfYiGValueAll = new float_point[nTotalNumofSamples];
+//    float_point *pfAlphaAll = new float_point[nTotalNumofSamples];
+//    float_point *pfYiGValueAll = new float_point[nTotalNumofSamples];
+    int *pnLabelAll;
+    float_point *pfAlphaAll;
+    float_point *pfYiGValueAll;
+    checkCudaErrors(cudaMallocHost((void **)&pnLabelAll,sizeof(int)*nTotalNumofSamples));
+    checkCudaErrors(cudaMallocHost((void **)&pfAlphaAll,sizeof(float_point)*nTotalNumofSamples));
+    checkCudaErrors(cudaMallocHost((void **)&pfYiGValueAll,sizeof(float_point)*nTotalNumofSamples));
     for (int i = 0; i < nTotalNumofSamples; i++) {
         //initially, the values of alphas are 0s
         pfAlphaAll[i] = 0;
         //GValue is -y_i, as all alphas are 0s. YiGValue is always -1
-        pfYiGValueAll[i] = -pnLabelAll[i];
+//        pfYiGValueAll[i] = -pnLabelAll[i];
+        pfYiGValueAll[i] = -problem.v_nLabels[i];
+        pnLabelAll[i] = problem.v_nLabels[i];
     }
 
-    /* start n-fold-cross-validation */
     //allocate GPU memory for part of samples that are used to perform training.
     float_point *pfDevAlphaSubset;
     float_point *pfDevYiGValueSubset;
@@ -119,42 +94,29 @@ svm_model trainBinarySVM(SvmProblem &problem, const SVMParam &param) {
     //get size of training samples
     int nNumofTrainingSamples = nTotalNumofSamples;
 
-    //in n-fold-cross validation, the first (n -1) parts have the same size, so we can reuse memory
     checkCudaErrors(cudaMalloc((void **) &pfDevAlphaSubset, sizeof(float_point) * nNumofTrainingSamples));
-    //checkCudaErrors(cudaMallocHost((void**)&pfDevYiGValueSubset, sizeof(float_point) * nNumofTrainingSamples));
     checkCudaErrors(cudaMalloc((void **) &pfDevYiGValueSubset, sizeof(float_point) * nNumofTrainingSamples));
     checkCudaErrors(cudaMalloc((void **) &pnDevLabelSubset, sizeof(int) * nNumofTrainingSamples));
 
     //copy training information to GPU for current training
-    checkCudaErrors(cudaMemcpy(pfDevAlphaSubset, pfAlphaAll,
-                               sizeof(float_point) * nTotalNumofSamples, cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(pfDevYiGValueSubset, pfYiGValueAll,
-                               sizeof(float_point) * nTotalNumofSamples, cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(pnDevLabelSubset, pnLabelAll,
-                               sizeof(int) * nTotalNumofSamples, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpyAsync(pfDevAlphaSubset, pfAlphaAll,
+                               sizeof(float_point) * nTotalNumofSamples, cudaMemcpyHostToDevice, stream));
+    checkCudaErrors(cudaMemcpyAsync(pfDevYiGValueSubset, pfYiGValueAll,
+                               sizeof(float_point) * nTotalNumofSamples, cudaMemcpyHostToDevice, stream));
+    checkCudaErrors(cudaMemcpyAsync(pnDevLabelSubset, pnLabelAll,
+                               sizeof(int) * nTotalNumofSamples, cudaMemcpyHostToDevice, stream));
+//    checkCudaErrors(cudaStreamSynchronize(stream));
 
     /************** train SVM model **************/
-    //set data involved in training
-    timeval tTraining1, tTraining2;
-    float_point trainingElapsedTime;
-    gettimeofday(&tTraining1, NULL);
-    timespec timeTrainS, timeTrainE;
-    clock_gettime(CLOCK_REALTIME, &timeTrainS);
-
     svm_model model;
     model.param.C = param.C;
     model.param.gamma = param.gamma;
     svmTrainer.SetInvolveTrainingData(0, nNumofTrainingSamples - 1, -1, -1);
+    svmTrainer.setStream(stream);
     bool bTrain = svmTrainer.TrainModel(model, pfDevYiGValueSubset, pfDevAlphaSubset,
                                         pnDevLabelSubset, nNumofTrainingSamples, NULL);
     if (bTrain == false) {
         cerr << "can't find an optimal classifier" << endl;
-    }
-    if (ops.m_pKernelCalculater->GetType().compare(RBFKERNEL) == 0) {
-        model.param.kernel_type = RBF;
-    } else {
-        cerr << "unsupported kernel type; Please contact the developers" << endl;
-        exit(-1);
     }
 
     model.nDimension = problem.getNumOfFeatures();
@@ -164,13 +126,12 @@ svm_model trainBinarySVM(SvmProblem &problem, const SVMParam &param) {
     checkCudaErrors(cudaFree(pnDevLabelSubset));
     checkCudaErrors(cudaFree(pfDevYiGValueSubset));
 
-    //release pinned memory
-    cudaFreeHost(DeviceHessian::m_pfHessianRowsInHostMem);
+    checkCudaErrors(cudaFreeHost(pnLabelAll));
+    checkCudaErrors(cudaFreeHost(pfAlphaAll));
+    checkCudaErrors(cudaFreeHost(pfYiGValueAll));
+//    delete[] pfAlphaAll;
+//    delete[] pfYiGValueAll;
 
-    //release host memory
-    delete[] DeviceHessian::m_pfHessianDiag;
-    delete[] pfAlphaAll;
-    delete[] pfYiGValueAll;
 
     return model;
 }
