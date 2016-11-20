@@ -1,8 +1,6 @@
-RELEASE_MODE  := -O2
-DEBUG_MODE	  := -g
-CCFLAGS	  := -g -Wall
-NVCCFLAGS := -g -G -arch=sm_35 -lrt -Wno-deprecated-gpu-targets -dc
-LASTFLAG  := -g -G -Wno-deprecated-gpu-targets
+CCFLAGS	  := -Wall
+NVCCFLAGS := -arch=sm_35 -lrt -Wno-deprecated-gpu-targets -dc
+LASTFLAG  := -Wno-deprecated-gpu-targets
 LDFLAGS   := -I/usr/local/cuda/include -I/usr/local/cuda/samples/common/inc -lcuda -lcudadevrt -lcudart -lcublas -lpthread
 NVCC	  := /usr/local/cuda/bin/nvcc
 DISABLEW  := -Xnvlink -w
@@ -20,6 +18,19 @@ OBJ = cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o Re
 	  smoGPUHelper_cu.o smoSharedSolver_cu.o smoSolver_cu.o svmPredictor_cu.o\
 	  svmSharedTrainer_cu.o svmTrainer_cu.o modelSelector_cu.o trainingFunction_cu.o svmModel_cu.o\
 	  cvFunction.o svmMain.o
+
+.PHONY: release
+.PHONY: debug
+
+release: CCFLAGS += -O2
+release: NVCCFLAGS += -O2
+release: LASTFLAG += -O2
+release: bin/mascot
+
+debug: CCFLAGS += -g
+debug: NVCCFLAGS += -G -g
+debug: LASTFLAG += -G -g
+debug: bin/mascot
 
 bin/mascot: $(OBJ)
 	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o bin/mascot $(OBJ)
@@ -154,6 +165,8 @@ SigmoidCalculater_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-share
 
 SigmoidCalGPUHelper_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-shared/kernelCalculater/SigmoidCalGPUHelper.cu
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o SigmoidCalGPUHelper_cu.o -c svm-shared/kernelCalculater/SigmoidCalGPUHelper.cu
+
+.PHONY:clean
 
 clean:
 	rm -f *.o bin/hessian2.bin bin/result.txt
