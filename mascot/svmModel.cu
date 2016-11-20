@@ -460,8 +460,11 @@ bool SvmModel::isProbability() const {
     return probability;
 }
 
+CUcontext WorkParam::devContext;
+
 void *SvmModel::trainWork(void *args) {
     WorkParam *param = (WorkParam*)(args);
+    cuCtxSetCurrent(param->devContext);
     SvmModel *model = param->model;
     const SVMParam *svmParam = param->param;
     SvmProblem subProblem = param->problem->getSubProblem(param->i,param->j);

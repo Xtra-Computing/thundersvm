@@ -106,7 +106,7 @@ svm_model trainBinarySVM(SvmProblem &problem, const SVMParam &param, cudaStream_
                                sizeof(float_point) * nTotalNumofSamples, cudaMemcpyHostToDevice, stream));
     checkCudaErrors(cudaMemcpyAsync(pnDevLabelSubset, pnLabelAll,
                                sizeof(int) * nTotalNumofSamples, cudaMemcpyHostToDevice, stream));
-//    checkCudaErrors(cudaStreamSynchronize(stream));
+//    checkCudaErrors(cudaStreamSyncohronize(stream));
 
     /************** train SVM model **************/
     svm_model model;

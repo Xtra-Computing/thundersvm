@@ -15,6 +15,7 @@
 #include "cvFunction.h"
 #include "commandLineParser.h"
 #include "../svm-shared/initCuda.h"
+#include "svmModel.h"
 using std::cout;
 using std::endl;
 
@@ -31,8 +32,9 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
+    WorkParam::devContext = context;
 	printf("CUDA initialized.\n");
-	
+
 	if(parser.task_type == 1)
 	{
 		//perform cross validation*/

@@ -1,27 +1,28 @@
 RELEASE_MODE  := -O2
 DEBUG_MODE	  := -g
-MODE = $(DEBUG_MODE)
-CCFLAGS	  := $(MODE) -Wall
-NVCCFLAGS := $(MODE) -G -arch=sm_30 -lrt -Wno-deprecated-gpu-targets -dc
-LASTFLAG  := $(MODE) -Wno-deprecated-gpu-targets
+CCFLAGS	  := -g -Wall
+NVCCFLAGS := -g -G -arch=sm_35 -lrt -Wno-deprecated-gpu-targets -dc
+LASTFLAG  := -g -G -Wno-deprecated-gpu-targets
 LDFLAGS   := -I/usr/local/cuda/include -I/usr/local/cuda/samples/common/inc -lcuda -lcudadevrt -lcudart -lcublas -lpthread
 NVCC	  := /usr/local/cuda/bin/nvcc
+DISABLEW  := -Xnvlink -w
 
 ODIR = bin
 dummy_build_folder := $(shell mkdir -p $(ODIR))
 
 OBJ = cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o ReadHelper.o\
+	  commandLineParser.o fileOps.o gpu_global_utility.o initCuda_cu.o\
 	  baseHessian_cu.o accessHessian.o parAccessor.o seqAccessor.o svmProblem.o deviceHessian_cu.o\
+	  hostHessianOnFly.o kernelFunction.o rbfKernelFunction.o\
 	  LinearCalculater_cu.o LinearCalGPUHelper_cu.o PolynomialCalGPUHelper_cu.o PolynomialCalculater_cu.o\
 	  RBFCalculater_cu.o RBFCalGPUHelper_cu.o SigmoidCalculater_cu.o SigmoidCalGPUHelper_cu.o\
 	  devUtility_cu.o storageManager_cu.o hostStorageManager.o classificationKernel_cu.o\
-	  commandLineParser.o cvFunction.o fileOps.o gpu_global_utility.o initCuda_cu.o\
-	  smoGPUHelper_cu.o smoSharedSolver_cu.o smoSolver_cu.o svmMain.o svmPredictor_cu.o\
+	  smoGPUHelper_cu.o smoSharedSolver_cu.o smoSolver_cu.o svmPredictor_cu.o\
 	  svmSharedTrainer_cu.o svmTrainer_cu.o modelSelector_cu.o trainingFunction_cu.o svmModel_cu.o\
-	  hostHessianOnFly.o kernelFunction.o rbfKernelFunction.o
+	  cvFunction.o svmMain.o
 
 bin/mascot: $(OBJ)
-	$(NVCC) $(LASTFLAG) $(LDFLAGS) -o bin/mascot $(OBJ)
+	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o bin/mascot $(OBJ)
 
 cvFunction.o: mascot/cvFunction.cpp
 	g++ $(CCFLAGS) $(LDFLAGS) -o cvFunction.o -c mascot/cvFunction.cpp
@@ -67,7 +68,7 @@ smoSharedSolver_cu.o: svm-shared/smoSolver.h svm-shared/smoSharedSolver.cu
 smoSolver_cu.o: svm-shared/smoSolver.h mascot/smoSolver.cu
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o smoSolver_cu.o -c mascot/smoSolver.cu
 
-svmMain.o: mascot/svmMain.cu
+svmMain.o: mascot/svmMain.cu mascot/commandLineParser.h svm-shared/initCuda.h mascot/cvFunction.h mascot/trainingFunction.h mascot/svmModel.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o svmMain.o -c mascot/svmMain.cu
 
 svmPredictor_cu.o: mascot/svmPredictor.h mascot/svmPredictor.cu svm-shared/host_constant.h

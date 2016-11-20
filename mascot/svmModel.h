@@ -8,6 +8,8 @@
 #include <vector>
 #include <cstdio>
 #include <driver_types.h>
+#include <helper_cuda.h>
+#include <cuda.h>
 #include "../svm-shared/gpu_global_utility.h"
 #include "svmParam.h"
 #include "svmProblem.h"
@@ -74,15 +76,18 @@ public:
 
     bool isProbability() const;
 };
-struct WorkParam{
+
+class WorkParam{
+public:
     int i;
     int j;
+    static CUcontext devContext;   //host threads must share the same device context in order to run device functions concurrently.
     cudaStream_t stream;
     SvmModel *model;
     const SvmProblem *problem;
     const SVMParam *param;
     WorkParam(int i, int j,cudaStream_t stream, SvmModel *model,const SvmProblem *problem, const SVMParam *param):
-            i(i),j(j),model(model),problem(problem),param(param){};
+            i(i),j(j), stream(stream), model(model),problem(problem),param(param){};
     WorkParam(){};
 };
 
