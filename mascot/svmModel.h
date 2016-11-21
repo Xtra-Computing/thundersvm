@@ -23,7 +23,7 @@ private:
     unsigned int cnr2;
     int numOfFeatures;
     int numOfSVs;
-    vector<vector<vector<float_point> > > supportVectors;
+    vector<vector<vector<svm_node> > > supportVectors;
     vector<vector<float_point> > coef;
     vector<int> start;
     vector<int> count;
@@ -34,7 +34,7 @@ private:
     bool probability;
 
     //device pointers
-    float_point *devSVs = NULL;
+    svm_node **devSVs = NULL;
     float_point *devCoef = NULL;
     int *devStart = NULL;
     int *devCount = NULL;
@@ -68,11 +68,11 @@ public:
 
     void fit(const SvmProblem &problem, const SVMParam &param);
 
-    vector<int> predict(const vector<vector<float_point> > &, bool probability = false) const;
+    vector<int> predict(const vector<vector<svm_node> > &, bool probability = false) const;
 
-    vector<vector<float_point> > predictProbability(const vector<vector<float_point> > &) const;
+    vector<vector<float_point> > predictProbability(const vector<vector<svm_node> > &) const;
 
-    void predictValues(const vector<vector<float_point> > &, vector<vector<float_point> > &) const;
+    void predictValues(const vector<vector<svm_node> > &, vector<vector<float_point> > &) const;
 
     bool isProbability() const;
 };

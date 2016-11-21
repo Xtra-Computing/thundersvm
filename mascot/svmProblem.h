@@ -10,13 +10,13 @@
 using std::vector;
 class SvmProblem {
 public:
-    vector<vector<float_point> > v_vSamples;
+    vector<vector<svm_node> > v_vSamples;
     vector<int> v_nLabels;
     vector<int> count;
     vector<int> start;
     vector<int> perm;
     vector<int> label;
-    SvmProblem(const vector<vector<float_point> > &v_vSamples, const vector<int> &v_nLabels):
+    SvmProblem(const vector<vector<svm_node> > &v_vSamples, const vector<int> &v_nLabels):
             v_vSamples(v_vSamples),v_nLabels(v_nLabels){
         this->groupClasses();
     }

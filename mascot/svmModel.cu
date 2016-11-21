@@ -14,23 +14,57 @@
 #include <cuda_runtime_api.h>
 #include <zconf.h>
 #include "trainingFunction.h"
+
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 //todo move these kernel functions to a proper file
-__global__ void
-rbfKernel(const float_point *samples, int numOfSamples, const float_point *supportVectors, int numOfSVs,
-          int numOfFeatures,
-          float_point *kernelValues, float_point gamma,
-          const float_point *coef) {
+//__global__ void
+//rbfKernel(const float_point *samples, int numOfSamples, const float_point *supportVectors, int numOfSVs,
+//          int numOfFeatures,
+//          float_point *kernelValues, float_point gamma,
+//          const float_point *coef) {
+//    int idx = blockDim.x * blockIdx.x + threadIdx.x;
+//    int sampleId = idx / numOfSVs;
+//    int SVId = idx % numOfSVs;
+//    if (sampleId < numOfSamples) {
+//        const float_point *sample = samples + sampleId * numOfFeatures;
+//        const float_point *supportVector = supportVectors + SVId * numOfFeatures;
+//        float_point sum = 0;
+//        for (int i = 0; i < numOfFeatures; ++i) {
+//            float_point d = sample[i] - supportVector[i];
+//            sum += d * d;
+//        }
+//        kernelValues[idx] = coef[SVId] * exp(-gamma * sum);
+//    }
+//};
+__global__ void rbfKernel(const svm_node **samples, int numOfSamples, const svm_node **supportVectors, int numOfSVs,
+                          float_point *kernelValues, float_point gamma,
+                          const float_point *coef) {
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
     int sampleId = idx / numOfSVs;
     int SVId = idx % numOfSVs;
     if (sampleId < numOfSamples) {
-        const float_point *sample = samples + sampleId * numOfFeatures;
-        const float_point *supportVector = supportVectors + SVId * numOfFeatures;
+        const svm_node *sample = samples[sampleId];
+        const svm_node *supportVector = supportVectors[SVId];
         float_point sum = 0;
-        for (int i = 0; i < numOfFeatures; ++i) {
-            float_point d = sample[i] - supportVector[i];
+        float_point d = 0;
+        int x = 0;
+        int y = 0;
+        while (sample[x].index != -1 && supportVector[y].index != -1) {
+            if (sample[x].index == supportVector[y].index)
+                d = sample[x++].value - supportVector[y++].value;
+            else if (sample[x].index < supportVector[y].index)
+                d = sample[x++].value;
+            else
+                d = supportVector[y++].value;
             sum += d * d;
+        }
+        while (sample[x].index != -1) {
+            sum += sample[x].value * sample[x].value;
+            x++;
+        }
+        while (supportVector[y].index != -1) {
+            sum += supportVector[y].value * supportVector[y].value;
+            y++;
         }
         kernelValues[idx] = coef[SVId] * exp(-gamma * sum);
     }
@@ -95,16 +129,16 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
     cudaStream_t stream[cnr2];
     pthread_t pid[cnr2];
     WorkParam args[cnr2];
-    pthread_mutex_init(&mutex,NULL);
+    pthread_mutex_init(&mutex, NULL);
     int k = 0;
     for (int i = 0; i < nrClass; ++i) {
         for (int j = i + 1; j < nrClass; ++j) {
             printf("training classifier with label %d and %d\n", i, j);
             checkCudaErrors(cudaStreamCreate(&stream[k]));
-            args[k] = WorkParam(i,j,stream[k],this,&problem,&param);
+            args[k] = WorkParam(i, j, stream[k], this, &problem, &param);
 
-            if (pthread_create(&pid[k],NULL,SvmModel::trainWork, static_cast<void*>(&args[k])))
-                printf("thread %d creation failed\n",k);
+            if (pthread_create(&pid[k], NULL, SvmModel::trainWork, static_cast<void *>(&args[k])))
+                printf("thread %d creation failed\n", k);
             k++;
 //            if (param.probability) {
 //                SVMParam probParam = param;
@@ -131,8 +165,8 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
     }
     for (int i = 0; i < cnr2; ++i) {
         void *status;
-        if(pthread_join(pid[i],&status))
-            printf("thread %d join failed\n",i);
+        if (pthread_join(pid[i], &status))
+            printf("thread %d join failed\n", i);
         checkCudaErrors(cudaStreamDestroy(stream[i]));
     }
     pthread_mutex_destroy(&mutex);
@@ -146,8 +180,16 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
 }
 
 void SvmModel::transferToDevice() {
-    int svLength = numOfFeatures;
-    checkCudaErrors(cudaMalloc((void **) &devSVs, sizeof(float_point) * numOfSVs * svLength));
+    checkCudaErrors(cudaMallocManaged((void ***) &devSVs, sizeof(svm_node *) * numOfSVs));
+    for (int i = 0; i < cnr2; ++i) {
+        for (int j = 0; j < count[i]; ++j) {
+            checkCudaErrors(
+                    cudaMallocManaged((void **) &devSVs[start[i] + j], sizeof(svm_node) * supportVectors[i][j].size()));
+            memcpy(devSVs[start[i]+j],supportVectors[i][j].data(), sizeof(svm_node) * supportVectors[i][j].size());
+        }
+    }
+//    int svLength = numOfFeatures;
+//    checkCudaErrors(cudaMalloc((void **) &devSVs, sizeof(svm_node) * numOfSVs * svLength));
     checkCudaErrors(cudaMalloc((void **) &devCoef, sizeof(float_point) * numOfSVs));
     checkCudaErrors(cudaMalloc((void **) &devStart, sizeof(float_point) * cnr2));
     checkCudaErrors(cudaMalloc((void **) &devCount, sizeof(float_point) * cnr2));
@@ -155,13 +197,13 @@ void SvmModel::transferToDevice() {
     checkCudaErrors(cudaMalloc((void **) &devProbB, sizeof(float_point) * cnr2));
     checkCudaErrors(cudaMalloc((void **) &devRho, sizeof(float_point) * cnr2));
     for (int i = 0; i < cnr2; ++i) {
-        float_point *sv4BinaryModel = new float_point[supportVectors[i].size() * svLength];
-        for (int j = 0; j < supportVectors[i].size(); ++j) {
-            memcpy(sv4BinaryModel + j * svLength, supportVectors[i][j].data(), sizeof(float_point) * svLength);
-        }
-        checkCudaErrors(cudaMemcpy(devSVs + start[i] * svLength, sv4BinaryModel,
-                                   sizeof(float_point) * count[i] * svLength, cudaMemcpyHostToDevice));
-        delete[] sv4BinaryModel;
+//        float_point *sv4BinaryModel = new float_point[supportVectors[i].size() * svLength];
+//        for (int j = 0; j < supportVectors[i].size(); ++j) {
+//            memcpy(sv4BinaryModel + j * svLength, supportVectors[i][j].data(), sizeof(svm_node) * svLength);
+//        }
+//        checkCudaErrors(cudaMemcpy(devSVs + start[i] * svLength, sv4BinaryModel,
+//                                   sizeof(svm_node) * count[i] * svLength, cudaMemcpyHostToDevice));
+//        delete[] sv4BinaryModel;
         checkCudaErrors(cudaMemcpy(devCoef + start[i], coef[i].data(), sizeof(float_point) * count[i],
                                    cudaMemcpyHostToDevice));
     }
@@ -282,7 +324,7 @@ void SvmModel::sigmoidTrain(const float_point *decValues, const int l, const vec
 }
 
 void SvmModel::addBinaryModel(const SvmProblem &problem, const svm_model &bModel, int i, int j) {
-    int k = getK(i,j);
+    int k = getK(i, j);
     supportVectors[k].resize(bModel.nSV[0] + bModel.nSV[1]);
     for (int l = 0; l < bModel.nSV[0] + bModel.nSV[1]; ++l) {
         coef[k].push_back(bModel.sv_coef[0][l]);
@@ -293,14 +335,21 @@ void SvmModel::addBinaryModel(const SvmProblem &problem, const svm_model &bModel
 }
 
 void
-SvmModel::predictValues(const vector<vector<float_point> > &v_vSamples,
+SvmModel::predictValues(const vector<vector<svm_node> > &v_vSamples,
                         vector<vector<float_point> > &decisionValues) const {
     //copy samples to device
-    float_point *devSamples;
-    checkCudaErrors(cudaMalloc((void **) &devSamples, sizeof(float_point) * v_vSamples.size() * numOfFeatures));
+//    float_point *devSamples;
+//    checkCudaErrors(cudaMalloc((void **) &devSamples, sizeof(float_point) * v_vSamples.size() * numOfFeatures));
+//    for (int i = 0; i < v_vSamples.size(); ++i) {
+//        checkCudaErrors(cudaMemcpy(devSamples + i * numOfFeatures, v_vSamples[i].data(),
+//                                   sizeof(float_point) * numOfFeatures, cudaMemcpyHostToDevice));
+//    }
+    svm_node **devSamples;
+    checkCudaErrors(cudaMallocManaged((void ***) &devSamples, sizeof(svm_node *) * v_vSamples.size()));
     for (int i = 0; i < v_vSamples.size(); ++i) {
-        checkCudaErrors(cudaMemcpy(devSamples + i * numOfFeatures, v_vSamples[i].data(),
-                                   sizeof(float_point) * numOfFeatures, cudaMemcpyHostToDevice));
+        checkCudaErrors(cudaMallocManaged((void **) &devSamples[i], sizeof(svm_node) * v_vSamples[i].size()));
+//        devSamples[i] = (svm_node *) v_vSamples[i].data();
+        memcpy(devSamples[i], v_vSamples[i].data(),sizeof(svm_node) * v_vSamples[i].size());
     }
 
 
@@ -308,8 +357,10 @@ SvmModel::predictValues(const vector<vector<float_point> > &v_vSamples,
     checkCudaErrors(cudaMalloc((void **) &devKernelValues,
                                sizeof(float_point) * v_vSamples.size() * numOfSVs));
     int numOfBlock = Ceil(v_vSamples.size() * numOfSVs, BLOCK_SIZE);
-    rbfKernel << < numOfBlock, BLOCK_SIZE >> > (devSamples, v_vSamples.size(),
-            devSVs, numOfSVs, numOfFeatures, devKernelValues, param.gamma, devCoef);
+//    rbfKernel << < numOfBlock, BLOCK_SIZE >> > (devSamples, v_vSamples.size(),
+//            devSVs, numOfSVs, numOfFeatures, devKernelValues, param.gamma, devCoef);
+    rbfKernel << < numOfBlock, BLOCK_SIZE >> > ((const svm_node**)devSamples, v_vSamples.size(),
+            (const svm_node**)devSVs, numOfSVs, devKernelValues, param.gamma, devCoef);
     numOfBlock = Ceil(v_vSamples.size() * cnr2, BLOCK_SIZE);
     float_point *devDecisionValues;
     checkCudaErrors(cudaMalloc((void **) &devDecisionValues, sizeof(float_point) * v_vSamples.size() * cnr2));
@@ -328,7 +379,7 @@ SvmModel::predictValues(const vector<vector<float_point> > &v_vSamples,
     checkCudaErrors(cudaFree(devKernelValues));
 }
 
-vector<int> SvmModel::predict(const vector<vector<float_point> > &v_vSamples, bool probability) const {
+vector<int> SvmModel::predict(const vector<vector<svm_node> > &v_vSamples, bool probability) const {
     vector<int> labels;
     if (!probability) {
         vector<vector<float_point> > decisionValues;
@@ -434,7 +485,7 @@ void SvmModel::multiClassProbability(const vector<vector<float_point> > &r, vect
     free(Qp);
 }
 
-vector<vector<float_point> > SvmModel::predictProbability(const vector<vector<float_point> > &v_vSamples) const {
+vector<vector<float_point> > SvmModel::predictProbability(const vector<vector<svm_node> > &v_vSamples) const {
     vector<vector<float_point> > result;
     vector<vector<float_point> > decValues;
     predictValues(v_vSamples, decValues);
@@ -463,14 +514,14 @@ bool SvmModel::isProbability() const {
 CUcontext WorkParam::devContext;
 
 void *SvmModel::trainWork(void *args) {
-    WorkParam *param = (WorkParam*)(args);
+    WorkParam *param = (WorkParam *) (args);
     cuCtxSetCurrent(param->devContext);
     SvmModel *model = param->model;
     const SVMParam *svmParam = param->param;
-    SvmProblem subProblem = param->problem->getSubProblem(param->i,param->j);
+    SvmProblem subProblem = param->problem->getSubProblem(param->i, param->j);
     svm_model binaryModel = trainBinarySVM(subProblem, *svmParam, param->stream);
     cudaStreamSynchronize(param->stream);
-    printf("training classifier with label %d and %d complete\n",param->i, param->j);
+    printf("training classifier with label %d and %d complete\n", param->i, param->j);
     pthread_mutex_lock(&mutex);
     model->addBinaryModel(subProblem, binaryModel, param->i, param->j);
     pthread_mutex_unlock(&mutex);

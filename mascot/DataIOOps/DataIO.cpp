@@ -23,6 +23,16 @@ bool CDataIOOps::ReadFromFile(string strFileName, int nNumofFeature, vector<vect
     return nReturn;
 }
 
+bool CDataIOOps::ReadFromFileSparse(string strFileName, int nNumofFeature, vector<vector<svm_node> > &v_vSampleData,
+                              vector<int> &v_nLabel) {
+    bool nReturn = true;
+    v_nLabel.clear();
+    cout << "reading multi-class data with sparse format..." << endl;
+    //read data from file
+    CReadHelper::ReadLibSVMMultiClassDataSparse(v_vSampleData, v_nLabel, strFileName, nNumofFeature);
+    printf("dataset size:%d, # of features:%d\n", v_vSampleData.size(), nNumofFeature);
+    return nReturn;
+}
 /*
  * @brief: uniformly distribute positive and negative samples
  */

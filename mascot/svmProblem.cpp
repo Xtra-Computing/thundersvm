@@ -53,7 +53,7 @@ void SvmProblem::groupClasses() {
 }
 
 SvmProblem SvmProblem::getSubProblem(int i, int j) const {
-    vector<vector<float_point> > v_vSamples;
+    vector<vector<svm_node> > v_vSamples;
     vector<int> v_nLabels;
     int si = start[i];
     int ci = count[i];

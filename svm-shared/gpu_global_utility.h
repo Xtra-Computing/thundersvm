@@ -10,6 +10,7 @@
 
 #include "host_constant.h"
 #include <vector>
+#include "../mascot/DataIOOps/BaseLibsvmReader.h"
 
 extern float_point gfPCost;    //cost for positive samples in training SVM model (i.e., error tolerance)
 extern float_point gfNCost;    //cost for negative samples in training SVM model
@@ -41,6 +42,9 @@ enum {
 struct svm_node {
     int index;
     float_point value;
+    svm_node(){};
+    svm_node(int index, float_point value):
+            index(index),value(value){};
 };
 
 struct svm_param {

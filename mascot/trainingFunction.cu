@@ -36,14 +36,14 @@ using std::endl;
 
 void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, SvmModel &model) {
 
-    vector<vector<float_point> > v_v_DocVector;
+    vector<vector<svm_node> > v_v_DocVector;
     vector<int> v_nLabel;
 
     CDataIOOps rawDataRead;
     int nNumofInstance = 0;     //not used
     long long nNumofValue = 0;  //not used
     BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
-    rawDataRead.ReadFromFile(strTrainingFileName, nNumofFeature, v_v_DocVector, v_nLabel);
+    rawDataRead.ReadFromFileSparse(strTrainingFileName, nNumofFeature, v_v_DocVector, v_nLabel);
     SvmProblem problem(v_v_DocVector, v_nLabel);
     cout << "Training data loaded. Start training..." << endl;
     model.fit(problem, param);
@@ -140,14 +140,14 @@ svm_model trainBinarySVM(SvmProblem &problem, const SVMParam &param, cudaStream_
 
 void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNumofFeature)
 { 
-    vector<vector<float_point> > v_v_DocVector;
+    vector<vector<svm_node> > v_v_DocVector;
     vector<int> v_nLabel;
 
     CDataIOOps rawDataRead;
     int nNumofInstance = 0;     //not used
     long long nNumofValue = 0;  //not used
     BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
-    rawDataRead.ReadFromFile(strTrainingFileName, nNumofFeature, v_v_DocVector, v_nLabel);
+    rawDataRead.ReadFromFileSparse(strTrainingFileName, nNumofFeature, v_v_DocVector, v_nLabel);
 
     //perform svm classification
     vector<int> predictLabels = model.predict(v_v_DocVector, model.isProbability());

@@ -41,3 +41,35 @@ float RBFKernelFunction::RBF(vector<float> &ins1, vector<float> &ins2)
 
 	return value;
 }
+
+void RBFKernelFunction::ComputeSparseRow(vector<vector<svm_node> > &v_v_DocVector, int rowId, int nNumofRow,
+										 float *pRow) {
+	for (int i = 0; i < nNumofRow; ++i) {
+		for (int j = 0; j < v_v_DocVector.size(); ++j) {
+			float sum = 0;
+			vector<svm_node> x = v_v_DocVector[rowId+i];
+			vector<svm_node> y = v_v_DocVector[j];
+            int ix = 0;
+			int iy = 0;
+			while(x[ix].index!=-1&&y[iy].index!=-1){
+				float_point d = 0;
+				if (x[ix].index == y[iy].index)
+                    d = x[ix++].value - y[iy++].value;
+				else if (x[ix].index > y[iy].index)
+                    d = y[iy++].value;
+				 else
+                    d = x[ix++].value;
+                sum += d*d;
+			}
+            while(x[ix].index!=-1){
+				sum += x[ix].value * x[ix].value;
+				ix++;
+			}
+            while(y[iy].index!=-1) {
+				sum += y[iy].value * y[iy].value;
+				iy++;
+			}
+			pRow[i * v_v_DocVector.size() + j] = exp(-m_gamma * sum);
+		}
+	}
+}

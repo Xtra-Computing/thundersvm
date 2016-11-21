@@ -11,10 +11,11 @@
 #include "hostKernelCalculater/rbfKernelFunction.h"
 #include"cuda_runtime.h"
 #include"helper_cuda.h"
+#include "../gpu_global_utility.h"
 
 class HostHessianOnFly : public BaseHessian {
 public:
-    HostHessianOnFly(KernelFunction &function, vector<vector<float_point> > &samples) :
+    HostHessianOnFly(KernelFunction &function, vector<vector<svm_node> > &samples) :
             kernelCalculator(function), samples(samples) {};
 
     virtual void ReadRow(int nPosofRowAtHessian, float_point *pfHessianRow) override;
@@ -30,7 +31,7 @@ public:
     virtual bool ReleaseBuffer() override;
 
 private:
-    vector<vector<float_point> > &samples;
+    vector<vector<svm_node> > &samples;
     KernelFunction &kernelCalculator;
 };
 

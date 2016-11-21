@@ -5,7 +5,7 @@
 #include "hostHessianOnFly.h"
 
 void HostHessianOnFly::ReadRow(int nPosofRowAtHessian, float_point *pfHessianRow) {
-    kernelCalculator.ComputeRow(samples,nPosofRowAtHessian,1,pfHessianRow);
+    kernelCalculator.ComputeSparseRow(samples,nPosofRowAtHessian,1,pfHessianRow);
 }
 
 bool HostHessianOnFly::PrecomputeHessian(const string &strHessianMatrixFileName, const string &strDiagHessianFileName,

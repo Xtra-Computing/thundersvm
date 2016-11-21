@@ -23,37 +23,49 @@ using std::cerr;
 using std::endl;
 using std::cout;
 
-class CDataIOOps
-{
+class CDataIOOps {
 public:
-	CDataIOOps(){}
-	virtual ~CDataIOOps(){}
+    CDataIOOps() {}
 
-	bool ReadFromFile(string strFileName, int nNumofFeature, vector<vector<float_point> > &v_vData, vector<int> &v_nLabel);
+    virtual ~CDataIOOps() {}
 
-	virtual bool ReadFromFile(string strFileName, vector<vector<float_point> > &v_vData, vector<int> &v_nLabel)
-	{
-		return false;
-	}
-	bool OrganizeSamples(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
-						 vector<vector<float_point> > &v_vAllSample, vector<int> &v_nLabel);
+    bool
+    ReadFromFile(string strFileName, int nNumofFeature, vector<vector<float_point> > &v_vData, vector<int> &v_nLabel);
+
+    virtual bool ReadFromFile(string strFileName, vector<vector<float_point> > &v_vData, vector<int> &v_nLabel) {
+        return false;
+    }
+
+    bool OrganizeSamples(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
+                         vector<vector<float_point> > &v_vAllSample, vector<int> &v_nLabel);
+
+    bool ReadFromFileSparse(string strFileName, int nNumofFeature, vector<vector<svm_node> > &v_vSampleData,
+                            vector<int> &v_nLabel);
 };
 
-class CReadHelper
-{
+class CReadHelper {
 public:
-	static void Randomize(vector<vector<float_point> > &v_vPos, vector<vector<float_point> > &v_vNeg);
-	static void ReadLibSVMDataFormat(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
-								  string strFileName, int nNumofFeatures);
+    static void Randomize(vector<vector<float_point> > &v_vPos, vector<vector<float_point> > &v_vNeg);
 
-	static void ReadLibSVMDataFormat(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
-							  string strFileName, int nNumofFeatures, int nNumofSamples);
-	static void ReadMultiClassData(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
-			  string strFileName, int nNumofFeatures, int nNumofSamples);
-	static void ReadLibSVMMultiClassData(vector<vector<float_point> > &v_vSamples, vector<int> &v_nLabels, const string strFileName,
-        const long nNumofFeatures);
+    static void
+    ReadLibSVMDataFormat(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
+                         string strFileName, int nNumofFeatures);
+
+    static void
+    ReadLibSVMDataFormat(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
+                         string strFileName, int nNumofFeatures, int nNumofSamples);
+
+    static void
+    ReadMultiClassData(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
+                       string strFileName, int nNumofFeatures, int nNumofSamples);
+
+    static void
+    ReadLibSVMMultiClassData(vector<vector<float_point> > &v_vSamples, vector<int> &v_nLabels, const string strFileName,
+                             const long nNumofFeatures);
+
+    static void ReadLibSVMMultiClassDataSparse(vector<vector<svm_node> > &v_vSamples, vector<int> &v_nLabels,
+                                               const string strFileName, const long nNumofFeatures);
 };
-
 
 
 #endif /* TRAININGDATAIO_H_ */
