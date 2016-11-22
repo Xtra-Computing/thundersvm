@@ -13,6 +13,7 @@
 #include <helper_cuda.h>
 #include <cuda_runtime_api.h>
 #include <zconf.h>
+#include <cuda_profiler_api.h>
 #include "trainingFunction.h"
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -126,20 +127,21 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
     label = problem.label;
 
     //train nrClass*(nrClass-1)/2 binary models
-    cudaStream_t stream[cnr2];
-    pthread_t pid[cnr2];
-    WorkParam args[cnr2];
-    pthread_mutex_init(&mutex, NULL);
+//    cudaStream_t stream[cnr2];
+//    pthread_t pid[cnr2];
+//    WorkParam args[cnr2];
+//    pthread_mutex_init(&mutex, NULL);
+    cudaProfilerStart();
     int k = 0;
     for (int i = 0; i < nrClass; ++i) {
         for (int j = i + 1; j < nrClass; ++j) {
             printf("training classifier with label %d and %d\n", i, j);
-            checkCudaErrors(cudaStreamCreate(&stream[k]));
-            args[k] = WorkParam(i, j, stream[k], this, &problem, &param);
-
-            if (pthread_create(&pid[k], NULL, SvmModel::trainWork, static_cast<void *>(&args[k])))
-                printf("thread %d creation failed\n", k);
-            k++;
+//            checkCudaErrors(cudaStreamCreate(&stream[k]));
+//            args[k] = WorkParam(i, j, stream[k], this, &problem, &param);
+//
+//            if (pthread_create(&pid[k], NULL, SvmModel::trainWork, static_cast<void *>(&args[k])))
+//                printf("thread %d creation failed\n", k);
+//            k++;
 //            if (param.probability) {
 //                SVMParam probParam = param;
 //                probParam.probability = 0;
@@ -156,20 +158,24 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
 //                             probB[k]);
 //                probability = true;
 //            }
-//            svm_model binaryModel = trainBinarySVM(subProblem, param, stream[0]);
-//            cudaStreamSynchronize(stream[0]);
-//            addBinaryModel(subProblem, binaryModel, i, j);
-//            k++;
+            SvmProblem subProblem = problem.getSubProblem(i, j);
+            svm_model binaryModel = trainBinarySVM(subProblem, param);
+            addBinaryModel(subProblem, binaryModel, i, j);
+            k++;
+            if (k == 10) {
+                cudaProfilerStop();
+                exit(0);
+            }
 
         }
     }
-    for (int i = 0; i < cnr2; ++i) {
-        void *status;
-        if (pthread_join(pid[i], &status))
-            printf("thread %d join failed\n", i);
-        checkCudaErrors(cudaStreamDestroy(stream[i]));
-    }
-    pthread_mutex_destroy(&mutex);
+//    for (int i = 0; i < cnr2; ++i) {
+//        void *status;
+//        if (pthread_join(pid[i], &status))
+//            printf("thread %d join failed\n", i);
+//        checkCudaErrors(cudaStreamDestroy(stream[i]));
+//    }
+//    pthread_mutex_destroy(&mutex);
     int _start = 0;
     for (int i = 0; i < cnr2; ++i) {
         start.push_back(_start);
@@ -513,18 +519,18 @@ bool SvmModel::isProbability() const {
 
 CUcontext WorkParam::devContext;
 
-void *SvmModel::trainWork(void *args) {
-    WorkParam *param = (WorkParam *) (args);
-    cuCtxSetCurrent(param->devContext);
-    SvmModel *model = param->model;
-    const SVMParam *svmParam = param->param;
-    SvmProblem subProblem = param->problem->getSubProblem(param->i, param->j);
-    svm_model binaryModel = trainBinarySVM(subProblem, *svmParam, param->stream);
-    cudaStreamSynchronize(param->stream);
-    printf("training classifier with label %d and %d complete\n", param->i, param->j);
-    pthread_mutex_lock(&mutex);
-    model->addBinaryModel(subProblem, binaryModel, param->i, param->j);
-    pthread_mutex_unlock(&mutex);
-    pthread_exit(NULL);
-}
+//void *SvmModel::trainWork(void *args) {
+//    WorkParam *param = (WorkParam *) (args);
+//    cuCtxSetCurrent(param->devContext);
+//    SvmModel *model = param->model;
+//    const SVMParam *svmParam = param->param;
+//    SvmProblem subProblem = param->problem->getSubProblem(param->i, param->j);
+//    svm_model binaryModel = trainBinarySVM(subProblem, *svmParam, param->stream);
+//    cudaStreamSynchronize(param->stream);
+//    printf("training classifier with label %d and %d complete\n", param->i, param->j);
+//    pthread_mutex_lock(&mutex);
+//    model->addBinaryModel(subProblem, binaryModel, param->i, param->j);
+//    pthread_mutex_unlock(&mutex);
+//    pthread_exit(NULL);
+//}
 

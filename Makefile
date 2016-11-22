@@ -19,18 +19,19 @@ OBJ = cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o Re
 	  svmSharedTrainer_cu.o svmTrainer_cu.o modelSelector_cu.o trainingFunction_cu.o svmModel_cu.o\
 	  cvFunction.o svmMain.o
 
-.PHONY: release
 .PHONY: debug
+.PHONY: release
+
+debug: CCFLAGS += -g
+debug: NVCCFLAGS += -G -g
+debug: LASTFLAG += -G -g
+debug: bin/mascot
 
 release: CCFLAGS += -O2
 release: NVCCFLAGS += -O2
 release: LASTFLAG += -O2
 release: bin/mascot
 
-debug: CCFLAGS += -g
-debug: NVCCFLAGS += -G -g
-debug: LASTFLAG += -G -g
-debug: bin/mascot
 
 bin/mascot: $(OBJ)
 	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o bin/mascot $(OBJ)
