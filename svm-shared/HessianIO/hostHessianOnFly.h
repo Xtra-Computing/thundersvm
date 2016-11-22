@@ -26,9 +26,9 @@ public:
     virtual bool
     GetHessianDiag(const string &strFileName, const int &nNumofTraingSamples, float_point *pfHessianDiag) override;
 
-    virtual bool AllocateBuffer(int nNumofRows) override;
+//    virtual bool AllocateBuffer(int nNumofRows) override;
 
-    virtual bool ReleaseBuffer() override;
+//    virtual bool ReleaseBuffer() override;
 
 private:
     vector<vector<svm_node> > &samples;

@@ -9,6 +9,7 @@
 #include <sys/time.h>
 
 
+
 /*
  * @brief: allocate GPU memory for finding block min, which serves as the first sample of the optimized pair
  * @param: nNumofTrainingSamples: the # of training samples in current interation
@@ -46,8 +47,7 @@ bool CSMOSolver::SMOSolverPreparation(const int &nNumofTrainingSamples)
 	checkCudaErrors(cudaMalloc((void**)&m_pfDevMinValue, sizeof(float_point)));
 	checkCudaErrors(cudaMalloc((void**)&m_pnDevMinKey, sizeof(int)));
 
-//	m_pfHostBuffer = new float_point[5];
-    checkCudaErrors(cudaMallocHost((void**)&m_pfHostBuffer, sizeof(float_point)*5));
+	m_pfHostBuffer = new float_point[5];
 	checkCudaErrors(cudaMalloc((void**)&m_pfDevBuffer, sizeof(float_point) * 5));//only need 4 float_points
 
 	if(cudaGetLastError() != cudaSuccess)
@@ -59,9 +59,7 @@ bool CSMOSolver::SMOSolverPreparation(const int &nNumofTrainingSamples)
 	//allocate memory in CPU
 	//m_pfHessianRow = new float_point[nNumofTrainingSamples];//for reading hessian row from file
 	cudaMallocHost(&m_pfHessianRow, sizeof(float_point) * nNumofTrainingSamples);
-    checkCudaErrors(cudaMallocHost((void**)&m_pnLabel, sizeof(int) * nNumofTrainingSamples));
-//	m_pnLabel = new int[nNumofTrainingSamples];
-
+	m_pnLabel = new int[nNumofTrainingSamples];
 
 	return bReturn;
 }
@@ -108,16 +106,11 @@ bool CSMOSolver::SMOSolverEnd()
 	}
 
 	cudaFreeHost(m_pfHessianRow);
-//	delete[] m_pnLabel;
-//	delete[] m_pfDiagHessian;
-//	delete[] m_pfGValue;
-//	delete[] m_pfAlpha;
-//	delete[] m_pfHostBuffer;
-	checkCudaErrors(cudaFreeHost(m_pnLabel));
-	checkCudaErrors(cudaFreeHost(m_pfDiagHessian));
-	checkCudaErrors(cudaFreeHost(m_pfGValue));
-	checkCudaErrors(cudaFreeHost(m_pfAlpha));
-	checkCudaErrors(cudaFreeHost(m_pfHostBuffer));
+	delete[] m_pnLabel;
+	delete[] m_pfDiagHessian;
+	delete[] m_pfGValue;
+	delete[] m_pfAlpha;
+	delete[] m_pfHostBuffer;
 
 	return bReturn;
 }

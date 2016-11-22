@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 	parser.ParseLine(argc, argv, fileName, savedFileName);
 
     CUcontext context;
-	if(!InitCUDA(context))
+	if(!InitCUDA(context, 'G'))
 	{
 		return 0;
 	}
