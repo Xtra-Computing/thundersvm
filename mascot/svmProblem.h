@@ -19,8 +19,10 @@ public:
     vector<int> perm;
     vector<int> label;
     int maxFeatures;
+    vector<int> originalIndex;
+    vector<int> originalLabel;
 
-    //cuSparse matrix
+    //cuSparse csr matrix
     vector<float_point> csrVal;
     vector<float_point> csrValSelfDot;
     vector<int> csrRowPtr;

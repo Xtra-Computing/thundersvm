@@ -21,9 +21,9 @@ private:
     SVMParam param;
     unsigned int nrClass;
     unsigned int cnr2;
-    int numOfFeatures;
     int numOfSVs;
-    vector<vector<vector<svm_node> > > supportVectors;
+    vector<vector<int> > svIndex;
+    vector<vector<svm_node> > svMap;
     vector<vector<float_point> > coef;
     vector<int> start;
     vector<int> count;

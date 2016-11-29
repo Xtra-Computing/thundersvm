@@ -55,19 +55,28 @@ void SvmProblem::groupClasses() {
 SvmProblem SvmProblem::getSubProblem(int i, int j) const {
     vector<vector<svm_node> > v_vSamples;
     vector<int> v_nLabels;
+    vector<int> originalIndex;
+    vector<int> originalLabel;
     int si = start[i];
     int ci = count[i];
     int sj = start[j];
     int cj = count[j];
     for (int k = 0; k < ci; ++k) {
         v_vSamples.push_back(this->v_vSamples[perm[si + k]]);
+        originalIndex.push_back(perm[si +k]);
+        originalLabel.push_back(i);
         v_nLabels.push_back(+1);
     }
     for (int k = 0; k < cj; ++k) {
         v_vSamples.push_back(this->v_vSamples[perm[sj + k]]);
+        originalIndex.push_back(perm[sj +k]);
+        originalLabel.push_back(j);
         v_nLabels.push_back(-1);
     }
-    return SvmProblem(v_vSamples, v_nLabels);
+    SvmProblem subProblem(v_vSamples, v_nLabels);
+    subProblem.originalIndex = originalIndex;
+    subProblem.originalLabel = originalLabel;
+    return subProblem;
 }
 
 unsigned int SvmProblem::getNumOfClasses() const {

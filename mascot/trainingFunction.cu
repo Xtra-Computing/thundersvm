@@ -60,6 +60,7 @@ svm_model trainBinarySVM(SvmProblem &problem, const SVMParam &param) {
     CSMOSolver s(&ops, &cacheStrategy);
     CSVMTrainer svmTrainer(&s);
 
+    printf("cost %.2f\n", pfCost);
     gfNCost = pfCost;
     gfPCost = pfCost;
 

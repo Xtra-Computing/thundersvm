@@ -85,13 +85,13 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
     //reset model to fit a new SvmProblem
     nrClass = problem.getNumOfClasses();
     cnr2 = (nrClass) * (nrClass - 1) / 2;
-    numOfFeatures = problem.v_vSamples.front().size();
     numOfSVs = 0;
     coef.clear();
     rho.clear();
     probA.clear();
     probB.clear();
-    supportVectors.clear();
+    svIndex.clear();
+    svMap.clear();
     label.clear();
     start.clear();
     count.clear();
@@ -101,7 +101,8 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
     rho.resize(cnr2);
     probA.resize(cnr2);
     probB.resize(cnr2);
-    supportVectors.resize(cnr2);
+    svIndex.resize(cnr2);
+    svMap.resize(problem.getNumOfSamples());
 
     this->param = param;
     label = problem.label;
@@ -136,7 +137,7 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
     int _start = 0;
     for (int i = 0; i < cnr2; ++i) {
         start.push_back(_start);
-        count.push_back(supportVectors[i].size());
+        count.push_back(svIndex[i].size());
         _start += count[i];
     }
     transferToDevice();
@@ -146,9 +147,10 @@ void SvmModel::transferToDevice() {
     checkCudaErrors(cudaMallocManaged((void ***) &devSVs, sizeof(svm_node *) * numOfSVs));
     for (int i = 0; i < cnr2; ++i) {
         for (int j = 0; j < count[i]; ++j) {
+            vector<svm_node> &sv = svMap[svIndex[i][j]];
             checkCudaErrors(
-                    cudaMallocManaged((void **) &devSVs[start[i] + j], sizeof(svm_node) * supportVectors[i][j].size()));
-            memcpy(devSVs[start[i]+j],supportVectors[i][j].data(), sizeof(svm_node) * supportVectors[i][j].size());
+                    cudaMallocManaged((void **) &devSVs[start[i] + j], sizeof(svm_node) * sv.size()));
+            memcpy(devSVs[start[i]+j],sv.data(), sizeof(svm_node) * sv.size());
         }
     }
 
@@ -280,10 +282,12 @@ void SvmModel::sigmoidTrain(const float_point *decValues, const int l, const vec
 
 void SvmModel::addBinaryModel(const SvmProblem &problem, const svm_model &bModel, int i, int j) {
     int k = getK(i, j);
-    supportVectors[k].resize(bModel.nSV[0] + bModel.nSV[1]);
+    svIndex[k].resize(bModel.nSV[0] + bModel.nSV[1]);
     for (int l = 0; l < bModel.nSV[0] + bModel.nSV[1]; ++l) {
         coef[k].push_back(bModel.sv_coef[0][l]);
-        supportVectors[k][l] = problem.v_vSamples[bModel.pnIndexofSV[l]];
+        int originalIndex = problem.originalIndex[bModel.pnIndexofSV[l]];
+        svIndex[k][l] = originalIndex;
+        svMap[originalIndex] = problem.v_vSamples[bModel.pnIndexofSV[l]];
     }
     rho[k] = bModel.rho[0];
     numOfSVs += bModel.nSV[0] + bModel.nSV[1];
