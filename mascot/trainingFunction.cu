@@ -30,7 +30,7 @@
 #include <cuda_profiler_api.h>
 
 #include "svmProblem.h"
-#include "../svm-shared/HessianIO/hostHessianOnFly.h"
+#include "../svm-shared/HessianIO/deviceHessianOnFly.h"
 
 using std::cout;
 using std::endl;
@@ -52,8 +52,8 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
 svm_model trainBinarySVM(SvmProblem &problem, const SVMParam &param) {
     float_point pfCost = param.C;
     float_point pfGamma = param.gamma;
-    RBFKernelFunction f = RBFKernelFunction(param.gamma);
-    HostHessianOnFly ops(f,problem.v_vSamples);
+//    RBFKernelFunction f = RBFKernelFunction(param.gamma);
+    DeviceHessianOnFly ops(problem,param.gamma);
 
     CLATCache cacheStrategy((const int &) problem.getNumOfSamples());
     cout << "using " << cacheStrategy.GetStrategy() << endl;
@@ -109,7 +109,6 @@ svm_model trainBinarySVM(SvmProblem &problem, const SVMParam &param) {
         cerr << "can't find an optimal classifier" << endl;
     }
 
-    model.nDimension = problem.getNumOfFeatures();
 
     //free device memory
     checkCudaErrors(cudaFree(pfDevAlphaSubset));

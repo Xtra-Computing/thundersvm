@@ -131,7 +131,7 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
 //    pthread_t pid[cnr2];
 //    WorkParam args[cnr2];
 //    pthread_mutex_init(&mutex, NULL);
-    cudaProfilerStart();
+//    cudaProfilerStart();
     int k = 0;
     for (int i = 0; i < nrClass; ++i) {
         for (int j = i + 1; j < nrClass; ++j) {
@@ -162,11 +162,6 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
             svm_model binaryModel = trainBinarySVM(subProblem, param);
             addBinaryModel(subProblem, binaryModel, i, j);
             k++;
-            if (k == 10) {
-                cudaProfilerStop();
-                exit(0);
-            }
-
         }
     }
 //    for (int i = 0; i < cnr2; ++i) {

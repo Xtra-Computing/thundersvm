@@ -78,6 +78,47 @@ unsigned long long SvmProblem::getNumOfSamples() const {
     return v_vSamples.size();
 }
 
-unsigned long SvmProblem::getNumOfFeatures() const {
-    return v_vSamples.front().size();
+
+void SvmProblem::convert2CSR() {
+    int start = 0;
+    for (int i = 0; i < v_vSamples.size(); ++i) {
+        csrRowPtr.push_back(start);
+        v_vSamples[i].pop_back();//delete end node for libsvm data format
+        start += v_vSamples[i].size();
+        float_point sum = 0;
+        for (int j = 0; j < v_vSamples[i].size(); ++j) {
+            csrVal.push_back(v_vSamples[i][j].value);
+            sum += v_vSamples[i][j].value*v_vSamples[i][j].value;
+            csrColInd.push_back(v_vSamples[i][j].index-1);//libsvm data format is one-based, convert it to zero-based
+        }
+        csrValSelfDot.push_back(sum);
+        if (v_vSamples[i].size()>maxFeatures)
+            maxFeatures = v_vSamples[i].size();
+        v_vSamples[i].push_back(svm_node(-1,0));
+    }
+    csrRowPtr.push_back(start);
+}
+
+int SvmProblem::getNnz() const {
+    return csrVal.size();
+}
+
+const float_point *SvmProblem::getCSRVal() const {
+    return csrVal.data();
+}
+
+const int *SvmProblem::getCSRRowPtr() const {
+    return csrRowPtr.data();
+}
+
+const int *SvmProblem::getCSRColInd() const {
+    return csrColInd.data();
+}
+
+const float_point *SvmProblem::getCSRValSelfDot() const {
+    return csrValSelfDot.data();
+}
+
+int SvmProblem::getNumOfFeatures() const {
+    return maxFeatures;
 }
