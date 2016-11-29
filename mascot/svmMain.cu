@@ -32,7 +32,6 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-    WorkParam::devContext = context;
 	printf("CUDA initialized.\n");
 
 	if(parser.task_type == 1)

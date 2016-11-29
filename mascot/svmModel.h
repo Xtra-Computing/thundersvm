@@ -77,18 +77,4 @@ public:
     bool isProbability() const;
 };
 
-class WorkParam{
-public:
-    int i;
-    int j;
-    static CUcontext devContext;   //host threads must share the same device context in order to run device functions concurrently.
-    cudaStream_t stream;
-    SvmModel *model;
-    const SvmProblem *problem;
-    const SVMParam *param;
-    WorkParam(int i, int j,cudaStream_t stream, SvmModel *model,const SvmProblem *problem, const SVMParam *param):
-            i(i),j(j), stream(stream), model(model),problem(problem),param(param){};
-    WorkParam(){};
-};
-
 #endif //MASCOT_SVM_SVMMODEL_H

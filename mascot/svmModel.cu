@@ -16,27 +16,7 @@
 #include <cuda_profiler_api.h>
 #include "trainingFunction.h"
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 //todo move these kernel functions to a proper file
-//__global__ void
-//rbfKernel(const float_point *samples, int numOfSamples, const float_point *supportVectors, int numOfSVs,
-//          int numOfFeatures,
-//          float_point *kernelValues, float_point gamma,
-//          const float_point *coef) {
-//    int idx = blockDim.x * blockIdx.x + threadIdx.x;
-//    int sampleId = idx / numOfSVs;
-//    int SVId = idx % numOfSVs;
-//    if (sampleId < numOfSamples) {
-//        const float_point *sample = samples + sampleId * numOfFeatures;
-//        const float_point *supportVector = supportVectors + SVId * numOfFeatures;
-//        float_point sum = 0;
-//        for (int i = 0; i < numOfFeatures; ++i) {
-//            float_point d = sample[i] - supportVector[i];
-//            sum += d * d;
-//        }
-//        kernelValues[idx] = coef[SVId] * exp(-gamma * sum);
-//    }
-//};
 __global__ void rbfKernel(const svm_node **samples, int numOfSamples, const svm_node **supportVectors, int numOfSVs,
                           float_point *kernelValues, float_point gamma,
                           const float_point *coef) {
@@ -127,50 +107,32 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
     label = problem.label;
 
     //train nrClass*(nrClass-1)/2 binary models
-//    cudaStream_t stream[cnr2];
-//    pthread_t pid[cnr2];
-//    WorkParam args[cnr2];
-//    pthread_mutex_init(&mutex, NULL);
-//    cudaProfilerStart();
     int k = 0;
     for (int i = 0; i < nrClass; ++i) {
         for (int j = i + 1; j < nrClass; ++j) {
             printf("training classifier with label %d and %d\n", i, j);
-//            checkCudaErrors(cudaStreamCreate(&stream[k]));
-//            args[k] = WorkParam(i, j, stream[k], this, &problem, &param);
-//
-//            if (pthread_create(&pid[k], NULL, SvmModel::trainWork, static_cast<void *>(&args[k])))
-//                printf("thread %d creation failed\n", k);
-//            k++;
-//            if (param.probability) {
-//                SVMParam probParam = param;
-//                probParam.probability = 0;
-//                probParam.C = 1.0;
-//                SvmModel model;
-//                model.fit(subProblem, probParam);
-//                vector<vector<float_point> > decValues;
-//                //todo predict with cross validation
-//                model.predictValues(subProblem.v_vSamples, decValues);
-//                for (int l = 1; l < subProblem.v_vSamples.size(); ++l) {
-//                    decValues[0].push_back(decValues[l][0]);
-//                }
-//                sigmoidTrain(decValues.front().data(), subProblem.getNumOfSamples(), subProblem.v_nLabels, probA[k],
-//                             probB[k]);
-//                probability = true;
-//            }
             SvmProblem subProblem = problem.getSubProblem(i, j);
+            if (param.probability) {
+                SVMParam probParam = param;
+                probParam.probability = 0;
+                probParam.C = 1.0;
+                SvmModel model;
+                model.fit(subProblem, probParam);
+                vector<vector<float_point> > decValues;
+                //todo predict with cross validation
+                model.predictValues(subProblem.v_vSamples, decValues);
+                for (int l = 1; l < subProblem.v_vSamples.size(); ++l) {
+                    decValues[0].push_back(decValues[l][0]);
+                }
+                sigmoidTrain(decValues.front().data(), subProblem.getNumOfSamples(), subProblem.v_nLabels, probA[k],
+                             probB[k]);
+                probability = true;
+            }
             svm_model binaryModel = trainBinarySVM(subProblem, param);
             addBinaryModel(subProblem, binaryModel, i, j);
             k++;
         }
     }
-//    for (int i = 0; i < cnr2; ++i) {
-//        void *status;
-//        if (pthread_join(pid[i], &status))
-//            printf("thread %d join failed\n", i);
-//        checkCudaErrors(cudaStreamDestroy(stream[i]));
-//    }
-//    pthread_mutex_destroy(&mutex);
     int _start = 0;
     for (int i = 0; i < cnr2; ++i) {
         start.push_back(_start);
@@ -189,8 +151,7 @@ void SvmModel::transferToDevice() {
             memcpy(devSVs[start[i]+j],supportVectors[i][j].data(), sizeof(svm_node) * supportVectors[i][j].size());
         }
     }
-//    int svLength = numOfFeatures;
-//    checkCudaErrors(cudaMalloc((void **) &devSVs, sizeof(svm_node) * numOfSVs * svLength));
+
     checkCudaErrors(cudaMalloc((void **) &devCoef, sizeof(float_point) * numOfSVs));
     checkCudaErrors(cudaMalloc((void **) &devStart, sizeof(float_point) * cnr2));
     checkCudaErrors(cudaMalloc((void **) &devCount, sizeof(float_point) * cnr2));
@@ -198,13 +159,6 @@ void SvmModel::transferToDevice() {
     checkCudaErrors(cudaMalloc((void **) &devProbB, sizeof(float_point) * cnr2));
     checkCudaErrors(cudaMalloc((void **) &devRho, sizeof(float_point) * cnr2));
     for (int i = 0; i < cnr2; ++i) {
-//        float_point *sv4BinaryModel = new float_point[supportVectors[i].size() * svLength];
-//        for (int j = 0; j < supportVectors[i].size(); ++j) {
-//            memcpy(sv4BinaryModel + j * svLength, supportVectors[i][j].data(), sizeof(svm_node) * svLength);
-//        }
-//        checkCudaErrors(cudaMemcpy(devSVs + start[i] * svLength, sv4BinaryModel,
-//                                   sizeof(svm_node) * count[i] * svLength, cudaMemcpyHostToDevice));
-//        delete[] sv4BinaryModel;
         checkCudaErrors(cudaMemcpy(devCoef + start[i], coef[i].data(), sizeof(float_point) * count[i],
                                    cudaMemcpyHostToDevice));
     }
@@ -339,17 +293,10 @@ void
 SvmModel::predictValues(const vector<vector<svm_node> > &v_vSamples,
                         vector<vector<float_point> > &decisionValues) const {
     //copy samples to device
-//    float_point *devSamples;
-//    checkCudaErrors(cudaMalloc((void **) &devSamples, sizeof(float_point) * v_vSamples.size() * numOfFeatures));
-//    for (int i = 0; i < v_vSamples.size(); ++i) {
-//        checkCudaErrors(cudaMemcpy(devSamples + i * numOfFeatures, v_vSamples[i].data(),
-//                                   sizeof(float_point) * numOfFeatures, cudaMemcpyHostToDevice));
-//    }
     svm_node **devSamples;
     checkCudaErrors(cudaMallocManaged((void ***) &devSamples, sizeof(svm_node *) * v_vSamples.size()));
     for (int i = 0; i < v_vSamples.size(); ++i) {
         checkCudaErrors(cudaMallocManaged((void **) &devSamples[i], sizeof(svm_node) * v_vSamples[i].size()));
-//        devSamples[i] = (svm_node *) v_vSamples[i].data();
         memcpy(devSamples[i], v_vSamples[i].data(),sizeof(svm_node) * v_vSamples[i].size());
     }
 
@@ -358,8 +305,6 @@ SvmModel::predictValues(const vector<vector<svm_node> > &v_vSamples,
     checkCudaErrors(cudaMalloc((void **) &devKernelValues,
                                sizeof(float_point) * v_vSamples.size() * numOfSVs));
     int numOfBlock = Ceil(v_vSamples.size() * numOfSVs, BLOCK_SIZE);
-//    rbfKernel << < numOfBlock, BLOCK_SIZE >> > (devSamples, v_vSamples.size(),
-//            devSVs, numOfSVs, numOfFeatures, devKernelValues, param.gamma, devCoef);
     rbfKernel << < numOfBlock, BLOCK_SIZE >> > ((const svm_node**)devSamples, v_vSamples.size(),
             (const svm_node**)devSVs, numOfSVs, devKernelValues, param.gamma, devCoef);
     numOfBlock = Ceil(v_vSamples.size() * cnr2, BLOCK_SIZE);
@@ -512,20 +457,4 @@ bool SvmModel::isProbability() const {
     return probability;
 }
 
-CUcontext WorkParam::devContext;
-
-//void *SvmModel::trainWork(void *args) {
-//    WorkParam *param = (WorkParam *) (args);
-//    cuCtxSetCurrent(param->devContext);
-//    SvmModel *model = param->model;
-//    const SVMParam *svmParam = param->param;
-//    SvmProblem subProblem = param->problem->getSubProblem(param->i, param->j);
-//    svm_model binaryModel = trainBinarySVM(subProblem, *svmParam, param->stream);
-//    cudaStreamSynchronize(param->stream);
-//    printf("training classifier with label %d and %d complete\n", param->i, param->j);
-//    pthread_mutex_lock(&mutex);
-//    model->addBinaryModel(subProblem, binaryModel, param->i, param->j);
-//    pthread_mutex_unlock(&mutex);
-//    pthread_exit(NULL);
-//}
 

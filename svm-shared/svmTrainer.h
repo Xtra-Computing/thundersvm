@@ -61,10 +61,6 @@ public:
 	//for future prediction purpose
 	bool SaveModel(string strFileName, svm_model *model, vector<vector<float_point> >&);
 
-	void setStream(const cudaStream_t &stream);
-
-private:
-	cudaStream_t stream;
 };
 
 #endif /* SVMTRAINER_H_ */
