@@ -19,24 +19,23 @@
 class DeviceHessianOnFly : public BaseHessian {
 public:
     DeviceHessianOnFly(SvmProblem &problem, float_point gamma) :
-            gamma(gamma), problem(problem), zero(0.0f), one(1.0f) {
+            gamma(gamma), problem(problem), zero(0.0f), one(1.0f), csrMat(problem.v_vSamples){
         cusparseCreate(&handle);
         cusparseCreateMatDescr(&descr);
         cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);
         cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
-        problem.convert2CSR();
-        nnz = problem.getNnz();
-        checkCudaErrors(cudaMalloc((void **) &devValA, sizeof(float_point) * problem.getNnz()));
-        checkCudaErrors(cudaMalloc((void **) &devValASelfDot, sizeof(float_point) * problem.getNnz()));
-        checkCudaErrors(cudaMalloc((void **) &devRowPtrA, sizeof(int) * (problem.getNumOfSamples() + 1)));
-        checkCudaErrors(cudaMalloc((void **) &devColIndA, sizeof(int) * (problem.getNnz())));
-        checkCudaErrors(cudaMemcpy(devValA, problem.getCSRVal(), sizeof(float_point) * problem.getNnz(),
+        nnz = csrMat.getNnz();
+        checkCudaErrors(cudaMalloc((void **) &devValA, sizeof(float_point) * csrMat.getNnz()));
+        checkCudaErrors(cudaMalloc((void **) &devValASelfDot, sizeof(float_point) * csrMat.getNnz()));
+        checkCudaErrors(cudaMalloc((void **) &devRowPtrA, sizeof(int) * (csrMat.getNumOfSamples() + 1)));
+        checkCudaErrors(cudaMalloc((void **) &devColIndA, sizeof(int) * (csrMat.getNnz())));
+        checkCudaErrors(cudaMemcpy(devValA,csrMat.getCSRVal(), sizeof(float_point) * csrMat.getNnz(),
                                    cudaMemcpyHostToDevice));
-        checkCudaErrors(cudaMemcpy(devValASelfDot, problem.getCSRValSelfDot(),
+        checkCudaErrors(cudaMemcpy(devValASelfDot, csrMat.getCSRValSelfDot(),
                                    sizeof(float_point) * problem.getNumOfSamples(), cudaMemcpyHostToDevice));
-        checkCudaErrors(cudaMemcpy(devRowPtrA, problem.getCSRRowPtr(), sizeof(int) * (problem.getNumOfSamples() + 1),
+        checkCudaErrors(cudaMemcpy(devRowPtrA,csrMat.getCSRRowPtr(), sizeof(int) * (problem.getNumOfSamples() + 1),
                                    cudaMemcpyHostToDevice));
-        checkCudaErrors(cudaMemcpy(devColIndA, problem.getCSRColInd(), sizeof(int) * (problem.getNnz()),
+        checkCudaErrors(cudaMemcpy(devColIndA,csrMat.getCSRColInd(), sizeof(int) * (csrMat.getNnz()),
                                    cudaMemcpyHostToDevice));
 
     };
@@ -64,6 +63,7 @@ public:
 
 private:
     SvmProblem &problem;
+    CSRMatrix csrMat;
     const float_point gamma;
     //TODO move initializing handle and descr outside
     cusparseHandle_t handle;

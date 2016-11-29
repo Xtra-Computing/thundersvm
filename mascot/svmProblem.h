@@ -18,18 +18,13 @@ public:
     vector<int> start;
     vector<int> perm;
     vector<int> label;
-    int maxFeatures;
+
+    //for subProblem
     vector<int> originalIndex;
     vector<int> originalLabel;
 
-    //cuSparse csr matrix
-    vector<float_point> csrVal;
-    vector<float_point> csrValSelfDot;
-    vector<int> csrRowPtr;
-    vector<int> csrColInd;
-
     SvmProblem(const vector<vector<svm_node> > &v_vSamples, const vector<int> &v_nLabels) :
-            v_vSamples(v_vSamples), v_nLabels(v_nLabels), maxFeatures(0){
+            v_vSamples(v_vSamples), v_nLabels(v_nLabels){
         this->groupClasses();
     }
 
@@ -40,11 +35,17 @@ public:
     unsigned int getNumOfClasses() const;
 
     unsigned long long getNumOfSamples() const;
+};
 
-    int getNumOfFeatures() const;
-
-    void convert2CSR();
-
+class CSRMatrix {
+public:
+    vector<vector<svm_node> > &samples;
+    vector<float_point> csrVal;
+    vector<float_point> csrValSelfDot;
+    vector<int> csrRowPtr;
+    vector<int> csrColInd;
+    int maxFeatures;
+    CSRMatrix(vector<vector<svm_node> >&samples);
     int getNnz() const;
 
     const float_point *getCSRVal() const;
@@ -54,7 +55,10 @@ public:
     const int *getCSRRowPtr() const;
 
     const int *getCSRColInd() const;
-};
 
+    int getMaxFeatures() const;
+
+    int getNumOfSamples() const;
+};
 
 #endif //MASCOT_SVM_SVMPROBLEM_H

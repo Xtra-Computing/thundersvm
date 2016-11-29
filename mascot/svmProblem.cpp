@@ -87,47 +87,51 @@ unsigned long long SvmProblem::getNumOfSamples() const {
     return v_vSamples.size();
 }
 
-
-void SvmProblem::convert2CSR() {
+CSRMatrix::CSRMatrix(vector<vector<svm_node> > &samples):samples(samples) {
     int start = 0;
-    for (int i = 0; i < v_vSamples.size(); ++i) {
+    for (int i = 0; i < samples.size(); ++i) {
         csrRowPtr.push_back(start);
-        v_vSamples[i].pop_back();//delete end node for libsvm data format
-        start += v_vSamples[i].size();
+        samples[i].pop_back();//delete end node for libsvm data format
+        start += samples[i].size();
         float_point sum = 0;
-        for (int j = 0; j < v_vSamples[i].size(); ++j) {
-            csrVal.push_back(v_vSamples[i][j].value);
-            sum += v_vSamples[i][j].value*v_vSamples[i][j].value;
-            csrColInd.push_back(v_vSamples[i][j].index-1);//libsvm data format is one-based, convert it to zero-based
+        for (int j = 0; j < samples[i].size(); ++j) {
+            csrVal.push_back(samples[i][j].value);
+            sum += samples[i][j].value*samples[i][j].value;
+            csrColInd.push_back(samples[i][j].index-1);//libsvm data format is one-based, convert it to zero-based
         }
         csrValSelfDot.push_back(sum);
-        if (v_vSamples[i].size()>maxFeatures)
-            maxFeatures = v_vSamples[i].size();
-        v_vSamples[i].push_back(svm_node(-1,0));
+        if (samples[i].size()>maxFeatures)
+            maxFeatures = samples[i].size();
+        samples[i].push_back(svm_node(-1,0));
     }
     csrRowPtr.push_back(start);
 }
 
-int SvmProblem::getNnz() const {
+int CSRMatrix::getNnz() const {
     return csrVal.size();
 }
 
-const float_point *SvmProblem::getCSRVal() const {
+const float_point *CSRMatrix::getCSRVal() const {
     return csrVal.data();
 }
 
-const int *SvmProblem::getCSRRowPtr() const {
-    return csrRowPtr.data();
-}
-
-const int *SvmProblem::getCSRColInd() const {
-    return csrColInd.data();
-}
-
-const float_point *SvmProblem::getCSRValSelfDot() const {
+const float_point *CSRMatrix::getCSRValSelfDot() const {
     return csrValSelfDot.data();
 }
 
-int SvmProblem::getNumOfFeatures() const {
+const int *CSRMatrix::getCSRRowPtr() const {
+    return csrRowPtr.data();
+}
+
+const int *CSRMatrix::getCSRColInd() const {
+    return csrColInd.data();
+}
+
+int CSRMatrix::getMaxFeatures() const {
     return maxFeatures;
 }
+
+int CSRMatrix::getNumOfSamples() const {
+    return samples.size();
+}
+
