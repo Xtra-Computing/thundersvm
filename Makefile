@@ -22,15 +22,15 @@ OBJ = cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o Re
 .PHONY: release
 .PHONY: debug
 
-debug: CCFLAGS += -g
-debug: NVCCFLAGS += -G -g
-debug: LASTFLAG += -G -g
-debug: bin/mascot
-	
 release: CCFLAGS += -O2
 release: NVCCFLAGS += -O2
 release: LASTFLAG += -O2
 release: bin/mascot
+
+debug: CCFLAGS += -g
+debug: NVCCFLAGS += -G -g
+debug: LASTFLAG += -G -g
+debug: bin/mascot
 
 bin/mascot: $(OBJ)
 	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o bin/mascot $(OBJ)
