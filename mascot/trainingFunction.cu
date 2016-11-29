@@ -27,9 +27,10 @@
 #include "DataIOOps/DataIO.h"
 #include "DataIOOps/BaseLibsvmReader.h"
 #include <helper_cuda.h>
+#include <cuda_profiler_api.h>
 
 #include "svmProblem.h"
-#include "../svm-shared/HessianIO/hostHessianOnFly.h"
+#include "../svm-shared/HessianIO/deviceHessianOnFly.h"
 
 using std::cout;
 using std::endl;
@@ -45,46 +46,36 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
     BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
     rawDataRead.ReadFromFileSparse(strTrainingFileName, nNumofFeature, v_v_DocVector, v_nLabel);
     SvmProblem problem(v_v_DocVector, v_nLabel);
-    cout << "Training data loaded. Start training..." << endl;
     model.fit(problem, param);
 }
 
-svm_model trainBinarySVM(SvmProblem &problem, const SVMParam &param, cudaStream_t stream) {
+svm_model trainBinarySVM(SvmProblem &problem, const SVMParam &param) {
     float_point pfCost = param.C;
     float_point pfGamma = param.gamma;
-    RBFKernelFunction f = RBFKernelFunction(param.gamma);
-    HostHessianOnFly ops(f,problem.v_vSamples);
+//    RBFKernelFunction f = RBFKernelFunction(param.gamma);
+    DeviceHessianOnFly ops(problem,param.gamma);
 
     CLATCache cacheStrategy((const int &) problem.getNumOfSamples());
     cout << "using " << cacheStrategy.GetStrategy() << endl;
     CSMOSolver s(&ops, &cacheStrategy);
     CSVMTrainer svmTrainer(&s);
-    svmTrainer.setStream(stream);
 
     gfNCost = pfCost;
     gfPCost = pfCost;
 
     //copy training information from input parameters
-//    const int *pnLabelAll = problem.v_nLabels.data();
+    const int *pnLabelAll = problem.v_nLabels.data();
     int nTotalNumofSamples = (int) problem.getNumOfSamples();
 
     /* allocate GPU device memory */
     //set default value at
-//    float_point *pfAlphaAll = new float_point[nTotalNumofSamples];
-//    float_point *pfYiGValueAll = new float_point[nTotalNumofSamples];
-    int *pnLabelAll;
-    float_point *pfAlphaAll;
-    float_point *pfYiGValueAll;
-    checkCudaErrors(cudaMallocHost((void **)&pnLabelAll,sizeof(int)*nTotalNumofSamples));
-    checkCudaErrors(cudaMallocHost((void **)&pfAlphaAll,sizeof(float_point)*nTotalNumofSamples));
-    checkCudaErrors(cudaMallocHost((void **)&pfYiGValueAll,sizeof(float_point)*nTotalNumofSamples));
+    float_point *pfAlphaAll = new float_point[nTotalNumofSamples];
+    float_point *pfYiGValueAll = new float_point[nTotalNumofSamples];
     for (int i = 0; i < nTotalNumofSamples; i++) {
         //initially, the values of alphas are 0s
         pfAlphaAll[i] = 0;
         //GValue is -y_i, as all alphas are 0s. YiGValue is always -1
-//        pfYiGValueAll[i] = -pnLabelAll[i];
-        pfYiGValueAll[i] = -problem.v_nLabels[i];
-        pnLabelAll[i] = problem.v_nLabels[i];
+        pfYiGValueAll[i] = -pnLabelAll[i];
     }
 
     //allocate GPU memory for part of samples that are used to perform training.
@@ -100,46 +91,38 @@ svm_model trainBinarySVM(SvmProblem &problem, const SVMParam &param, cudaStream_
     checkCudaErrors(cudaMalloc((void **) &pnDevLabelSubset, sizeof(int) * nNumofTrainingSamples));
 
     //copy training information to GPU for current training
-    checkCudaErrors(cudaMemcpyAsync(pfDevAlphaSubset, pfAlphaAll,
-                               sizeof(float_point) * nTotalNumofSamples, cudaMemcpyHostToDevice, stream));
-    checkCudaErrors(cudaMemcpyAsync(pfDevYiGValueSubset, pfYiGValueAll,
-                               sizeof(float_point) * nTotalNumofSamples, cudaMemcpyHostToDevice, stream));
-    checkCudaErrors(cudaMemcpyAsync(pnDevLabelSubset, pnLabelAll,
-                               sizeof(int) * nTotalNumofSamples, cudaMemcpyHostToDevice, stream));
-//    checkCudaErrors(cudaStreamSyncohronize(stream));
+    checkCudaErrors(cudaMemcpy(pfDevAlphaSubset, pfAlphaAll,
+                               sizeof(float_point) * nTotalNumofSamples, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(pfDevYiGValueSubset, pfYiGValueAll,
+                               sizeof(float_point) * nTotalNumofSamples, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(pnDevLabelSubset, pnLabelAll,
+                               sizeof(int) * nTotalNumofSamples, cudaMemcpyHostToDevice));
 
     /************** train SVM model **************/
     svm_model model;
     model.param.C = param.C;
     model.param.gamma = param.gamma;
     svmTrainer.SetInvolveTrainingData(0, nNumofTrainingSamples - 1, -1, -1);
-    svmTrainer.setStream(stream);
-    cout << "completed data and model preparation. Start training SVM model" << endl;
     bool bTrain = svmTrainer.TrainModel(model, pfDevYiGValueSubset, pfDevAlphaSubset,
                                         pnDevLabelSubset, nNumofTrainingSamples, NULL);
     if (bTrain == false) {
         cerr << "can't find an optimal classifier" << endl;
     }
 
-    model.nDimension = problem.getNumOfFeatures();
 
     //free device memory
     checkCudaErrors(cudaFree(pfDevAlphaSubset));
     checkCudaErrors(cudaFree(pnDevLabelSubset));
     checkCudaErrors(cudaFree(pfDevYiGValueSubset));
 
-    checkCudaErrors(cudaFreeHost(pnLabelAll));
-    checkCudaErrors(cudaFreeHost(pfAlphaAll));
-    checkCudaErrors(cudaFreeHost(pfYiGValueAll));
-//    delete[] pfAlphaAll;
-//    delete[] pfYiGValueAll;
-
+    delete[] pfAlphaAll;
+    delete[] pfYiGValueAll;
 
     return model;
 }
 
 void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNumofFeature)
-{ 
+{
     vector<vector<svm_node> > v_v_DocVector;
     vector<int> v_nLabel;
 
@@ -150,6 +133,7 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNum
     rawDataRead.ReadFromFileSparse(strTrainingFileName, nNumofFeature, v_v_DocVector, v_nLabel);
 
     //perform svm classification
+
     vector<int> predictLabels = model.predict(v_v_DocVector, model.isProbability());
     int numOfCorrect = 0;
     for (int i = 0; i < v_v_DocVector.size(); ++i) 

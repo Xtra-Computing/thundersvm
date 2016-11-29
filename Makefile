@@ -1,7 +1,7 @@
 CCFLAGS	  := -Wall
 NVCCFLAGS := -arch=sm_35 -lrt -Wno-deprecated-gpu-targets -dc
 LASTFLAG  := -Wno-deprecated-gpu-targets
-LDFLAGS   := -I/usr/local/cuda/include -I/usr/local/cuda/samples/common/inc -lcuda -lcudadevrt -lcudart -lcublas -lpthread
+LDFLAGS   := -I/usr/local/cuda/include -I/usr/local/cuda/samples/common/inc -lcuda -lcudadevrt -lcudart -lcublas -lpthread -lcusparse
 NVCC	  := /usr/local/cuda/bin/nvcc
 DISABLEW  := -Xnvlink -w
 
@@ -11,7 +11,7 @@ dummy_build_folder := $(shell mkdir -p $(ODIR))
 OBJ = cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o ReadHelper.o\
 	  commandLineParser.o fileOps.o gpu_global_utility.o initCuda_cu.o\
 	  baseHessian_cu.o accessHessian.o parAccessor.o seqAccessor.o svmProblem.o deviceHessian_cu.o\
-	  hostHessianOnFly.o kernelFunction.o rbfKernelFunction.o\
+	  deviceHessianOnFly_cu.o kernelFunction.o rbfKernelFunction.o\
 	  LinearCalculater_cu.o LinearCalGPUHelper_cu.o PolynomialCalGPUHelper_cu.o PolynomialCalculater_cu.o\
 	  RBFCalculater_cu.o RBFCalGPUHelper_cu.o SigmoidCalculater_cu.o SigmoidCalGPUHelper_cu.o\
 	  devUtility_cu.o storageManager_cu.o hostStorageManager.o classificationKernel_cu.o\
@@ -22,15 +22,15 @@ OBJ = cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o Re
 .PHONY: release
 .PHONY: debug
 
-debug: CCFLAGS += -g
-debug: NVCCFLAGS += -G -g
-debug: LASTFLAG += -G -g
-debug: bin/mascot
-	
 release: CCFLAGS += -O2
 release: NVCCFLAGS += -O2
 release: LASTFLAG += -O2
 release: bin/mascot
+
+debug: CCFLAGS += -g
+debug: NVCCFLAGS += -G -g
+debug: LASTFLAG += -G -g
+debug: bin/mascot
 
 bin/mascot: $(OBJ)
 	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o bin/mascot $(OBJ)
@@ -139,8 +139,8 @@ seqAccessor.o: svm-shared/HessianIO/seqAccessor.h svm-shared/HessianIO/seqAccess
 deviceHessian_cu.o: svm-shared/HessianIO/baseHessian.h svm-shared/HessianIO/deviceHessian.h svm-shared/HessianIO/deviceHessian.cu
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o deviceHessian_cu.o -c svm-shared/HessianIO/deviceHessian.cu
 
-hostHessianOnFly.o: svm-shared/HessianIO/hostHessianOnFly.h svm-shared/HessianIO/hostHessianOnFly.cpp
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o hostHessianOnFly.o -c svm-shared/HessianIO/hostHessianOnFly.cpp
+deviceHessianOnFly_cu.o: svm-shared/HessianIO/deviceHessianOnFly.h svm-shared/HessianIO/deviceHessianOnFly.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o deviceHessianOnFly_cu.o -c svm-shared/HessianIO/deviceHessianOnFly.cu
 
 LinearCalculater_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-shared/kernelCalculater/LinearCalculater.cu
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o LinearCalculater_cu.o -c svm-shared/kernelCalculater/LinearCalculater.cu
