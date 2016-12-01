@@ -6,6 +6,7 @@
 #define MASCOT_SVM_SVMPROBLEM_H
 
 #include <vector>
+#include <cusparse.h>
 #include"../svm-shared/gpu_global_utility.h"
 
 using std::vector;
@@ -39,13 +40,13 @@ public:
 
 class CSRMatrix {
 public:
-    vector<vector<svm_node> > &samples;
+    const vector<vector<svm_node> > &samples;
     vector<float_point> csrVal;
     vector<float_point> csrValSelfDot;
     vector<int> csrRowPtr;
     vector<int> csrColInd;
     int maxFeatures;
-    CSRMatrix(vector<vector<svm_node> >&samples);
+    CSRMatrix(const vector<vector<svm_node> >&samples);
     int getNnz() const;
 
     const float_point *getCSRVal() const;
@@ -59,6 +60,13 @@ public:
     int getMaxFeatures() const;
 
     int getNumOfSamples() const;
+    static void CSRmm2Dense(cusparseHandle_t handle, cusparseOperation_t transA, cusparseOperation_t transB,
+                            int m, int n, int k,
+                            const cusparseMatDescr_t descrA,
+                            const int nnzA, const float *valA, const int *rowPtrA, const int *colIndA,
+                            const cusparseMatDescr_t descrB,
+                            const int nnzB, const float *valB, const int *rowPtrB, const int *colIndB,
+                            float *C);
 };
 
 #endif //MASCOT_SVM_SVMPROBLEM_H

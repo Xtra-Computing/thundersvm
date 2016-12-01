@@ -24,6 +24,7 @@ private:
     int numOfSVs;
     vector<vector<int> > svIndex;
     vector<vector<svm_node> > svMap;
+    CSRMatrix *svMapCSRMat = NULL;
     vector<vector<float_point> > coef;
     vector<int> start;
     vector<int> count;
@@ -34,7 +35,12 @@ private:
     bool probability;
 
     //device pointers
-    svm_node **devSVs = NULL;
+    float_point *devSVMapVal;
+    float_point *devSVMapValSelfDot;
+    int *devSVMapRowPtr;
+    int *devSVMapColInd;
+    int *devSVIndex;
+//    svm_node **devSVs = NULL;
     float_point *devCoef = NULL;
     int *devStart = NULL;
     int *devCount = NULL;
@@ -55,7 +61,6 @@ private:
 
     void transferToDevice();
 
-    static void* trainWork(void *);
     //SvmModel has device pointer, so duplicating SvmModel is not allowed
     SvmModel &operator=(const SvmModel &);
 

@@ -15,66 +15,89 @@
 #include <zconf.h>
 #include <cuda_profiler_api.h>
 #include "trainingFunction.h"
+#include<map>
 
 //todo move these kernel functions to a proper file
-__global__ void rbfKernel(const svm_node **samples, int numOfSamples, const svm_node **supportVectors, int numOfSVs,
-                          float_point *kernelValues, float_point gamma,
-                          const float_point *coef) {
+//__global__ void rbfKernel(const svm_node **samples, int numOfSamples, const svm_node **supportVectors, int numOfSVs,
+//                          float_point *kernelValues, float_point gamma,
+//                          const float_point *coef) {
+//    int idx = blockDim.x * blockIdx.x + threadIdx.x;
+//    int sampleId = idx / numOfSVs;
+//    int SVId = idx % numOfSVs;
+//    if (sampleId < numOfSamples) {
+//        const svm_node *sample = samples[sampleId];
+//        const svm_node *supportVector = supportVectors[SVId];
+//        float_point sum = 0;
+//        float_point d = 0;
+//        int x = 0;
+//        int y = 0;
+//        while (sample[x].index != -1 && supportVector[y].index != -1) {
+//            if (sample[x].index == supportVector[y].index)
+//                d = sample[x++].value - supportVector[y++].value;
+//            else if (sample[x].index < supportVector[y].index)
+//                d = sample[x++].value;
+//            else
+//                d = supportVector[y++].value;
+//            sum += d * d;
+//        }
+//        while (sample[x].index != -1) {
+//            sum += sample[x].value * sample[x].value;
+//            x++;
+//        }
+//        while (supportVector[y].index != -1) {
+//            sum += supportVector[y].value * supportVector[y].value;
+//            y++;
+//        }
+//        kernelValues[idx] = coef[SVId] * exp(-gamma * sum);
+//    }
+//};
+__global__ void rbfKernel(const float_point *sampleSelfDot, int numOfSamples,
+                          const float_point *svMapSelfDot, int svMapSize,
+                          float_point *kernelValues, float_point gamma) {
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
-    int sampleId = idx / numOfSVs;
-    int SVId = idx % numOfSVs;
+    int sampleId = idx / svMapSize;
+    int SVId = idx % svMapSize;
     if (sampleId < numOfSamples) {
-        const svm_node *sample = samples[sampleId];
-        const svm_node *supportVector = supportVectors[SVId];
-        float_point sum = 0;
-        float_point d = 0;
-        int x = 0;
-        int y = 0;
-        while (sample[x].index != -1 && supportVector[y].index != -1) {
-            if (sample[x].index == supportVector[y].index)
-                d = sample[x++].value - supportVector[y++].value;
-            else if (sample[x].index < supportVector[y].index)
-                d = sample[x++].value;
-            else
-                d = supportVector[y++].value;
-            sum += d * d;
-        }
-        while (sample[x].index != -1) {
-            sum += sample[x].value * sample[x].value;
-            x++;
-        }
-        while (supportVector[y].index != -1) {
-            sum += supportVector[y].value * supportVector[y].value;
-            y++;
-        }
-        kernelValues[idx] = coef[SVId] * exp(-gamma * sum);
+        float_point sampleDot = sampleSelfDot[sampleId];
+        float_point svDot = svMapSelfDot[SVId];
+        float_point dot = kernelValues[idx];
+        kernelValues[idx] = expf(-gamma * (sampleDot + svDot - 2 * dot));
     }
 };
 
-__global__ void sumKernelValues(const float *kernelValues, int numOfSamples, int numOfSVs, int cnr2,
+__global__ void sumKernelValues(const float_point *kernelValues, int numOfSamples, int svMapSize, int cnr2,
+                                const int *svIndex, const float_point *coef,
                                 const int *start, const int *count,
-                                const float *bias, float_point *decValues) {
+                                const float_point *bias, float_point *decValues) {
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
     int sampleId = idx / cnr2;
     int modelId = idx % cnr2;
     if (sampleId < numOfSamples) {
         float_point sum = 0;
-        const float_point *kernelValue = kernelValues + sampleId * numOfSVs + start[modelId];
-        for (int i = 0; i < count[modelId]; ++i) {
-            sum += kernelValue[i];
+        const float_point *kernelValue = kernelValues + sampleId * svMapSize;
+        int si = start[modelId];
+        int ci = count[modelId];
+        for (int i = 0; i < ci; ++i) {
+            sum += coef[si + i] * kernelValue[svIndex[si + i]];
         }
         decValues[idx] = sum - bias[modelId];
     }
 }
 
 SvmModel::~SvmModel() {
-    checkCudaErrors(cudaFree(devSVs));
+//    checkCudaErrors(cudaFree(devSVs));
     checkCudaErrors(cudaFree(devCoef));
     checkCudaErrors(cudaFree(devStart));
     checkCudaErrors(cudaFree(devCount));
     checkCudaErrors(cudaFree(devProbA));
     checkCudaErrors(cudaFree(devProbB));
     checkCudaErrors(cudaFree(devRho));
+    checkCudaErrors(cudaFree(devSVMapVal));
+    checkCudaErrors(cudaFree(devSVMapValSelfDot));
+    checkCudaErrors(cudaFree(devSVMapRowPtr));
+    checkCudaErrors(cudaFree(devSVMapColInd));
+    checkCudaErrors(cudaFree(devSVIndex));
+    if (svMapCSRMat) delete svMapCSRMat;
 }
 
 unsigned int SvmModel::getK(int i, int j) const {
@@ -102,7 +125,6 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
     probA.resize(cnr2);
     probB.resize(cnr2);
     svIndex.resize(cnr2);
-    svMap.resize(problem.getNumOfSamples());
 
     this->param = param;
     label = problem.label;
@@ -144,14 +166,28 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
 }
 
 void SvmModel::transferToDevice() {
-    checkCudaErrors(cudaMallocManaged((void ***) &devSVs, sizeof(svm_node *) * numOfSVs));
+    //convert svMap to csr matrix then copy it to device
+    svMapCSRMat = new CSRMatrix(svMap);
+    int nnz = svMapCSRMat->getNnz();
+    checkCudaErrors(cudaMalloc((void **) &devSVMapVal, sizeof(float_point) * nnz));
+    checkCudaErrors(cudaMalloc((void **) &devSVMapValSelfDot, sizeof(float_point) * svMapCSRMat->getNumOfSamples()));
+    checkCudaErrors(cudaMalloc((void **) &devSVMapRowPtr, sizeof(int) * (svMapCSRMat->getNumOfSamples() + 1)));
+    checkCudaErrors(cudaMalloc((void **) &devSVMapColInd, sizeof(int) * nnz));
+    checkCudaErrors(
+            cudaMemcpy(devSVMapVal, svMapCSRMat->getCSRVal(), sizeof(float_point) * nnz, cudaMemcpyHostToDevice));
+    checkCudaErrors(
+            cudaMemcpy(devSVMapValSelfDot, svMapCSRMat->getCSRValSelfDot(),
+                       sizeof(float_point) * svMapCSRMat->getNumOfSamples(), cudaMemcpyHostToDevice));
+    checkCudaErrors(
+            cudaMemcpy(devSVMapRowPtr, svMapCSRMat->getCSRRowPtr(), sizeof(int) * (svMapCSRMat->getNumOfSamples() + 1),
+                       cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(devSVMapColInd, svMapCSRMat->getCSRColInd(), sizeof(int) * nnz, cudaMemcpyHostToDevice));
+
+    //flat svIndex then copy in to device
+    checkCudaErrors(cudaMalloc((void **) &devSVIndex, sizeof(int) * numOfSVs));
     for (int i = 0; i < cnr2; ++i) {
-        for (int j = 0; j < count[i]; ++j) {
-            vector<svm_node> &sv = svMap[svIndex[i][j]];
-            checkCudaErrors(
-                    cudaMallocManaged((void **) &devSVs[start[i] + j], sizeof(svm_node) * sv.size()));
-            memcpy(devSVs[start[i]+j],sv.data(), sizeof(svm_node) * sv.size());
-        }
+        checkCudaErrors(cudaMemcpy(devSVIndex + start[i], svIndex[i].data(), sizeof(int) * svIndex[i].size(),
+                                   cudaMemcpyHostToDevice));
     }
 
     checkCudaErrors(cudaMalloc((void **) &devCoef, sizeof(float_point) * numOfSVs));
@@ -281,13 +317,17 @@ void SvmModel::sigmoidTrain(const float_point *decValues, const int l, const vec
 }
 
 void SvmModel::addBinaryModel(const SvmProblem &problem, const svm_model &bModel, int i, int j) {
+    static map<int, int> indexMap;
     int k = getK(i, j);
-    svIndex[k].resize(bModel.nSV[0] + bModel.nSV[1]);
     for (int l = 0; l < bModel.nSV[0] + bModel.nSV[1]; ++l) {
         coef[k].push_back(bModel.sv_coef[0][l]);
         int originalIndex = problem.originalIndex[bModel.pnIndexofSV[l]];
-        svIndex[k][l] = originalIndex;
-        svMap[originalIndex] = problem.v_vSamples[bModel.pnIndexofSV[l]];
+        if (indexMap.find(originalIndex) != indexMap.end()) {
+        } else {
+            indexMap[originalIndex] = svMap.size();
+            svMap.push_back(problem.v_vSamples[bModel.pnIndexofSV[l]]);
+        }
+        svIndex[k].push_back(indexMap[originalIndex]);
     }
     rho[k] = bModel.rho[0];
     numOfSVs += bModel.nSV[0] + bModel.nSV[1];
@@ -297,25 +337,57 @@ void
 SvmModel::predictValues(const vector<vector<svm_node> > &v_vSamples,
                         vector<vector<float_point> > &decisionValues) const {
     //copy samples to device
-    svm_node **devSamples;
-    checkCudaErrors(cudaMallocManaged((void ***) &devSamples, sizeof(svm_node *) * v_vSamples.size()));
-    for (int i = 0; i < v_vSamples.size(); ++i) {
-        checkCudaErrors(cudaMallocManaged((void **) &devSamples[i], sizeof(svm_node) * v_vSamples[i].size()));
-        memcpy(devSamples[i], v_vSamples[i].data(),sizeof(svm_node) * v_vSamples[i].size());
-    }
+    CSRMatrix sampleCSRMat(v_vSamples);
+    float_point *devSampleVal;
+    float_point *devSampleValSelfDot;
+    int *devSampleRowPtr;
+    int *devSampleColInd;
+    int sampleNnz = sampleCSRMat.getNnz();
+    checkCudaErrors(cudaMalloc((void **) &devSampleVal, sizeof(float_point) * sampleNnz));
+    checkCudaErrors(cudaMalloc((void **) &devSampleValSelfDot, sizeof(float_point) * sampleCSRMat.getNumOfSamples()));
+    checkCudaErrors(cudaMalloc((void **) &devSampleRowPtr, sizeof(int) * (sampleCSRMat.getNumOfSamples() + 1)));
+    checkCudaErrors(cudaMalloc((void **) &devSampleColInd, sizeof(int) * sampleNnz));
+    checkCudaErrors(cudaMemcpy(devSampleVal, sampleCSRMat.getCSRVal(), sizeof(float_point) * sampleNnz,
+                               cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(devSampleValSelfDot, sampleCSRMat.getCSRValSelfDot(),
+                               sizeof(float_point) * sampleCSRMat.getNumOfSamples(), cudaMemcpyHostToDevice));
+    checkCudaErrors(
+            cudaMemcpy(devSampleRowPtr, sampleCSRMat.getCSRRowPtr(), sizeof(int) * (sampleCSRMat.getNumOfSamples() + 1),
+                       cudaMemcpyHostToDevice));
+    checkCudaErrors(
+            cudaMemcpy(devSampleColInd, sampleCSRMat.getCSRColInd(), sizeof(int) * sampleNnz, cudaMemcpyHostToDevice));
 
-
+    cusparseHandle_t handle;
+    cusparseMatDescr_t descr;
+    cusparseCreate(&handle);
+    cusparseCreateMatDescr(&descr);
+    cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);
+    cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
     float_point *devKernelValues;
     checkCudaErrors(cudaMalloc((void **) &devKernelValues,
-                               sizeof(float_point) * v_vSamples.size() * numOfSVs));
-    int numOfBlock = Ceil(v_vSamples.size() * numOfSVs, BLOCK_SIZE);
-    rbfKernel << < numOfBlock, BLOCK_SIZE >> > ((const svm_node**)devSamples, v_vSamples.size(),
-            (const svm_node**)devSVs, numOfSVs, devKernelValues, param.gamma, devCoef);
+                               sizeof(float_point) * v_vSamples.size() * svMap.size()));
+
+    //dot product between sv and sample
+    CSRMatrix::CSRmm2Dense(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
+                           sampleCSRMat.getNumOfSamples(), svMapCSRMat->getNumOfSamples(),
+                           svMapCSRMat->getMaxFeatures(),
+                           descr, sampleNnz, devSampleVal, devSampleRowPtr, devSampleColInd,
+                           descr, svMapCSRMat->getNnz(), devSVMapVal, devSVMapRowPtr, devSVMapColInd,
+                           devKernelValues);
+
+    //obtain exp(-gamma*(a^2+b^2-2ab))
+    int numOfBlock = Ceil(v_vSamples.size() * svMap.size(), BLOCK_SIZE);
+    rbfKernel << < numOfBlock, BLOCK_SIZE >> >
+                               (devSampleValSelfDot, sampleCSRMat.getNumOfSamples(),
+                                       devSVMapValSelfDot, svMapCSRMat->getNumOfSamples(),
+                                       devKernelValues, param.gamma);
+
+    //sum kernel values of each model then obtain decision values
     numOfBlock = Ceil(v_vSamples.size() * cnr2, BLOCK_SIZE);
     float_point *devDecisionValues;
     checkCudaErrors(cudaMalloc((void **) &devDecisionValues, sizeof(float_point) * v_vSamples.size() * cnr2));
     sumKernelValues << < numOfBlock, BLOCK_SIZE >> > (devKernelValues, v_vSamples.size(),
-            numOfSVs, cnr2, devStart, devCount, devRho, devDecisionValues);
+            svMapCSRMat->getNumOfSamples(), cnr2, devSVIndex, devCoef, devStart, devCount, devRho, devDecisionValues);
     float_point *tempDecValues = new float_point[v_vSamples.size() * cnr2];
     checkCudaErrors(cudaMemcpy(tempDecValues, devDecisionValues,
                                sizeof(float_point) * v_vSamples.size() * cnr2, cudaMemcpyDeviceToHost));
@@ -324,9 +396,14 @@ SvmModel::predictValues(const vector<vector<svm_node> > &v_vSamples,
         memcpy(decisionValues[i].data(), tempDecValues + i * cnr2, sizeof(float_point) * cnr2);
     }
     delete[] tempDecValues;
-    checkCudaErrors(cudaFree(devSamples));
     checkCudaErrors(cudaFree(devDecisionValues));
     checkCudaErrors(cudaFree(devKernelValues));
+    checkCudaErrors(cudaFree(devSampleVal));
+    checkCudaErrors(cudaFree(devSampleValSelfDot));
+    checkCudaErrors(cudaFree(devSampleRowPtr));
+    checkCudaErrors(cudaFree(devSampleColInd));
+    cusparseDestroy(handle);
+    cusparseDestroyMatDescr(descr);
 }
 
 vector<int> SvmModel::predict(const vector<vector<svm_node> > &v_vSamples, bool probability) const {

@@ -112,8 +112,8 @@ DataIO.o: mascot/DataIOOps/DataIO.h mascot/DataIOOps/DataIO.cpp
 ReadHelper.o: mascot/DataIOOps/ReadHelper.cpp
 	g++ $(CCFLAGS) -o ReadHelper.o -c mascot/DataIOOps/ReadHelper.cpp
 
-svmProblem.o: mascot/svmProblem.cpp mascot/svmProblem.h
-	g++ $(CCFLAGS) -o svmProblem.o -c mascot/svmProblem.cpp
+svmProblem.o: mascot/svmProblem.cu mascot/svmProblem.h
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o svmProblem.o -c mascot/svmProblem.cu
 
 kernelFunction.o: svm-shared/HessianIO/hostKernelCalculater/kernelFunction.cpp svm-shared/HessianIO/hostKernelCalculater/kernelFunction.h
 	g++ $(CCFLAGS) -o kernelFunction.o -c svm-shared/HessianIO/hostKernelCalculater/kernelFunction.cpp

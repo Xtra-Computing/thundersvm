@@ -26,7 +26,7 @@ public:
         cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
         nnz = csrMat.getNnz();
         checkCudaErrors(cudaMalloc((void **) &devValA, sizeof(float_point) * csrMat.getNnz()));
-        checkCudaErrors(cudaMalloc((void **) &devValASelfDot, sizeof(float_point) * csrMat.getNnz()));
+        checkCudaErrors(cudaMalloc((void **) &devValASelfDot, sizeof(float_point) * csrMat.getNumOfSamples()));
         checkCudaErrors(cudaMalloc((void **) &devRowPtrA, sizeof(int) * (csrMat.getNumOfSamples() + 1)));
         checkCudaErrors(cudaMalloc((void **) &devColIndA, sizeof(int) * (csrMat.getNnz())));
         checkCudaErrors(cudaMemcpy(devValA,csrMat.getCSRVal(), sizeof(float_point) * csrMat.getNnz(),

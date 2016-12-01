@@ -17,9 +17,10 @@ __global__ void RBFKernel(const float_point *aSelfDot, int bRow, float_point *do
 void DeviceHessianOnFly::ReadRow(int nPosofRowAtHessian, float_point *pfHessianRow) {
     const int numOfSamples = csrMat.getNumOfSamples();
     const int numOfFeatures = csrMat.getMaxFeatures();
-    const int nnzB = csrMat.getCSRRowPtr()[nPosofRowAtHessian + 1] - csrMat.getCSRRowPtr()[nPosofRowAtHessian];
-    const float_point *devBVal = devValA + csrMat.getCSRRowPtr()[nPosofRowAtHessian];
-    const int *devBInd = devColIndA + csrMat.getCSRRowPtr()[nPosofRowAtHessian];
+    const int *csrRowPtr = csrMat.getCSRRowPtr();
+    const int nnzB = csrRowPtr[nPosofRowAtHessian + 1] - csrRowPtr[nPosofRowAtHessian];
+    const float_point *devBVal = devValA + csrRowPtr[nPosofRowAtHessian];
+    const int *devBInd = devColIndA + csrRowPtr[nPosofRowAtHessian];
     float_point *devBDense;
     checkCudaErrors(cudaMalloc((void **) &devBDense, sizeof(float_point) * numOfFeatures));
     checkCudaErrors(cudaMemset(devBDense, 0, sizeof(float_point) * numOfFeatures));

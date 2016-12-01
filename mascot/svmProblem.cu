@@ -2,6 +2,8 @@
 // Created by shijiashuai on 2016/11/1.
 //
 
+#include <cuda_runtime.h>
+#include <helper_cuda.h>
 #include "svmProblem.h"
 
 void SvmProblem::groupClasses() {
@@ -63,13 +65,13 @@ SvmProblem SvmProblem::getSubProblem(int i, int j) const {
     int cj = count[j];
     for (int k = 0; k < ci; ++k) {
         v_vSamples.push_back(this->v_vSamples[perm[si + k]]);
-        originalIndex.push_back(perm[si +k]);
+        originalIndex.push_back(perm[si + k]);
         originalLabel.push_back(i);
         v_nLabels.push_back(+1);
     }
     for (int k = 0; k < cj; ++k) {
         v_vSamples.push_back(this->v_vSamples[perm[sj + k]]);
-        originalIndex.push_back(perm[sj +k]);
+        originalIndex.push_back(perm[sj + k]);
         originalLabel.push_back(j);
         v_nLabels.push_back(-1);
     }
@@ -87,22 +89,21 @@ unsigned long long SvmProblem::getNumOfSamples() const {
     return v_vSamples.size();
 }
 
-CSRMatrix::CSRMatrix(vector<vector<svm_node> > &samples):samples(samples) {
+CSRMatrix::CSRMatrix(const vector<vector<svm_node> > &samples) : samples(samples) {
     int start = 0;
     for (int i = 0; i < samples.size(); ++i) {
         csrRowPtr.push_back(start);
-        samples[i].pop_back();//delete end node for libsvm data format
-        start += samples[i].size();
+        int size = samples[i].size() - 1; //ignore end node for libsvm data format
+        start += size;
         float_point sum = 0;
-        for (int j = 0; j < samples[i].size(); ++j) {
+        for (int j = 0; j < size; ++j) {
             csrVal.push_back(samples[i][j].value);
-            sum += samples[i][j].value*samples[i][j].value;
-            csrColInd.push_back(samples[i][j].index-1);//libsvm data format is one-based, convert it to zero-based
+            sum += samples[i][j].value * samples[i][j].value;
+            csrColInd.push_back(samples[i][j].index - 1);//libsvm data format is one-based, convert it to zero-based
         }
         csrValSelfDot.push_back(sum);
-        if (samples[i].size()>maxFeatures)
-            maxFeatures = samples[i].size();
-        samples[i].push_back(svm_node(-1,0));
+        if (size > maxFeatures)
+            maxFeatures = size;
     }
     csrRowPtr.push_back(start);
 }
@@ -133,5 +134,46 @@ int CSRMatrix::getMaxFeatures() const {
 
 int CSRMatrix::getNumOfSamples() const {
     return samples.size();
+}
+
+void
+CSRMatrix::CSRmm2Dense(cusparseHandle_t handle, cusparseOperation_t transA, cusparseOperation_t transB, int m, int n,
+                       int k, const cusparseMatDescr_t descrA, const int nnzA, const float *valA, const int *rowPtrA,
+                       const int *colIndA, const cusparseMatDescr_t descrB, const int nnzB, const float *valB,
+                       const int *rowPtrB, const int *colIndB, float *C) {
+    /*
+     * The CSRmm2Dense result is column-major instead of row-major. To avoid transposing the result
+     * we compute B'A' instead of AB : (AB)' = B'A'
+     * */
+    if (transA == CUSPARSE_OPERATION_NON_TRANSPOSE)
+        transA = CUSPARSE_OPERATION_TRANSPOSE;
+    else transA = CUSPARSE_OPERATION_NON_TRANSPOSE;
+    if (transB == CUSPARSE_OPERATION_NON_TRANSPOSE)
+        transB = CUSPARSE_OPERATION_TRANSPOSE;
+    else transB = CUSPARSE_OPERATION_NON_TRANSPOSE;
+    cusparseMatDescr_t descrC = descrA;
+    int baseC, nnzC; // nnzTotalDevHostPtr points to host memory
+    int *nnzTotalDevHostPtr = &nnzC;
+    cusparseSetPointerMode(handle, CUSPARSE_POINTER_MODE_HOST);
+    int *colIndC;
+    float *valC;
+    int *rowPtrC;
+    checkCudaErrors(cudaMalloc((void **) &rowPtrC, sizeof(int) * (n + 1)));
+    cusparseXcsrgemmNnz(handle, transB, transA, n, m, k, descrB, nnzB, rowPtrB, colIndB, descrA, nnzA, rowPtrA,
+                        colIndA, descrC, rowPtrC, nnzTotalDevHostPtr);
+    if (NULL != nnzTotalDevHostPtr) { nnzC = *nnzTotalDevHostPtr; }
+    else {
+        checkCudaErrors(cudaMemcpy(&nnzC, rowPtrC + m, sizeof(int), cudaMemcpyDeviceToHost));
+        checkCudaErrors(cudaMemcpy(&baseC, rowPtrC, sizeof(int), cudaMemcpyDeviceToHost));
+        nnzC -= baseC;
+    }
+    checkCudaErrors(cudaMalloc((void **) &colIndC, sizeof(int) * nnzC));
+    checkCudaErrors(cudaMalloc((void **) &valC, sizeof(float) * nnzC));
+    cusparseScsrgemm(handle, transB, transA, n, m, k, descrB, nnzB, valB, rowPtrB, colIndB, descrA, nnzA,
+                     valA, rowPtrA, colIndA, descrC, valC, rowPtrC, colIndC);
+    cusparseScsr2dense(handle, n, m, descrC, valC, rowPtrC, colIndC, C, n);
+    checkCudaErrors(cudaFree(colIndC));
+    checkCudaErrors(cudaFree(valC));
+    checkCudaErrors(cudaFree(rowPtrC));
 }
 

@@ -137,7 +137,7 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNum
 
     vector<int> predictLabels = model.predict(v_v_DocVector, model.isProbability());
     int numOfCorrect = 0;
-    for (int i = 0; i < v_v_DocVector.size(); ++i) 
+    for (int i = 0; i < v_v_DocVector.size(); ++i)
     {
         if (predictLabels[i] == v_nLabel[i])
             numOfCorrect++;
