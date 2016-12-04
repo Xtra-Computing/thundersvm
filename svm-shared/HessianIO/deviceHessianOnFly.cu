@@ -16,7 +16,7 @@ __global__ void RBFKernel(const float_point *aSelfDot, int bRow, float_point *do
 
 void DeviceHessianOnFly::ReadRow(int nPosofRowAtHessian, float_point *pfHessianRow) {
     const int numOfSamples = csrMat.getNumOfSamples();
-    const int numOfFeatures = csrMat.getMaxFeatures();
+    const int numOfFeatures = csrMat.getNumOfFeatures();
     const int *csrRowPtr = csrMat.getCSRRowPtr();
     const int nnzB = csrRowPtr[nPosofRowAtHessian + 1] - csrRowPtr[nPosofRowAtHessian];
     const float_point *devBVal = devValA + csrRowPtr[nPosofRowAtHessian];
@@ -37,6 +37,19 @@ void DeviceHessianOnFly::ReadRow(int nPosofRowAtHessian, float_point *pfHessianR
                                                                 (devValASelfDot, nPosofRowAtHessian, devC, numOfSamples, gamma);
     checkCudaErrors(
             cudaMemcpy(pfHessianRow, devC, sizeof(float_point) * numOfSamples, cudaMemcpyDeviceToHost));
+//    RBFKernelFunction function(gamma);
+//    float_point *hostKernel = new float_point[problem.getNumOfSamples()];
+//    float_point totalErr = 0;
+//    function.ComputeSparseRow(problem.v_vSamples,nPosofRowAtHessian,1,hostKernel);
+//    pfHessianRow[nPosofRowAtHessian] = 1.0f;
+//    for (int i = 0; i < problem.getNumOfSamples(); ++i) {
+//       float_point err = fabs(hostKernel[i] - pfHessianRow[i]);
+//        totalErr +=err;
+//        printf("row %d, col %d, host %f, device %f,err %f\n",nPosofRowAtHessian, i, hostKernel[i],pfHessianRow[i],err);
+//    }
+//    printf("compute row %d, total err %f\n",nPosofRowAtHessian,totalErr);
+//    memcpy(pfHessianRow,hostKernel,sizeof(float_point) * numOfSamples);
+//    delete[] hostKernel;
     checkCudaErrors(cudaFree(devBDense));
     checkCudaErrors(cudaFree(devC));
 }

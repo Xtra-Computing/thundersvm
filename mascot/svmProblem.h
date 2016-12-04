@@ -19,13 +19,16 @@ public:
     vector<int> start;
     vector<int> perm;
     vector<int> label;
+    int numOfFeatures;
+
+    int getNumOfFeatures() const;
 
     //for subProblem
     vector<int> originalIndex;
     vector<int> originalLabel;
 
-    SvmProblem(const vector<vector<svm_node> > &v_vSamples, const vector<int> &v_nLabels) :
-            v_vSamples(v_vSamples), v_nLabels(v_nLabels){
+    SvmProblem(const vector<vector<svm_node> > &v_vSamples, int numOfFeatures, const vector<int> &v_nLabels) :
+            v_vSamples(v_vSamples), v_nLabels(v_nLabels), numOfFeatures(numOfFeatures){
         this->groupClasses();
     }
 
@@ -45,8 +48,11 @@ public:
     vector<float_point> csrValSelfDot;
     vector<int> csrRowPtr;
     vector<int> csrColInd;
-    int maxFeatures;
-    CSRMatrix(const vector<vector<svm_node> >&samples);
+    int numOfFeatures;
+
+    int getNumOfFeatures() const;
+
+    CSRMatrix(const vector<vector<svm_node> >&samples, int numOfFeatures);
     int getNnz() const;
 
     const float_point *getCSRVal() const;
@@ -56,8 +62,6 @@ public:
     const int *getCSRRowPtr() const;
 
     const int *getCSRColInd() const;
-
-    int getMaxFeatures() const;
 
     int getNumOfSamples() const;
     static void CSRmm2Dense(cusparseHandle_t handle, cusparseOperation_t transA, cusparseOperation_t transB,

@@ -75,7 +75,7 @@ SvmProblem SvmProblem::getSubProblem(int i, int j) const {
         originalLabel.push_back(j);
         v_nLabels.push_back(-1);
     }
-    SvmProblem subProblem(v_vSamples, v_nLabels);
+    SvmProblem subProblem(v_vSamples, numOfFeatures, v_nLabels);
     subProblem.originalIndex = originalIndex;
     subProblem.originalLabel = originalLabel;
     return subProblem;
@@ -89,7 +89,11 @@ unsigned long long SvmProblem::getNumOfSamples() const {
     return v_vSamples.size();
 }
 
-CSRMatrix::CSRMatrix(const vector<vector<svm_node> > &samples) : samples(samples) {
+int SvmProblem::getNumOfFeatures() const {
+    return numOfFeatures;
+}
+
+CSRMatrix::CSRMatrix(const vector<vector<svm_node> > &samples, int numOfFeatures) : samples(samples), numOfFeatures(numOfFeatures) {
     int start = 0;
     for (int i = 0; i < samples.size(); ++i) {
         csrRowPtr.push_back(start);
@@ -102,8 +106,6 @@ CSRMatrix::CSRMatrix(const vector<vector<svm_node> > &samples) : samples(samples
             csrColInd.push_back(samples[i][j].index - 1);//libsvm data format is one-based, convert it to zero-based
         }
         csrValSelfDot.push_back(sum);
-        if (size > maxFeatures)
-            maxFeatures = size;
     }
     csrRowPtr.push_back(start);
 }
@@ -126,10 +128,6 @@ const int *CSRMatrix::getCSRRowPtr() const {
 
 const int *CSRMatrix::getCSRColInd() const {
     return csrColInd.data();
-}
-
-int CSRMatrix::getMaxFeatures() const {
-    return maxFeatures;
 }
 
 int CSRMatrix::getNumOfSamples() const {
@@ -175,5 +173,9 @@ CSRMatrix::CSRmm2Dense(cusparseHandle_t handle, cusparseOperation_t transA, cusp
     checkCudaErrors(cudaFree(colIndC));
     checkCudaErrors(cudaFree(valC));
     checkCudaErrors(cudaFree(rowPtrC));
+}
+
+int CSRMatrix::getNumOfFeatures() const {
+    return numOfFeatures;
 }
 

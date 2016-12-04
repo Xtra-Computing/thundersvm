@@ -22,6 +22,7 @@ private:
     unsigned int nrClass;
     unsigned int cnr2;
     int numOfSVs;
+    int numOfFeatures;
     vector<vector<int> > svIndex;
     vector<vector<svm_node> > svMap;
     CSRMatrix *svMapCSRMat = NULL;

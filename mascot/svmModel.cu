@@ -109,6 +109,7 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
     nrClass = problem.getNumOfClasses();
     cnr2 = (nrClass) * (nrClass - 1) / 2;
     numOfSVs = 0;
+    numOfFeatures = 0;
     coef.clear();
     rho.clear();
     probA.clear();
@@ -128,6 +129,7 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
 
     this->param = param;
     label = problem.label;
+    numOfFeatures = problem.getNumOfFeatures();
 
     //train nrClass*(nrClass-1)/2 binary models
     int k = 0;
@@ -167,7 +169,7 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
 
 void SvmModel::transferToDevice() {
     //convert svMap to csr matrix then copy it to device
-    svMapCSRMat = new CSRMatrix(svMap);
+    svMapCSRMat = new CSRMatrix(svMap,numOfFeatures);
     int nnz = svMapCSRMat->getNnz();
     checkCudaErrors(cudaMalloc((void **) &devSVMapVal, sizeof(float_point) * nnz));
     checkCudaErrors(cudaMalloc((void **) &devSVMapValSelfDot, sizeof(float_point) * svMapCSRMat->getNumOfSamples()));
@@ -337,7 +339,7 @@ void
 SvmModel::predictValues(const vector<vector<svm_node> > &v_vSamples,
                         vector<vector<float_point> > &decisionValues) const {
     //copy samples to device
-    CSRMatrix sampleCSRMat(v_vSamples);
+    CSRMatrix sampleCSRMat(v_vSamples, numOfFeatures);
     float_point *devSampleVal;
     float_point *devSampleValSelfDot;
     int *devSampleRowPtr;
@@ -370,7 +372,7 @@ SvmModel::predictValues(const vector<vector<svm_node> > &v_vSamples,
     //dot product between sv and sample
     CSRMatrix::CSRmm2Dense(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
                            sampleCSRMat.getNumOfSamples(), svMapCSRMat->getNumOfSamples(),
-                           svMapCSRMat->getMaxFeatures(),
+                           svMapCSRMat->getNumOfFeatures(),
                            descr, sampleNnz, devSampleVal, devSampleRowPtr, devSampleColInd,
                            descr, svMapCSRMat->getNnz(), devSVMapVal, devSVMapRowPtr, devSVMapColInd,
                            devKernelValues);

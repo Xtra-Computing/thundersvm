@@ -19,7 +19,7 @@
 class DeviceHessianOnFly : public BaseHessian {
 public:
     DeviceHessianOnFly(SvmProblem &problem, float_point gamma) :
-            gamma(gamma), problem(problem), zero(0.0f), one(1.0f), csrMat(problem.v_vSamples){
+            gamma(gamma), problem(problem), zero(0.0f), one(1.0f), csrMat(problem.v_vSamples, problem.getNumOfFeatures()){
         cusparseCreate(&handle);
         cusparseCreateMatDescr(&descr);
         cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);

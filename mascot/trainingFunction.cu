@@ -45,7 +45,9 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
     long long nNumofValue = 0;  //not used
     BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
     rawDataRead.ReadFromFileSparse(strTrainingFileName, nNumofFeature, v_v_DocVector, v_nLabel);
-    SvmProblem problem(v_v_DocVector, v_nLabel);
+//    v_v_DocVector = vector<vector<svm_node> >(v_v_DocVector.begin(),v_v_DocVector.begin()+1000);
+//    v_nLabel = vector<int>(v_nLabel.begin(), v_nLabel.begin()+1000);
+    SvmProblem problem(v_v_DocVector, nNumofFeature, v_nLabel);
     model.fit(problem, param);
 }
 
@@ -135,6 +137,7 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNum
 
     //perform svm classification
 
+//    v_v_DocVector = vector<vector<svm_node> >(v_v_DocVector.begin(),v_v_DocVector.begin()+500);
     vector<int> predictLabels = model.predict(v_v_DocVector, model.isProbability());
     int numOfCorrect = 0;
     for (int i = 0; i < v_v_DocVector.size(); ++i)
