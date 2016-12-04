@@ -24,7 +24,7 @@
 #define REDUCE1  0x00000002
 
 
-#define CACHE_SIZE 200
+#define CACHE_SIZE 1024
 //#define NUMOFSAMPLE 32561			//49749 web-a.dst; 31420 K9.data; 72309 real-sim;
 									//32561 adult a9a.txt; 60000 mnist.scale; 7291 usps; 400,000 (30,60,90,120) epsilon_normalized
 //#define TRAINING_DATA "dataset/a9a.txt"

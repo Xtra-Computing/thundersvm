@@ -117,16 +117,16 @@ int StorageManager::PartOfCol(int nPartsOfARow, int nInstace, int nDim)
 int StorageManager::RowInGPUCache(int nNumofTrainingExample, int nNumofInstance)
 {
 	//initialize cache
-	long nMaxNumofFloatPoint = m_nMaxNumofFloatPointInGPU;//(long(CACHE_SIZE) * 1024 * 1024 / 4) - (2 * nNumofTrainingExample);//GetFreeGPUMem(); use 500MB memory
-	//long nMaxNumofFloatPoint = (long(CACHE_SIZE) * 1024 * 1024 / 4) - (2 * nNumofTrainingExample);
+//	long nMaxNumofFloatPoint = m_nMaxNumofFloatPointInGPU;//(long(CACHE_SIZE) * 1024 * 1024 / 4) - (2 * nNumofTrainingExample);//GetFreeGPUMem(); use 500MB memory
+	long nMaxNumofFloatPoint = (long(CACHE_SIZE) * 1024 * 1024 / 4) - (2 * nNumofTrainingExample);
 	//GPU memory stores a Hessian diagonal, and a few rows of Hessian matrix
 	int nMaxCacheSize = (nMaxNumofFloatPoint - nNumofInstance) / nNumofInstance;
 	//GPU memory can't go to 100%, so we use a ratio here
 	int nSizeofCache = nMaxCacheSize * 0.9;
-if(nNumofInstance == 50000)
-	nSizeofCache = 46000;
-if(nNumofInstance == 53500)
-	nSizeofCache = 42000;
+//if(nNumofInstance == 50000)
+//	nSizeofCache = 46000;
+//if(nNumofInstance == 53500)
+//	nSizeofCache = 42000;
 	if(nSizeofCache > nNumofInstance)
 	{
 		nSizeofCache = nNumofInstance;
