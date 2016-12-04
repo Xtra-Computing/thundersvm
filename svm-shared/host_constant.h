@@ -22,7 +22,7 @@
 #define OUTPUT_FILE	"result.txt"
 
 #define TAU 0.001//1e-5//1e-12
-#define EPS 0.0001//0.0001
+#define EPS 0.001//0.0001
 #define ITERATION_FACTOR 50	//maximum iteration
 
 typedef float float_point; //this type is for facilitating interchangeability of float and double

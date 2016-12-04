@@ -137,14 +137,21 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNum
 
     //perform svm classification
 
-//    v_v_DocVector = vector<vector<svm_node> >(v_v_DocVector.begin(),v_v_DocVector.begin()+500);
-    vector<int> predictLabels = model.predict(v_v_DocVector, model.isProbability());
+    int batchSize = 1000;
+    int start = 0;
+    vector<int> predictLabels;
+    while (start < v_v_DocVector.size()) {
+        vector<vector<svm_node> > samples(v_v_DocVector.begin()+start,v_v_DocVector.begin()+min(start+batchSize, (int) v_v_DocVector.size()));
+        vector<int> predictLabelPart = model.predict(samples, model.isProbability());
+        predictLabels.insert(predictLabels.end(),predictLabelPart.begin(),predictLabelPart.end());
+        start += batchSize;
+    }
     int numOfCorrect = 0;
     for (int i = 0; i < v_v_DocVector.size(); ++i)
     {
         if (predictLabels[i] == v_nLabel[i])
             numOfCorrect++;
     }
-    printf("training accuracy = %.2f%%(%d/%d)\n", numOfCorrect / (float) v_v_DocVector.size()*100, 
-            numOfCorrect, (int) v_v_DocVector.size());
+    printf("training accuracy = %.2f%%(%d/%d)\n", numOfCorrect / (float) v_v_DocVector.size()*100,
+           numOfCorrect, (int) v_v_DocVector.size());
 }
