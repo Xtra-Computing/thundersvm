@@ -37,6 +37,7 @@ using std::endl;
 
 void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, SvmModel &model) {
 
+    clock_t start, end;
     vector<vector<svm_node> > v_v_DocVector;
     vector<int> v_nLabel;
 
@@ -48,7 +49,10 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
 //    v_v_DocVector = vector<vector<svm_node> >(v_v_DocVector.begin(),v_v_DocVector.begin()+1000);
 //    v_nLabel = vector<int>(v_nLabel.begin(), v_nLabel.begin()+1000);
     SvmProblem problem(v_v_DocVector, nNumofFeature, v_nLabel);
+    start = clock();
     model.fit(problem, param);
+    end = clock();
+    printf("training time elapsed: %.2fs\n",(float)(end - start)/CLOCKS_PER_SEC);
 }
 
 svm_model trainBinarySVM(SvmProblem &problem, const SVMParam &param) {
@@ -137,15 +141,18 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNum
 
     //perform svm classification
 
-    int batchSize = 1000;
-    int start = 0;
+    int batchSize = 5000;
+    int begin = 0;
     vector<int> predictLabels;
-    while (start < v_v_DocVector.size()) {
-        vector<vector<svm_node> > samples(v_v_DocVector.begin()+start,v_v_DocVector.begin()+min(start+batchSize, (int) v_v_DocVector.size()));
+    clock_t start, end;
+    start = clock();
+    while (begin < v_v_DocVector.size()) {
+        vector<vector<svm_node> > samples(v_v_DocVector.begin()+begin,v_v_DocVector.begin()+min(begin+batchSize, (int) v_v_DocVector.size()));
         vector<int> predictLabelPart = model.predict(samples, model.isProbability());
         predictLabels.insert(predictLabels.end(),predictLabelPart.begin(),predictLabelPart.end());
-        start += batchSize;
+        begin += batchSize;
     }
+    end = clock();
     int numOfCorrect = 0;
     for (int i = 0; i < v_v_DocVector.size(); ++i)
     {
@@ -154,4 +161,5 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNum
     }
     printf("training accuracy = %.2f%%(%d/%d)\n", numOfCorrect / (float) v_v_DocVector.size()*100,
            numOfCorrect, (int) v_v_DocVector.size());
+    printf("prediction time elapsed: %.2fs\n",(float)(end - start)/CLOCKS_PER_SEC);
 }
