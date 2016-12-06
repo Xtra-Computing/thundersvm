@@ -32,3 +32,5 @@ FAQ:
 
 6. I got "error while loading shared libraries: libcudart.so.6.0: wrong ELF class: ELFCLASS32", when I run the executable file "mascot".<br>
 <b>A</b>: Running the command ''sudo ldconfig /usr/local/cuda/lib64'' should resolve the problem..
+
+7.chenyawen test
