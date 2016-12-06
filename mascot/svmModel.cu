@@ -17,6 +17,8 @@
 #include "trainingFunction.h"
 #include<map>
 
+#include "sigmoidTrainGPUHelper.h"
+
 //todo move these kernel functions to a proper file
 //__global__ void rbfKernel(const svm_node **samples, int numOfSamples, const svm_node **supportVectors, int numOfSVs,
 //                          float_point *kernelValues, float_point gamma,
@@ -208,6 +210,201 @@ void SvmModel::transferToDevice() {
     checkCudaErrors(cudaMemcpy(devCount, count.data(), sizeof(int) * cnr2, cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(devRho, rho.data(), sizeof(float_point) * cnr2, cudaMemcpyHostToDevice));
 }
+
+void SvmModel::gpu_sigmoid_train(
+	int l, const float_point *dec_values, const double *labels, 
+	float_point& A, float_point& B)
+{
+	float prior1=0, prior0 = 0;
+	float *flabels;
+    //float *fdec_values;
+	flabels=Malloc(float,l);
+	//fdec_values=Malloc(float,l);
+	int i;
+	//thread
+	for (i=0;i<l;i++){
+		if (labels[i] > 0) 
+			{
+				prior1+=1;
+				
+		}
+		else {
+			prior0+=1;
+			
+		}
+		flabels[i]=(float)labels[i];
+		//fdec_values[i]=(float)dec_values[i];
+	}
+	int max_iter=100;	// Maximal number of iterations
+	float min_step=1e-10;	// Minimal step taken in line search
+	float sigma=1e-12;	// For numerically strict PD of Hessian
+	float eps=1e-5;
+	float hiTarget=(prior1+1.0)/(prior1+2.0);
+	float loTarget=1/(prior0+2.0);
+	//float *t=Malloc(float,l);
+	float fApB,p,q,h11,h22,h21,g1,g2,det,dA,dB,gd,stepsize;
+	float newA,newB,newf,d1,d2;
+	int iter;
+	int blocknum=(l+THREAD_NUM-1)/THREAD_NUM;
+	// Initial Point and Initial Fun Value
+	A=0.0; 
+	B=log((prior0+1.0)/(prior1+1.0));
+	float fval = 0.0;
+	//thread
+	float *dev_fApB,*dev_fval,*dev_labels,*dev_t,*dev_dec_values,
+	*dev_d1,*dev_d2,*dev_g1,*dev_g2,*dev_h11,*dev_h22,*dev_h21,*dev_p,*dev_q; 
+	float *dev_det,*dev_dA,*dev_dB,*dev_gd,*dev_newf;
+	checkCudaErrors(cudaMalloc((void**)&dev_fApB,sizeof(float)*l));
+	checkCudaErrors(cudaMalloc((void**)&dev_fval,sizeof(float)*(blocknum+1)*THREAD_NUM));
+	checkCudaErrors(cudaMalloc((void**)&dev_labels,sizeof(float)*l));
+	checkCudaErrors(cudaMalloc((void**)&dev_t,sizeof(float)*l));
+	checkCudaErrors(cudaMalloc((void**)&dev_dec_values,sizeof(float)*l));
+	checkCudaErrors(cudaMalloc((void**)&dev_p,sizeof(float)*l));
+	checkCudaErrors(cudaMalloc((void**)&dev_q,sizeof(float)*l));
+	checkCudaErrors(cudaMalloc((void**)&dev_d1,sizeof(float)*(blocknum+1)*THREAD_NUM));
+	checkCudaErrors(cudaMalloc((void**)&dev_d2,sizeof(float)*(blocknum+1)*THREAD_NUM));
+	checkCudaErrors(cudaMalloc((void**)&dev_g1,sizeof(float)*(blocknum+1)*THREAD_NUM));
+	checkCudaErrors(cudaMalloc((void**)&dev_h11,sizeof(float)*(blocknum+1)*THREAD_NUM));
+	checkCudaErrors(cudaMalloc((void**)&dev_h21,sizeof(float)*(blocknum+1)*THREAD_NUM));
+	checkCudaErrors(cudaMalloc((void**)&dev_h22,sizeof(float)));//?
+	checkCudaErrors(cudaMalloc((void**)&dev_g2,sizeof(float)));//?
+	checkCudaErrors(cudaMalloc((void**)&dev_det,sizeof(float)));
+	checkCudaErrors(cudaMalloc((void**)&dev_dA,sizeof(float)));
+	checkCudaErrors(cudaMalloc((void**)&dev_dB,sizeof(float)));
+	checkCudaErrors(cudaMalloc((void**)&dev_gd,sizeof(float)));
+	checkCudaErrors(cudaMalloc((void**)&dev_newf,sizeof(float)*(blocknum+1)*THREAD_NUM));
+
+	checkCudaErrors(cudaMemcpy(dev_labels,flabels,sizeof(float)*l,cudaMemcpyHostToDevice));
+	//checkCudaErrors(cudaMemcpy(dev_t,t,sizeof(float)*l,cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(dev_dec_values,dec_values,sizeof(float)*l,cudaMemcpyHostToDevice));
+	//get fApB
+	
+	checkCudaErrors(cudaMemset(dev_fval, 0, sizeof(float)*(blocknum+1)*THREAD_NUM));
+	checkCudaErrors(cudaMemset(dev_h11, 0, sizeof(float)*(blocknum+1)*THREAD_NUM));
+	checkCudaErrors(cudaMemset(dev_h21, 0, sizeof(float)*(blocknum+1)*THREAD_NUM));
+	checkCudaErrors(cudaMemset(dev_d1, 0, sizeof(float)*(blocknum+1)*THREAD_NUM));
+	checkCudaErrors(cudaMemset(dev_d2, 0, sizeof(float)*(blocknum+1)*THREAD_NUM));
+	checkCudaErrors(cudaMemset(dev_g1, 0, sizeof(float)*(blocknum+1)*THREAD_NUM));
+	checkCudaErrors(cudaMemset(dev_newf, 0, sizeof(float)*(blocknum+1)*THREAD_NUM));
+	//cudaDeviceSynchronize();
+	//shred mem size for per block
+	float *dev_sum;
+	checkCudaErrors(cudaMalloc((void**)&dev_sum,sizeof(float)*blocknum));
+
+	dev_getfApB_fval<<<blocknum,THREAD_NUM>>>(dev_fval,dev_labels,dev_t,dev_dec_values,dev_fApB,A,B,hiTarget,loTarget,l);
+	cudaDeviceSynchronize();
+	//get fval
+	//???????
+	dev_paral_red_sum<<<blocknum,THREAD_NUM,THREAD_NUM*sizeof(float)>>>(dev_fval,dev_sum,l);
+	//checkCudaErrors(cudaMemcpy(&fval,&dev_sum[2],sizeof(float),cudaMemcpyDeviceToHost));
+	dev_get_sum<<<1,1>>>(dev_sum,dev_fval,blocknum);//dev_get_fval_sum<<<1,1>>>(dev_fval);
+	
+	//checkCudaErrors(cudaMemcpy(&g1,dev_g1,sizeof(float),cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaFree(dev_labels));
+	for (iter=0;iter<max_iter;iter++)
+	{
+		// Update Gradient and Hessian (use H' = H + sigma I)
+	 // numerically ensures strict PD
+	
+			//get p q
+		dev_getfApB<<<blocknum,THREAD_NUM>>>(l,dev_fApB,dev_dec_values,A,B);		
+		dev_getpq<<<blocknum,THREAD_NUM>>>(l,dev_t,dev_fApB,dev_p,dev_q,dev_d1,dev_d2,dev_h11,dev_h21,dev_g1,dev_dec_values);//l?
+		
+		dev_paral_red_sum<<<blocknum,THREAD_NUM,THREAD_NUM*sizeof(float)>>>(dev_h11,dev_sum,l);
+		dev_get_sum<<<1,1>>>(dev_sum,dev_h11,blocknum);
+		dev_paral_red_sum<<<blocknum,THREAD_NUM,THREAD_NUM*sizeof(float)>>>(dev_h21,dev_sum,l);
+		dev_get_sum<<<1,1>>>(dev_sum,dev_h21,blocknum);
+		dev_paral_red_sum<<<blocknum,THREAD_NUM,THREAD_NUM*sizeof(float)>>>(dev_d2,dev_sum,l);
+		dev_get_sum<<<1,1>>>(dev_sum,dev_d2,blocknum);//d2[0]=h22
+		dev_paral_red_sum<<<blocknum,THREAD_NUM,THREAD_NUM*sizeof(float)>>>(dev_g1,dev_sum,l);
+		dev_get_sum<<<1,1>>>(dev_sum,dev_g1,blocknum);
+		dev_paral_red_sum<<<blocknum,THREAD_NUM,THREAD_NUM*sizeof(float)>>>(dev_d1,dev_sum,l);
+		dev_get_sum<<<1,1>>>(dev_sum,dev_d1,blocknum);//d1[0]=g2
+		// Stopping Criteria
+		
+		checkCudaErrors(cudaMemcpy(&g1,dev_g1,sizeof(float),cudaMemcpyDeviceToHost));
+		checkCudaErrors(cudaMemcpy(&g2,dev_d1,sizeof(float),cudaMemcpyDeviceToHost));
+		
+		if (fabs(g1)<eps && fabs(g2)<eps)
+			break;
+		//free global mem??
+	
+		// Finding Newton direction: -inv(H') * g
+		dev_get_det<<<1,1>>>(sigma,dev_h11,dev_d2,dev_h21,dev_det);
+		
+	    dev_getdA<<<1,1>>>(dev_dA,dev_det,dev_d2,dev_h21,dev_g1,dev_d1);
+		dev_getdB<<<1,1>>>(dev_dB,dev_det,dev_h11,dev_h21,dev_g1,dev_d1);
+		dev_getgd<<<1,1>>>(dev_gd,dev_dA,dev_dB,dev_g1,dev_d1);
+
+
+		stepsize = 1;		// Line Search
+		
+		float *dev_newA,*dev_newB;
+		checkCudaErrors(cudaMalloc((void**)&dev_newA,sizeof(float)));
+		checkCudaErrors(cudaMalloc((void**)&dev_newB,sizeof(float)));
+		while (stepsize >= min_step)
+		{
+			//update newA newB
+			dev_updateAB<<<1,2>>>(dev_newA,dev_newB,A,B,(float)stepsize,dev_dA,dev_dB);
+
+			// New function value
+		
+			dev_getnewfApB<<<blocknum,THREAD_NUM,THREAD_NUM*sizeof(float)>>>(l,dev_fApB,dev_dec_values,dev_newA,dev_newB);
+			dev_getnewf<<<blocknum,THREAD_NUM>>>(l,dev_fApB,dev_t,dev_newf);
+			dev_paral_red_sum<<<blocknum,THREAD_NUM,THREAD_NUM*sizeof(float)>>>(dev_newf,dev_sum,l);//more block?
+			dev_get_sum<<<1,1>>>(dev_sum,dev_newf,blocknum);
+			// Check sufficient decrease
+			checkCudaErrors(cudaMemcpy(&newf,dev_newf,sizeof(float),cudaMemcpyDeviceToHost));
+			checkCudaErrors(cudaMemcpy(&fval,dev_fval,sizeof(float),cudaMemcpyDeviceToHost));
+			checkCudaErrors(cudaMemcpy(&gd,dev_gd,sizeof(float),cudaMemcpyDeviceToHost));
+			if (newf<fval+0.0001*(float)stepsize*gd)
+			{
+				cudaMemcpy(&A,dev_newA,sizeof(float),cudaMemcpyDeviceToHost);
+				cudaMemcpy(&B,dev_newB,sizeof(float),cudaMemcpyDeviceToHost);
+				fval=newf;
+				break;
+			}
+			else
+				stepsize = stepsize / 2.0;
+		}
+		checkCudaErrors(cudaFree(dev_newA));
+		checkCudaErrors(cudaFree(dev_newB));
+
+		if (stepsize < min_step)
+		{
+			info("Line search fails in two-class probability estimates\n");
+			break;
+		}
+	}
+
+	if (iter>=max_iter)
+		info("Reaching maximal iterations in two-class probability estimates\n");
+
+	
+	free(fdec_values);
+	free(flabels);
+	checkCudaErrors(cudaFree(dev_fApB));
+	checkCudaErrors(cudaFree(dev_fval));
+	checkCudaErrors(cudaFree(dev_dec_values));
+	//checkCudaErrors(cudaFree(dev_labels));
+	checkCudaErrors(cudaFree(dev_det));
+	checkCudaErrors(cudaFree(dev_dA));
+	checkCudaErrors(cudaFree(dev_dB));
+	checkCudaErrors(cudaFree(dev_gd));
+	checkCudaErrors(cudaFree(dev_newf));
+	checkCudaErrors(cudaFree(dev_t));
+	checkCudaErrors(cudaFree(dev_d1));
+	checkCudaErrors(cudaFree(dev_d2));
+	checkCudaErrors(cudaFree(dev_g1));
+	//checkCudaErrors(cudaFree(dev_g2));
+	checkCudaErrors(cudaFree(dev_h11));
+	//checkCudaErrors(cudaFree(dev_h22));
+	checkCudaErrors(cudaFree(dev_h21));
+	checkCudaErrors(cudaFree(dev_p));
+	checkCudaErrors(cudaFree(dev_q));
+	checkCudaErrors(cudaFree(dev_sum));
+	
+	}
 
 void SvmModel::sigmoidTrain(const float_point *decValues, const int l, const vector<int> &labels, float_point &A,
                             float_point &B) {

@@ -56,6 +56,9 @@ private:
     float_point sigmoidPredict(float_point decValue, float_point A, float_point B) const;
 
     void multiClassProbability(const vector<vector<float_point> > &, vector<float_point> &) const;
+	//have changed the type of *dec_values,& A,& B
+	void gpu_sigmoid_train(int l, const float_point *dec_values, const double *labels, 
+	float_point& A, float_point& B);
 
     void
     sigmoidTrain(const float_point *decValues, const int, const vector<int> &labels, float_point &A, float_point &B);
