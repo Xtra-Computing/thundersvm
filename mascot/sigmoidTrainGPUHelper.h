@@ -24,5 +24,5 @@ __global__ void dev_getdB(float_point *dev_dB,float_point *dev_det,float_point *
 __global__ void dev_getgd(float_point *dev_gd,float_point *dev_dA,float_point *dev_dB,float_point *dev_g1,float_point *dev_g2);
 __global__ void dev_getnewf(int l, float_point *dev_fApB,float_point *dev_t,float_point *dev_newf);
 __global__ void dev_updateAB(float_point *dev_newA,float_point *dev_newB,float_point A,float_point B,float_point stepsize,float_point *dev_dA,float_point *dev_dB);
-
+__global__ void dev_getprior(float_point *dev_labels,int l,float_point *dev_prior1,float_point *dev_prior0)
 #endif

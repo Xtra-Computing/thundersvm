@@ -57,7 +57,7 @@ private:
 
     void multiClassProbability(const vector<vector<float_point> > &, vector<float_point> &) const;
 	//have changed the type of *dec_values,& A,& B
-	void gpu_sigmoid_train(int l, const float_point *dec_values, const double *labels, 
+	void gpu_sigmoid_train(int l, const float_point *dec_values, const float_point *labels, 
 	float_point& A, float_point& B);
 
     void
