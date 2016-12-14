@@ -9,7 +9,8 @@ Report bugs to: name@domain where name=wenzeyi and domain=(google's email)
 This software is licensed under Apache Software License v2.0.
 
 ---------
-Requirement(s): CUDA 7.5 or later; g++ 4.8 or later
+Requirement(s): 
+CUDA 7.5 or later; g++ 4.8 or later
 ---------
 FAQ:
 
