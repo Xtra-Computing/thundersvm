@@ -29,7 +29,6 @@ bool InitCUDA(CUcontext &context, char gpuType = 'T')
 
     CUdevice device;
     int i;
-    bool bUseTesla = false;
     for(i = 0; i < count; i++) {
         cudaDeviceProp prop;
         checkCudaErrors(cudaGetDeviceProperties(&prop, i));
@@ -38,7 +37,6 @@ bool InitCUDA(CUcontext &context, char gpuType = 'T')
         	if(prop.name[0] == gpuType && prop.name[1] == 'e')
         	{//prefere to use Tesla card
         		cout << "Using " << prop.name << "; device id is " << i << endl;
-       			bUseTesla = true;
         		checkCudaErrors(cudaSetDevice(i));
         		cuDeviceGet(&device, i);
         		cuCtxCreate(&context, CU_CTX_MAP_HOST, device);
@@ -56,16 +54,19 @@ bool InitCUDA(CUcontext &context, char gpuType = 'T')
         }
     }
 
+    cout << i << " v.s. " << count << endl;
     if(i == count)
     {
-        fprintf(stderr, "There is no device supporting CUDA 1.x.\n");
-        return false;
+        cudaDeviceProp prop;
+        cout << "There is no device of \"" << gpuType << "\" series" << endl;
+        checkCudaErrors(cudaGetDeviceProperties(&prop, 0));
+
+        cout << "using " << prop.name << endl;
+        checkCudaErrors(cudaSetDevice(0));
+        cuDeviceGet(&device, i);
+		cuCtxCreate(&context, CU_CTX_MAP_HOST, device);
     }
 
-    if(!bUseTesla)
-    {
-    	checkCudaErrors(cudaSetDevice(0));
-    }
     return true;
 }
 
