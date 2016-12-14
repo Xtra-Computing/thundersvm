@@ -10,8 +10,7 @@ This software is licensed under Apache Software License v2.0.
 
 ---------
 Requirement(s):
-CUDA 7.5 or later
-g++ 4.8 or later
+CUDA 7.5 or later; g++ 4.8 or later
 ---------
 FAQ:
 
