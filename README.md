@@ -9,11 +9,11 @@ Report bugs to: name@domain where name=wenzeyi and domain=(google's email)
 This software is licensed under Apache Software License v2.0.
 
 Requirement(s):
-=
+------
 CUDA 7.5 or later; g++ 4.8 or later
 
 FAQ:
-======
+------
 1. How can I use the source code?<br>
 <b>A</b>: Download the repository and then issue "make" command under the fold where our Makefile is located. After the command is completed, you will see a binary file named "mascot" in the "bin" folder. To start playing it, run the "run.sh" script. The dataset shown in run.sh is available <a href="http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary.html">here</a> in LibSVM site.
 
