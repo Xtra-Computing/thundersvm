@@ -17,6 +17,7 @@
 #include "Cache/cache.h"
 #include "smoGPUHelper.h"
 #include "HessianIO/deviceHessian.h"
+#include "../mascot/svmProblem.h"
 //#include <boost/interprocess/file_mapping.hpp>
 //#include <boost/interprocess/mapped_region.hpp>
 
@@ -30,6 +31,7 @@ extern long lSSDHitCount;
 class CSMOSolver
 {
 public:
+    SvmProblem *problem;
 	int m_nIndexofSampleOne;
 	int m_nIndexofSampleTwo;
 	float_point m_fUpValue;

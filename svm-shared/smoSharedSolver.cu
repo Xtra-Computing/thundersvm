@@ -191,15 +191,19 @@ bool CSMOSolver::MapIndexToHessian(int &nIndex)
  * @brief: get a row of Hessian Matrix (the row is either in cache or in secondary memory)
  */
 long lGetHessianRowTime = 0;
+long readRowTime = 0;
+long cacheMissMemcpyTime = 0;
 long lGetHessianRowCounter = 0;
+long cacheMissCount = 0;
 long lRamHitCount = 0;
 long lSSDHitCount = 0;
 float_point* CSMOSolver::GetHessianRow(const int &nNumofInstance, const int &nPosofRow)
 {
-/*	timespec time1, time2;
+	timespec time1, time2, time3, time4, time5;
 	clock_gettime(CLOCK_REALTIME, &time1);
-*/	lGetHessianRowCounter++;
-	assert(nNumofInstance >= nPosofRow);
+	lGetHessianRowCounter++;
+    /*printf("get row %d label %d\n",problem->originalIndex[nPosofRow], problem->originalLabel[nPosofRow]);*/
+//	assert(nNumofInstance >= nPosofRow);
 
 	float_point *pfDevHessianRow = NULL;
 	//get 1st row
@@ -209,71 +213,43 @@ float_point* CSMOSolver::GetHessianRow(const int &nNumofInstance, const int &nPo
 
 	long long lCachePosStart = (long long)nCacheLocation * m_lNumofElementEachRowInCache;
 
-	/*if(m_nIndexofSampleOne == 24530 && m_nIndexofSampleTwo == 17958)
-	{
-		cout << "is in cache=" << bIsInCache << "; location=" << nCacheLocation << endl;
-		cout << "is cache full=" << bIsCacheFull << "; pos of row=" << nPosofRow << endl;
-		cout << lCachePosStart << endl;
-		cout << "before copying: ";
-		PrintTenGPUHessianRow(m_pfDevHessianMatrixCache + 40 * m_lNumofElementEachRowInCache, nNumofInstance);
-	}*/
 	if(bIsInCache == false)
 	{//cache missed
+		clock_gettime(CLOCK_REALTIME, &time3);
 		if(bIsCacheFull == true)
 			m_pGPUCache->ReplaceExpired(nPosofRow, nCacheLocation, m_pfDevGValue);
 		//convert current training position to the position in Hessian matrix
 		int nPosofRowAtHessian = nPosofRow;
 		bool bMapIndex = MapIndexToHessian(nPosofRowAtHessian);
-//		if(m_nIndexofSampleOne == 24530 && m_nIndexofSampleTwo == 17958)
-//			cout << "CPU cached rows " << m_pHessianReader->m_nNumofCachedHessianRow << "; pos at hessian is " << nPosofRowAtHessian << endl;
 		assert(bMapIndex == true);
 
-		memset(m_pfHessianRow, 0, sizeof(float_point) * nNumofInstance);
+//		memset(m_pfHessianRow, 0, sizeof(float_point) * nNumofInstance);
 		m_pHessianReader->ReadRow(nPosofRowAtHessian, m_pfHessianRow);
+
+		clock_gettime(CLOCK_REALTIME, &time4);
 
 //		cout << nCacheLocation << "; cache is full=" << bIsCacheFull << endl;
 		lCachePosStart = (long long)nCacheLocation * m_lNumofElementEachRowInCache;
-/*		if(m_nIndexofSampleOne == 24530 && m_nIndexofSampleTwo == 17958)
-		{
-			cout << "cache location " << nCacheLocation << "; copy to here " << lCachePosStart
-				 <<"; changed location is " << 40 * m_lNumofElementEachRowInCache << endl;
-			cout << "before copying: ";
-			PrintTenGPUHessianRow(m_pfDevHessianMatrixCache + 40 * m_lNumofElementEachRowInCache, nNumofInstance);
-		}
-		if(cudaGetLastError() != cudaSuccess)
-		{
-			cerr << "cuda error after initCuda" << endl;
-			exit(-1);
-		}
-
-		cudaDeviceSynchronize();*/
 		//checkCudaErrors(cudaMemcpyAsync(m_pfDevHessianMatrixCache + lCachePosStart, m_pfHessianRow,
 		//					  	  		sizeof(float_point) * nNumofInstance, cudaMemcpyHostToDevice, m_stream1_Hessian_row));
 		checkCudaErrors(cudaMemcpy((m_pfDevHessianMatrixCache + lCachePosStart), m_pfHessianRow, sizeof(float_point) * nNumofInstance, cudaMemcpyHostToDevice));
-		/*cudaDeviceSynchronize();
-		if(m_nIndexofSampleOne == 24530 && m_nIndexofSampleTwo == 17958)
-		{
-			cout << "after  copying: ";
-			PrintTenGPUHessianRow(m_pfDevHessianMatrixCache + 40 * m_lNumofElementEachRowInCache, nNumofInstance);
-		}*/
+
+		cacheMissCount++;
+		clock_gettime(CLOCK_REALTIME, &time5);
+		long lTemp = ((time5.tv_sec - time3.tv_sec) * 1e9 + (time5.tv_nsec - time3.tv_nsec));
+		readRowTime += lTemp;
+		lTemp = ((time5.tv_sec - time4.tv_sec) * 1e9 + (time5.tv_nsec - time4.tv_nsec));
+        cacheMissMemcpyTime += lTemp;
 	}
 
-	/*if(m_nIndexofSampleOne == 24530 && m_nIndexofSampleTwo == 17958)
-	{
-		cout << lCachePosStart << endl;
-		cout << "after  copying: ";
-		PrintTenGPUHessianRow(m_pfDevHessianMatrixCache + 40 * m_lNumofElementEachRowInCache, nNumofInstance);
-	}*/
-
-//	cout << lCachePosStart << endl;
-
 	pfDevHessianRow = m_pfDevHessianMatrixCache + lCachePosStart;
-/*	clock_gettime(CLOCK_REALTIME, &time2);
+	clock_gettime(CLOCK_REALTIME, &time2);
 	long lTemp = ((time2.tv_sec - time1.tv_sec) * 1e9 + (time2.tv_nsec - time1.tv_nsec));
-	//if(lTemp > 0)
+	if(lTemp > 0)
 	{
 		lGetHessianRowTime += lTemp;
-	}*/
+	}
+
 	return pfDevHessianRow;
 }
 

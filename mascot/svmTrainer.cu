@@ -72,7 +72,7 @@ bool CSVMTrainer::TrainModel(svm_model &model, float_point *pfDevYiFValueSubset,
 		}
 		if(nIter % 1000 == 0 && nIter != 0)
 		{
-			cout << ".";
+            cout << ".";
 			cout.flush();
 		}
 		nIter++;
