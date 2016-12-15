@@ -17,7 +17,7 @@ OBJ = cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o Re
 	  devUtility_cu.o storageManager_cu.o hostStorageManager.o classificationKernel_cu.o\
 	  smoGPUHelper_cu.o smoSharedSolver_cu.o smoSolver_cu.o svmPredictor_cu.o\
 	  svmSharedTrainer_cu.o svmTrainer_cu.o modelSelector_cu.o trainingFunction_cu.o svmModel_cu.o\
-	  cvFunction.o svmMain.o
+	  cvFunction.o svmMain.o MultiSmoSolver_cu.o
 
 .PHONY: release
 .PHONY: debug
@@ -165,6 +165,9 @@ SigmoidCalculater_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-share
 
 SigmoidCalGPUHelper_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-shared/kernelCalculater/SigmoidCalGPUHelper.cu
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o SigmoidCalGPUHelper_cu.o -c svm-shared/kernelCalculater/SigmoidCalGPUHelper.cu
+
+MultiSmoSolver_cu.o: mascot/multiSmoSolver.h mascot/multiSmoSolver.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o MultiSmoSolver_cu.o -c mascot/multiSmoSolver.cu
 
 .PHONY:clean
 

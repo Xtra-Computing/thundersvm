@@ -14,7 +14,7 @@ __global__ void RBFKernel(const float_point *aSelfDot, int bRow, float_point *do
     }
 }
 
-void DeviceHessianOnFly::ReadRow(int nPosofRowAtHessian, float_point *pfHessianRow) {
+void DeviceHessianOnFly::ReadRow(int nPosofRowAtHessian, float_point *devHessianRow) {
     const int numOfSamples = csrMat.getNumOfSamples();
     const int numOfFeatures = csrMat.getNumOfFeatures();
     const int *csrRowPtr = csrMat.getCSRRowPtr();
@@ -25,33 +25,34 @@ void DeviceHessianOnFly::ReadRow(int nPosofRowAtHessian, float_point *pfHessianR
     checkCudaErrors(cudaMalloc((void **) &devBDense, sizeof(float_point) * numOfFeatures));
     checkCudaErrors(cudaMemset(devBDense, 0, sizeof(float_point) * numOfFeatures));
     cusparseSsctr(handle, nnzB, devBVal, devBInd, devBDense, CUSPARSE_INDEX_BASE_ZERO);
-    float_point *devC;
-    checkCudaErrors(cudaMalloc((void **) &devC, sizeof(float_point) * numOfSamples));
-    checkCudaErrors(cudaMemset(devC,0,sizeof(float_point) * numOfSamples));
+//    float_point *devC;
+//    checkCudaErrors(cudaMalloc((void **) &devHessianRow, sizeof(float_point) * numOfSamples));
+    checkCudaErrors(cudaMemset(devHessianRow,0,sizeof(float_point) * numOfSamples));
     cusparseScsrmm(handle, CUSPARSE_OPERATION_NON_TRANSPOSE,
                    numOfSamples, 1, numOfFeatures,
                    nnz, &one, descr, devValA, devRowPtrA, devColIndA,
                    devBDense, numOfFeatures, &zero,
-                   devC, numOfSamples);
+                   devHessianRow, numOfSamples);
     RBFKernel << < Ceil(numOfSamples, BLOCK_SIZE), BLOCK_SIZE >> >
-                                                                (devValASelfDot, nPosofRowAtHessian, devC, numOfSamples, gamma);
-    checkCudaErrors(
-            cudaMemcpy(pfHessianRow, devC, sizeof(float_point) * numOfSamples, cudaMemcpyDeviceToHost));
+                                                                (devValASelfDot, nPosofRowAtHessian, devHessianRow, numOfSamples, gamma);
+//    float_point *hrow = new float_point[numOfSamples];
+//    checkCudaErrors(
+//            cudaMemcpy(hrow, devHessianRow, sizeof(float_point) * numOfSamples, cudaMemcpyDeviceToHost));
 //    RBFKernelFunction function(gamma);
 //    float_point *hostKernel = new float_point[problem.getNumOfSamples()];
 //    float_point totalErr = 0;
-//    function.ComputeSparseRow(problem.v_vSamples,nPosofRowAtHessian,1,hostKernel);
-//    pfHessianRow[nPosofRowAtHessian] = 1.0f;
+//    vector<vector<svm_node> > s = problem.v_vSamples;
+//    function.ComputeSparseRow(s,nPosofRowAtHessian,1,hostKernel);
 //    for (int i = 0; i < problem.getNumOfSamples(); ++i) {
-//       float_point err = fabs(hostKernel[i] - pfHessianRow[i]);
+//       float_point err = fabs(hostKernel[i] - hrow[i]);
 //        totalErr +=err;
-//        printf("row %d, col %d, host %f, device %f,err %f\n",nPosofRowAtHessian, i, hostKernel[i],pfHessianRow[i],err);
+//        printf("row %d, col %d, host %f, device %f,err %f\n",nPosofRowAtHessian, i, hostKernel[i],hrow[i],err);
 //    }
 //    printf("compute row %d, total err %f\n",nPosofRowAtHessian,totalErr);
-//    memcpy(pfHessianRow,hostKernel,sizeof(float_point) * numOfSamples);
+//    memcpy(devHessianRow,hostKernel,sizeof(float_point) * numOfSamples);
 //    delete[] hostKernel;
     checkCudaErrors(cudaFree(devBDense));
-    checkCudaErrors(cudaFree(devC));
+//    checkCudaErrors(cudaFree(devC));
 }
 
 bool DeviceHessianOnFly::PrecomputeHessian(const string &strHessianMatrixFileName, const string &strDiagHessianFileName,

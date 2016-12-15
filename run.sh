@@ -9,10 +9,10 @@ PROB="-b 0" #0 for no probability output; 1 for probability output.
 TASK="-o 2" #0 for training; 1 for cross validation; 2 for evaluation
 
 #gamma for RBF kernel
-GAMMA="-g 1"
+GAMMA="-g 0.5"
 
 #penalty
-C="-c 3"
+C="-c 100"
 
 #number of features
 #NUMFEATURE="-f 16"
@@ -28,7 +28,7 @@ FILENAME="dataset/a9a" #"dataset/iris.scale"
 #FILENAME="dataset/w8a" #"dataset/iris.scale"
 #FILENAME="dataset/usps" #"dataset/iris.scale"
 #FILENAME="dataset/shuttle.scale" #"dataset/iris.scale"
-FILENAME="dataset/cov1" #"dataset/iris.scale"
+#FILENAME="dataset/cov1" #"dataset/iris.scale"
 
 
 #print out the command before execution
