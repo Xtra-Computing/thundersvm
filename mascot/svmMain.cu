@@ -53,7 +53,7 @@ int main(int argc, char **argv)
 		cout << "performing evaluation" << endl;
 		SvmModel model;
 		trainSVM(parser.param, fileName, parser.nNumofFeature, model);
-        evaluateSVMClassifier(model, fileName, parser.nNumofFeature);
+        evaluateSVMClassifier(model, strcat(fileName, ".t"), parser.nNumofFeature);
        
     }
 

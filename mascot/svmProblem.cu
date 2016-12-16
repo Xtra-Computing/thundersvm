@@ -7,50 +7,34 @@
 #include "svmProblem.h"
 
 void SvmProblem::groupClasses() {
-    vector<int> dataLabel(v_nLabels.size());
-    for (int i = 0; i < v_nLabels.size(); ++i) {
-        int j;
-        for (j = 0; j < label.size(); ++j) {
-            if (v_nLabels[i] == label[j]) {
-                count[j]++;
-                break;
+    if (!subProblem) {
+        vector<int> dataLabel(v_nLabels.size());
+        for (int i = 0; i < v_nLabels.size(); ++i) {
+            int j;
+            for (j = 0; j < label.size(); ++j) {
+                if (v_nLabels[i] == label[j]) {
+                    count[j]++;
+                    break;
+                }
+            }
+            dataLabel[i] = j;
+            //if the label is unseen, add it to label set
+            if (j == label.size()) {
+                label.push_back(v_nLabels[i]);
+                count.push_back(1);
             }
         }
-        dataLabel[i] = j;
-        //if the label is unseen, add it to label set
-        if (j == label.size()) {
-            label.push_back(v_nLabels[i]);
-            count.push_back(1);
+
+        start.push_back(0);
+        for (int i = 1; i < count.size(); ++i) {
+            start.push_back(start[i - 1] + count[i - 1]);
         }
-    }
-
-// Labels are ordered by their first occurrence in the training set.
-// However, for two-class sets with -1/+1 labels and -1 appears first,
-// we swap labels to ensure that internally the binary SVM has positive data corresponding to the +1 instances.
-
-    if (label.size() == 2 && label[0] == -1 && label[1] == 1) {
-        label[0] = 1;
-        label[1] = -1;
-        int t = count[0];
-        count[0] = count[1];
-        count[1] = t;
-        for (int i = 0; i < dataLabel.size(); i++) {
-            if (dataLabel[i] == 0)
-                dataLabel[i] = 1;
-            else
-                dataLabel[i] = 0;
+        vector<int> _start(start);
+        perm = vector<int>(v_nLabels.size());
+        for (int i = 0; i < v_nLabels.size(); ++i) {
+            perm[_start[dataLabel[i]]] = i;
+            _start[dataLabel[i]]++;
         }
-    }
-
-    start.push_back(0);
-    for (int i = 1; i < count.size(); ++i) {
-        start.push_back(start[i - 1] + count[i - 1]);
-    }
-    vector<int> _start(start);
-    perm = vector<int>(v_nLabels.size());
-    for (int i = 0; i < v_nLabels.size(); ++i) {
-        perm[_start[dataLabel[i]]] = i;
-        _start[dataLabel[i]]++;
     }
 }
 
@@ -76,8 +60,15 @@ SvmProblem SvmProblem::getSubProblem(int i, int j) const {
         v_nLabels.push_back(-1);
     }
     SvmProblem subProblem(v_vSamples, numOfFeatures, v_nLabels);
+    subProblem.label.push_back(i);
+    subProblem.label.push_back(j);
+    subProblem.start.push_back(0);
+    subProblem.start.push_back(count[i]);
+    subProblem.count.push_back(count[i]);
+    subProblem.count.push_back(count[j]);
     subProblem.originalIndex = originalIndex;
     subProblem.originalLabel = originalLabel;
+    subProblem.subProblem = true;
     return subProblem;
 }
 
@@ -93,7 +84,8 @@ int SvmProblem::getNumOfFeatures() const {
     return numOfFeatures;
 }
 
-CSRMatrix::CSRMatrix(const vector<vector<svm_node> > &samples, int numOfFeatures) : samples(samples), numOfFeatures(numOfFeatures) {
+CSRMatrix::CSRMatrix(const vector<vector<svm_node> > &samples, int numOfFeatures) : samples(samples),
+                                                                                    numOfFeatures(numOfFeatures) {
     int start = 0;
     for (int i = 0; i < samples.size(); ++i) {
         csrRowPtr.push_back(start);

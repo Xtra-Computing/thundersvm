@@ -51,7 +51,6 @@ private:
 
     unsigned int inline getK(int i, int j) const;
 
-    void addBinaryModel(const SvmProblem &, const svm_model &, int i, int j);
 
     float_point sigmoidPredict(float_point decValue, float_point A, float_point B) const;
 
@@ -82,6 +81,10 @@ public:
     vector<vector<float_point> > predictProbability(const vector<vector<svm_node> > &) const;
 
     void predictValues(const vector<vector<svm_node> > &, vector<vector<float_point> > &) const;
+    void
+    addBinaryModel(const SvmProblem &subProblem, const vector<int> &svIndex, const vector<float_point> &coef,
+                   float_point rho, int i,
+                   int j);
 
     bool isProbability() const;
 };

@@ -15,6 +15,7 @@
 #include <zconf.h>
 #include <cuda_profiler_api.h>
 #include "trainingFunction.h"
+#include "multiSmoSolver.h"
 #include<map>
 
 #include "sigmoidTrainGPUHelper.h"
@@ -133,33 +134,35 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
     label = problem.label;
     numOfFeatures = problem.getNumOfFeatures();
 
-    //train nrClass*(nrClass-1)/2 binary models
-    int k = 0;
-    for (int i = 0; i < nrClass; ++i) {
-        for (int j = i + 1; j < nrClass; ++j) {
-            printf("training classifier with label %d and %d\n", i, j);
-            SvmProblem subProblem = problem.getSubProblem(i, j);
-            if (param.probability) {
-                SVMParam probParam = param;
-                probParam.probability = 0;
-                probParam.C = 1.0;
-                SvmModel model;
-                model.fit(subProblem, probParam);
-                vector<vector<float_point> > decValues;
-                //todo predict with cross validation
-                model.predictValues(subProblem.v_vSamples, decValues);
-                for (int l = 1; l < subProblem.v_vSamples.size(); ++l) {
-                    decValues[0].push_back(decValues[l][0]);
-                }
-                sigmoidTrain(decValues.front().data(), subProblem.getNumOfSamples(), subProblem.v_nLabels, probA[k],
-                             probB[k]);
-                probability = true;
-            }
-            svm_model binaryModel = trainBinarySVM(subProblem, param);
-            addBinaryModel(subProblem, binaryModel, i, j);
-            k++;
-        }
-    }
+    MultiSmoSolver multiSmoSolver(problem,*this,param);
+    multiSmoSolver.solve();
+//    train nrClass*(nrClass-1)/2 binary models
+//    int k = 0;
+//    for (int i = 0; i < nrClass; ++i) {
+//        for (int j = i + 1; j < nrClass; ++j) {
+//            printf("training classifier with label %d and %d\n", i, j);
+//            SvmProblem subProblem = problem.getSubProblem(i, j);
+//            if (param.probability) {
+//                SVMParam probParam = param;
+//                probParam.probability = 0;
+//                probParam.C = 1.0;
+//                SvmModel model;
+//                model.fit(subProblem, probParam);
+//                vector<vector<float_point> > decValues;
+//                //todo predict with cross validation
+//                model.predictValues(subProblem.v_vSamples, decValues);
+//                for (int l = 1; l < subProblem.v_vSamples.size(); ++l) {
+//                    decValues[0].push_back(decValues[l][0]);
+//                }
+//                sigmoidTrain(decValues.front().data(), subProblem.getNumOfSamples(), subProblem.v_nLabels, probA[k],
+//                             probB[k]);
+//                probability = true;
+//            }
+//            svm_model binaryModel = trainBinarySVM(subProblem, param);
+//            addBinaryModel(subProblem, <#initializer#>, <#initializer#>, 0, j, i);
+//            k++;
+//        }
+//    }
     int _start = 0;
     for (int i = 0; i < cnr2; ++i) {
         start.push_back(_start);
@@ -500,21 +503,23 @@ void SvmModel::sigmoidTrain(const float_point *decValues, const int l, const vec
     free(t);
 }
 
-void SvmModel::addBinaryModel(const SvmProblem &problem, const svm_model &bModel, int i, int j) {
+void SvmModel::addBinaryModel(const SvmProblem &problem, const vector<int> &svIndex, const vector<float_point> &coef,
+                              float_point rho, int i,
+                              int j) {
     static map<int, int> indexMap;
     int k = getK(i, j);
-    for (int l = 0; l < bModel.nSV[0] + bModel.nSV[1]; ++l) {
-        coef[k].push_back(bModel.sv_coef[0][l]);
-        int originalIndex = problem.originalIndex[bModel.pnIndexofSV[l]];
+    this->coef[k] = coef;
+    for (int l = 0; l < svIndex.size(); ++l) {
+        int originalIndex = problem.originalIndex[svIndex[l]];
         if (indexMap.find(originalIndex) != indexMap.end()) {
         } else {
             indexMap[originalIndex] = svMap.size();
-            svMap.push_back(problem.v_vSamples[bModel.pnIndexofSV[l]]);
+            svMap.push_back(problem.v_vSamples[svIndex[l]]);
         }
-        svIndex[k].push_back(indexMap[originalIndex]);
+        this->svIndex[k].push_back(indexMap[originalIndex]);
     }
-    rho[k] = bModel.rho[0];
-    numOfSVs += bModel.nSV[0] + bModel.nSV[1];
+    this->rho[k] = rho;
+    numOfSVs += svIndex.size();
 }
 
 void

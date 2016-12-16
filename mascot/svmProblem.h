@@ -20,6 +20,7 @@ public:
     vector<int> perm;
     vector<int> label;
     int numOfFeatures;
+    bool subProblem;
 
     int getNumOfFeatures() const;
 
@@ -28,7 +29,7 @@ public:
     vector<int> originalLabel;
 
     SvmProblem(const vector<vector<svm_node> > &v_vSamples, int numOfFeatures, const vector<int> &v_nLabels) :
-            v_vSamples(v_vSamples), v_nLabels(v_nLabels), numOfFeatures(numOfFeatures){
+            v_vSamples(v_vSamples), v_nLabels(v_nLabels), numOfFeatures(numOfFeatures), subProblem(false){
         this->groupClasses();
     }
 

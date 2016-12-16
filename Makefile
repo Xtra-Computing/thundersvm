@@ -8,7 +8,7 @@ DISABLEW  := -Xnvlink -w
 ODIR = bin
 dummy_build_folder := $(shell mkdir -p $(ODIR))
 
-OBJ = cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o ReadHelper.o\
+OBJ = cacheLAT.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o ReadHelper.o\
 	  commandLineParser.o fileOps.o gpu_global_utility.o initCuda_cu.o\
 	  baseHessian_cu.o accessHessian.o parAccessor.o seqAccessor.o svmProblem.o deviceHessian_cu.o\
 	  deviceHessianOnFly_cu.o kernelFunction.o rbfKernelFunction.o\
@@ -17,7 +17,7 @@ OBJ = cacheGS.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o Re
 	  devUtility_cu.o storageManager_cu.o hostStorageManager.o classificationKernel_cu.o\
 	  smoGPUHelper_cu.o smoSharedSolver_cu.o smoSolver_cu.o svmPredictor_cu.o\
 	  svmSharedTrainer_cu.o svmTrainer_cu.o modelSelector_cu.o trainingFunction_cu.o svmModel_cu.o\
-	  cvFunction.o svmMain.o
+	  cvFunction.o svmMain.o MultiSmoSolver_cu.o
 
 .PHONY: release
 .PHONY: debug
@@ -94,8 +94,8 @@ svmTrainer_cu.o: svm-shared/svmTrainer.h mascot/svmTrainer.cu
 trainingFunction_cu.o: mascot/trainingFunction.h mascot/trainingFunction.cu svm-shared/host_constant.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o trainingFunction_cu.o -c mascot/trainingFunction.cu
 
-cacheGS.o: svm-shared/Cache/cache.h svm-shared/Cache/cacheGS.cpp
-	g++ $(CCFLAGS) -o cacheGS.o -c svm-shared/Cache/cacheGS.cpp
+cacheLAT.o: svm-shared/Cache/cache.h svm-shared/Cache/cacheLAT.cpp
+	g++ $(CCFLAGS) -o cacheLAT.o -c svm-shared/Cache/cacheLAT.cpp
 
 cacheLRU.o: svm-shared/Cache/cache.h svm-shared/Cache/cacheLRU.cpp
 	g++ $(CCFLAGS) -o cacheLRU.o -c svm-shared/Cache/cacheLRU.cpp
@@ -165,6 +165,9 @@ SigmoidCalculater_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-share
 
 SigmoidCalGPUHelper_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-shared/kernelCalculater/SigmoidCalGPUHelper.cu
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o SigmoidCalGPUHelper_cu.o -c svm-shared/kernelCalculater/SigmoidCalGPUHelper.cu
+
+MultiSmoSolver_cu.o: mascot/multiSmoSolver.h mascot/multiSmoSolver.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o MultiSmoSolver_cu.o -c mascot/multiSmoSolver.cu
 
 .PHONY:clean
 

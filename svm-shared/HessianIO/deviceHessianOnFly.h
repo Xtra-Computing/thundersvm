@@ -18,7 +18,7 @@
 
 class DeviceHessianOnFly : public BaseHessian {
 public:
-    DeviceHessianOnFly(SvmProblem &problem, float_point gamma) :
+    DeviceHessianOnFly(const SvmProblem &problem, float_point gamma) :
             gamma(gamma), problem(problem), zero(0.0f), one(1.0f), csrMat(problem.v_vSamples, problem.getNumOfFeatures()){
         cusparseCreate(&handle);
         cusparseCreateMatDescr(&descr);
@@ -49,7 +49,7 @@ public:
         cusparseDestroy(handle);
     }
 
-    virtual void ReadRow(int nPosofRowAtHessian, float_point *pfHessianRow) override;
+    virtual void ReadRow(int nPosofRowAtHessian, float_point *devHessianRow) override;
 
     virtual bool PrecomputeHessian(const string &strHessianMatrixFileName, const string &strDiagHessianFileName,
                                    vector<vector<float_point> > &v_v_DocVector) override;
@@ -62,7 +62,7 @@ public:
 //    virtual bool ReleaseBuffer() override;
 
 private:
-    SvmProblem &problem;
+    const SvmProblem &problem;
     CSRMatrix csrMat;
     const float_point gamma;
     //TODO move initializing handle and descr outside
