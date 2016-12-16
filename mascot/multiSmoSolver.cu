@@ -60,7 +60,7 @@ bool MultiSmoSolver::iterate(SvmProblem &subProblem) {
     int m_nIndexofSampleOne = (int) hostBuffer[0];
     float_point fMinValue;
     fMinValue = hostBuffer[1];
-    getHessianRow(m_nIndexofSampleOne, trainingSize, devHessianSampleRow1);
+    float_point *devHessianSampleRow1 = devHessianMatrixCache + getHessianRow(m_nIndexofSampleOne);
 
     //lock cached entry for the sample one, in case it is replaced by sample two
     gpuCache->LockCacheEntry(m_nIndexofSampleOne);
@@ -98,7 +98,7 @@ bool MultiSmoSolver::iterate(SvmProblem &subProblem) {
     fKernelValue = hostBuffer[2];
 
 
-    getHessianRow(m_nIndexofSampleTwo, trainingSize, devHessianSampleRow2);
+    float_point *devHessianSampleRow2 = devHessianMatrixCache + getHessianRow(m_nIndexofSampleTwo);
 //	cudaDeviceSynchronize();
 
 
@@ -158,8 +158,6 @@ void MultiSmoSolver::init4Training(const SvmProblem &subProblem) {
     checkCudaErrors(cudaMalloc((void **) &devMinValue, sizeof(float_point)));
     checkCudaErrors(cudaMalloc((void **) &devMinKey, sizeof(int)));
     checkCudaErrors(cudaMalloc((void **) &devBuffer, sizeof(float_point) * 5));
-    checkCudaErrors(cudaMalloc((void **) &devHessianSampleRow1, sizeof(float_point) * trainingSize));
-    checkCudaErrors(cudaMalloc((void **) &devHessianSampleRow2, sizeof(float_point) * trainingSize));
 
     checkCudaErrors(cudaMallocHost((void **) &hostBuffer, sizeof(float_point) * 5));
 
@@ -200,28 +198,21 @@ void MultiSmoSolver::deinit4Training() {
     checkCudaErrors(cudaFree(devMinKey));
     checkCudaErrors(cudaFree(devBuffer));
     checkCudaErrors(cudaFreeHost(hostBuffer));
-    checkCudaErrors(cudaFree(devHessianSampleRow1));
-    checkCudaErrors(cudaFree(devHessianSampleRow2));
     checkCudaErrors(cudaFree(devHessianMatrixCache));
     checkCudaErrors(cudaFree(devHessianDiag));
     delete[] hessianDiag;
 }
 
-void MultiSmoSolver::getHessianRow(int rowIndex, int rowLength, float_point *devHessianRow) {
+int MultiSmoSolver::getHessianRow(int rowIndex) {
     int cacheLocation;
     bool cacheFull = false;
     bool cacheHit = gpuCache->GetDataFromCache(rowIndex,cacheLocation,cacheFull);
     if (!cacheHit) {
         if (cacheFull)
             gpuCache->ReplaceExpired(rowIndex, cacheLocation, NULL);
-        hessianCalculator->ReadRow(rowIndex, devHessianRow);
-        checkCudaErrors(
-                cudaMemcpy(devHessianMatrixCache + cacheLocation * numOfElementEachRowInCache, devHessianRow, sizeof(float_point) * rowLength,
-                           cudaMemcpyDeviceToDevice));
+        hessianCalculator->ReadRow(rowIndex, devHessianMatrixCache + cacheLocation * numOfElementEachRowInCache);
     }
-    checkCudaErrors(
-            cudaMemcpy(devHessianRow, devHessianMatrixCache + cacheLocation * numOfElementEachRowInCache, sizeof(float_point) * rowLength,
-                       cudaMemcpyDeviceToDevice));
+    return cacheLocation * numOfElementEachRowInCache;
 }
 
 void MultiSmoSolver::updateTwoWeight(float_point fMinLowValue, float_point fMinValue, int nHessianRowOneInMatrix,

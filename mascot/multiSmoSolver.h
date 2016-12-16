@@ -31,7 +31,7 @@ private:
     void init4Training(const SvmProblem &subProblem);
 
     bool iterate(SvmProblem &subProblem);
-    void getHessianRow(int rowIndex, int rowLength, float_point *devHessianRow);
+    int getHessianRow(int rowIndex);
     void updateTwoWeight(float_point fMinLowValue, float_point fMinValue,
 								 int nHessianRowOneInMatrix, int nHessianRowTwoInMatrix,
 								 float_point fKernelValue,
@@ -55,9 +55,6 @@ private:
     float_point *devBuffer;
     float_point *hostBuffer;
 
-    float_point *hessianRow;
-    float_point *devHessianSampleRow1;
-    float_point *devHessianSampleRow2;
     float_point *devHessianMatrixCache;
     float_point *devHessianDiag;
     float_point *hessianDiag;
