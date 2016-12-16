@@ -31,7 +31,7 @@ private:
     void init4Training(const SvmProblem &subProblem);
 
     bool iterate(SvmProblem &subProblem);
-    void getHessianRow(int rowIndex, float_point *devHessianRow);
+    void getHessianRow(int rowIndex, int rowLength, float_point *devHessianRow);
     void updateTwoWeight(float_point fMinLowValue, float_point fMinValue,
 								 int nHessianRowOneInMatrix, int nHessianRowTwoInMatrix,
 								 float_point fKernelValue,
@@ -63,6 +63,7 @@ private:
     float_point *hessianDiag;
     dim3 gridSize;
     int numOfBlock;
+	int numOfElementEachRowInCache;
 
 };
 
