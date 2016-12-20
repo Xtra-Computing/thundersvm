@@ -17,7 +17,7 @@ OBJ = cacheLAT.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o R
 	  devUtility_cu.o storageManager_cu.o hostStorageManager.o classificationKernel_cu.o\
 	  smoGPUHelper_cu.o smoSharedSolver_cu.o smoSolver_cu.o svmPredictor_cu.o\
 	  svmSharedTrainer_cu.o svmTrainer_cu.o modelSelector_cu.o trainingFunction_cu.o svmModel_cu.o\
-	  cvFunction.o svmMain.o MultiSmoSolver_cu.o
+	  cvFunction.o svmMain.o MultiSmoSolver_cu.o gpuCache.o
 
 .PHONY: release
 .PHONY: debug
@@ -105,6 +105,9 @@ cacheMLRU.o: svm-shared/Cache/cache.h svm-shared/Cache/cacheMLRU.cpp
 
 cacheMRU.o: svm-shared/Cache/cache.h svm-shared/Cache/cacheMRU.cpp
 	g++ $(CCFLAGS) -o cacheMRU.o -c svm-shared/Cache/cacheMRU.cpp
+
+gpuCache.o: svm-shared/Cache/gpuCache.h svm-shared/Cache/gpuCache.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o gpuCache.o -c svm-shared/Cache/gpuCache.cu
 
 DataIO.o: mascot/DataIOOps/DataIO.h mascot/DataIOOps/DataIO.cpp
 	g++ $(CCFLAGS) -o DataIO.o -c mascot/DataIOOps/DataIO.cpp

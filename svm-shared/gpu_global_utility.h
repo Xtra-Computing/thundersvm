@@ -96,6 +96,8 @@ public:
 
 template<class T>
 static inline T max(T x, T y) { return (x > y) ? x : y; }
+template<class T>
+static inline T min(T x, T y) { return (x < y) ? x : y; }
 
 #endif
 

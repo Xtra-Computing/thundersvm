@@ -36,6 +36,7 @@ public:
     void groupClasses();
 
     SvmProblem getSubProblem(int i, int j) const;
+    vector<vector<svm_node> > getOneClassSamples(int i) const;
 
     unsigned int getNumOfClasses() const;
 

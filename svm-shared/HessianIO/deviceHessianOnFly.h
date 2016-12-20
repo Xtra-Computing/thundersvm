@@ -18,39 +18,20 @@
 
 class DeviceHessianOnFly : public BaseHessian {
 public:
-    DeviceHessianOnFly(const SvmProblem &problem, float_point gamma) :
-            gamma(gamma), problem(problem), zero(0.0f), one(1.0f), csrMat(problem.v_vSamples, problem.getNumOfFeatures()){
-        cusparseCreate(&handle);
-        cusparseCreateMatDescr(&descr);
-        cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);
-        cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
-        nnz = csrMat.getNnz();
-        checkCudaErrors(cudaMalloc((void **) &devValA, sizeof(float_point) * csrMat.getNnz()));
-        checkCudaErrors(cudaMalloc((void **) &devValASelfDot, sizeof(float_point) * csrMat.getNumOfSamples()));
-        checkCudaErrors(cudaMalloc((void **) &devRowPtrA, sizeof(int) * (csrMat.getNumOfSamples() + 1)));
-        checkCudaErrors(cudaMalloc((void **) &devColIndA, sizeof(int) * (csrMat.getNnz())));
-        checkCudaErrors(cudaMemcpy(devValA,csrMat.getCSRVal(), sizeof(float_point) * csrMat.getNnz(),
-                                   cudaMemcpyHostToDevice));
-        checkCudaErrors(cudaMemcpy(devValASelfDot, csrMat.getCSRValSelfDot(),
-                                   sizeof(float_point) * problem.getNumOfSamples(), cudaMemcpyHostToDevice));
-        checkCudaErrors(cudaMemcpy(devRowPtrA,csrMat.getCSRRowPtr(), sizeof(int) * (problem.getNumOfSamples() + 1),
-                                   cudaMemcpyHostToDevice));
-        checkCudaErrors(cudaMemcpy(devColIndA,csrMat.getCSRColInd(), sizeof(int) * (csrMat.getNnz()),
-                                   cudaMemcpyHostToDevice));
-
-    };
+    DeviceHessianOnFly(const SvmProblem &subProblem, float_point gamma);
 
     ~DeviceHessianOnFly() {
-        checkCudaErrors(cudaFree(devValA));
-        checkCudaErrors(cudaFree(devValASelfDot));
-        checkCudaErrors(cudaFree(devRowPtrA));
-        checkCudaErrors(cudaFree(devColIndA));
+        checkCudaErrors(cudaFree(devVal));
+        checkCudaErrors(cudaFree(devValSelfDot));
+        checkCudaErrors(cudaFree(devRowPtr));
+        checkCudaErrors(cudaFree(devRowPtrSplit));
+        checkCudaErrors(cudaFree(devColInd));
         cusparseDestroyMatDescr(descr);
         cusparseDestroy(handle);
     }
 
-    virtual void ReadRow(int nPosofRowAtHessian, float_point *devHessianRow) override;
 
+    void ReadRow(int nPosofRowAtHessian, float_point *devHessianRow, int start, int end);
     virtual bool PrecomputeHessian(const string &strHessianMatrixFileName, const string &strDiagHessianFileName,
                                    vector<vector<float_point> > &v_v_DocVector) override;
 
@@ -62,20 +43,23 @@ public:
 //    virtual bool ReleaseBuffer() override;
 
 private:
-    const SvmProblem &problem;
+//    const SvmProblem &problem;
+//    const vector<vector<svm_node> > &samples;
+//    const int numOfFeatures;
     CSRMatrix csrMat;
     const float_point gamma;
     //TODO move initializing handle and descr outside
     cusparseHandle_t handle;
     cusparseMatDescr_t descr;
-
-    int nnz;
-    float_point *devValA;
-    float_point *devValASelfDot;
-    int *devRowPtrA;
-    int *devColIndA;
+    float_point *devVal;
+    float_point *devValSelfDot;
+    vector<int> csrRowPtrSplit;
+    int *devRowPtr;
+    int *devRowPtrSplit;
+    int *devColInd;
     float_point one;
     float_point zero;
+
 };
 
 

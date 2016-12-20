@@ -76,7 +76,7 @@ bool CLATCache::GetDataFromCache(const int &nIndex, int &nLocationInCache, bool 
 	assert(itCheckEntry != m_GSContainer.end());
 	assert(itCheckEntry->m_nStatus == CACHED || itCheckEntry->m_nStatus == NEVER || itCheckEntry->m_nStatus == EVICTED);
 
-	itCheckEntry->m_used.push_back(nInterater);
+//	itCheckEntry->m_used.push_back(nInterater);
 	//PrintCacheContent(nIndex);
 
 	if(itCheckEntry->m_nStatus == CACHED)

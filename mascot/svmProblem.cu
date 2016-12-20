@@ -84,6 +84,16 @@ int SvmProblem::getNumOfFeatures() const {
     return numOfFeatures;
 }
 
+vector<vector<svm_node> > SvmProblem::getOneClassSamples(int i) const {
+    vector<vector<svm_node> >samples;
+    int si = start[i];
+    int ci = count[i];
+    for (int k = 0; k < ci; ++k) {
+        samples.push_back(v_vSamples[perm[si+k]]);
+    }
+    return samples;
+}
+
 CSRMatrix::CSRMatrix(const vector<vector<svm_node> > &samples, int numOfFeatures) : samples(samples),
                                                                                     numOfFeatures(numOfFeatures) {
     int start = 0;
@@ -133,7 +143,7 @@ CSRMatrix::CSRmm2Dense(cusparseHandle_t handle, cusparseOperation_t transA, cusp
                        const int *rowPtrB, const int *colIndB, float *C) {
     /*
      * The CSRmm2Dense result is column-major instead of row-major. To avoid transposing the result
-     * we compute B'A' instead of AB : (AB)' = B'A'
+     * we compute B'A' instead of AB' : (AB)' = B'A'
      * */
     if (transA == CUSPARSE_OPERATION_NON_TRANSPOSE)
         transA = CUSPARSE_OPERATION_TRANSPOSE;

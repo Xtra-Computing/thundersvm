@@ -10,12 +10,17 @@
 #include "svmModel.h"
 #include "../svm-shared/Cache/cache.h"
 #include "../svm-shared/HessianIO/baseHessian.h"
+#include "../svm-shared/HessianIO/deviceHessianOnFly.h"
+#include "../svm-shared/Cache/gpuCache.h"
 
 class MultiSmoSolver {
 public:
     MultiSmoSolver(const SvmProblem &problem, SvmModel &model, const SVMParam &param) :
-            problem(problem), model(model), param(param) {}
+            problem(problem), model(model), param(param),cache(problem, param) {
+    }
 
+    ~MultiSmoSolver(){
+    };
     void solve();
 
 
@@ -26,7 +31,8 @@ private:
 
     void initCache(int cacheSize);
     CCache *gpuCache;
-    BaseHessian *hessianCalculator;
+	GpuCache cache;
+    DeviceHessianOnFly *hessianCalculator;
 
     void init4Training(const SvmProblem &subProblem);
 
@@ -58,6 +64,8 @@ private:
     float_point *devHessianMatrixCache;
     float_point *devHessianDiag;
     float_point *hessianDiag;
+    float_point *devHessianSampleRow1;
+    float_point *devHessianSampleRow2;
     dim3 gridSize;
     int numOfBlock;
 	int numOfElementEachRowInCache;
