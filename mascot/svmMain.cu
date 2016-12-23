@@ -52,7 +52,9 @@ int main(int argc, char **argv)
  		//perform svm evaluation 
 		cout << "performing evaluation" << endl;
 		SvmModel model;
+        cout << "start training..." << endl;
 		trainSVM(parser.param, fileName, parser.nNumofFeature, model);
+        cout << "start evaluation..." << endl;
         evaluateSVMClassifier(model, strcat(fileName, ".t"), parser.nNumofFeature);
        
     }
