@@ -14,6 +14,23 @@ using std::cerr;
 using std::endl;
 
 /**
+ * @brief: set the device to use
+ */
+void UseDevice(int deviceId, CUcontext &context)
+{
+    CUdevice device;
+    cudaDeviceProp prop;
+    checkCudaErrors(cudaGetDeviceProperties(&prop, deviceId));
+    cout << "Using " << prop.name << "; device id is " << deviceId << endl;
+    checkCudaErrors(cudaSetDevice(deviceId));
+    cuDeviceGet(&device, deviceId);
+    cuCtxCreate(&context, CU_CTX_MAP_HOST, device);
+    if(!prop.canMapHostMemory)
+		fprintf(stderr, "Device %d cannot map host memory!\n", deviceId);
+}
+
+
+/**
  * @brief: initialize CUDA device
  */
 
@@ -27,44 +44,25 @@ bool InitCUDA(CUcontext &context, char gpuType = 'T')
         return false;
     }
 
-    CUdevice device;
     int i;
     for(i = 0; i < count; i++) {
         cudaDeviceProp prop;
         checkCudaErrors(cudaGetDeviceProperties(&prop, i));
         if(cudaGetDeviceProperties(&prop, i) == cudaSuccess) {
         	cout << prop.name << endl;
-        	if(prop.name[0] == gpuType && prop.name[1] == 'e')
-        	{//prefere to use Tesla card
-        		cout << "Using " << prop.name << "; device id is " << i << endl;
-        		checkCudaErrors(cudaSetDevice(i));
-        		cuDeviceGet(&device, i);
-        		cuCtxCreate(&context, CU_CTX_MAP_HOST, device);
-
-    			cudaGetDeviceProperties(&prop, i);
-    			if(!prop.canMapHostMemory)
-					fprintf(stderr, "Device %d cannot map host memory!\n", i);
-
-    			break;
+        	if(prop.name[0] == gpuType)
+        	{//choose the prefer device
+                UseDevice(i, context);
+       			break;
         	}
-            if(prop.major >= 1)
-            {
-            	cout << "compute capability: " << prop.major << "; " << count << " devices" << endl;
-            }
         }
     }
 
     cout << i << " v.s. " << count << endl;
     if(i == count)
     {
-        cudaDeviceProp prop;
         cout << "There is no device of \"" << gpuType << "\" series" << endl;
-        checkCudaErrors(cudaGetDeviceProperties(&prop, 0));
-
-        cout << "using " << prop.name << endl;
-        checkCudaErrors(cudaSetDevice(0));
-        cuDeviceGet(&device, i);
-		cuCtxCreate(&context, CU_CTX_MAP_HOST, device);
+        UseDevice(0, context);
     }
 
     return true;
