@@ -25,11 +25,6 @@ void BaseSMO::SelectFirst(int numTrainingInstance, float_point CforPositive)
 	IdofInstanceOne = (int)hostBuffer[0];
 
 	devHessianInstanceRow1 = ObtainRow(numTrainingInstance);
-	/*
-	devHessianInstanceRow1 = GetHessianRow(numTrainingInstance, IdofInstanceOne);
-	//lock cached entry for the sample one, in case it is replaced by sample two
-	m_pGPUCache->LockCacheEntry(IdofInstanceOne);
-	*/
 }
 
 /**

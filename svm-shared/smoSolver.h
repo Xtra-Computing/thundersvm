@@ -92,9 +92,6 @@ public:
     virtual float_point *ObtainRow(int numTrainingInstance)
     {
     	devHessianInstanceRow1 = GetHessianRow(numTrainingInstance, IdofInstanceOne);
-
-        //lock cached entry for the sample one, in case it is replaced by sample two
-        m_pGPUCache->LockCacheEntry(IdofInstanceOne);
     }
 
 	void SetCacheStrategy(CCache *pCache){m_pGPUCache = pCache;}

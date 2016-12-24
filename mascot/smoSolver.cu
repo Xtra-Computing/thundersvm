@@ -72,7 +72,14 @@ long nTimeofGetHessian = 0;
  */
 int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int *pnDevLabel, const int &nNumofTrainingSamples)
 {
-//	cudaDeviceSynchronize();
+	//variables used in search
+	devYiGValue = pfDevYiFValue;
+	devAlpha = pfDevAlpha;
+	devLabel = pnDevLabel;
+	SelectFirst(nNumofTrainingSamples, gfPCost);
+    //lock cached entry for the sample one, in case it is replaced by sample two
+    m_pGPUCache->LockCacheEntry(IdofInstanceOne);
+	/*
 	//block level reducer
 	GetBlockMinYiGValue<<<gridSize, BLOCK_SIZE>>>(pfDevYiFValue, pfDevAlpha, pnDevLabel, gfPCost,
 												 nNumofTrainingSamples, devBlockMin, devBlockMinGlobalKey);
@@ -88,7 +95,10 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 
 	//lock cached entry for the sample one, in case it is replaced by sample two
 	m_pGPUCache->LockCacheEntry(IdofInstanceOne);
+	*/
 
+	SelectSecond(nNumofTrainingSamples, gfNCost);
+	/*
 	float_point fUpSelfKernelValue = 0;
 	fUpSelfKernelValue = hessianDiag[IdofInstanceOne];
 	//select second sample
@@ -113,6 +123,7 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 //	cudaThreadSynchronize();
 	//copy result back to host
 	cudaMemcpy(hostBuffer, devBuffer, sizeof(float_point) * 4, cudaMemcpyDeviceToHost);
+	*/
 	IdofInstanceTwo = int(hostBuffer[0]);
 
 	//get kernel value K(Sample1, Sample2)
@@ -138,10 +149,14 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 	float_point fY1AlphaDiff, fY2AlphaDiff;
 	UpdateTwoWeight(fMinLowValue, fMinValue, IdofInstanceOne, IdofInstanceTwo, fKernelValue,
 					fY1AlphaDiff, fY2AlphaDiff);
+
+	m_pGPUCache->UnlockCacheEntry(IdofInstanceOne);
+
+	UpdateYiGValue(nNumofTrainingSamples, fY1AlphaDiff, fY2AlphaDiff);
+	/*
 	float_point fAlpha1 = m_pfAlpha[IdofInstanceOne];
 	float_point fAlpha2 = m_pfAlpha[IdofInstanceTwo];
 
-	m_pGPUCache->UnlockCacheEntry(IdofInstanceOne);
 
 	//update yiFvalue
 	//copy new alpha values to device
@@ -153,6 +168,6 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 	UpdateYiFValueKernel<<<gridSize, BLOCK_SIZE>>>(pfDevAlpha, devBuffer, pfDevYiFValue,
 												  devHessianInstanceRow1, devHessianInstanceRow2,
 												  fY1AlphaDiff, fY2AlphaDiff, nNumofTrainingSamples);
-
+*/
 	return 0;
 }
