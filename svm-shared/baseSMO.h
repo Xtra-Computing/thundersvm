@@ -18,10 +18,13 @@ public:
 	void SelectFirst(int numTrainingInstance, float_point CforPositive);
 	void SelectSecond(int numTrainingInstance, float_point CforNegative);
 
+	void UpdateYiGValue(int numTrainingInstance, float_point fY1AlphaDiff, float_point fY2AlphaDiff);
+
 protected:
 	virtual float_point *ObtainRow(int numTrainingInstance) = 0;
 
 protected:
+	vector<float_point> alpha;
     float_point upValue;
     float_point lowValue;
     float_point *devBuffer;

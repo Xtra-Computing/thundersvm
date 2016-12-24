@@ -53,8 +53,6 @@ private:
     	cache.getHessianRow(IdofInstanceOne, devHessianInstanceRow1);
     	return devHessianInstanceRow1;
     }
-
-    vector<float_point> alpha;
     
     float_point *devMinValue;
     int *devMinKey;

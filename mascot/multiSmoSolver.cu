@@ -56,7 +56,7 @@ bool MultiSmoSolver::iterate(SvmProblem &subProblem) {
     SelectFirst(trainingSize, param.C);
     SelectSecond(trainingSize, param.C);
 
-    int m_nIndexofSampleTwo = int(hostBuffer[0]);
+    IdofInstanceTwo = int(hostBuffer[0]);
 
     //get kernel value K(Sample1, Sample2)
     float_point fKernelValue = 0;
@@ -66,7 +66,7 @@ bool MultiSmoSolver::iterate(SvmProblem &subProblem) {
 
 
 //    float_point *two = devHessianMatrixCache + getHessianRow(m_nIndexofSampleTwo);
-    cache.getHessianRow(m_nIndexofSampleTwo,devHessianInstanceRow2);
+    cache.getHessianRow(IdofInstanceTwo,devHessianInstanceRow2);
 //    test<<<1,1>>>(two,devHessianSampleRow2,trainingSize);
 //    cudaMemcpy(devHessianSampleRow2,two,sizeof(float_point)*trainingSize, cudaMemcpyDeviceToDevice);
 //    printf("\n");
@@ -83,10 +83,12 @@ bool MultiSmoSolver::iterate(SvmProblem &subProblem) {
 
     float_point fY1AlphaDiff, fY2AlphaDiff;
     float_point fMinValue = -upValue;
-    updateTwoWeight(fMinLowValue, fMinValue, IdofInstanceOne, m_nIndexofSampleTwo, fKernelValue,
+    updateTwoWeight(fMinLowValue, fMinValue, IdofInstanceOne, IdofInstanceTwo, fKernelValue,
                     fY1AlphaDiff, fY2AlphaDiff, subProblem.v_nLabels.data());
+
+
     float_point fAlpha1 = alpha[IdofInstanceOne];
-    float_point fAlpha2 = alpha[m_nIndexofSampleTwo];
+    float_point fAlpha2 = alpha[IdofInstanceTwo];
 
 //    gpuCache->UnlockCacheEntry(m_nIndexofSampleOne);
 
@@ -94,7 +96,7 @@ bool MultiSmoSolver::iterate(SvmProblem &subProblem) {
     //copy new alpha values to device
     hostBuffer[0] = IdofInstanceOne;
     hostBuffer[1] = fAlpha1;
-    hostBuffer[2] = m_nIndexofSampleTwo;
+    hostBuffer[2] = IdofInstanceTwo;
     hostBuffer[3] = fAlpha2;
     checkCudaErrors(cudaMemcpy(devBuffer, hostBuffer, sizeof(float_point) * 4, cudaMemcpyHostToDevice));
     UpdateYiFValueKernel << < gridSize, BLOCK_SIZE >> > (devAlpha, devBuffer, devYiGValue,

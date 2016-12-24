@@ -63,3 +63,22 @@ void BaseSMO::SelectSecond(int numTrainingInstance, float_point CforNegative)
 	//copy result back to host
 	cudaMemcpy(hostBuffer, devBuffer, sizeof(float_point) * 4, cudaMemcpyDeviceToHost);
 }
+
+/*
+ * @brief: update the optimality indicator
+ */
+void BaseSMO::UpdateYiGValue(int numTrainingInstance, float_point fY1AlphaDiff, float_point fY2AlphaDiff)
+{
+    float_point fAlpha1 = alpha[IdofInstanceOne];
+    float_point fAlpha2 = alpha[IdofInstanceTwo];
+    //update yiFvalue
+    //copy new alpha values to device
+    hostBuffer[0] = IdofInstanceOne;
+    hostBuffer[1] = fAlpha1;
+    hostBuffer[2] = IdofInstanceTwo;
+    hostBuffer[3] = fAlpha2;
+    checkCudaErrors(cudaMemcpy(devBuffer, hostBuffer, sizeof(float_point) * 4, cudaMemcpyHostToDevice));
+    UpdateYiFValueKernel <<< gridSize, BLOCK_SIZE >>> (devAlpha, devBuffer, devYiGValue,
+            devHessianInstanceRow1, devHessianInstanceRow2,
+            fY1AlphaDiff, fY2AlphaDiff, numTrainingInstance);
+}
