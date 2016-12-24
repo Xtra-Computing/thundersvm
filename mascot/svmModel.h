@@ -20,15 +20,15 @@ class SvmModel {
 private:
     SVMParam param;
     unsigned int nrClass;
-    unsigned int cnr2;
+    unsigned int cnr2;					//total number of svm models to train
     int numOfSVs;
     int numOfFeatures;
     vector<vector<int> > svIndex;
     vector<vector<svm_node> > svMap;
     CSRMatrix *svMapCSRMat = NULL;
     vector<vector<float_point> > coef;
-    vector<int> start;
-    vector<int> count;
+    vector<int> start;					//
+    vector<int> count;					//
     vector<float_point> rho;
     vector<float_point> probA;
     vector<float_point> probB;

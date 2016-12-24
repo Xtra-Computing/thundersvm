@@ -12,8 +12,10 @@
 #include "../svm-shared/HessianIO/baseHessian.h"
 #include "../svm-shared/HessianIO/deviceHessianOnFly.h"
 #include "../svm-shared/Cache/gpuCache.h"
+#include "baseSMO.h"
 
-class MultiSmoSolver {
+class MultiSmoSolver: public BaseSMO
+{
 public:
     MultiSmoSolver(const SvmProblem &problem, SvmModel &model, const SVMParam &param) :
             problem(problem), model(model), param(param),cache(problem, param) {
@@ -46,28 +48,34 @@ private:
     void extractModel(const SvmProblem &subProblem, vector<int> &svIndex, vector<float_point> &coef, float_point &rho) const;
     void deinit4Training();
 
-    float_point *devAlpha;
-    vector<float_point> alpha;
-    float_point *devYiGValue;
-    int *devLabel;
+    virtual float_point *ObtainRow(int numTrainingInstance)
+    {
+    	cache.getHessianRow(IdofInstanceOne, devHessianInstanceRow1);
+    	return devHessianInstanceRow1;
+    }
 
-    float_point *devBlockMin;
-    int *devBlockMinGlobalKey;
-    float_point *devBlockMinYiFValue;
+//    float_point *devAlpha;
+    vector<float_point> alpha;
+//   float_point *devYiGValue;
+//    int *devLabel;
+
+//    float_point *devBlockMin;
+//    int *devBlockMinGlobalKey;
+//    float_point *devBlockMinYiFValue;
     float_point *devMinValue;
     int *devMinKey;
-    float_point upValue;
-    float_point lowValue;
-    float_point *devBuffer;
-    float_point *hostBuffer;
+//    float_point upValue;
+//    float_point lowValue;
+//    float_point *devBuffer;
+//    float_point *hostBuffer;
 
     float_point *devHessianMatrixCache;
-    float_point *devHessianDiag;
-    float_point *hessianDiag;
-    float_point *devHessianSampleRow1;
-    float_point *devHessianSampleRow2;
-    dim3 gridSize;
-    int numOfBlock;
+//    float_point *devHessianDiag;
+//    float_point *hessianDiag;
+//    float_point *devHessianSampleRow1;
+//    float_point *devHessianSampleRow2;
+//    dim3 gridSize;
+//    int numOfBlock;
 	int numOfElementEachRowInCache;
 
 };
