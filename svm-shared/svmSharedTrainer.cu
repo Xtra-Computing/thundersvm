@@ -63,13 +63,11 @@ void CSVMTrainer::TrainStarting(int nNumofInstance, int nNumofTrainingExample,
 	//allocate memory for reading hessian row
 	m_pSMOSolver->m_pHessianReader->AllocateBuffer(1);
 
-//	cudaStreamCreate(&m_pSMOSolver->m_stream1_Hessian_row);//for overlapping memcpy
 	checkCudaErrors(cudaMemcpy(m_pSMOSolver->m_pnLabel, pnDevLabelSubset,
 					sizeof(int) * nNumofTrainingExample, cudaMemcpyDeviceToHost));
 	checkCudaErrors(cudaMemcpy(m_pSMOSolver->m_pfGValue, pfDevYiFValueSubset,
 					sizeof(float_point) * nNumofTrainingExample, cudaMemcpyDeviceToHost));
-	checkCudaErrors(cudaMemcpy(m_pSMOSolver->m_pfAlpha, pfDevAlphaSubset,
-					sizeof(float_point) * nNumofTrainingExample, cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemset(pfDevAlphaSubset, 0,	sizeof(float_point) * nNumofTrainingExample));
 }
 
 /*

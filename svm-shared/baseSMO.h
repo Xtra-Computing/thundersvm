@@ -27,8 +27,8 @@ protected:
 
 public:
     float_point upValue;
-protected:
 	vector<float_point> alpha;
+protected:
     float_point lowValue;
     float_point *devBuffer;
     float_point *hostBuffer;

@@ -40,7 +40,6 @@ public:
 	float_point *m_pfHessianRow;//this member is for re-using memory (avoid allocating memory)
 	long long m_lNumofElementEachRowInCache;
 	float_point *m_pfGValue;
-	float_point *m_pfAlpha;
 	int *m_pnLabel;
 
 	//members for gpu
@@ -91,7 +90,7 @@ public:
 
     virtual float_point *ObtainRow(int numTrainingInstance)
     {
-    	devHessianInstanceRow1 = GetHessianRow(numTrainingInstance, IdofInstanceOne);
+    	return GetHessianRow(numTrainingInstance, IdofInstanceOne);
     }
 
 	void SetCacheStrategy(CCache *pCache){m_pGPUCache = pCache;}

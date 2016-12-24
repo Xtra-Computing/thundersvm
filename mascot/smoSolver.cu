@@ -44,7 +44,7 @@ bool CSMOSolver::InitCache(const int &nCacheSize, const int &nNumofInstance)
 
 	//read Hessian diagonal
 	m_pfGValue = new float_point[nNumofInstance];
-	m_pfAlpha = new float_point[nNumofInstance];
+    alpha = vector<float_point>(nNumofInstance,0);
 	hessianDiag = new float_point[nNumofInstance];
 	memset(hessianDiag, 0, sizeof(float_point) * nNumofInstance);
 	string strHessianDiagFile = HESSIAN_DIAG_FILE;
@@ -77,53 +77,12 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 	devAlpha = pfDevAlpha;
 	devLabel = pnDevLabel;
 	SelectFirst(nNumofTrainingSamples, gfPCost);
-    //lock cached entry for the sample one, in case it is replaced by sample two
-    m_pGPUCache->LockCacheEntry(IdofInstanceOne);
-	/*
-	//block level reducer
-	GetBlockMinYiGValue<<<gridSize, BLOCK_SIZE>>>(pfDevYiFValue, pfDevAlpha, pnDevLabel, gfPCost,
-												 nNumofTrainingSamples, devBlockMin, devBlockMinGlobalKey);
-	//global reducer
-	GetGlobalMin<<<1, BLOCK_SIZE>>>(devBlockMin, devBlockMinGlobalKey, numOfBlock, pfDevYiFValue, NULL, devBuffer);
-
-	//copy result back to host
-	cudaMemcpy(hostBuffer, devBuffer, sizeof(float_point) * 2, cudaMemcpyDeviceToHost);
-	IdofInstanceOne = (int)hostBuffer[0];
-	float_point fMinValue;
-	fMinValue = hostBuffer[1];
-	devHessianInstanceRow1 = GetHessianRow(nNumofTrainingSamples,	IdofInstanceOne);
-
+   
 	//lock cached entry for the sample one, in case it is replaced by sample two
+
 	m_pGPUCache->LockCacheEntry(IdofInstanceOne);
-	*/
-
-	SelectSecond(nNumofTrainingSamples, gfNCost);
-	/*
-	float_point fUpSelfKernelValue = 0;
-	fUpSelfKernelValue = hessianDiag[IdofInstanceOne];
-	//select second sample
-
-	upValue = -fMinValue;
-
-	//get block level min (-b_ij*b_ij/a_ij)
-	GetBlockMinLowValue<<<gridSize, BLOCK_SIZE>>>
-					   (pfDevYiFValue, pfDevAlpha, pnDevLabel, gfNCost, nNumofTrainingSamples, devHessianDiag,
-						devHessianInstanceRow1, upValue, fUpSelfKernelValue, devBlockMin, devBlockMinGlobalKey,
-						devBlockMinYiGValue);
-
-	//get global min
-	GetGlobalMin<<<1, BLOCK_SIZE>>>
-				(devBlockMin, devBlockMinGlobalKey,
-				 numOfBlock, pfDevYiFValue, devHessianInstanceRow1, devBuffer);
-
-	//get global min YiFValue
-	//0 is the size of dynamically allocated shared memory inside kernel
-	GetGlobalMin<<<1, BLOCK_SIZE>>>(devBlockMinYiGValue, numOfBlock, devBuffer);
-
-//	cudaThreadSynchronize();
-	//copy result back to host
-	cudaMemcpy(hostBuffer, devBuffer, sizeof(float_point) * 4, cudaMemcpyDeviceToHost);
-	*/
+    SelectSecond(nNumofTrainingSamples, gfNCost);
+	
 	IdofInstanceTwo = int(hostBuffer[0]);
 
 	//get kernel value K(Sample1, Sample2)
@@ -134,7 +93,6 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 
 
 	devHessianInstanceRow2 = GetHessianRow(nNumofTrainingSamples,	IdofInstanceTwo);
-//	cudaDeviceSynchronize();
 
 
 	m_fLowValue = -hostBuffer[3];
@@ -147,27 +105,11 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 	}
 
 	float_point fY1AlphaDiff, fY2AlphaDiff;
-	UpdateTwoWeight(fMinLowValue, fMinValue, IdofInstanceOne, IdofInstanceTwo, fKernelValue,
+	UpdateTwoWeight(fMinLowValue, -upValue, IdofInstanceOne, IdofInstanceTwo, fKernelValue,
 					fY1AlphaDiff, fY2AlphaDiff);
 
 	m_pGPUCache->UnlockCacheEntry(IdofInstanceOne);
 
 	UpdateYiGValue(nNumofTrainingSamples, fY1AlphaDiff, fY2AlphaDiff);
-	/*
-	float_point fAlpha1 = m_pfAlpha[IdofInstanceOne];
-	float_point fAlpha2 = m_pfAlpha[IdofInstanceTwo];
-
-
-	//update yiFvalue
-	//copy new alpha values to device
-	hostBuffer[0] = IdofInstanceOne;
-	hostBuffer[1] = fAlpha1;
-	hostBuffer[2] = IdofInstanceTwo;
-	hostBuffer[3] = fAlpha2;
-	cudaMemcpy(devBuffer, hostBuffer, sizeof(float_point) * 4, cudaMemcpyHostToDevice);
-	UpdateYiFValueKernel<<<gridSize, BLOCK_SIZE>>>(pfDevAlpha, devBuffer, pfDevYiFValue,
-												  devHessianInstanceRow1, devHessianInstanceRow2,
-												  fY1AlphaDiff, fY2AlphaDiff, nNumofTrainingSamples);
-*/
-	return 0;
+    return 0;
 }

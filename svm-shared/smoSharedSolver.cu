@@ -109,7 +109,6 @@ bool CSMOSolver::SMOSolverEnd()
 	delete[] m_pnLabel;
 	delete[] hessianDiag;
 	delete[] m_pfGValue;
-	delete[] m_pfAlpha;
 	delete[] hostBuffer;
 
 	return bReturn;
@@ -262,13 +261,13 @@ void CSMOSolver::UpdateTwoWeight(float_point fMinLowValue, float_point fMinValue
 	//get YiGValue for sample one and two
 	float_point fAlpha2 = 0;
 	float_point fYiFValue2 = 0;
-	fAlpha2 = m_pfAlpha[IdofInstanceTwo];
+	fAlpha2 = alpha[IdofInstanceTwo];
 	fYiFValue2 = fMinLowValue;
 
 	//get alpha values of sample
 	float_point fAlpha1 = 0;
 	float_point fYiFValue1 = 0;
-	fAlpha1 = m_pfAlpha[IdofInstanceOne];
+	fAlpha1 = alpha[IdofInstanceOne];
 	fYiFValue1 = fMinValue;
 
 	//Get K(x_up, x_up), and K(x_low, x_low)
@@ -378,8 +377,8 @@ void CSMOSolver::UpdateTwoWeight(float_point fMinLowValue, float_point fMinValue
 		}
 	}//end get new alpha values
 
-	m_pfAlpha[IdofInstanceOne] = fAlpha1;
-	m_pfAlpha[IdofInstanceTwo] = fAlpha2;
+	alpha[IdofInstanceOne] = fAlpha1;
+    alpha[IdofInstanceTwo] = fAlpha2;
 
 	//get alpha difference
 	fY1AlphaDiff = nLabel1 * fAlpha1 - fY1AlphaDiff; //(alpha1' - alpha1) * y1
