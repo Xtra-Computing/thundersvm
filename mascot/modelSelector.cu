@@ -261,39 +261,6 @@ bool CModelSelector::CrossValidation(const int &nFold, vector<int> &vnLabel, int
 		clock_gettime(CLOCK_REALTIME, &timeTrainE);
 		long lTrainingTime = ((timeTrainE.tv_sec - timeTrainS.tv_sec) * 1e9 + (timeTrainE.tv_nsec - timeTrainS.tv_nsec));
 
-/*		trainingElapsedTime = (tTraining2.tv_sec - tTraining1.tv_sec) * 1000.0;
-		trainingElapsedTime += (tTraining2.tv_usec - tTraining1.tv_usec) / 1000.0;
-		cout << "training time: " << trainingElapsedTime << " ms v.s. " << lTrainingTime / 1000000 << " ms" << endl;;
-		cout << "updating alpha: " << nTimeOfUpdateAlpha / 1000 << " ms."<< endl;
-		nTimeOfUpdateAlpha = 0;
-		cout << "select 1st: " << nTimeOfSelect1stSample / 1000 << " ms."<< endl;
-		//nTimeOfSelect1stSample = 0;
-		cout << "select 2nd: " << nTimeOfSelect2ndSample / 1000 << " ms."<< endl;
-		//nTimeOfSelect2ndSample = 0;
-		cout << "updating YiF: " << nTimeOfUpdateYiFValue / 1000 << " ms."<< endl;
-		nTimeOfUpdateYiFValue = 0;
-		cout << "get hessian: " << nTimeofGetHessian / 1000 << " ms." << endl;
-		nTimeofGetHessian = 0;
-		cout << "loop: " << nTimeOfLoop / 1000000 << " ms." << endl;
-		nTimeOfLoop = 0;
-		cout << "preparation: " << nTimeOfPrep / 1000000 << " ms." << endl;
-		nTimeOfPrep = 0;
-		cout << "IO timer: " << lIO_timer / 1000000 << " ms" << endl;
-
-		cout << "GetHessian timer: " << lGetHessianRowTime / 1000000 << " ms" << endl;
-		cout << "IO counter: " << lIO_counter << " v.s GetHessianRow counter: " << lGetHessianRowCounter << endl;
-		lIO_counter = 0;
-		lGetHessianRowCounter = 0;
-
-		cout << "Ram " << lRamHitCount << "; SSD " << lSSDHitCount << endl;
-		lRamHitCount = 0;
-		lSSDHitCount = 0;
-
-		cout << "get: " << lCountNormal << "; latest: " << lCountLatest << endl;
-		lCountNormal = 0;
-		lCountLatest = 0;
-*/
-
 		/******************** prediction *******************/
 		//get the size of a fold for testing
 		int nNumofTestingSample = 0;
