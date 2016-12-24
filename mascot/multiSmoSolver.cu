@@ -54,56 +54,8 @@ bool MultiSmoSolver::iterate(SvmProblem &subProblem) {
     int trainingSize = subProblem.getNumOfSamples();
 
     SelectFirst(trainingSize, param.C);
-/*
-    GetBlockMinYiGValue << < gridSize, BLOCK_SIZE >> > (devYiGValue, devAlpha, devLabel, param.C,
-            trainingSize, devBlockMin, devBlockMinGlobalKey);
-    //global reducer
-    GetGlobalMin << < 1, BLOCK_SIZE >> >
-                         (devBlockMin, devBlockMinGlobalKey, numOfBlock, devYiGValue, NULL, devBuffer);
-
-    //copy result back to host
-    checkCudaErrors(cudaMemcpy(hostBuffer, devBuffer, sizeof(float_point) * 2, cudaMemcpyDeviceToHost));
-    int m_nIndexofSampleOne = (int) hostBuffer[0];
-    float_point fMinValue;
-    fMinValue = hostBuffer[1];
-
-//    float_point *one = devHessianMatrixCache + getHessianRow(m_nIndexofSampleOne);
-    cache.getHessianRow(m_nIndexofSampleOne,devHessianInstanceRow1);
-*///    test<<<1,1>>>(one,devHessianSampleRow1,trainingSize);
-//    cudaMemcpy(devHessianSampleRow1,one,sizeof(float_point)*trainingSize, cudaMemcpyDeviceToDevice);
-//    printf("\n");
-
-
-    //lock cached entry for the sample one, in case it is replaced by sample two
-//    gpuCache->LockCacheEntry(m_nIndexofSampleOne);
-
     SelectSecond(trainingSize, param.C);
-/*
-    float_point fUpSelfKernelValue = 0;
-    fUpSelfKernelValue = hessianDiag[m_nIndexofSampleOne];
-    //select second sample
 
-    upValue = -fMinValue;
-
-    //get block level min (-b_ij*b_ij/a_ij)
-    GetBlockMinLowValue << < gridSize, BLOCK_SIZE >> >
-                                       (devYiGValue, devAlpha, devLabel, param.C, trainingSize, devHessianDiag,
-                                               devHessianInstanceRow1, upValue, fUpSelfKernelValue, devBlockMin, devBlockMinGlobalKey,
-                                               devBlockMinYiGValue);
-
-    //get global min
-    GetGlobalMin << < 1, BLOCK_SIZE >> >
-                         (devBlockMin, devBlockMinGlobalKey,
-                                 numOfBlock, devYiGValue, devHessianInstanceRow1, devBuffer);
-
-    //get global min YiFValue
-    //0 is the size of dynamically allocated shared memory inside kernel
-    GetGlobalMin << < 1, BLOCK_SIZE >> > (devBlockMinYiGValue, numOfBlock, devBuffer);
-
-//	cudaThreadSynchronize();
-    //copy result back to host
-    checkCudaErrors(cudaMemcpy(hostBuffer, devBuffer, sizeof(float_point) * 4, cudaMemcpyDeviceToHost));
-*/
     int m_nIndexofSampleTwo = int(hostBuffer[0]);
 
     //get kernel value K(Sample1, Sample2)
@@ -130,6 +82,7 @@ bool MultiSmoSolver::iterate(SvmProblem &subProblem) {
     }
 
     float_point fY1AlphaDiff, fY2AlphaDiff;
+    float_point fMinValue = -upValue;
     updateTwoWeight(fMinLowValue, fMinValue, IdofInstanceOne, m_nIndexofSampleTwo, fKernelValue,
                     fY1AlphaDiff, fY2AlphaDiff, subProblem.v_nLabels.data());
     float_point fAlpha1 = alpha[IdofInstanceOne];
