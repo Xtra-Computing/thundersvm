@@ -13,12 +13,13 @@
 class BaseSMO
 {
 public:
+    BaseSMO(){}
 	virtual ~BaseSMO(){}
 	void SelectFirst(int numTrainingInstance, float_point CforPositive);
 	void SelectSecond(int numTrainingInstance, float_point CforNegative);
 
 protected:
-	virtual float_point *ObtainRow(int numTrainingInstance);
+	virtual float_point *ObtainRow(int numTrainingInstance) = 0;
 
 protected:
     float_point upValue;

@@ -12,7 +12,7 @@
 #include "../svm-shared/HessianIO/baseHessian.h"
 #include "../svm-shared/HessianIO/deviceHessianOnFly.h"
 #include "../svm-shared/Cache/gpuCache.h"
-#include "baseSMO.h"
+#include "../svm-shared/baseSMO.h"
 
 class MultiSmoSolver: public BaseSMO
 {

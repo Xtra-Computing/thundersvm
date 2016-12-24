@@ -8,16 +8,17 @@
 #include "baseSMO.h"
 #include <cuda_runtime_api.h>
 #include <helper_cuda.h>
+#include "smoGPUHelper.h"
 
 /**
  * @brief: select the first instance in SMO
  */
 void BaseSMO::SelectFirst(int numTrainingInstance, float_point CforPositive)
 {
-	GetBlockMinYiGValue<<<dimGridThinThread, BLOCK_SIZE>>>(devYiGValue, devAlpha, devLabel, CforPositive,
+	GetBlockMinYiGValue<<<gridSize, BLOCK_SIZE>>>(devYiGValue, devAlpha, devLabel, CforPositive,
 														   numTrainingInstance, devBlockMin, devBlockMinGlobalKey);
 	//global reducer
-	GetGlobalMin<<<1, BLOCK_SIZE>>>(devBlockMin, devBlockMinGlobalKey, numofBlock, devYiGValue, NULL, devBuffer);
+	GetGlobalMin<<<1, BLOCK_SIZE>>>(devBlockMin, devBlockMinGlobalKey, numOfBlock, devYiGValue, NULL, devBuffer);
 
 	//copy result back to host
 	cudaMemcpy(hostBuffer, devBuffer, sizeof(float_point) * 2, cudaMemcpyDeviceToHost);
@@ -53,11 +54,11 @@ void BaseSMO::SelectSecond(int numTrainingInstance, float_point CforNegative)
 	//get global min
 	GetGlobalMin<<<1, BLOCK_SIZE>>>
 					(devBlockMin, devBlockMinGlobalKey,
-					 numofBlock, devYiGValue, devHessianInstanceRow1, devBuffer);
+					 numOfBlock, devYiGValue, devHessianInstanceRow1, devBuffer);
 
 	//get global min YiFValue
 	//0 is the size of dynamically allocated shared memory inside kernel
-	GetGlobalMin<<<1, BLOCK_SIZE>>>(devBlockMinYiGValue, numofBlock, devBuffer);
+	GetGlobalMin<<<1, BLOCK_SIZE>>>(devBlockMinYiGValue, numOfBlock, devBuffer);
 
 	//copy result back to host
 	cudaMemcpy(hostBuffer, devBuffer, sizeof(float_point) * 4, cudaMemcpyDeviceToHost);

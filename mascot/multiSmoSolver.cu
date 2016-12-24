@@ -64,7 +64,7 @@ bool MultiSmoSolver::iterate(SvmProblem &subProblem) {
     float_point fMinValue;
     fMinValue = hostBuffer[1];
 //    float_point *one = devHessianMatrixCache + getHessianRow(m_nIndexofSampleOne);
-    cache.getHessianRow(m_nIndexofSampleOne,devHessianSampleRow1);
+    cache.getHessianRow(m_nIndexofSampleOne,devHessianInstanceRow1);
 //    test<<<1,1>>>(one,devHessianSampleRow1,trainingSize);
 //    cudaMemcpy(devHessianSampleRow1,one,sizeof(float_point)*trainingSize, cudaMemcpyDeviceToDevice);
 //    printf("\n");
@@ -82,17 +82,17 @@ bool MultiSmoSolver::iterate(SvmProblem &subProblem) {
     //get block level min (-b_ij*b_ij/a_ij)
     GetBlockMinLowValue << < gridSize, BLOCK_SIZE >> >
                                        (devYiGValue, devAlpha, devLabel, param.C, trainingSize, devHessianDiag,
-                                               devHessianSampleRow1, upValue, fUpSelfKernelValue, devBlockMin, devBlockMinGlobalKey,
-                                               devBlockMinYiFValue);
+                                               devHessianInstanceRow1, upValue, fUpSelfKernelValue, devBlockMin, devBlockMinGlobalKey,
+                                               devBlockMinYiGValue);
 
     //get global min
     GetGlobalMin << < 1, BLOCK_SIZE >> >
                          (devBlockMin, devBlockMinGlobalKey,
-                                 numOfBlock, devYiGValue, devHessianSampleRow1, devBuffer);
+                                 numOfBlock, devYiGValue, devHessianInstanceRow1, devBuffer);
 
     //get global min YiFValue
     //0 is the size of dynamically allocated shared memory inside kernel
-    GetGlobalMin << < 1, BLOCK_SIZE >> > (devBlockMinYiFValue, numOfBlock, devBuffer);
+    GetGlobalMin << < 1, BLOCK_SIZE >> > (devBlockMinYiGValue, numOfBlock, devBuffer);
 
 //	cudaThreadSynchronize();
     //copy result back to host
@@ -107,7 +107,7 @@ bool MultiSmoSolver::iterate(SvmProblem &subProblem) {
 
 
 //    float_point *two = devHessianMatrixCache + getHessianRow(m_nIndexofSampleTwo);
-    cache.getHessianRow(m_nIndexofSampleTwo,devHessianSampleRow2);
+    cache.getHessianRow(m_nIndexofSampleTwo,devHessianInstanceRow2);
 //    test<<<1,1>>>(two,devHessianSampleRow2,trainingSize);
 //    cudaMemcpy(devHessianSampleRow2,two,sizeof(float_point)*trainingSize, cudaMemcpyDeviceToDevice);
 //    printf("\n");
@@ -138,7 +138,7 @@ bool MultiSmoSolver::iterate(SvmProblem &subProblem) {
     hostBuffer[3] = fAlpha2;
     checkCudaErrors(cudaMemcpy(devBuffer, hostBuffer, sizeof(float_point) * 4, cudaMemcpyHostToDevice));
     UpdateYiFValueKernel << < gridSize, BLOCK_SIZE >> > (devAlpha, devBuffer, devYiGValue,
-            devHessianSampleRow1, devHessianSampleRow2,
+            devHessianInstanceRow1, devHessianInstanceRow2,
             fY1AlphaDiff, fY2AlphaDiff, trainingSize);
     return false;
 }
@@ -166,12 +166,12 @@ void MultiSmoSolver::init4Training(const SvmProblem &subProblem) {
     gridSize = dim3(numOfBlock > NUM_OF_BLOCK ? NUM_OF_BLOCK : numOfBlock, Ceil(numOfBlock, NUM_OF_BLOCK));
     checkCudaErrors(cudaMalloc((void **) &devBlockMin, sizeof(float_point) * numOfBlock));
     checkCudaErrors(cudaMalloc((void **) &devBlockMinGlobalKey, sizeof(int) * numOfBlock));
-    checkCudaErrors(cudaMalloc((void **) &devBlockMinYiFValue, sizeof(float_point) * numOfBlock));
+    checkCudaErrors(cudaMalloc((void **) &devBlockMinYiGValue, sizeof(float_point) * numOfBlock));
     checkCudaErrors(cudaMalloc((void **) &devMinValue, sizeof(float_point)));
     checkCudaErrors(cudaMalloc((void **) &devMinKey, sizeof(int)));
     checkCudaErrors(cudaMalloc((void **) &devBuffer, sizeof(float_point) * 5));
-    checkCudaErrors(cudaMalloc((void **) &devHessianSampleRow1, sizeof(float_point) * trainingSize));
-    checkCudaErrors(cudaMalloc((void **) &devHessianSampleRow2, sizeof(float_point) * trainingSize));
+    checkCudaErrors(cudaMalloc((void **) &devHessianInstanceRow1, sizeof(float_point) * trainingSize));
+    checkCudaErrors(cudaMalloc((void **) &devHessianInstanceRow2, sizeof(float_point) * trainingSize));
 
     checkCudaErrors(cudaMallocHost((void **) &hostBuffer, sizeof(float_point) * 5));
 
@@ -211,15 +211,15 @@ void MultiSmoSolver::deinit4Training() {
     checkCudaErrors(cudaFree(devLabel));
     checkCudaErrors(cudaFree(devBlockMin));
     checkCudaErrors(cudaFree(devBlockMinGlobalKey));
-    checkCudaErrors(cudaFree(devBlockMinYiFValue));
+    checkCudaErrors(cudaFree(devBlockMinYiGValue));
     checkCudaErrors(cudaFree(devMinValue));
     checkCudaErrors(cudaFree(devMinKey));
     checkCudaErrors(cudaFree(devBuffer));
     checkCudaErrors(cudaFreeHost(hostBuffer));
 //    checkCudaErrors(cudaFree(devHessianMatrixCache));
     checkCudaErrors(cudaFree(devHessianDiag));
-    checkCudaErrors(cudaFree(devHessianSampleRow1));
-    checkCudaErrors(cudaFree(devHessianSampleRow2));
+    checkCudaErrors(cudaFree(devHessianInstanceRow1));
+    checkCudaErrors(cudaFree(devHessianInstanceRow2));
     delete[] hessianDiag;
 }
 

@@ -18,7 +18,7 @@ OBJ = cacheLAT.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o R
 	  LinearCalculater_cu.o LinearCalGPUHelper_cu.o PolynomialCalGPUHelper_cu.o PolynomialCalculater_cu.o\
 	  RBFCalculater_cu.o RBFCalGPUHelper_cu.o SigmoidCalculater_cu.o SigmoidCalGPUHelper_cu.o\
 	  devUtility_cu.o storageManager_cu.o hostStorageManager.o classificationKernel_cu.o\
-	  smoGPUHelper_cu.o smoSharedSolver_cu.o smoSolver_cu.o svmPredictor_cu.o\
+	  smoGPUHelper_cu.o baseSMO_cu.o smoSharedSolver_cu.o smoSolver_cu.o svmPredictor_cu.o\
 	  svmSharedTrainer_cu.o svmTrainer_cu.o modelSelector_cu.o trainingFunction_cu.o svmModel_cu.o\
 	  cvFunction.o svmMain.o MultiSmoSolver_cu.o gpuCache.o
 
@@ -82,7 +82,7 @@ smoGPUHelper_cu.o: svm-shared/smoGPUHelper.h svm-shared/devUtility.h svm-shared/
 smoSharedSolver_cu.o: svm-shared/smoSolver.h svm-shared/smoSharedSolver.cu
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o smoSharedSolver_cu.o -c svm-shared/smoSharedSolver.cu
 
-smoSolver_cu.o: svm-shared/smoSolver.h mascot/smoSolver.cu
+smoSolver_cu.o: svm-shared/smoSolver.h mascot/smoSolver.cu svm-shared/baseSMO.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o smoSolver_cu.o -c mascot/smoSolver.cu
 
 svmMain.o: mascot/svmMain.cu mascot/commandLineParser.h svm-shared/initCuda.h mascot/cvFunction.h mascot/trainingFunction.h mascot/svmModel.h
@@ -175,7 +175,10 @@ SigmoidCalculater_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-share
 SigmoidCalGPUHelper_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-shared/kernelCalculater/SigmoidCalGPUHelper.cu
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o SigmoidCalGPUHelper_cu.o -c svm-shared/kernelCalculater/SigmoidCalGPUHelper.cu
 
-MultiSmoSolver_cu.o: mascot/multiSmoSolver.h mascot/multiSmoSolver.cu
+baseSMO_cu.o: svm-shared/baseSMO.h svm-shared/baseSMO.cu svm-shared/smoGPUHelper.h
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o baseSMO_cu.o -c svm-shared/baseSMO.cu
+
+MultiSmoSolver_cu.o: mascot/multiSmoSolver.h mascot/multiSmoSolver.cu svm-shared/baseSMO.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o MultiSmoSolver_cu.o -c mascot/multiSmoSolver.cu
 
 .PHONY:clean
