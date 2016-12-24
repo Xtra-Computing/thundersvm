@@ -43,19 +43,13 @@ public:
 	float_point *m_pfAlpha;
 	int *m_pnLabel;
 	float_point *m_pfDiagHessian;
-	float_point *m_pfHostBuffer;
 
 	//members for gpu
-	float_point *m_pfDevBlockMin;
-	float_point *m_pfDevBlockMinYiFValue; //for getting maximum low value
-	int *m_pnDevBlockMinGlobalKey;
 	float_point *m_pfDevMinValue;
 	int *m_pnDevMinKey;
 	float_point *m_pfDevGValue;
-	float_point *m_pfDevBuffer;
 
 	//for Hessian Matrix
-	float_point *m_pfDevDiagHessian;
 	float_point *m_pfDevHessianMatrixCache;
 
 public:
@@ -63,9 +57,9 @@ public:
 	{
 		IdofInstanceOne = IdofInstanceTwo = -1;
 		upValue = -1;
-		m_pfDevBlockMin = NULL;
-		m_pfDevBlockMinYiFValue = NULL;
-		m_pnDevBlockMinGlobalKey = NULL;
+		devBlockMin = NULL;
+		devBlockMinYiGValue = NULL;
+		devBlockMinGlobalKey = NULL;
 		m_pfDevMinValue = NULL;
 		m_pnDevMinKey = NULL;
 

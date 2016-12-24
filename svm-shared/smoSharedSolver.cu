@@ -39,16 +39,16 @@ bool CSMOSolver::SMOSolverPreparation(const int &nNumofTrainingSamples)
 	gridSize = temp;
 
 	//allocate device memory
-	checkCudaErrors(cudaMalloc((void**)&m_pfDevBlockMin, sizeof(float_point) * numOfBlock));
-	checkCudaErrors(cudaMalloc((void**)&m_pnDevBlockMinGlobalKey, sizeof(int) * numOfBlock));
+	checkCudaErrors(cudaMalloc((void**)&devBlockMin, sizeof(float_point) * numOfBlock));
+	checkCudaErrors(cudaMalloc((void**)&devBlockMinGlobalKey, sizeof(int) * numOfBlock));
 	//for getting maximum low G value
-	checkCudaErrors(cudaMalloc((void**)&m_pfDevBlockMinYiFValue, sizeof(float_point) * numOfBlock));
+	checkCudaErrors(cudaMalloc((void**)&devBlockMinYiGValue, sizeof(float_point) * numOfBlock));
 
 	checkCudaErrors(cudaMalloc((void**)&m_pfDevMinValue, sizeof(float_point)));
 	checkCudaErrors(cudaMalloc((void**)&m_pnDevMinKey, sizeof(int)));
 
-	m_pfHostBuffer = new float_point[5];
-	checkCudaErrors(cudaMalloc((void**)&m_pfDevBuffer, sizeof(float_point) * 5));//only need 4 float_points
+	hostBuffer = new float_point[5];
+	checkCudaErrors(cudaMalloc((void**)&devBuffer, sizeof(float_point) * 5));//only need 4 float_points
 
 	if(cudaGetLastError() != cudaSuccess)
 	{
@@ -75,8 +75,8 @@ bool CSMOSolver::CleanCache()
 	//clean cache
 	m_pGPUCache->CleanCache();
 	checkCudaErrors(cudaFree(m_pfDevHessianMatrixCache));
-	checkCudaErrors(cudaFree(m_pfDevDiagHessian));
-	checkCudaErrors(cudaFree(m_pfDevBuffer));
+	checkCudaErrors(cudaFree(devHessianDiag));
+	checkCudaErrors(cudaFree(devBuffer));
 	if(cudaGetLastError() != cudaSuccess)
 	{
 		cerr << "CUDA error occurs at CleanCache" << endl;
@@ -94,9 +94,9 @@ bool CSMOSolver::SMOSolverEnd()
 	bool bReturn = true;
 
 	//free GPU global memory
-	checkCudaErrors(cudaFree(m_pfDevBlockMin));
-	checkCudaErrors(cudaFree(m_pfDevBlockMinYiFValue));
-	checkCudaErrors(cudaFree(m_pnDevBlockMinGlobalKey));
+	checkCudaErrors(cudaFree(devBlockMin));
+	checkCudaErrors(cudaFree(devBlockMinYiGValue));
+	checkCudaErrors(cudaFree(devBlockMinGlobalKey));
 	checkCudaErrors(cudaFree(m_pfDevMinValue));
 	checkCudaErrors(cudaFree(m_pnDevMinKey));
 	if(cudaGetLastError() != cudaSuccess)
@@ -110,7 +110,7 @@ bool CSMOSolver::SMOSolverEnd()
 	delete[] m_pfDiagHessian;
 	delete[] m_pfGValue;
 	delete[] m_pfAlpha;
-	delete[] m_pfHostBuffer;
+	delete[] hostBuffer;
 
 	return bReturn;
 }

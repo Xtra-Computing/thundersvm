@@ -51,10 +51,10 @@ bool CSMOSolver::InitCache(const int &nCacheSize, const int &nNumofInstance)
 	bool bReadDiag = m_pHessianReader->GetHessianDiag(strHessianDiagFile, nNumofInstance, m_pfDiagHessian);
 
 	//allocate memory for Hessian diagonal
-	checkCudaErrors(cudaMalloc((void**)&m_pfDevDiagHessian, sizeof(float_point) * nNumofInstance));
-	checkCudaErrors(cudaMemset(m_pfDevDiagHessian, 0, sizeof(float_point) * nNumofInstance));
+	checkCudaErrors(cudaMalloc((void**)&devHessianDiag, sizeof(float_point) * nNumofInstance));
+	checkCudaErrors(cudaMemset(devHessianDiag, 0, sizeof(float_point) * nNumofInstance));
 	//copy Hessian diagonal from CPU to GPU
-	checkCudaErrors(cudaMemcpy(m_pfDevDiagHessian, m_pfDiagHessian, sizeof(float_point) * nNumofInstance, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(devHessianDiag, m_pfDiagHessian, sizeof(float_point) * nNumofInstance, cudaMemcpyHostToDevice));
 	assert(cudaGetLastError() == cudaSuccess);
 
 
@@ -75,15 +75,15 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 //	cudaDeviceSynchronize();
 	//block level reducer
 	GetBlockMinYiGValue<<<gridSize, BLOCK_SIZE>>>(pfDevYiFValue, pfDevAlpha, pnDevLabel, gfPCost,
-												 nNumofTrainingSamples, m_pfDevBlockMin, m_pnDevBlockMinGlobalKey);
+												 nNumofTrainingSamples, devBlockMin, m_pnDevBlockMinGlobalKey);
 	//global reducer
-	GetGlobalMin<<<1, BLOCK_SIZE>>>(m_pfDevBlockMin, m_pnDevBlockMinGlobalKey, numOfBlock, pfDevYiFValue, NULL, m_pfDevBuffer);
+	GetGlobalMin<<<1, BLOCK_SIZE>>>(devBlockMin, m_pnDevBlockMinGlobalKey, numOfBlock, pfDevYiFValue, NULL, m_pfDevBuffer);
 
 	//copy result back to host
-	cudaMemcpy(m_pfHostBuffer, m_pfDevBuffer, sizeof(float_point) * 2, cudaMemcpyDeviceToHost);
-	IdofInstanceOne = (int)m_pfHostBuffer[0];
+	cudaMemcpy(hostBuffer, devBuffer, sizeof(float_point) * 2, cudaMemcpyDeviceToHost);
+	IdofInstanceOne = (int)hostBuffer[0];
 	float_point fMinValue;
-	fMinValue = m_pfHostBuffer[1];
+	fMinValue = hostBuffer[1];
 	devHessianInstanceRow1 = GetHessianRow(nNumofTrainingSamples,	IdofInstanceOne);
 
 	//lock cached entry for the sample one, in case it is replaced by sample two
@@ -98,12 +98,12 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 	//get block level min (-b_ij*b_ij/a_ij)
 	GetBlockMinLowValue<<<gridSize, BLOCK_SIZE>>>
 					   (pfDevYiFValue, pfDevAlpha, pnDevLabel, gfNCost, nNumofTrainingSamples, m_pfDevDiagHessian,
-						devHessianInstanceRow1, upValue, fUpSelfKernelValue, m_pfDevBlockMin, m_pnDevBlockMinGlobalKey,
+						devHessianInstanceRow1, upValue, fUpSelfKernelValue, devBlockMin, m_pnDevBlockMinGlobalKey,
 						m_pfDevBlockMinYiFValue);
 
 	//get global min
 	GetGlobalMin<<<1, BLOCK_SIZE>>>
-				(m_pfDevBlockMin, m_pnDevBlockMinGlobalKey,
+				(devBlockMin, m_pnDevBlockMinGlobalKey,
 				 numOfBlock, pfDevYiFValue, devHessianInstanceRow1, m_pfDevBuffer);
 
 	//get global min YiFValue
@@ -112,21 +112,21 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 
 //	cudaThreadSynchronize();
 	//copy result back to host
-	cudaMemcpy(m_pfHostBuffer, m_pfDevBuffer, sizeof(float_point) * 4, cudaMemcpyDeviceToHost);
-	IdofInstanceTwo = int(m_pfHostBuffer[0]);
+	cudaMemcpy(hostBuffer, devBuffer, sizeof(float_point) * 4, cudaMemcpyDeviceToHost);
+	IdofInstanceTwo = int(hostBuffer[0]);
 
 	//get kernel value K(Sample1, Sample2)
 	float_point fKernelValue = 0;
 	float_point fMinLowValue;
-	fMinLowValue = m_pfHostBuffer[1];
-	fKernelValue = m_pfHostBuffer[2];
+	fMinLowValue = hostBuffer[1];
+	fKernelValue = hostBuffer[2];
 
 
 	devHessianInstanceRow2 = GetHessianRow(nNumofTrainingSamples,	IdofInstanceTwo);
 //	cudaDeviceSynchronize();
 
 
-	m_fLowValue = -m_pfHostBuffer[3];
+	m_fLowValue = -hostBuffer[3];
 	//check if the problem is converged
 	if(upValue + m_fLowValue <= EPS)
 	{
@@ -145,11 +145,11 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 
 	//update yiFvalue
 	//copy new alpha values to device
-	m_pfHostBuffer[0] = IdofInstanceOne;
-	m_pfHostBuffer[1] = fAlpha1;
-	m_pfHostBuffer[2] = IdofInstanceTwo;
-	m_pfHostBuffer[3] = fAlpha2;
-	cudaMemcpy(m_pfDevBuffer, m_pfHostBuffer, sizeof(float_point) * 4, cudaMemcpyHostToDevice);
+	hostBuffer[0] = IdofInstanceOne;
+	hostBuffer[1] = fAlpha1;
+	hostBuffer[2] = IdofInstanceTwo;
+	hostBuffer[3] = fAlpha2;
+	cudaMemcpy(devBuffer, hostBuffer, sizeof(float_point) * 4, cudaMemcpyHostToDevice);
 	UpdateYiFValueKernel<<<gridSize, BLOCK_SIZE>>>(pfDevAlpha, m_pfDevBuffer, pfDevYiFValue,
 												  devHessianInstanceRow1, devHessianInstanceRow2,
 												  fY1AlphaDiff, fY2AlphaDiff, nNumofTrainingSamples);
