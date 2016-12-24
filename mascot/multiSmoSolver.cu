@@ -86,22 +86,8 @@ bool MultiSmoSolver::iterate(SvmProblem &subProblem) {
     updateTwoWeight(fMinLowValue, fMinValue, IdofInstanceOne, IdofInstanceTwo, fKernelValue,
                     fY1AlphaDiff, fY2AlphaDiff, subProblem.v_nLabels.data());
 
+    UpdateYiGValue(trainingSize, fY1AlphaDiff, fY2AlphaDiff);
 
-    float_point fAlpha1 = alpha[IdofInstanceOne];
-    float_point fAlpha2 = alpha[IdofInstanceTwo];
-
-//    gpuCache->UnlockCacheEntry(m_nIndexofSampleOne);
-
-    //update yiFvalue
-    //copy new alpha values to device
-    hostBuffer[0] = IdofInstanceOne;
-    hostBuffer[1] = fAlpha1;
-    hostBuffer[2] = IdofInstanceTwo;
-    hostBuffer[3] = fAlpha2;
-    checkCudaErrors(cudaMemcpy(devBuffer, hostBuffer, sizeof(float_point) * 4, cudaMemcpyHostToDevice));
-    UpdateYiFValueKernel << < gridSize, BLOCK_SIZE >> > (devAlpha, devBuffer, devYiGValue,
-            devHessianInstanceRow1, devHessianInstanceRow2,
-            fY1AlphaDiff, fY2AlphaDiff, trainingSize);
     return false;
 }
 

@@ -8,7 +8,9 @@
 #ifndef SVM_SHARED_BASESMO_H_
 #define SVM_SHARED_BASESMO_H_
 
+#include <vector>
 #include "host_constant.h"
+using std::vector;
 
 class BaseSMO
 {
