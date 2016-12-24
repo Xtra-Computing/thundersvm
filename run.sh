@@ -6,7 +6,7 @@
 PROB="-b 0" #0 for no probability output; 1 for probability output.
 
 #task type
-TASK="-o 1" #0 for training; 1 for cross validation; 2 for evaluation
+TASK="-o 2" #0 for training; 1 for cross validation; 2 for evaluation
 
 #gamma for RBF kernel
 GAMMA="-g 0.125"
@@ -24,7 +24,7 @@ FILENAME="dataset/a9a"
 #FILENAME="dataset/sector.scale"
 #FILENAME="dataset/aloi.scale"
 #FILENAME="dataset/glass.scale"
-FILENAME="dataset/mnist.scale"
+#FILENAME="dataset/mnist.scale"
 #FILENAME="dataset/w8a"
 #FILENAME="dataset/usps"
 #FILENAME="dataset/shuttle.scale"

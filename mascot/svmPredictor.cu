@@ -213,41 +213,41 @@ float_point* CSVMPredictor::PredictLabel(svm_model *pModel, int nNumofTestSample
 	//perform classification for each part
 	for(int i = 0; i < nNumofPart; i++)
 	{
-	checkCudaErrors(cudaMalloc((void**)&pfDevSVYiAlphaHessian, sizeof(float_point) * nNumofSVs * pSizeofPart[i]));
-	checkCudaErrors(cudaMalloc((void**)&pfDevSVsYiAlpha, sizeof(float_point) * nNumofSVs));
-	checkCudaErrors(cudaMalloc((void**)&pnDevSVsLabel, sizeof(int) * nNumofSVs));
+        checkCudaErrors(cudaMalloc((void**)&pfDevSVYiAlphaHessian, sizeof(float_point) * nNumofSVs * pSizeofPart[i]));
+        checkCudaErrors(cudaMalloc((void**)&pfDevSVsYiAlpha, sizeof(float_point) * nNumofSVs));
+        checkCudaErrors(cudaMalloc((void**)&pnDevSVsLabel, sizeof(int) * nNumofSVs));
 
-	checkCudaErrors(cudaMemset(pfDevSVYiAlphaHessian, 0, sizeof(float_point) * nNumofSVs * pSizeofPart[i]));
-	checkCudaErrors(cudaMemset(pfDevSVsYiAlpha, 0, sizeof(float_point) * nNumofSVs));
-	checkCudaErrors(cudaMemset(pnDevSVsLabel, 0, sizeof(int) * nNumofSVs));
+        checkCudaErrors(cudaMemset(pfDevSVYiAlphaHessian, 0, sizeof(float_point) * nNumofSVs * pSizeofPart[i]));
+        checkCudaErrors(cudaMemset(pfDevSVsYiAlpha, 0, sizeof(float_point) * nNumofSVs));
+        checkCudaErrors(cudaMemset(pnDevSVsLabel, 0, sizeof(int) * nNumofSVs));
 
-	checkCudaErrors(cudaMemcpy(pfDevSVYiAlphaHessian, pfSVsKernelValues + i * nAverageSize * nNumofSVs,
-				  	  	  	   sizeof(float_point) * nNumofSVs * pSizeofPart[i], cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(pfDevSVsYiAlpha, pfSVsYiAlpha, sizeof(float_point) * nNumofSVs, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(pnDevSVsLabel, pnSVsLabel, sizeof(int) * nNumofSVs, cudaMemcpyHostToDevice));
+        checkCudaErrors(cudaMemcpy(pfDevSVYiAlphaHessian, pfSVsKernelValues + i * nAverageSize * nNumofSVs,
+                                   sizeof(float_point) * nNumofSVs * pSizeofPart[i], cudaMemcpyHostToDevice));
+        checkCudaErrors(cudaMemcpy(pfDevSVsYiAlpha, pfSVsYiAlpha, sizeof(float_point) * nNumofSVs, cudaMemcpyHostToDevice));
+        checkCudaErrors(cudaMemcpy(pnDevSVsLabel, pnSVsLabel, sizeof(int) * nNumofSVs, cudaMemcpyHostToDevice));
 
-	//compute y_i*alpha_i*K(i, z)
-	int nVecMatxMulGridDimY = pSizeofPart[i];
-	int nVecMatxMulGridDimX = Ceil(nNumofSVs, BLOCK_SIZE);
-	dim3 vecMatxMulGridDim(nVecMatxMulGridDimX, nVecMatxMulGridDimY);
-	VectorMatrixMul<<<vecMatxMulGridDim, BLOCK_SIZE>>>(pfDevSVsYiAlpha, pfDevSVYiAlphaHessian, pSizeofPart[i], nNumofSVs);
+        //compute y_i*alpha_i*K(i, z)
+        int nVecMatxMulGridDimY = pSizeofPart[i];
+        int nVecMatxMulGridDimX = Ceil(nNumofSVs, BLOCK_SIZE);
+        dim3 vecMatxMulGridDim(nVecMatxMulGridDimX, nVecMatxMulGridDimY);
+        VectorMatrixMul<<<vecMatxMulGridDim, BLOCK_SIZE>>>(pfDevSVsYiAlpha, pfDevSVYiAlphaHessian, pSizeofPart[i], nNumofSVs);
 
-	//perform classification
-	ComputeClassLabel(pSizeofPart[i], pfDevSVYiAlphaHessian,
+        //perform classification
+        ComputeClassLabel(pSizeofPart[i], pfDevSVYiAlphaHessian,
 					  nNumofSVs, fBias, pfClassificaitonResult + i * nAverageSize);
 
-	if(pfClassificaitonResult == NULL)
-	{
-		cerr << "error in computeSVYiAlphaHessianSum" << endl;
-		exit(-1);
-	}
+        if(pfClassificaitonResult == NULL)
+        {
+            cerr << "error in computeSVYiAlphaHessianSum" << endl;
+            exit(-1);
+        }
 
 
-	//free memory
-	checkCudaErrors(cudaFree(pfDevSVYiAlphaHessian));
-	pfDevSVYiAlphaHessian = NULL;
-	checkCudaErrors(cudaFree(pfDevSVsYiAlpha));
-	checkCudaErrors(cudaFree(pnDevSVsLabel));
+        //free memory
+        checkCudaErrors(cudaFree(pfDevSVYiAlphaHessian));
+        pfDevSVYiAlphaHessian = NULL;
+        checkCudaErrors(cudaFree(pfDevSVsYiAlpha));
+        checkCudaErrors(cudaFree(pnDevSVsLabel));
 	}
 
 	return pfClassificaitonResult;
@@ -400,9 +400,9 @@ float_point* CSVMPredictor::ComputeClassLabel(int nNumofTestSamples,
 	}
 
 	//compute the size of current processing testing samples
-/*	size_t nFreeMemory,nTotalMemory;
-	cudaMemGetInfo(&nFreeMemory,&nTotalMemory);
-*/	int nMaxSizeofProcessingSample = ((CACHE_SIZE) * 1024 * 1024 * 4 / (sizeof(float_point) * nNumofSVs));
+    long long lMega = 1024 * 1024;
+    long long cacheSizeInByte = (CACHE_SIZE * lMega * 4);
+	long long nMaxSizeofProcessingSample = (cacheSizeInByte / (sizeof(float_point) * nNumofSVs));
 
 	//reduce by half
 	nMaxSizeofProcessingSample = nMaxSizeofProcessingSample / 2;
@@ -464,7 +464,9 @@ float_point* CSVMPredictor::ComputeClassLabel(int nNumofTestSamples,
 		ComputeKernelPartialSum<<<dimPartialSumGrid, dimPartialSumBlock, BLOCK_SIZE * sizeof(float_point)>>>
 							   (pfDevSVYiAlphaHessian, nNumofSVs, pfDevPartialSum,
 								nPartialReduceStepSize);
-		cudaError_t error = cudaDeviceSynchronize();
+
+		cudaDeviceSynchronize();
+		cudaError_t error = cudaGetLastError();
 		if(error != cudaSuccess)
 		{
 			cerr << "cuda error in computeSVYiAlphaHessianSum: failed at ComputePartialSum: " << cudaGetErrorString(error) << endl;
