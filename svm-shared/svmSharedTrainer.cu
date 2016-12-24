@@ -64,7 +64,6 @@ void CSVMTrainer::TrainStarting(int nNumofInstance, int nNumofTrainingExample,
 	m_pSMOSolver->m_pHessianReader->AllocateBuffer(1);
 
 //	cudaStreamCreate(&m_pSMOSolver->m_stream1_Hessian_row);//for overlapping memcpy
-	m_pSMOSolver->m_pfDevGValue = pfDevYiFValueSubset;
 	checkCudaErrors(cudaMemcpy(m_pSMOSolver->m_pnLabel, pnDevLabelSubset,
 					sizeof(int) * nNumofTrainingExample, cudaMemcpyDeviceToHost));
 	checkCudaErrors(cudaMemcpy(m_pSMOSolver->m_pfGValue, pfDevYiFValueSubset,

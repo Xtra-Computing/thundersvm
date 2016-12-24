@@ -45,16 +45,16 @@ bool CSMOSolver::InitCache(const int &nCacheSize, const int &nNumofInstance)
 	//read Hessian diagonal
 	m_pfGValue = new float_point[nNumofInstance];
 	m_pfAlpha = new float_point[nNumofInstance];
-	m_pfDiagHessian = new float_point[nNumofInstance];
-	memset(m_pfDiagHessian, 0, sizeof(float_point) * nNumofInstance);
+	hessianDiag = new float_point[nNumofInstance];
+	memset(hessianDiag, 0, sizeof(float_point) * nNumofInstance);
 	string strHessianDiagFile = HESSIAN_DIAG_FILE;
-	bool bReadDiag = m_pHessianReader->GetHessianDiag(strHessianDiagFile, nNumofInstance, m_pfDiagHessian);
+	bool bReadDiag = m_pHessianReader->GetHessianDiag(strHessianDiagFile, nNumofInstance, hessianDiag);
 
 	//allocate memory for Hessian diagonal
 	checkCudaErrors(cudaMalloc((void**)&devHessianDiag, sizeof(float_point) * nNumofInstance));
 	checkCudaErrors(cudaMemset(devHessianDiag, 0, sizeof(float_point) * nNumofInstance));
 	//copy Hessian diagonal from CPU to GPU
-	checkCudaErrors(cudaMemcpy(devHessianDiag, m_pfDiagHessian, sizeof(float_point) * nNumofInstance, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(devHessianDiag, hessianDiag, sizeof(float_point) * nNumofInstance, cudaMemcpyHostToDevice));
 	assert(cudaGetLastError() == cudaSuccess);
 
 
@@ -90,7 +90,7 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 	m_pGPUCache->LockCacheEntry(IdofInstanceOne);
 
 	float_point fUpSelfKernelValue = 0;
-	fUpSelfKernelValue = m_pfDiagHessian[IdofInstanceOne];
+	fUpSelfKernelValue = hessianDiag[IdofInstanceOne];
 	//select second sample
 
 	upValue = -fMinValue;

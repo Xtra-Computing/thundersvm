@@ -107,7 +107,7 @@ bool CSMOSolver::SMOSolverEnd()
 
 	cudaFreeHost(m_pfHessianRow);
 	delete[] m_pnLabel;
-	delete[] m_pfDiagHessian;
+	delete[] hessianDiag;
 	delete[] m_pfGValue;
 	delete[] m_pfAlpha;
 	delete[] hostBuffer;
@@ -217,7 +217,7 @@ float_point* CSMOSolver::GetHessianRow(const int &nNumofInstance, const int &nPo
 	{//cache missed
 		clock_gettime(CLOCK_REALTIME, &time3);
 		if(bIsCacheFull == true)
-			m_pGPUCache->ReplaceExpired(nPosofRow, nCacheLocation, m_pfDevGValue);
+			m_pGPUCache->ReplaceExpired(nPosofRow, nCacheLocation, NULL);
 		//convert current training position to the position in Hessian matrix
 		int nPosofRowAtHessian = nPosofRow;
 		bool bMapIndex = MapIndexToHessian(nPosofRowAtHessian);
@@ -273,8 +273,8 @@ void CSMOSolver::UpdateTwoWeight(float_point fMinLowValue, float_point fMinValue
 
 	//Get K(x_up, x_up), and K(x_low, x_low)
 	float_point fDiag1 = 0, fDiag2 = 0;
-	fDiag1 = m_pfDiagHessian[nHessianRowOneInMatrix];
-	fDiag2 = m_pfDiagHessian[nHessianRowTwoInMatrix];
+	fDiag1 = hessianDiag[nHessianRowOneInMatrix];
+	fDiag2 = hessianDiag[nHessianRowTwoInMatrix];
 
 	//get labels of sample one and two
 	int nLabel1 = 0, nLabel2 = 0;

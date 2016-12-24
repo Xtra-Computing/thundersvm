@@ -42,12 +42,10 @@ public:
 	float_point *m_pfGValue;
 	float_point *m_pfAlpha;
 	int *m_pnLabel;
-	float_point *m_pfDiagHessian;
 
 	//members for gpu
 	float_point *m_pfDevMinValue;
 	int *m_pnDevMinKey;
-	float_point *m_pfDevGValue;
 
 	//for Hessian Matrix
 	float_point *m_pfDevHessianMatrixCache;
