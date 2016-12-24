@@ -98,7 +98,7 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 	//get block level min (-b_ij*b_ij/a_ij)
 	GetBlockMinLowValue<<<dimGridThinThread, BLOCK_SIZE>>>
 					   (pfDevYiFValue, pfDevAlpha, pnDevLabel, gfNCost, nNumofTrainingSamples, m_pfDevDiagHessian,
-						m_pfDevHessianSampleRow1, m_fUpValue, fUpSelfKernelValue, m_pfDevBlockMin, m_pnDevBlockMinGlobalKey,
+						m_pfDevHessianSampleRow1, upValue, fUpSelfKernelValue, m_pfDevBlockMin, m_pnDevBlockMinGlobalKey,
 						m_pfDevBlockMinYiFValue);
 
 	//get global min

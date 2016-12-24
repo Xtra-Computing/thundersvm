@@ -3,7 +3,6 @@
  * This file contains kernel functions for working set selection
  * Created on: May 24, 2012
  * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
  **/
 
 #ifndef WORKINGSETSELECTOR_H_
@@ -18,6 +17,7 @@
 #include "smoGPUHelper.h"
 #include "HessianIO/deviceHessian.h"
 #include "../mascot/svmProblem.h"
+#include "baseSMO.h"
 
 using std::string;
 using std::ifstream;
@@ -104,6 +104,14 @@ public:
 */
 	}
 	~CSMOSolver(){}
+
+    virtual float_point *ObtainRow(int numTrainingInstance)
+    {
+        m_pfDevHessianSampleRow1 = GetHessianRow(numTrainingInstance, IdofInstanceOne);
+
+        //lock cached entry for the sample one, in case it is replaced by sample two
+        m_pGPUCache->LockCacheEntry(IdofInstanceOne);
+    }
 
 	void SetCacheStrategy(CCache *pCache){m_pGPUCache = pCache;}
 	void SetCacheSize(int nCacheSize){m_pGPUCache->SetCacheSize(nCacheSize);}
