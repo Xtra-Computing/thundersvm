@@ -468,7 +468,7 @@ float_point* CSVMPredictor::ComputeClassLabel(int nNumofTestSamples,
 		if(error != cudaSuccess)
 		{
 			cerr << "cuda error in computeSVYiAlphaHessianSum: failed at ComputePartialSum: " << cudaGetErrorString(error) << endl;
-			return pfReturn;
+            exit(-1);
 		}
 
 		/********** compute global sum and class label *********/
@@ -482,7 +482,7 @@ float_point* CSVMPredictor::ComputeClassLabel(int nNumofTestSamples,
 		if(error != cudaSuccess)
 		{
 			cerr << "cuda error in computeSVYiAlphaHessianSum: failed at ComputeGlobalSum: " << cudaGetErrorString(error) << endl;
-			return pfReturn;
+			exit(-1);
 		}
 
 		//copy classification result back

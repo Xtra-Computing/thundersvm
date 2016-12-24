@@ -35,23 +35,6 @@ bool CSVMTrainer::TrainModel(svm_model &model, float_point *pfDevYiFValueSubset,
 	/*************** prepare to perform training *************/
 	TrainStarting(nNumofInstance, nNumofInstance, pfDevYiFValueSubset, pfDevAlphaSubset, pnDevLabelSubset);
 
-/*	ofstream out, access_count;
-	out.open("access.txt", ios::out | ios::app);
-	access_count.open("access_count.txt", ios::out | ios::app);
-	int nPreOne = 0, nPreTwo = 0;
-	int nValid = 0;
-	int nInValid = 0;
-	set<int> used_set1;
-	set<int> used_set2;
-	int count[200000] = {0};
-	int *nLastAccess;
-	nLastAccess = new int[nNumofTrainingSamples];
-	memset(nLastAccess, 0, sizeof(int) * nNumofTrainingSamples);
-	int *numofAccess = new int[nNumofTrainingSamples];
-	memset(numofAccess, 0, sizeof(int) * nNumofTrainingSamples);
-*/
-	//cudaProfilerStart();
-
 	//start training process
 	int nIter = 0;
 	int nMaxIter = (nNumofInstance > INT_MAX / ITERATION_FACTOR ? INT_MAX : ITERATION_FACTOR * nNumofInstance) * 4;
