@@ -77,7 +77,7 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 	GetBlockMinYiGValue<<<gridSize, BLOCK_SIZE>>>(pfDevYiFValue, pfDevAlpha, pnDevLabel, gfPCost,
 												 nNumofTrainingSamples, m_pfDevBlockMin, m_pnDevBlockMinGlobalKey);
 	//global reducer
-	GetGlobalMin<<<1, BLOCK_SIZE>>>(m_pfDevBlockMin, m_pnDevBlockMinGlobalKey, m_nNumofBlock, pfDevYiFValue, NULL, m_pfDevBuffer);
+	GetGlobalMin<<<1, BLOCK_SIZE>>>(m_pfDevBlockMin, m_pnDevBlockMinGlobalKey, numOfBlock, pfDevYiFValue, NULL, m_pfDevBuffer);
 
 	//copy result back to host
 	cudaMemcpy(m_pfHostBuffer, m_pfDevBuffer, sizeof(float_point) * 2, cudaMemcpyDeviceToHost);
@@ -104,11 +104,11 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 	//get global min
 	GetGlobalMin<<<1, BLOCK_SIZE>>>
 				(m_pfDevBlockMin, m_pnDevBlockMinGlobalKey,
-				 m_nNumofBlock, pfDevYiFValue, m_pfDevHessianSampleRow1, m_pfDevBuffer);
+				 numOfBlock, pfDevYiFValue, devHessianInstanceRow1, m_pfDevBuffer);
 
 	//get global min YiFValue
 	//0 is the size of dynamically allocated shared memory inside kernel
-	GetGlobalMin<<<1, BLOCK_SIZE>>>(m_pfDevBlockMinYiFValue, m_nNumofBlock, m_pfDevBuffer);
+	GetGlobalMin<<<1, BLOCK_SIZE>>>(m_pfDevBlockMinYiFValue, numOfBlock, m_pfDevBuffer);
 
 //	cudaThreadSynchronize();
 	//copy result back to host
@@ -150,7 +150,7 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 	m_pfHostBuffer[2] = IdofInstanceTwo;
 	m_pfHostBuffer[3] = fAlpha2;
 	cudaMemcpy(m_pfDevBuffer, m_pfHostBuffer, sizeof(float_point) * 4, cudaMemcpyHostToDevice);
-	UpdateYiFValueKernel<<<dimGridThinThread, BLOCK_SIZE>>>(pfDevAlpha, m_pfDevBuffer, pfDevYiFValue,
+	UpdateYiFValueKernel<<<gridSize, BLOCK_SIZE>>>(pfDevAlpha, m_pfDevBuffer, pfDevYiFValue,
 												  devHessianInstanceRow1, devHessianInstanceRow2,
 												  fY1AlphaDiff, fY2AlphaDiff, nNumofTrainingSamples);
 
