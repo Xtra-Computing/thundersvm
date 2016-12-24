@@ -6,7 +6,10 @@ NVCC	  := /usr/local/cuda/bin/nvcc
 DISABLEW  := -Xnvlink -w
 
 ODIR = bin
-dummy_build_folder := $(shell mkdir -p $(ODIR))
+release_bin := $(ODIR)/release/mascot
+debug_bin := $(ODIR)/debug/mascot
+$(shell mkdir -p $(ODIR)/release)
+$(shell mkdir -p $(ODIR)/debug)
 
 OBJ = cacheLAT.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o ReadHelper.o\
 	  commandLineParser.o fileOps.o gpu_global_utility.o initCuda_cu.o\
@@ -19,21 +22,24 @@ OBJ = cacheLAT.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o R
 	  svmSharedTrainer_cu.o svmTrainer_cu.o modelSelector_cu.o trainingFunction_cu.o svmModel_cu.o\
 	  cvFunction.o svmMain.o MultiSmoSolver_cu.o gpuCache.o
 
+$(release_bin): $(OBJ)
+	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o $(release_bin) $(OBJ)
+$(debug_bin): $(OBJ)
+	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o $(debug_bin) $(OBJ)
+
 .PHONY: release
 .PHONY: debug
 
 release: CCFLAGS += -O2
 release: NVCCFLAGS += -O2
 release: LASTFLAG += -O2
-release: bin/mascot
+release: $(release_bin)
 
 debug: CCFLAGS += -g
 debug: NVCCFLAGS += -G -g
 debug: LASTFLAG += -G -g
-debug: bin/mascot
+debug: $(debug_bin)
 
-bin/mascot: $(OBJ)
-	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o bin/mascot $(OBJ)
 
 cvFunction.o: mascot/cvFunction.cpp
 	g++ $(CCFLAGS) $(LDFLAGS) -o cvFunction.o -c mascot/cvFunction.cpp
@@ -175,5 +181,5 @@ MultiSmoSolver_cu.o: mascot/multiSmoSolver.h mascot/multiSmoSolver.cu
 .PHONY:clean
 
 clean:
-	rm -f *.o bin/hessian2.bin bin/result.txt
+	rm -f *.o *.txt bin/*.bin bin/result.txt bin/release/* bin/debug/*
 
