@@ -74,7 +74,7 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 {
 //	cudaDeviceSynchronize();
 	//block level reducer
-	GetBlockMinYiGValue<<<dimGridThinThread, BLOCK_SIZE>>>(pfDevYiFValue, pfDevAlpha, pnDevLabel, gfPCost,
+	GetBlockMinYiGValue<<<gridSize, BLOCK_SIZE>>>(pfDevYiFValue, pfDevAlpha, pnDevLabel, gfPCost,
 												 nNumofTrainingSamples, m_pfDevBlockMin, m_pnDevBlockMinGlobalKey);
 	//global reducer
 	GetGlobalMin<<<1, BLOCK_SIZE>>>(m_pfDevBlockMin, m_pnDevBlockMinGlobalKey, m_nNumofBlock, pfDevYiFValue, NULL, m_pfDevBuffer);
@@ -84,7 +84,7 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 	IdofInstanceOne = (int)m_pfHostBuffer[0];
 	float_point fMinValue;
 	fMinValue = m_pfHostBuffer[1];
-	m_pfDevHessianSampleRow1 = GetHessianRow(nNumofTrainingSamples,	IdofInstanceOne);
+	devHessianInstanceRow1 = GetHessianRow(nNumofTrainingSamples,	IdofInstanceOne);
 
 	//lock cached entry for the sample one, in case it is replaced by sample two
 	m_pGPUCache->LockCacheEntry(IdofInstanceOne);
@@ -96,9 +96,9 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 	upValue = -fMinValue;
 
 	//get block level min (-b_ij*b_ij/a_ij)
-	GetBlockMinLowValue<<<dimGridThinThread, BLOCK_SIZE>>>
+	GetBlockMinLowValue<<<gridSize, BLOCK_SIZE>>>
 					   (pfDevYiFValue, pfDevAlpha, pnDevLabel, gfNCost, nNumofTrainingSamples, m_pfDevDiagHessian,
-						m_pfDevHessianSampleRow1, upValue, fUpSelfKernelValue, m_pfDevBlockMin, m_pnDevBlockMinGlobalKey,
+						devHessianInstanceRow1, upValue, fUpSelfKernelValue, m_pfDevBlockMin, m_pnDevBlockMinGlobalKey,
 						m_pfDevBlockMinYiFValue);
 
 	//get global min
@@ -122,7 +122,7 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 	fKernelValue = m_pfHostBuffer[2];
 
 
-	m_pfDevHessianSampleRow2 = GetHessianRow(nNumofTrainingSamples,	IdofInstanceTwo);
+	devHessianInstanceRow2 = GetHessianRow(nNumofTrainingSamples,	IdofInstanceTwo);
 //	cudaDeviceSynchronize();
 
 
@@ -151,7 +151,7 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 	m_pfHostBuffer[3] = fAlpha2;
 	cudaMemcpy(m_pfDevBuffer, m_pfHostBuffer, sizeof(float_point) * 4, cudaMemcpyHostToDevice);
 	UpdateYiFValueKernel<<<dimGridThinThread, BLOCK_SIZE>>>(pfDevAlpha, m_pfDevBuffer, pfDevYiFValue,
-												  m_pfDevHessianSampleRow1, m_pfDevHessianSampleRow2,
+												  devHessianInstanceRow1, devHessianInstanceRow2,
 												  fY1AlphaDiff, fY2AlphaDiff, nNumofTrainingSamples);
 
 	return 0;

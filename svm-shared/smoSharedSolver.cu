@@ -18,9 +18,9 @@
 bool CSMOSolver::SMOSolverPreparation(const int &nNumofTrainingSamples)
 {
 	bool bReturn = true;
-	m_nNumofBlock = Ceil(nNumofTrainingSamples, BLOCK_SIZE);
+	numOfBlock = Ceil(nNumofTrainingSamples, BLOCK_SIZE);
 
-	if(nNumofTrainingSamples <= 0 || m_nNumofBlock <= 0)
+	if(nNumofTrainingSamples <= 0 || numOfBlock <= 0)
 	{
 		cerr << "error in SeletePairPreparation: invalid input parameters" << endl;
 		return false;
@@ -28,21 +28,21 @@ bool CSMOSolver::SMOSolverPreparation(const int &nNumofTrainingSamples)
 
 	//when the number of blocks is larger than 65535, compute the number of grid
 	int nGridDimY = 0;
-	nGridDimY = Ceil(m_nNumofBlock, NUM_OF_BLOCK);
+	nGridDimY = Ceil(numOfBlock, NUM_OF_BLOCK);
 
 	int nGridDimX = 0;
-	if(m_nNumofBlock > NUM_OF_BLOCK)
+	if(numOfBlock > NUM_OF_BLOCK)
 		nGridDimX = NUM_OF_BLOCK;
 	else
-		nGridDimX = m_nNumofBlock;
+		nGridDimX = numOfBlock;
 	dim3 temp(nGridDimX, nGridDimY);
-	dimGridThinThread = temp;
+	gridSize = temp;
 
 	//allocate device memory
-	checkCudaErrors(cudaMalloc((void**)&m_pfDevBlockMin, sizeof(float_point) * m_nNumofBlock));
-	checkCudaErrors(cudaMalloc((void**)&m_pnDevBlockMinGlobalKey, sizeof(int) * m_nNumofBlock));
+	checkCudaErrors(cudaMalloc((void**)&m_pfDevBlockMin, sizeof(float_point) * numOfBlock));
+	checkCudaErrors(cudaMalloc((void**)&m_pnDevBlockMinGlobalKey, sizeof(int) * numOfBlock));
 	//for getting maximum low G value
-	checkCudaErrors(cudaMalloc((void**)&m_pfDevBlockMinYiFValue, sizeof(float_point) * m_nNumofBlock));
+	checkCudaErrors(cudaMalloc((void**)&m_pfDevBlockMinYiFValue, sizeof(float_point) * numOfBlock));
 
 	checkCudaErrors(cudaMalloc((void**)&m_pfDevMinValue, sizeof(float_point)));
 	checkCudaErrors(cudaMalloc((void**)&m_pnDevMinKey, sizeof(int)));

@@ -54,17 +54,9 @@ public:
 	float_point *m_pfDevGValue;
 	float_point *m_pfDevBuffer;
 
-	//kernel launching parameters
-	dim3 dimGridThinThread;
-	int m_nNumofBlock;
-//	cudaStream_t m_stream1_Hessian_row;
-//	cudaStream_t m_stream_memcpy;
-
 	//for Hessian Matrix
 	float_point *m_pfDevDiagHessian;
 	float_point *m_pfDevHessianMatrixCache;
-	float_point *m_pfDevHessianSampleRow1;
-	float_point *m_pfDevHessianSampleRow2;
 
 public:
 	CSMOSolver(BaseHessian *pHessianOps, CCache *pCache)
@@ -107,7 +99,7 @@ public:
 
     virtual float_point *ObtainRow(int numTrainingInstance)
     {
-        m_pfDevHessianSampleRow1 = GetHessianRow(numTrainingInstance, IdofInstanceOne);
+    	devHessianInstanceRow1 = GetHessianRow(numTrainingInstance, IdofInstanceOne);
 
         //lock cached entry for the sample one, in case it is replaced by sample two
         m_pGPUCache->LockCacheEntry(IdofInstanceOne);
