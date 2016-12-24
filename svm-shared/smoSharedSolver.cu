@@ -262,13 +262,13 @@ void CSMOSolver::UpdateTwoWeight(float_point fMinLowValue, float_point fMinValue
 	//get YiGValue for sample one and two
 	float_point fAlpha2 = 0;
 	float_point fYiFValue2 = 0;
-	fAlpha2 = m_pfAlpha[m_nIndexofSampleTwo];
+	fAlpha2 = m_pfAlpha[IdofInstanceTwo];
 	fYiFValue2 = fMinLowValue;
 
 	//get alpha values of sample
 	float_point fAlpha1 = 0;
 	float_point fYiFValue1 = 0;
-	fAlpha1 = m_pfAlpha[m_nIndexofSampleOne];
+	fAlpha1 = m_pfAlpha[IdofInstanceOne];
 	fYiFValue1 = fMinValue;
 
 	//Get K(x_up, x_up), and K(x_low, x_low)
@@ -278,8 +278,8 @@ void CSMOSolver::UpdateTwoWeight(float_point fMinLowValue, float_point fMinValue
 
 	//get labels of sample one and two
 	int nLabel1 = 0, nLabel2 = 0;
-	nLabel1 = m_pnLabel[m_nIndexofSampleOne];
-	nLabel2 = m_pnLabel[m_nIndexofSampleTwo];
+	nLabel1 = m_pnLabel[IdofInstanceOne];
+	nLabel2 = m_pnLabel[IdofInstanceTwo];
 
 	//compute eta
 	float_point eta = fDiag1 + fDiag2 - 2 * fKernelValue;
@@ -378,8 +378,8 @@ void CSMOSolver::UpdateTwoWeight(float_point fMinLowValue, float_point fMinValue
 		}
 	}//end get new alpha values
 
-	m_pfAlpha[m_nIndexofSampleOne] = fAlpha1;
-	m_pfAlpha[m_nIndexofSampleTwo] = fAlpha2;
+	m_pfAlpha[IdofInstanceOne] = fAlpha1;
+	m_pfAlpha[IdofInstanceTwo] = fAlpha2;
 
 	//get alpha difference
 	fY1AlphaDiff = nLabel1 * fAlpha1 - fY1AlphaDiff; //(alpha1' - alpha1) * y1

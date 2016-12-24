@@ -18,8 +18,6 @@
 #include "smoGPUHelper.h"
 #include "HessianIO/deviceHessian.h"
 #include "../mascot/svmProblem.h"
-//#include <boost/interprocess/file_mapping.hpp>
-//#include <boost/interprocess/mapped_region.hpp>
 
 using std::string;
 using std::ifstream;
@@ -28,13 +26,10 @@ extern long lGetHessianRowTime;
 extern long lGetHessianRowCounter;
 extern long lRamHitCount;
 extern long lSSDHitCount;
-class CSMOSolver
+class CSMOSolver: public BaseSMO
 {
 public:
     SvmProblem *problem;
-	int m_nIndexofSampleOne;
-	int m_nIndexofSampleTwo;
-	float_point m_fUpValue;
 	float_point m_fLowValue;
 
 	CCache *m_pGPUCache;
@@ -74,8 +69,8 @@ public:
 public:
 	CSMOSolver(BaseHessian *pHessianOps, CCache *pCache)
 	{
-		m_nIndexofSampleOne = m_nIndexofSampleTwo = -1;
-		m_fUpValue = -1;
+		IdofInstanceOne = IdofInstanceTwo = -1;
+		upValue = -1;
 		m_pfDevBlockMin = NULL;
 		m_pfDevBlockMinYiFValue = NULL;
 		m_pnDevBlockMinGlobalKey = NULL;

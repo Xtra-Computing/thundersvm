@@ -81,19 +81,19 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 
 	//copy result back to host
 	cudaMemcpy(m_pfHostBuffer, m_pfDevBuffer, sizeof(float_point) * 2, cudaMemcpyDeviceToHost);
-	m_nIndexofSampleOne = (int)m_pfHostBuffer[0];
+	IdofInstanceOne = (int)m_pfHostBuffer[0];
 	float_point fMinValue;
 	fMinValue = m_pfHostBuffer[1];
-	m_pfDevHessianSampleRow1 = GetHessianRow(nNumofTrainingSamples,	m_nIndexofSampleOne);
+	m_pfDevHessianSampleRow1 = GetHessianRow(nNumofTrainingSamples,	IdofInstanceOne);
 
 	//lock cached entry for the sample one, in case it is replaced by sample two
-	m_pGPUCache->LockCacheEntry(m_nIndexofSampleOne);
+	m_pGPUCache->LockCacheEntry(IdofInstanceOne);
 
 	float_point fUpSelfKernelValue = 0;
-	fUpSelfKernelValue = m_pfDiagHessian[m_nIndexofSampleOne];
+	fUpSelfKernelValue = m_pfDiagHessian[IdofInstanceOne];
 	//select second sample
 
-	m_fUpValue = -fMinValue;
+	upValue = -fMinValue;
 
 	//get block level min (-b_ij*b_ij/a_ij)
 	GetBlockMinLowValue<<<dimGridThinThread, BLOCK_SIZE>>>
@@ -113,7 +113,7 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 //	cudaThreadSynchronize();
 	//copy result back to host
 	cudaMemcpy(m_pfHostBuffer, m_pfDevBuffer, sizeof(float_point) * 4, cudaMemcpyDeviceToHost);
-	m_nIndexofSampleTwo = int(m_pfHostBuffer[0]);
+	IdofInstanceTwo = int(m_pfHostBuffer[0]);
 
 	//get kernel value K(Sample1, Sample2)
 	float_point fKernelValue = 0;
@@ -122,13 +122,13 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 	fKernelValue = m_pfHostBuffer[2];
 
 
-	m_pfDevHessianSampleRow2 = GetHessianRow(nNumofTrainingSamples,	m_nIndexofSampleTwo);
+	m_pfDevHessianSampleRow2 = GetHessianRow(nNumofTrainingSamples,	IdofInstanceTwo);
 //	cudaDeviceSynchronize();
 
 
 	m_fLowValue = -m_pfHostBuffer[3];
 	//check if the problem is converged
-	if(m_fUpValue + m_fLowValue <= EPS)
+	if(upValue + m_fLowValue <= EPS)
 	{
 		//cout << m_fUpValue << " : " << m_fLowValue << endl;
 		//m_pGPUCache->PrintCachingStatistics();
@@ -136,18 +136,18 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 	}
 
 	float_point fY1AlphaDiff, fY2AlphaDiff;
-	UpdateTwoWeight(fMinLowValue, fMinValue, m_nIndexofSampleOne, m_nIndexofSampleTwo, fKernelValue,
+	UpdateTwoWeight(fMinLowValue, fMinValue, IdofInstanceOne, IdofInstanceTwo, fKernelValue,
 					fY1AlphaDiff, fY2AlphaDiff);
-	float_point fAlpha1 = m_pfAlpha[m_nIndexofSampleOne];
-	float_point fAlpha2 = m_pfAlpha[m_nIndexofSampleTwo];
+	float_point fAlpha1 = m_pfAlpha[IdofInstanceOne];
+	float_point fAlpha2 = m_pfAlpha[IdofInstanceTwo];
 
-	m_pGPUCache->UnlockCacheEntry(m_nIndexofSampleOne);
+	m_pGPUCache->UnlockCacheEntry(IdofInstanceOne);
 
 	//update yiFvalue
 	//copy new alpha values to device
-	m_pfHostBuffer[0] = m_nIndexofSampleOne;
+	m_pfHostBuffer[0] = IdofInstanceOne;
 	m_pfHostBuffer[1] = fAlpha1;
-	m_pfHostBuffer[2] = m_nIndexofSampleTwo;
+	m_pfHostBuffer[2] = IdofInstanceTwo;
 	m_pfHostBuffer[3] = fAlpha2;
 	cudaMemcpy(m_pfDevBuffer, m_pfHostBuffer, sizeof(float_point) * 4, cudaMemcpyHostToDevice);
 	UpdateYiFValueKernel<<<dimGridThinThread, BLOCK_SIZE>>>(pfDevAlpha, m_pfDevBuffer, pfDevYiFValue,

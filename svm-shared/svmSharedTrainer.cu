@@ -196,7 +196,7 @@ void CSVMTrainer::TrainEnding(int nIter, int nNumofTrainingExample, int nNumofIn
 	}
 	else
 	{*/
-		model.rho[0] = (-m_pSMOSolver->m_fUpValue + m_pSMOSolver->m_fLowValue) / 2;
+		model.rho[0] = (-m_pSMOSolver->upValue + m_pSMOSolver->m_fLowValue) / 2;
 	//}
 
 	delete[] pnLabel;
@@ -207,7 +207,7 @@ void CSVMTrainer::TrainEnding(int nIter, int nNumofTrainingExample, int nNumofIn
 	delete[] pnIndexofSVTemp;
 	delete[] pfYiFValue;
 
-	cout << m_pSMOSolver->m_fUpValue << " v.s. " << m_pSMOSolver->m_fLowValue << endl;
+	cout << m_pSMOSolver->upValue << " v.s. " << m_pSMOSolver->m_fLowValue << endl;
 	cout << "bias=" << model.rho[0] << endl;
 	//#####
 	m_pSMOSolver->SMOSolverEnd();
