@@ -68,3 +68,8 @@ bool InitCUDA(CUcontext &context, char gpuType = 'T')
     return true;
 }
 
+bool ReleaseCuda(CUcontext &context)
+{
+	cuCtxDetach(context);
+	return true;
+}
