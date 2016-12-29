@@ -28,10 +28,10 @@ private:
     vector<size_t> sizeOfEachRowInCache;
     vector<int> cacheSize;
 
-    float_point *devUniqueCache;
-    CLATCache *uniqueCacheStrategy;
-    size_t sizeOfEachRowInUniqueCache;
-    int numOfElementEachRowInUniqueCache;
+    vector<float_point*> devUniqueCache;
+    vector<CLATCache*> uniqueCacheStrategy;
+    vector<int> numOfElementEachRowInUniqueCache;
+    vector<size_t> sizeOfEachRowInUniqueCache;
     DeviceHessianOnFly* hessianCalculator;
 };
 

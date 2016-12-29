@@ -16,17 +16,29 @@ void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
                                     &sizeOfEachRowInCache[j], problem.count[j] * sizeof(float_point), cacheSize[j]));
     numOfElementEachRowInCache[i] = sizeOfEachRowInCache[i] / sizeof(float_point);
     numOfElementEachRowInCache[j] = sizeOfEachRowInCache[j] / sizeof(float_point);
-    int uniqueCacheRowLength = max(problem.count[i], problem.count[j]);
-    int uniqueCacheSize = min(CACHE_SIZE * 1024 * 1024 / 4 / uniqueCacheRowLength, cacheSize[i] + cacheSize[j]);
-    printf("unique cache row length %d, unique cache size %d\n", uniqueCacheRowLength, uniqueCacheSize);
-    checkCudaErrors(cudaMallocPitch((void **) &devUniqueCache,
-                                    &sizeOfEachRowInUniqueCache,
+    int uniqueCacheRowLength = problem.count[j];
+    int uniqueCacheSize = min(CACHE_SIZE * 1024 * 1024 / 4 / uniqueCacheRowLength, cacheSize[i]);
+    printf("unique cache 0 row length %d, size %d\n", uniqueCacheRowLength, uniqueCacheSize);
+    checkCudaErrors(cudaMallocPitch((void **) &devUniqueCache[0],
+                                    &sizeOfEachRowInUniqueCache[0],
                                     uniqueCacheRowLength * sizeof(float_point),
                                     uniqueCacheSize));
-    numOfElementEachRowInUniqueCache = sizeOfEachRowInUniqueCache / sizeof(float_point);
-    uniqueCacheStrategy = new CLATCache(problem.count[i]+ problem.count[j]);
-    uniqueCacheStrategy->SetCacheSize(uniqueCacheSize);
-    uniqueCacheStrategy->InitializeCache(uniqueCacheSize,problem.count[i] + problem.count[j]);
+    numOfElementEachRowInUniqueCache[0] = sizeOfEachRowInUniqueCache[0] / sizeof(float_point);
+    uniqueCacheStrategy[0] = new CLATCache(problem.count[i]);
+    uniqueCacheStrategy[0]->SetCacheSize(uniqueCacheSize);
+    uniqueCacheStrategy[0]->InitializeCache(uniqueCacheSize,problem.count[i]);
+
+    uniqueCacheRowLength = problem.count[i];
+    uniqueCacheSize = min(CACHE_SIZE * 1024 * 1024 / 4 / uniqueCacheRowLength, cacheSize[j]);
+    printf("unique cache 1 row length %d, size %d\n", uniqueCacheRowLength, uniqueCacheSize);
+    checkCudaErrors(cudaMallocPitch((void **) &devUniqueCache[1],
+                                    &sizeOfEachRowInUniqueCache[1],
+                                    uniqueCacheRowLength * sizeof(float_point),
+                                    uniqueCacheSize));
+    numOfElementEachRowInUniqueCache[1] = sizeOfEachRowInUniqueCache[1] / sizeof(float_point);
+    uniqueCacheStrategy[1] = new CLATCache(problem.count[j]);
+    uniqueCacheStrategy[1]->SetCacheSize(uniqueCacheSize);
+    uniqueCacheStrategy[1]->InitializeCache(uniqueCacheSize,problem.count[j]);
     checkCudaErrors(cudaMemcpy2D(
             devSharedCache[i], sizeOfEachRowInCache[i],
             hostSharedCache[i], problem.count[i] * sizeof(float_point),
@@ -39,7 +51,8 @@ void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
 
 void GpuCache::disable(int i, int j) {
     delete hessianCalculator;
-    delete uniqueCacheStrategy;
+    delete uniqueCacheStrategy[0];
+    delete uniqueCacheStrategy[1];
     checkCudaErrors(cudaMemcpy2D(
             hostSharedCache[i], problem.count[i] * sizeof(float_point),
             devSharedCache[i], sizeOfEachRowInCache[i],
@@ -50,14 +63,19 @@ void GpuCache::disable(int i, int j) {
             problem.count[j] * sizeof(float_point), cacheSize[j], cudaMemcpyDeviceToHost));
     checkCudaErrors(cudaFree(devSharedCache[i]));
     checkCudaErrors(cudaFree(devSharedCache[j]));
-    checkCudaErrors(cudaFree(devUniqueCache));
+    checkCudaErrors(cudaFree(devUniqueCache[0]));
+    checkCudaErrors(cudaFree(devUniqueCache[1]));
 }
 
 GpuCache::GpuCache(const SvmProblem &problem, const SVMParam &param) :
         problem(problem), param(param),
         numOfElementEachRowInCache(problem.getNumOfClasses()),
         devSharedCache(problem.getNumOfClasses(), NULL),
-        sizeOfEachRowInCache(problem.getNumOfClasses()) {
+        sizeOfEachRowInCache(problem.getNumOfClasses()),
+        devUniqueCache(2),
+        uniqueCacheStrategy(2),
+        numOfElementEachRowInUniqueCache(2),
+        sizeOfEachRowInUniqueCache(2) {
     for (int i = 0; i < problem.getNumOfClasses(); ++i) {
         int rowLength = problem.count[i];
         sharedCacheStrategy.push_back(new CLATCache(rowLength));
@@ -95,14 +113,15 @@ void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
     bool cacheFull = false;
 
     //query unique cache
-    bool cacheHit = uniqueCacheStrategy->GetDataFromCache(rowIndex, cacheLocation, cacheFull);
+    int uniqueCacheOffset = -subProblem->start[label];
+    bool cacheHit = uniqueCacheStrategy[label]->GetDataFromCache(rowIndex + uniqueCacheOffset, cacheLocation, cacheFull);
     if (!cacheHit) {
         if (cacheFull)
-            uniqueCacheStrategy->ReplaceExpired(rowIndex, cacheLocation, NULL);
+            uniqueCacheStrategy[label]->ReplaceExpired(rowIndex + uniqueCacheOffset, cacheLocation, NULL);
 //        printf("unique cache miss, save to location %d, ", cacheLocation);
         hessianCalculator->ReadRow(rowIndex,
 //                                   devHessianRow+uniqueCacheStart,
-                                   devUniqueCache + cacheLocation * numOfElementEachRowInUniqueCache,
+                                   devUniqueCache[label] + cacheLocation * numOfElementEachRowInUniqueCache[label],
                                    uniqueCacheStart,
                                    uniqueCacheStart + uniqueCacheCount);
     } else {
@@ -110,13 +129,12 @@ void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
     };
     checkCudaErrors(cudaMemcpy(
             devHessianRow + uniqueCacheStart,
-            devUniqueCache + cacheLocation * numOfElementEachRowInUniqueCache,
+            devUniqueCache[label] + cacheLocation * numOfElementEachRowInUniqueCache[label],
             sizeof(float_point) * uniqueCacheCount,
             cudaMemcpyDeviceToDevice));
 
     //query shared cache
-    int sharedCacheOffset = 0;
-    if (label == 1) sharedCacheOffset = -uniqueCacheCount;
+    int sharedCacheOffset = -subProblem->start[label];
 //    printf("offset is %d, ", sharedCacheOffset);
     cacheHit = sharedCacheStrategy[originalLabel]->GetDataFromCache(rowIndex + sharedCacheOffset, cacheLocation,
                                                                     cacheFull);
