@@ -11,6 +11,43 @@
 #include "smoGPUHelper.h"
 
 /**
+ * @brief: initialise some variables of smo solver
+ */
+void BaseSMO::InitSolver(int nNumofTrainingIns)
+{
+	numOfBlock = Ceil(nNumofTrainingIns, BLOCK_SIZE);
+
+	//configure cuda kernel
+	gridSize = dim3(numOfBlock > NUM_OF_BLOCK ? NUM_OF_BLOCK : numOfBlock, Ceil(numOfBlock, NUM_OF_BLOCK));
+
+	//allocate device memory
+	checkCudaErrors(cudaMalloc((void**)&devBlockMin, sizeof(float_point) * numOfBlock));
+	checkCudaErrors(cudaMalloc((void**)&devBlockMinGlobalKey, sizeof(int) * numOfBlock));
+	//for getting maximum low G value
+	checkCudaErrors(cudaMalloc((void**)&devBlockMinYiGValue, sizeof(float_point) * numOfBlock));
+
+	checkCudaErrors(cudaMalloc((void**)&devMinValue, sizeof(float_point)));
+	checkCudaErrors(cudaMalloc((void**)&devMinKey, sizeof(int)));
+
+	checkCudaErrors(cudaMallocHost((void **) &hostBuffer, sizeof(float_point) * 5));
+	checkCudaErrors(cudaMalloc((void**)&devBuffer, sizeof(float_point) * 5));//only need 4 float_points
+}
+
+/**
+ * @brief: release solver memory
+ */
+void BaseSMO::DeInitSolver()
+{
+    checkCudaErrors(cudaFree(devBlockMin));
+    checkCudaErrors(cudaFree(devBlockMinGlobalKey));
+    checkCudaErrors(cudaFree(devBlockMinYiGValue));
+    checkCudaErrors(cudaFree(devMinValue));
+    checkCudaErrors(cudaFree(devMinKey));
+    checkCudaErrors(cudaFree(devBuffer));
+    checkCudaErrors(cudaFreeHost(hostBuffer));
+}
+
+/**
  * @brief: select the first instance in SMO
  */
 void BaseSMO::SelectFirst(int numTrainingInstance, float_point CforPositive)

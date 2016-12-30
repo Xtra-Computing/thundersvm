@@ -42,10 +42,6 @@ public:
 	float_point *m_pfGValue;
 	int *m_pnLabel;
 
-	//members for gpu
-	float_point *m_pfDevMinValue;
-	int *m_pnDevMinKey;
-
 	//for Hessian Matrix
 	float_point *m_pfDevHessianMatrixCache;
 
@@ -57,8 +53,8 @@ public:
 		devBlockMin = NULL;
 		devBlockMinYiGValue = NULL;
 		devBlockMinGlobalKey = NULL;
-		m_pfDevMinValue = NULL;
-		m_pnDevMinKey = NULL;
+		devMinValue = NULL;
+		devMinKey = NULL;
 
 		//for n-fold-cross validation
 		m_nStart1 = -1;

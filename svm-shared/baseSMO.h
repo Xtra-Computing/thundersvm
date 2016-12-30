@@ -17,6 +17,10 @@ class BaseSMO
 public:
     BaseSMO(){}
 	virtual ~BaseSMO(){}
+
+	void InitSolver(int nNumofTrainingIns);
+	void DeInitSolver();
+
 	void SelectFirst(int numTrainingInstance, float_point CforPositive);
 	void SelectSecond(int numTrainingInstance, float_point CforNegative);
 
@@ -47,6 +51,9 @@ protected:
     float_point *devBlockMin;			//for reduction in min/max search
     int *devBlockMinGlobalKey;			//for reduction in min/max search
     float_point *devBlockMinYiGValue;
+
+	float_point *devMinValue;			//store the min/max value
+	int *devMinKey;						//store the min/max key
 
     int numOfBlock;
     dim3 gridSize;

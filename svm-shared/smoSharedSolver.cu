@@ -18,43 +18,7 @@
 bool CSMOSolver::SMOSolverPreparation(const int &nNumofTrainingSamples)
 {
 	bool bReturn = true;
-	numOfBlock = Ceil(nNumofTrainingSamples, BLOCK_SIZE);
-
-	if(nNumofTrainingSamples <= 0 || numOfBlock <= 0)
-	{
-		cerr << "error in SeletePairPreparation: invalid input parameters" << endl;
-		return false;
-	}
-
-	//when the number of blocks is larger than 65535, compute the number of grid
-	int nGridDimY = 0;
-	nGridDimY = Ceil(numOfBlock, NUM_OF_BLOCK);
-
-	int nGridDimX = 0;
-	if(numOfBlock > NUM_OF_BLOCK)
-		nGridDimX = NUM_OF_BLOCK;
-	else
-		nGridDimX = numOfBlock;
-	dim3 temp(nGridDimX, nGridDimY);
-	gridSize = temp;
-
-	//allocate device memory
-	checkCudaErrors(cudaMalloc((void**)&devBlockMin, sizeof(float_point) * numOfBlock));
-	checkCudaErrors(cudaMalloc((void**)&devBlockMinGlobalKey, sizeof(int) * numOfBlock));
-	//for getting maximum low G value
-	checkCudaErrors(cudaMalloc((void**)&devBlockMinYiGValue, sizeof(float_point) * numOfBlock));
-
-	checkCudaErrors(cudaMalloc((void**)&m_pfDevMinValue, sizeof(float_point)));
-	checkCudaErrors(cudaMalloc((void**)&m_pnDevMinKey, sizeof(int)));
-
-	hostBuffer = new float_point[5];
-	checkCudaErrors(cudaMalloc((void**)&devBuffer, sizeof(float_point) * 5));//only need 4 float_points
-
-	if(cudaGetLastError() != cudaSuccess)
-	{
-		cerr << "CUDA error occurs at SelectPair" << endl;
-		bReturn = false;
-	}
+	InitSolver(nNumofTrainingSamples);
 
 	//allocate memory in CPU
 	//m_pfHessianRow = new float_point[nNumofTrainingSamples];//for reading hessian row from file
@@ -76,7 +40,7 @@ bool CSMOSolver::CleanCache()
 	m_pGPUCache->CleanCache();
 	checkCudaErrors(cudaFree(m_pfDevHessianMatrixCache));
 	checkCudaErrors(cudaFree(devHessianDiag));
-	checkCudaErrors(cudaFree(devBuffer));
+
 	if(cudaGetLastError() != cudaSuccess)
 	{
 		cerr << "CUDA error occurs at CleanCache" << endl;
@@ -94,22 +58,12 @@ bool CSMOSolver::SMOSolverEnd()
 	bool bReturn = true;
 
 	//free GPU global memory
-	checkCudaErrors(cudaFree(devBlockMin));
-	checkCudaErrors(cudaFree(devBlockMinYiGValue));
-	checkCudaErrors(cudaFree(devBlockMinGlobalKey));
-	checkCudaErrors(cudaFree(m_pfDevMinValue));
-	checkCudaErrors(cudaFree(m_pnDevMinKey));
-	if(cudaGetLastError() != cudaSuccess)
-	{
-		cerr << "CUDA error occurs at freeing GPU memory for SMOSolver" << endl;
-		bReturn = false;
-	}
+	DeInitSolver();
 
 	cudaFreeHost(m_pfHessianRow);
 	delete[] m_pnLabel;
 	delete[] hessianDiag;
 	delete[] m_pfGValue;
-	delete[] hostBuffer;
 
 	return bReturn;
 }
