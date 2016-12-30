@@ -8,8 +8,6 @@
 #include <time.h>
 #include <sys/time.h>
 
-
-
 /*
  * @brief: allocate GPU memory for finding block min, which serves as the first sample of the optimized pair
  * @param: nNumofTrainingSamples: the # of training samples in current interation
@@ -39,7 +37,6 @@ bool CSMOSolver::CleanCache()
 	//clean cache
 	m_pGPUCache->CleanCache();
 	checkCudaErrors(cudaFree(m_pfDevHessianMatrixCache));
-	checkCudaErrors(cudaFree(devHessianDiag));
 
 	if(cudaGetLastError() != cudaSuccess)
 	{
@@ -62,12 +59,10 @@ bool CSMOSolver::SMOSolverEnd()
 
 	cudaFreeHost(m_pfHessianRow);
 	delete[] m_pnLabel;
-	delete[] hessianDiag;
 	delete[] m_pfGValue;
 
 	return bReturn;
 }
-
 
 /*
  * @brief: set data used by SMO solver in Hessian Matrix
@@ -85,8 +80,6 @@ bool CSMOSolver::SetInvolveData(int nStart1, int nEnd1, int nStart2, int nEnd2)
 
 	return bReturn;
 }
-
-
 
 /*
  * @brief: map a given index to Hessian matrix. As in n-fold-cross-validation, data are seperated into n parts.

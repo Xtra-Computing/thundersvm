@@ -93,9 +93,8 @@ bool MultiSmoSolver::iterate(SvmProblem &subProblem) {
 
 void MultiSmoSolver::init4Training(const SvmProblem &subProblem) {
     unsigned int trainingSize = subProblem.getNumOfSamples();
-    checkCudaErrors(cudaMalloc((void **) &devAlpha, sizeof(float_point) * trainingSize));
-    alpha = vector<float_point>(trainingSize,0);
 
+    checkCudaErrors(cudaMalloc((void **) &devAlpha, sizeof(float_point) * trainingSize));
     checkCudaErrors(cudaMalloc((void **) &devYiGValue, sizeof(float_point) * trainingSize));
     checkCudaErrors(cudaMalloc((void **) &devLabel, sizeof(int) * trainingSize));
 
@@ -131,8 +130,6 @@ void MultiSmoSolver::init4Training(const SvmProblem &subProblem) {
 //
 //    checkCudaErrors(cudaMemset(devHessianMatrixCache, 0, cacheSize * sizeOfEachRowInCache));
 
-    hessianDiag = new float_point[trainingSize];
-    checkCudaErrors(cudaMalloc((void **) &devHessianDiag, sizeof(float_point) * trainingSize));
 //    hessianCalculator = new DeviceHessianOnFly(subProblem, param.gamma);
 //    hessianCalculator->GetHessianDiag("", trainingSize, hessianDiag);
     for (int j = 0; j < trainingSize; ++j) {
@@ -149,10 +146,8 @@ void MultiSmoSolver::deinit4Training() {
     DeInitSolver();
 
 //    checkCudaErrors(cudaFree(devHessianMatrixCache));
-    checkCudaErrors(cudaFree(devHessianDiag));
     checkCudaErrors(cudaFree(devHessianInstanceRow1));
     checkCudaErrors(cudaFree(devHessianInstanceRow2));
-    delete[] hessianDiag;
 }
 
 int MultiSmoSolver::getHessianRow(int rowIndex) {

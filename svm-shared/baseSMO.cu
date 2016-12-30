@@ -15,22 +15,25 @@
  */
 void BaseSMO::InitSolver(int nNumofTrainingIns)
 {
-	numOfBlock = Ceil(nNumofTrainingIns, BLOCK_SIZE);
+	alpha = vector<float_point>(nNumofTrainingIns, 0);
 
 	//configure cuda kernel
+	numOfBlock = Ceil(nNumofTrainingIns, BLOCK_SIZE);
 	gridSize = dim3(numOfBlock > NUM_OF_BLOCK ? NUM_OF_BLOCK : numOfBlock, Ceil(numOfBlock, NUM_OF_BLOCK));
-
-	//allocate device memory
+	//allocate device memory for min/max search
 	checkCudaErrors(cudaMalloc((void**)&devBlockMin, sizeof(float_point) * numOfBlock));
 	checkCudaErrors(cudaMalloc((void**)&devBlockMinGlobalKey, sizeof(int) * numOfBlock));
 	//for getting maximum low G value
 	checkCudaErrors(cudaMalloc((void**)&devBlockMinYiGValue, sizeof(float_point) * numOfBlock));
-
 	checkCudaErrors(cudaMalloc((void**)&devMinValue, sizeof(float_point)));
 	checkCudaErrors(cudaMalloc((void**)&devMinKey, sizeof(int)));
 
 	checkCudaErrors(cudaMallocHost((void **) &hostBuffer, sizeof(float_point) * 5));
 	checkCudaErrors(cudaMalloc((void**)&devBuffer, sizeof(float_point) * 5));//only need 4 float_points
+
+	//diagonal is frequently used in training.
+	hessianDiag = new float_point[nNumofTrainingIns];
+    checkCudaErrors(cudaMalloc((void **) &devHessianDiag, sizeof(float_point) * nNumofTrainingIns));
 }
 
 /**
@@ -45,6 +48,8 @@ void BaseSMO::DeInitSolver()
     checkCudaErrors(cudaFree(devMinKey));
     checkCudaErrors(cudaFree(devBuffer));
     checkCudaErrors(cudaFreeHost(hostBuffer));
+    checkCudaErrors(cudaFree(devHessianDiag));
+    delete[] hessianDiag;
 }
 
 /**

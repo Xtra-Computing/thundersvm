@@ -44,29 +44,17 @@ bool CSMOSolver::InitCache(const int &nCacheSize, const int &nNumofInstance)
 
 	//read Hessian diagonal
 	m_pfGValue = new float_point[nNumofInstance];
-    alpha = vector<float_point>(nNumofInstance,0);
-	hessianDiag = new float_point[nNumofInstance];
-	memset(hessianDiag, 0, sizeof(float_point) * nNumofInstance);
+
 	string strHessianDiagFile = HESSIAN_DIAG_FILE;
 	bool bReadDiag = m_pHessianReader->GetHessianDiag(strHessianDiagFile, nNumofInstance, hessianDiag);
 
-	//allocate memory for Hessian diagonal
-	checkCudaErrors(cudaMalloc((void**)&devHessianDiag, sizeof(float_point) * nNumofInstance));
-	checkCudaErrors(cudaMemset(devHessianDiag, 0, sizeof(float_point) * nNumofInstance));
 	//copy Hessian diagonal from CPU to GPU
 	checkCudaErrors(cudaMemcpy(devHessianDiag, hessianDiag, sizeof(float_point) * nNumofInstance, cudaMemcpyHostToDevice));
 	assert(cudaGetLastError() == cudaSuccess);
 
-
 	return bReturn;
 }
 
-
-long nTimeOfUpdateAlpha = 0;
-long nTimeOfSelect1stSample = 0;
-long nTimeOfSelect2ndSample = 0;
-long nTimeOfUpdateYiFValue = 0;
-long nTimeofGetHessian = 0;
 /*
  * @brief: this is a function which contains all the four steps
  */
@@ -91,9 +79,7 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 	fMinLowValue = hostBuffer[1];
 	fKernelValue = hostBuffer[2];
 
-
 	devHessianInstanceRow2 = GetHessianRow(nNumofTrainingSamples,	IdofInstanceTwo);
-
 
 	m_fLowValue = -hostBuffer[3];
 	//check if the problem is converged
