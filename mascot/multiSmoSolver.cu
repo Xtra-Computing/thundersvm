@@ -83,8 +83,8 @@ bool MultiSmoSolver::iterate(SvmProblem &subProblem) {
 
     float_point fY1AlphaDiff, fY2AlphaDiff;
     float_point fMinValue = -upValue;
-    updateTwoWeight(fMinLowValue, fMinValue, IdofInstanceOne, IdofInstanceTwo, fKernelValue,
-                    fY1AlphaDiff, fY2AlphaDiff, subProblem.v_nLabels.data());
+    UpdateTwoWeight(fMinLowValue, fMinValue, IdofInstanceOne, IdofInstanceTwo, fKernelValue,
+                    fY1AlphaDiff, fY2AlphaDiff, subProblem.v_nLabels.data(), param.C);
 
     UpdateYiGValue(trainingSize, fY1AlphaDiff, fY2AlphaDiff);
 
@@ -162,114 +162,6 @@ int MultiSmoSolver::getHessianRow(int rowIndex) {
     return cacheLocation * numOfElementEachRowInCache;
 }
 
-void MultiSmoSolver::updateTwoWeight(float_point fMinLowValue, float_point fMinValue, int nHessianRowOneInMatrix,
-                                     int nHessianRowTwoInMatrix, float_point fKernelValue, float_point &fY1AlphaDiff,
-                                     float_point &fY2AlphaDiff, const int *label) {
-    //get YiGValue for sample one and two
-    float_point fAlpha2 = 0;
-    float_point fYiFValue2 = 0;
-    fAlpha2 = alpha[nHessianRowTwoInMatrix];
-    fYiFValue2 = fMinLowValue;
-
-    //get alpha values of sample
-    float_point fAlpha1 = 0;
-    float_point fYiFValue1 = 0;
-    fAlpha1 = alpha[nHessianRowOneInMatrix];
-    fYiFValue1 = fMinValue;
-
-    //Get K(x_up, x_up), and K(x_low, x_low)
-    float_point fDiag1 = 0, fDiag2 = 0;
-    fDiag1 = hessianDiag[nHessianRowOneInMatrix];
-    fDiag2 = hessianDiag[nHessianRowTwoInMatrix];
-
-    //get labels of sample one and two
-    int nLabel1 = 0, nLabel2 = 0;
-    nLabel1 = label[nHessianRowOneInMatrix];
-    nLabel2 = label[nHessianRowTwoInMatrix];
-
-    //compute eta
-    float_point eta = fDiag1 + fDiag2 - 2 * fKernelValue;
-    if (eta <= 0)
-        eta = TAU;
-
-    float_point fCost1, fCost2;
-//	fCost1 = Get_C(nLabel1);
-//	fCost2 = Get_C(nLabel2);
-    fCost1 = fCost2 = param.C;
-
-    //keep old yi*alphas
-    fY1AlphaDiff = nLabel1 * fAlpha1;
-    fY2AlphaDiff = nLabel2 * fAlpha2;
-
-    //get new alpha values
-    int nSign = nLabel2 * nLabel1;
-    if (nSign < 0) {
-        float_point fDelta = (-nLabel1 * fYiFValue1 - nLabel2 * fYiFValue2) / eta; //(-fYiFValue1 - fYiFValue2) / eta;
-        float_point fAlphaDiff = fAlpha1 - fAlpha2;
-        fAlpha1 += fDelta;
-        fAlpha2 += fDelta;
-
-        if (fAlphaDiff > 0) {
-            if (fAlpha2 < 0) {
-                fAlpha2 = 0;
-                fAlpha1 = fAlphaDiff;
-            }
-        } else {
-            if (fAlpha1 < 0) {
-                fAlpha1 = 0;
-                fAlpha2 = -fAlphaDiff;
-            }
-        }
-
-        if (fAlphaDiff > fCost1 - fCost2) {
-            if (fAlpha1 > fCost1) {
-                fAlpha1 = fCost1;
-                fAlpha2 = fCost1 - fAlphaDiff;
-            }
-        } else {
-            if (fAlpha2 > fCost2) {
-                fAlpha2 = fCost2;
-                fAlpha1 = fCost2 + fAlphaDiff;
-            }
-        }
-    } //end if nSign < 0
-    else {
-        float_point fDelta = (nLabel1 * fYiFValue1 - nLabel2 * fYiFValue2) / eta;
-        float_point fSum = fAlpha1 + fAlpha2;
-        fAlpha1 -= fDelta;
-        fAlpha2 += fDelta;
-
-        if (fSum > fCost1) {
-            if (fAlpha1 > fCost1) {
-                fAlpha1 = fCost1;
-                fAlpha2 = fSum - fCost1;
-            }
-        } else {
-            if (fAlpha2 < 0) {
-                fAlpha2 = 0;
-                fAlpha1 = fSum;
-            }
-        }
-        if (fSum > fCost2) {
-            if (fAlpha2 > fCost2) {
-                fAlpha2 = fCost2;
-                fAlpha1 = fSum - fCost2;
-            }
-        } else {
-            if (fAlpha1 < 0) {
-                fAlpha1 = 0;
-                fAlpha2 = fSum;
-            }
-        }
-    }//end get new alpha values
-
-    alpha[nHessianRowOneInMatrix] = fAlpha1;
-    alpha[nHessianRowTwoInMatrix] = fAlpha2;
-
-    //get alpha difference
-    fY1AlphaDiff = nLabel1 * fAlpha1 - fY1AlphaDiff; //(alpha1' - alpha1) * y1
-    fY2AlphaDiff = nLabel2 * fAlpha2 - fY2AlphaDiff;
-}
 
 void MultiSmoSolver::extractModel(const SvmProblem &subProblem, vector<int> &svIndex, vector<float_point> &coef,
                                   float_point &rho) const {

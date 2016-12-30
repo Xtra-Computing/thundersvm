@@ -23,7 +23,9 @@ public:
 
 	void SelectFirst(int numTrainingInstance, float_point CforPositive);
 	void SelectSecond(int numTrainingInstance, float_point CforNegative);
-
+	void UpdateTwoWeight(float_point fMinLowValue, float_point fMinValue, int nHessianRowOneInMatrix,
+	                                     int nHessianRowTwoInMatrix, float_point fKernelValue, float_point &fY1AlphaDiff,
+	                                     float_point &fY2AlphaDiff, const int *label, float_point C);
 	void UpdateYiGValue(int numTrainingInstance, float_point fY1AlphaDiff, float_point fY2AlphaDiff);
 
 protected:

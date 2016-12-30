@@ -5,7 +5,6 @@
 #ifndef MASCOT_SVM_MULTISMOSOLVER_H
 #define MASCOT_SVM_MULTISMOSOLVER_H
 
-
 #include "svmProblem.h"
 #include "svmModel.h"
 #include "../svm-shared/Cache/cache.h"
@@ -25,7 +24,6 @@ public:
     };
     void solve();
 
-
 private:
     const SvmProblem &problem;
     SvmModel &model;
@@ -40,10 +38,6 @@ private:
 
     bool iterate(SvmProblem &subProblem);
     int getHessianRow(int rowIndex);
-    void updateTwoWeight(float_point fMinLowValue, float_point fMinValue,
-								 int nHessianRowOneInMatrix, int nHessianRowTwoInMatrix,
-								 float_point fKernelValue,
-								 float_point &fY1AlphaDiff, float_point &fY2AlphaDiff, const int *label);
 
     void extractModel(const SvmProblem &subProblem, vector<int> &svIndex, vector<float_point> &coef, float_point &rho) const;
     void deinit4Training();

@@ -92,7 +92,7 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 
 	float_point fY1AlphaDiff, fY2AlphaDiff;
 	UpdateTwoWeight(fMinLowValue, -upValue, IdofInstanceOne, IdofInstanceTwo, fKernelValue,
-					fY1AlphaDiff, fY2AlphaDiff);
+					fY1AlphaDiff, fY2AlphaDiff, m_pnLabel, gfPCost);
 
 	m_pGPUCache->UnlockCacheEntry(IdofInstanceOne);
 

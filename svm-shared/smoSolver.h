@@ -111,10 +111,6 @@ public:
 		return (nLabel > 0)? gfPCost : gfNCost;
 	}
 
-	void UpdateTwoWeight(float_point fMinLowValue, float_point fMinValue,
-			 	 	 	 int nHessianRowOneInMatrix, int nHessianRowTwoInMatrix,
-			 	 	 	 float_point fUpSelfKernelValue, float_point &fY1AlphaDiff, float_point &fY2AlphaDiff);
-
 	int Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int *npDevLabel, const int &nNumofTrainingSamples);
 	int IterateAdv(float_point*, int*, const int &nNumofTrainingSamples);
 
