@@ -181,3 +181,21 @@ int CSRMatrix::getNumOfFeatures() const {
     return numOfFeatures;
 }
 
+void CSRMatrix::copy2Dev(float_point *&devVal, int *&devRowPtr, int *&devColInd) {
+
+    int nnz = this->getNnz();
+    checkCudaErrors(cudaMalloc((void **) &devVal, sizeof(float_point) * nnz));
+    checkCudaErrors(cudaMalloc((void **) &devRowPtr, sizeof(int) * (this->getNumOfSamples() + 1)));
+    checkCudaErrors(cudaMalloc((void **) &devColInd, sizeof(int) * nnz));
+    checkCudaErrors(cudaMemcpy(devVal, this->getCSRVal(), sizeof(float_point) * nnz, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(devRowPtr, this->getCSRRowPtr(), sizeof(int) * (this->getNumOfSamples() + 1),
+                               cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(devColInd, this->getCSRColInd(), sizeof(int) * nnz, cudaMemcpyHostToDevice));
+}
+
+void CSRMatrix::freeDev(float_point *&devVal, int *&devRowPtr, int *&devColInd) {
+    checkCudaErrors(cudaFree(devVal));
+    checkCudaErrors(cudaFree(devRowPtr));
+    checkCudaErrors(cudaFree(devColInd));
+}
+

@@ -73,6 +73,8 @@ public:
                             const cusparseMatDescr_t descrB,
                             const int nnzB, const float *valB, const int *rowPtrB, const int *colIndB,
                             float *C);
+    void copy2Dev(float_point *&devVal, int *&devRowPtr, int *&devColInd);
+    void freeDev(float_point *&devVal, int *&devRowPtr, int *&devColInd);
 };
 
 #endif //MASCOT_SVM_SVMPROBLEM_H
