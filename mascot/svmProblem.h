@@ -17,7 +17,7 @@ public:
     vector<int> v_nLabels;
     vector<int> count;
     vector<int> start;
-    vector<int> perm;
+    vector<int> perm;						//put instances of the same class continuously
     vector<int> label;
     int numOfFeatures;
     bool subProblem;

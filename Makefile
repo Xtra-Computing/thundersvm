@@ -6,8 +6,9 @@ NVCC	  := /usr/local/cuda/bin/nvcc
 DISABLEW  := -Xnvlink -w
 
 ODIR = bin
-release_bin := $(ODIR)/release/mascot
-debug_bin := $(ODIR)/debug/mascot
+exe_name = mascot
+release_bin := $(ODIR)/release/exe_name
+debug_bin := $(ODIR)/debug/exe_name
 $(shell mkdir -p $(ODIR)/release)
 $(shell mkdir -p $(ODIR)/debug)
 

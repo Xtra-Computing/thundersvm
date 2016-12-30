@@ -102,11 +102,11 @@ void MultiSmoSolver::init4Training(const SvmProblem &subProblem) {
     checkCudaErrors(cudaMalloc((void **) &devLabel, sizeof(int) * trainingSize));
 
     checkCudaErrors(cudaMemset(devAlpha, 0, sizeof(float_point) * trainingSize));
-    vector<float_point> revertLabel(trainingSize);
+    vector<float_point> negatedLabel(trainingSize);
     for (int i = 0; i < trainingSize; ++i) {
-        revertLabel[i] = -subProblem.v_nLabels[i];
+    	negatedLabel[i] = -subProblem.v_nLabels[i];
     }
-    checkCudaErrors(cudaMemcpy(devYiGValue, revertLabel.data(), sizeof(float_point) * trainingSize,
+    checkCudaErrors(cudaMemcpy(devYiGValue, negatedLabel.data(), sizeof(float_point) * trainingSize,
                                cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(devLabel, subProblem.v_nLabels.data(), sizeof(int) * trainingSize, cudaMemcpyHostToDevice));
 

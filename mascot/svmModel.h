@@ -27,8 +27,8 @@ private:
     vector<vector<svm_node> > svMap;
     CSRMatrix *svMapCSRMat = NULL;
     vector<vector<float_point> > coef;
-    vector<int> start;					//
-    vector<int> count;					//
+    vector<int> start;					//for multiclass, start position for each class of instances
+    vector<int> count;					//support vectors of the i-th class
     vector<float_point> rho;
     vector<float_point> probA;
     vector<float_point> probB;
