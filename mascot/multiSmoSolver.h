@@ -36,7 +36,7 @@ private:
 
     void init4Training(const SvmProblem &subProblem);
 
-    bool iterate(SvmProblem &subProblem);
+    bool iterate(SvmProblem &subProblem, float_point C);
     int getHessianRow(int rowIndex);
 
     void extractModel(const SvmProblem &subProblem, vector<int> &svIndex, vector<float_point> &coef, float_point &rho) const;

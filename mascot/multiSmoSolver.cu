@@ -25,7 +25,7 @@ void MultiSmoSolver::solve() {
                            ? INT_MAX
                            : ITERATION_FACTOR * subProblem.getNumOfSamples()) * 4;
             int numOfIter;
-            for (numOfIter = 0; numOfIter < maxIter && !iterate(subProblem); numOfIter++) {
+            for (numOfIter = 0; numOfIter < maxIter && !iterate(subProblem, param.C); numOfIter++) {
                 if (numOfIter % 1000 == 0 && numOfIter != 0) {
                     std::cout << ".";
                     std::cout.flush();
@@ -38,7 +38,10 @@ void MultiSmoSolver::solve() {
             vector<float_point> coef;
             float_point rho;
             extractModel(subProblem, svIndex, coef, rho);
-            model.addBinaryModel(subProblem, svIndex,coef, rho, i, j);
+
+            //measure training errors and prediction errors
+
+            model.addBinaryModel(subProblem, svIndex, coef, rho, i, j);
             k++;
             deinit4Training();
         }
@@ -50,11 +53,11 @@ void MultiSmoSolver::initCache(int cacheSize) {
 
 }
 
-bool MultiSmoSolver::iterate(SvmProblem &subProblem) {
+bool MultiSmoSolver::iterate(SvmProblem &subProblem, float_point C) {
     int trainingSize = subProblem.getNumOfSamples();
 
-    SelectFirst(trainingSize, param.C);
-    SelectSecond(trainingSize, param.C);
+    SelectFirst(trainingSize, C);
+    SelectSecond(trainingSize, C);
 
     IdofInstanceTwo = int(hostBuffer[0]);
 
@@ -84,7 +87,7 @@ bool MultiSmoSolver::iterate(SvmProblem &subProblem) {
     float_point fY1AlphaDiff, fY2AlphaDiff;
     float_point fMinValue = -upValue;
     UpdateTwoWeight(fMinLowValue, fMinValue, IdofInstanceOne, IdofInstanceTwo, fKernelValue,
-                    fY1AlphaDiff, fY2AlphaDiff, subProblem.v_nLabels.data(), param.C);
+                    fY1AlphaDiff, fY2AlphaDiff, subProblem.v_nLabels.data(), C);
 
     UpdateYiGValue(trainingSize, fY1AlphaDiff, fY2AlphaDiff);
 

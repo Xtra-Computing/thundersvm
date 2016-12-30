@@ -42,7 +42,6 @@ using std::cout;
 using std::endl;
 
 void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, SvmModel &model) {
-
     clock_t start, end;
     vector<vector<svm_node> > v_v_DocVector;
     vector<int> v_nLabel;
@@ -100,7 +99,7 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNum
         if (predictLabels[i] == v_nLabel[i])
             numOfCorrect++;
     }
-    printf("training accuracy = %.2f%%(%d/%d)\n", numOfCorrect / (float) v_v_DocVector.size() * 100,
+    printf("classifier accuracy = %.2f%%(%d/%d)\n", numOfCorrect / (float) v_v_DocVector.size() * 100,
            numOfCorrect, (int) v_v_DocVector.size());
     printf("prediction time elapsed: %.2fs\n", (float) (end - start) / CLOCKS_PER_SEC);
 }
