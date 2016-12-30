@@ -5,6 +5,8 @@ LDFLAGS   := -I/usr/local/cuda/include -I/usr/local/cuda/samples/common/inc -lcu
 NVCC	  := /usr/local/cuda/bin/nvcc
 DISABLEW  := -Xnvlink -w
 
+CXX := g++
+
 ODIR = bin
 exe_name = mascot
 release_bin := $(ODIR)/release/$(exe_name)
@@ -13,20 +15,21 @@ $(shell mkdir -p $(ODIR)/release)
 $(shell mkdir -p $(ODIR)/debug)
 
 OBJ = cacheLAT.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o ReadHelper.o\
-	  commandLineParser.o fileOps.o gpu_global_utility.o initCuda_cu.o\
+	  fileOps.o hostStorageManager.o\
+	  commandLineParser.o gpu_global_utility.o initCuda_cu.o\
 	  baseHessian_cu.o accessHessian.o parAccessor.o seqAccessor.o svmProblem.o deviceHessian_cu.o\
 	  deviceHessianOnFly_cu.o kernelFunction.o rbfKernelFunction.o\
 	  LinearCalculater_cu.o LinearCalGPUHelper_cu.o PolynomialCalGPUHelper_cu.o PolynomialCalculater_cu.o\
 	  RBFCalculater_cu.o RBFCalGPUHelper_cu.o SigmoidCalculater_cu.o SigmoidCalGPUHelper_cu.o\
-	  devUtility_cu.o storageManager_cu.o hostStorageManager.o classificationKernel_cu.o\
+	  devUtility_cu.o storageManager_cu.o classificationKernel_cu.o\
 	  smoGPUHelper_cu.o baseSMO_cu.o smoSharedSolver_cu.o smoSolver_cu.o svmPredictor_cu.o\
 	  svmSharedTrainer_cu.o svmTrainer_cu.o modelSelector_cu.o trainingFunction_cu.o svmModel_cu.o\
 	  cvFunction.o svmMain.o MultiSmoSolver_cu.o gpuCache.o
 
 $(release_bin): $(OBJ)
-	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o $(release_bin) $(OBJ)
+	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o $@ $(OBJ)
 $(debug_bin): $(OBJ)
-	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o $(debug_bin) $(OBJ)
+	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o $@ $(OBJ)
 
 .PHONY: release
 .PHONY: debug
@@ -45,8 +48,11 @@ debug: $(debug_bin)
 cvFunction.o: mascot/cvFunction.cpp
 	g++ $(CCFLAGS) $(LDFLAGS) -o $@ -c mascot/cvFunction.cpp
 
+hostStorageManager.o: svm-shared/hostStorageManager.h svm-shared/hostStorageManager.cpp
+	$(CXX) $(CCFLAGS) -o $@ -c svm-shared/hostStorageManager.cpp
+
 fileOps.o: svm-shared/fileOps.cpp
-	g++ $(CCFLAGS) -o $@ -c svm-shared/fileOps.cpp
+	$(CXX) $(CCFLAGS) -o $@ -c svm-shared/fileOps.cpp
 
 baseLibsvmReader.o: mascot/DataIOOps/BaseLibsvmReader.cpp mascot/DataIOOps/BaseLibsvmReader.h
 	g++ $(CCFLAGS) -o $@ -c mascot/DataIOOps/BaseLibsvmReader.cpp
@@ -65,9 +71,6 @@ initCuda_cu.o: svm-shared/initCuda.h svm-shared/initCuda.cu
 
 storageManager_cu.o: svm-shared/storageManager.h svm-shared/storageManager.cu
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/storageManager.cu
-
-hostStorageManager.o: svm-shared/hostStorageManager.h svm-shared/hostStorageManager.cpp
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/hostStorageManager.cpp
 
 modelSelector_cu.o: mascot/modelSelector.h mascot/modelSelector.cu svm-shared/HessianIO/deviceHessian.h\
 					svm-shared/HessianIO/baseHessian.h svm-shared/HessianIO/parAccessor.h svm-shared/HessianIO/seqAccessor.h\
