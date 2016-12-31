@@ -24,7 +24,7 @@ OBJ = cacheLAT.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o R
 	  devUtility_cu.o storageManager_cu.o classificationKernel_cu.o\
 	  smoGPUHelper_cu.o baseSMO_cu.o smoSharedSolver_cu.o smoSolver_cu.o svmPredictor_cu.o\
 	  svmSharedTrainer_cu.o svmTrainer_cu.o modelSelector_cu.o trainingFunction_cu.o svmModel_cu.o\
-	  cvFunction.o svmMain.o MultiSmoSolver_cu.o gpuCache.o
+	  cvFunction.o svmMain.o MultiSmoSolver_cu.o gpuCache.o predictionGPUHelper_cu.o
 
 $(release_bin): $(OBJ)
 	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o $@ $(OBJ)
@@ -184,6 +184,9 @@ baseSMO_cu.o: svm-shared/baseSMO.h svm-shared/baseSMO.cu svm-shared/smoGPUHelper
 
 MultiSmoSolver_cu.o: mascot/multiSmoSolver.h mascot/multiSmoSolver.cu svm-shared/baseSMO.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c mascot/multiSmoSolver.cu
+	
+predictionGPUHelper_cu.o: mascot/predictionGPUHelper.*
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c mascot/predictionGPUHelper.cu
 
 .PHONY:clean
 
