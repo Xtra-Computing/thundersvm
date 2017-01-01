@@ -15,13 +15,13 @@ CUDA 7.5 or later; g++ 4.8 or later
 FAQ:
 ------
 1. How can I use the source code?<br>
-<b>A</b>: Download the repository and then issue "make" command under the fold where our Makefile is located. After the command is completed, you will see a binary file named "mascot" in the "bin" folder. To start playing it, run the "run.sh" script. The dataset shown in run.sh is available <a href="http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary.html">here</a> in LibSVM site.
+<b>A</b>: Download the repository and then issue "make" command under the fold where our Makefile is located. After the command is completed, you will see a binary file named "mascot" in the "bin" folder. To start playing with it, run the "run.sh" script. The datasets shown in run.sh are available <a href="http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary.html">here</a> in LibSVM site.
 
 2. What is the format of the input file?<br>
 <b>A</b>: The file format is the same as the format of files in LibSVM site.
 
 3. Does this version support the Windows OS?<br>
-<b>A</b>: No. However, the code should work on Windows OS, although we have tested it on Windows.
+<b>A</b>: No. However, the code should work on Windows OS, although we haven't tested it on Windows.
 
 4. Do I have to install an SSD if I want to use GPU-SVM?<br>
 <b>A</b>: No. GPU-SVM works fine with HDDs, although SSDs would help improve the efficiency.
