@@ -2,7 +2,7 @@
  * testTrainer.h
  *
  *  Created on: 31/10/2013
- *      Author: zeyi
+ *      Author: Zeyi Wen
  */
 
 #ifndef TESTTRAINER_H_

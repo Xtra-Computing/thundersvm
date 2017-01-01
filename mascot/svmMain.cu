@@ -28,27 +28,21 @@ int main(int argc, char **argv)
 
     CUcontext context;
 	if(!InitCUDA(context, 'G'))
-	{
 		return 0;
-	}
-
 	printf("CUDA initialized.\n");
 
-	if(parser.task_type == 1)
-	{
+	if(parser.task_type == 1){
 		//perform cross validation*/
 		cout << "performing cross-validation" << endl;
 		crossValidation(parser.param, fileName);
 	}
-    else if(parser.task_type == 0)
-    {
+    else if(parser.task_type == 0){
 		//perform svm training
 		cout << "performing training" << endl;
 		SvmModel model;
 		trainSVM(parser.param, fileName, parser.nNumofFeature, model, parser.compute_training_error);
     }
-    else if(parser.task_type == 2)
-    {
+    else if(parser.task_type == 2){
  		//perform svm evaluation 
 		cout << "performing evaluation" << endl;
 		SvmModel model;
@@ -56,7 +50,9 @@ int main(int argc, char **argv)
 		trainSVM(parser.param, fileName, parser.nNumofFeature, model, parser.compute_training_error);
         cout << "start evaluation..." << endl;
         evaluateSVMClassifier(model, strcat(fileName, ".t"), parser.nNumofFeature);
-       
+    }
+    else{
+    	cout << "unknown task type" << endl;
     }
 
     return 0;

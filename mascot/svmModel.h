@@ -17,9 +17,12 @@
 using std::vector;
 
 class SvmModel {
+public:
+    vector<int> label;
+    unsigned int nrClass;
+
 private:
     SVMParam param;
-    unsigned int nrClass;
     unsigned int cnr2;					//total number of svm models to train
     int numOfSVs;
     int numOfFeatures;
@@ -32,7 +35,6 @@ private:
     vector<float_point> rho;
     vector<float_point> probA;
     vector<float_point> probB;
-    vector<int> label;
     bool probability;
 
     //device pointers
@@ -51,10 +53,6 @@ private:
 
     unsigned int inline getK(int i, int j) const;
 
-
-    float_point sigmoidPredict(float_point decValue, float_point A, float_point B) const;
-
-    void multiClassProbability(const vector<vector<float_point> > &, vector<float_point> &) const;
 	//have changed the type of *dec_values,& A,& B
 //	void gpu_sigmoid_train(int l, const float_point *dec_values, const float_point *labels,
 //	float_point& A, float_point& B);
@@ -78,9 +76,6 @@ public:
 
     vector<int> predict(const vector<vector<svm_node> > &, bool probability = false) const;
 
-    vector<vector<float_point> > predictProbability(const vector<vector<svm_node> > &) const;
-
-    void predictValues(const vector<vector<svm_node> > &, vector<vector<float_point> > &) const;
     void
     addBinaryModel(const SvmProblem &subProblem, const vector<int> &svIndex, const vector<float_point> &coef,
                    float_point rho, int i,

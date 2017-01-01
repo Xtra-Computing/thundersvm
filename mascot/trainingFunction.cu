@@ -30,8 +30,7 @@ extern long readRowTime;
 extern long lGetHessianRowCounter;
 extern long cacheMissCount;
 extern long cacheMissMemcpyTime;
-using std::cout;
-using std::endl;
+
 
 void evaluate(SvmModel &model, vector<vector<svm_node> > &v_v_Instance, vector<int> &v_nLabel);
 
@@ -63,8 +62,10 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
 //           (lGetHessianRowTime-readRowTime)/1e9/(lGetHessianRowCounter-cacheMissCount), readRowTime/1e9/cacheMissCount);
 
     //evaluate training error
-    if(evaluteTrainingError == true)
+    if(evaluteTrainingError == true){
+    	printf("Computing training error...\n");
     	evaluate(model, v_v_Instance, v_nLabel);
+    }
 }
 
 void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNumofFeature) {
