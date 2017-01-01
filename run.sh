@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-
 ###options
 #svm with probability output
 PROB="-b 0" #0 for no probability output; 1 for probability output.
@@ -13,6 +12,9 @@ GAMMA="-g 0.125"
 
 #penalty
 C="-c 10"
+
+#evaluate training error
+E="-r 1" #0 not evaluate training error; evaluate training error otherwise.
 
 #number of features
 #NUMFEATURE="-f 16"
@@ -35,4 +37,4 @@ FILENAME="dataset/a9a"
 set -x
 
 #command
-./bin/release/mascot $PROB $TASK $GAMMA $C $NUMFEATURE $FILENAME
+./bin/release/mascot $PROB $TASK $GAMMA $C $E $NUMFEATURE $FILENAME
