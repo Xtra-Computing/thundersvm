@@ -7,12 +7,14 @@
 
 #include <cuda.h>
 #include <helper_cuda.h>
+#include <driver_types.h>
 #include <cuda_runtime_api.h>
 #include <zconf.h>
 #include <cuda_profiler_api.h>
 #include <assert.h>
 #include "multiPredictor.h"
 #include "predictionGPUHelper.h"
+#include "../svm-shared/constant.h"
 
 float_point MultiPredictor::sigmoidPredict(float_point decValue, float_point A, float_point B) const {
     double fApB = decValue * A + B;
@@ -93,7 +95,7 @@ vector<vector<float_point> > MultiPredictor::predictProbability(const vector<vec
         for (int i = 0; i < nrClass; i++)
             for (int j = i + 1; j < nrClass; j++) {
                 r[i][j] = min(
-                        max(sigmoidPredict(decValues[l][k], probA[k], probB[k]), min_prob), 1 - min_prob);
+                        max(sigmoidPredict(decValues[l][k], model.probA[k], model.probB[k]), min_prob), 1 - min_prob);
                 r[j][i] = 1 - r[i][j];
                 k++;
             }
@@ -147,7 +149,7 @@ void MultiPredictor::predictValues(const vector<vector<svm_node> > &v_vSamples,
     //obtain exp(-gamma*(a^2+b^2-2ab))
     int numOfBlock = Ceil(v_vSamples.size() * model.svMap.size(), BLOCK_SIZE);
     rbfKernel<<<numOfBlock, BLOCK_SIZE>>>(devSampleValSelfDot, sampleCSRMat.getNumOfSamples(),
-                            		      devSVMapValSelfDot, model.svMapCSRMat->getNumOfSamples(),
+                            		      model.devSVMapValSelfDot, model.svMapCSRMat->getNumOfSamples(),
 										  devKernelValues, model.param.gamma);
 
     //sum kernel values of each model then obtain decision values

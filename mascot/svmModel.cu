@@ -16,6 +16,7 @@
 #include <cuda_profiler_api.h>
 #include "trainingFunction.h"
 #include "multiSmoSolver.h"
+#include "multiPredictor.h"
 #include<map>
 
 //#include "sigmoidTrainGPUHelper.h"

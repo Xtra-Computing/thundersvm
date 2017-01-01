@@ -20,37 +20,36 @@ class SvmModel {
 public:
     vector<int> label;
     unsigned int nrClass;
-
-private:
-    SVMParam param;
-    unsigned int cnr2;					//total number of svm models to train
-    int numOfSVs;
     int numOfFeatures;
     vector<vector<int> > svIndex;
     vector<vector<svm_node> > svMap;
     CSRMatrix *svMapCSRMat = NULL;
     vector<vector<float_point> > coef;
-    vector<int> start;					//for multiclass, start position for each class of instances
-    vector<int> count;					//support vectors of the i-th class
-    vector<float_point> rho;
     vector<float_point> probA;
     vector<float_point> probB;
-    bool probability;
-
-    //device pointers
     float_point *devSVMapVal;
     float_point *devSVMapValSelfDot;
     int *devSVMapRowPtr;
     int *devSVMapColInd;
-    int *devSVIndex;
-//    svm_node **devSVs = NULL;
     float_point *devCoef = NULL;
     int *devStart = NULL;
     int *devCount = NULL;
     float_point *devRho = NULL;
     float_point *devProbA = NULL;
     float_point *devProbB = NULL;
+    SVMParam param;
+    unsigned int cnr2;					//total number of svm models to train
+    int *devSVIndex;
+    bool probability;
 
+private:
+    int numOfSVs;
+    vector<int> start;					//for multiclass, start position for each class of instances
+    vector<int> count;					//support vectors of the i-th class
+    vector<float_point> rho;
+
+    //device pointers
+//    svm_node **devSVs = NULL;
     unsigned int inline getK(int i, int j) const;
 
 	//have changed the type of *dec_values,& A,& B

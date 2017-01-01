@@ -11,16 +11,18 @@
 #include <vector>
 #include "../svm-shared/host_constant.h"
 #include "../svm-shared/gpu_global_utility.h"
+#include "svmModel.h"
+#include "svmParam.h"
 
 using std::vector;
 
 class MultiPredictor{
 private:
-    SvmModel &model;
+    const SvmModel &model;
     const SVMParam &param;
 
 public:
-	MultiPredictor(SvmModel &model, const SVMParam &param):model(model), param(param){}
+	MultiPredictor(const SvmModel &model, const SVMParam &param):model(model), param(param){}
 	~MultiPredictor(){}
 
     vector<int> predict(const vector<vector<svm_node> > &v_vSamples, bool probability) const;
