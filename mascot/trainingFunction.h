@@ -16,8 +16,8 @@
 #include "cuda_runtime.h"
 using std::string;
 
-void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, SvmModel &model);
-svm_model trainBinarySVM(SvmProblem &problem, const SVMParam &param);
+void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, SvmModel &model, bool evaluateTrainingError = false);
+
 void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNumofFeature);
 
 #endif /* TESTTRAINER_H_ */

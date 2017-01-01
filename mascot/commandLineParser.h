@@ -12,6 +12,7 @@ class Parser
 {
 public:
 	static int task_type;
+	static bool compute_training_error;
 	static int nr_fold;
 	static int nNumofFeature;
 	static SVMParam param;

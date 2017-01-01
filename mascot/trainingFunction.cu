@@ -2,7 +2,7 @@
  * testTrainer.cpp
  *
  *  Created on: 31/10/2013
- *      Author: Zeyi
+ *      Author: Zeyi Wen
  */
 
 #include "trainingFunction.h"
@@ -14,20 +14,12 @@
 #include <string.h>
 #include <time.h>
 #include <sys/time.h>
-#include <sys/sysinfo.h>
 
 #include "../svm-shared/gpu_global_utility.h"
 #include "../svm-shared/constant.h"
-#include "../svm-shared/HessianIO/baseHessian.h"
-#include "../svm-shared/HessianIO/seqAccessor.h"
-#include "../svm-shared/kernelCalculater/kernelCalculater.h"
-#include "../svm-shared/svmTrainer.h"
-#include "../svm-shared/smoSolver.h"
 #include "../svm-shared/Cache/cache.h"
 #include "DataIOOps/DataIO.h"
 #include "DataIOOps/BaseLibsvmReader.h"
-#include <helper_cuda.h>
-#include <cuda_profiler_api.h>
 
 #include "svmProblem.h"
 #include "../svm-shared/HessianIO/deviceHessianOnFly.h"
@@ -41,19 +33,21 @@ extern long cacheMissMemcpyTime;
 using std::cout;
 using std::endl;
 
-void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, SvmModel &model) {
+void evaluate(SvmModel &model, vector<vector<svm_node> > &v_v_Instance, vector<int> &v_nLabel);
+
+void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, SvmModel &model, bool evaluteTrainingError) {
     clock_t start, end;
-    vector<vector<svm_node> > v_v_DocVector;
+    vector<vector<svm_node> > v_v_Instance;
     vector<int> v_nLabel;
 
     CDataIOOps rawDataRead;
     int nNumofInstance = 0;     //not used
     long long nNumofValue = 0;  //not used
     BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
-    rawDataRead.ReadFromFileSparse(strTrainingFileName, nNumofFeature, v_v_DocVector, v_nLabel);
+    rawDataRead.ReadFromFileSparse(strTrainingFileName, nNumofFeature, v_v_Instance, v_nLabel);
 //    v_v_DocVector = vector<vector<svm_node> >(v_v_DocVector.begin(),v_v_DocVector.begin()+5000);
 //    v_nLabel = vector<int>(v_nLabel.begin(), v_nLabel.begin()+5000);
-    SvmProblem problem(v_v_DocVector, nNumofFeature, v_nLabel);
+    SvmProblem problem(v_v_Instance, nNumofFeature, v_nLabel);
     start = clock();
     model.fit(problem, param);
     end = clock();
@@ -67,18 +61,31 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
 //    printf("cache hit rate %.2f%%\n", (1 - (float) cacheMissCount / lGetHessianRowCounter) * 100);
 //    printf("ave time cache hit  %lf\nave time cache miss %lf\n",
 //           (lGetHessianRowTime-readRowTime)/1e9/(lGetHessianRowCounter-cacheMissCount), readRowTime/1e9/cacheMissCount);
+
+    //evaluate training error
+    if(evaluteTrainingError == true)
+    	evaluate(model, v_v_Instance, v_nLabel);
 }
 
 void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNumofFeature) {
-    vector<vector<svm_node> > v_v_DocVector;
+    vector<vector<svm_node> > v_v_Instance;
     vector<int> v_nLabel;
 
     CDataIOOps rawDataRead;
     int nNumofInstance = 0;     //not used
     long long nNumofValue = 0;  //not used
     BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
-    rawDataRead.ReadFromFileSparse(strTrainingFileName, nNumofFeature, v_v_DocVector, v_nLabel);
+    rawDataRead.ReadFromFileSparse(strTrainingFileName, nNumofFeature, v_v_Instance, v_nLabel);
 
+    //evaluate testing error
+    evaluate(model, v_v_Instance, v_nLabel);
+}
+
+/**
+ * @brief: evaluate the svm model, given some labeled instances.
+ */
+void evaluate(SvmModel &model, vector<vector<svm_node> > &v_v_Instance, vector<int> &v_nLabel)
+{
     //perform svm classification
 
     int batchSize = 1000;
@@ -86,20 +93,20 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNum
     vector<int> predictLabels;
     clock_t start, end;
     start = clock();
-    while (begin < v_v_DocVector.size()) {
-        vector<vector<svm_node> > samples(v_v_DocVector.begin() + begin,
-                                          v_v_DocVector.begin() + min(begin + batchSize, (int) v_v_DocVector.size()));
+    while (begin < v_v_Instance.size()) {
+        vector<vector<svm_node> > samples(v_v_Instance.begin() + begin,
+                                          v_v_Instance.begin() + min(begin + batchSize, (int) v_v_Instance.size()));
         vector<int> predictLabelPart = model.predict(samples, model.isProbability());
         predictLabels.insert(predictLabels.end(), predictLabelPart.begin(), predictLabelPart.end());
         begin += batchSize;
     }
     end = clock();
     int numOfCorrect = 0;
-    for (int i = 0; i < v_v_DocVector.size(); ++i) {
+    for (int i = 0; i < v_v_Instance.size(); ++i) {
         if (predictLabels[i] == v_nLabel[i])
             numOfCorrect++;
     }
-    printf("classifier accuracy = %.2f%%(%d/%d)\n", numOfCorrect / (float) v_v_DocVector.size() * 100,
-           numOfCorrect, (int) v_v_DocVector.size());
+    printf("classifier accuracy = %.2f%%(%d/%d)\n", numOfCorrect / (float) v_v_Instance.size() * 100,
+           numOfCorrect, (int) v_v_Instance.size());
     printf("prediction time elapsed: %.2fs\n", (float) (end - start) / CLOCKS_PER_SEC);
 }

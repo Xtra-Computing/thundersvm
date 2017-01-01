@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 		//perform svm training
 		cout << "performing training" << endl;
 		SvmModel model;
-		trainSVM(parser.param, fileName, parser.nNumofFeature, model);
+		trainSVM(parser.param, fileName, parser.nNumofFeature, model, parser.compute_training_error);
     }
     else if(parser.task_type == 2)
     {
@@ -53,7 +53,7 @@ int main(int argc, char **argv)
 		cout << "performing evaluation" << endl;
 		SvmModel model;
         cout << "start training..." << endl;
-		trainSVM(parser.param, fileName, parser.nNumofFeature, model);
+		trainSVM(parser.param, fileName, parser.nNumofFeature, model, parser.compute_training_error);
         cout << "start evaluation..." << endl;
         evaluateSVMClassifier(model, strcat(fileName, ".t"), parser.nNumofFeature);
        

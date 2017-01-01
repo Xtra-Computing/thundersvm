@@ -14,6 +14,7 @@
 #include "commandLineParser.h"
 
 int Parser::task_type = 1;
+bool Parser::compute_training_error = false;
 int Parser::nr_fold = 0;
 int Parser::nNumofFeature = 0;
 SVMParam Parser::param;
@@ -72,6 +73,9 @@ void Parser::ParseLine(int argc, char **argv, char *pcFileName, char *pcSavedFil
             case 'o':
                 task_type = atoi(argv[i]);
                 break;
+            case 'r':
+            	compute_training_error = atoi(argv[i]);//boolean variable
+            	break;
 		/*
 			case 's':
 				param.svm_type = atoi(argv[i]);
@@ -153,10 +157,13 @@ void Parser::ParseLine(int argc, char **argv, char *pcFileName, char *pcSavedFil
 void Parser::HelpInfo()
 {
 	printf(
-	"Usage: mascot -g xx -c xx -f xx training_set_file \n"
+	"Usage: mascot -b xx -c xx -g xx -o xx -r xx -f xx training_set_file \n"
 	"options:\n"
-	"-g gamma : set gamma in kernel function\n"
+	"-b: enable probability output\n"
 	"-c cost : set the parameter C \n"
+	"-g gamma : set gamma in kernel function\n"
+	"-o task type: choose cross-validation, training, or param evaluation\n"
+	"-r: evaluate training error\n"
 	);
 	exit(1);
 }
