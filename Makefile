@@ -28,9 +28,9 @@ OBJ = cacheLAT.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o R
 	  multiPredictor_cu.o
 
 $(release_bin): $(OBJ)
-	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o $@ $(OBJ)
+	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o $@ $^
 $(debug_bin): $(OBJ)
-	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o $@ $(OBJ)
+	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o $@ $^
 
 .PHONY: release
 .PHONY: debug
@@ -47,13 +47,13 @@ debug: $(debug_bin)
 
 
 cvFunction.o: mascot/cvFunction.cpp
-	g++ $(CCFLAGS) $(LDFLAGS) -o $@ -c mascot/cvFunction.cpp
+	g++ $(CCFLAGS) $(LDFLAGS) -o $@ -c $<
 
 hostStorageManager.o: svm-shared/hostStorageManager.*
 	$(CXX) $(CCFLAGS) -o $@ -c svm-shared/hostStorageManager.cpp
 
 fileOps.o: svm-shared/fileOps.cpp
-	$(CXX) $(CCFLAGS) -o $@ -c svm-shared/fileOps.cpp
+	$(CXX) $(CCFLAGS) -o $@ -c $<
 
 baseLibsvmReader.o: mascot/DataIOOps/BaseLibsvmReader.*
 	g++ $(CCFLAGS) -o $@ -c mascot/DataIOOps/BaseLibsvmReader.cpp
@@ -84,20 +84,20 @@ devUtility_cu.o: svm-shared/devUtility.*
 smoGPUHelper_cu.o: svm-shared/smoGPUHelper.* svm-shared/devUtility.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/smoGPUHelper.cu
 
-smoSharedSolver_cu.o: svm-shared/smoSolver.h svm-shared/smoSharedSolver.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/smoSharedSolver.cu
+smoSharedSolver_cu.o: svm-shared/smoSharedSolver.cu svm-shared/smoSolver.h
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c $<
 
 smoSolver_cu.o: svm-shared/smoSolver.* svm-shared/baseSMO.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c mascot/smoSolver.cu
 
 svmMain.o: mascot/svmMain.cu mascot/commandLineParser.h svm-shared/initCuda.h mascot/cvFunction.h mascot/trainingFunction.h mascot/svmModel.h
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c mascot/svmMain.cu
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c $<
 
 svmPredictor_cu.o: mascot/svmPredictor.* svm-shared/host_constant.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c mascot/svmPredictor.cu
 
-svmSharedTrainer_cu.o: svm-shared/svmTrainer.h svm-shared/svmSharedTrainer.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/svmSharedTrainer.cu
+svmSharedTrainer_cu.o: svm-shared/svmSharedTrainer.cu svm-shared/svmTrainer.h
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c $<
 
 svmTrainer_cu.o: svm-shared/svmTrainer.*
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c mascot/svmTrainer.cu
@@ -105,17 +105,9 @@ svmTrainer_cu.o: svm-shared/svmTrainer.*
 trainingFunction_cu.o: mascot/trainingFunction.* svm-shared/host_constant.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c mascot/trainingFunction.cu
 
-cacheLAT.o: svm-shared/Cache/cache.h svm-shared/Cache/cacheLAT.cpp
-	g++ $(CCFLAGS) -o $@ -c svm-shared/Cache/cacheLAT.cpp
-
-cacheLRU.o: svm-shared/Cache/cache.h svm-shared/Cache/cacheLRU.cpp
-	g++ $(CCFLAGS) -o $@ -c svm-shared/Cache/cacheLRU.cpp
-
-cacheMLRU.o: svm-shared/Cache/cache.h svm-shared/Cache/cacheMLRU.cpp
-	g++ $(CCFLAGS) -o $@ -c svm-shared/Cache/cacheMLRU.cpp
-
-cacheMRU.o: svm-shared/Cache/cache.h svm-shared/Cache/cacheMRU.cpp
-	g++ $(CCFLAGS) -o $@ -c svm-shared/Cache/cacheMRU.cpp
+#compile caching strategies
+%.o: svm-shared/Cache/%.cpp svm-shared/Cache/cache.h
+	$(CXX) $(CCFLAGS) -o $@ -c $<
 
 gpuCache.o: svm-shared/Cache/gpuCache.*
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/Cache/gpuCache.cu
@@ -124,7 +116,7 @@ DataIO.o: mascot/DataIOOps/DataIO.*
 	g++ $(CCFLAGS) -o $@ -c mascot/DataIOOps/DataIO.cpp
 
 ReadHelper.o: mascot/DataIOOps/ReadHelper.cpp
-	g++ $(CCFLAGS) -o $@ -c mascot/DataIOOps/ReadHelper.cpp
+	g++ $(CCFLAGS) -o $@ -c $<
 
 svmProblem.o: mascot/svmProblem.*
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c mascot/svmProblem.cu
@@ -156,29 +148,9 @@ deviceHessian_cu.o: svm-shared/HessianIO/baseHessian.h svm-shared/HessianIO/devi
 deviceHessianOnFly_cu.o: svm-shared/HessianIO/deviceHessianOnFly.* 
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/HessianIO/deviceHessianOnFly.cu
 
-LinearCalculater_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-shared/kernelCalculater/LinearCalculater.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/kernelCalculater/LinearCalculater.cu
-
-LinearCalGPUHelper_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-shared/kernelCalculater/LinearCalGPUHelper.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/kernelCalculater/LinearCalGPUHelper.cu
-
-PolynomialCalGPUHelper_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-shared/kernelCalculater/PolynomialCalGPUHelper.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/kernelCalculater/PolynomialCalGPUHelper.cu
-
-PolynomialCalculater_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-shared/kernelCalculater/PolynomialCalculater.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/kernelCalculater/PolynomialCalculater.cu
-
-RBFCalculater_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-shared/kernelCalculater/RBFCalculater.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/kernelCalculater/RBFCalculater.cu
-
-RBFCalGPUHelper_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-shared/kernelCalculater/RBFCalGPUHelper.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/kernelCalculater/RBFCalGPUHelper.cu
-
-SigmoidCalculater_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-shared/kernelCalculater/SigmoidCalculater.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/kernelCalculater/SigmoidCalculater.cu
-
-SigmoidCalGPUHelper_cu.o: svm-shared/kernelCalculater/kernelCalculater.h svm-shared/kernelCalculater/SigmoidCalGPUHelper.cu
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/kernelCalculater/SigmoidCalGPUHelper.cu
+#compile kernel value calculaters
+%_cu.o: svm-shared/kernelCalculater/%.cu svm-shared/kernelCalculater/kernelCalculater.h
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c $<
 
 baseSMO_cu.o: svm-shared/baseSMO.* svm-shared/smoGPUHelper.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/baseSMO.cu
