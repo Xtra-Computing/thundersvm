@@ -14,18 +14,18 @@ debug_bin := $(ODIR)/debug/$(exe_name)
 $(shell mkdir -p $(ODIR)/release)
 $(shell mkdir -p $(ODIR)/debug)
 
-OBJ = cacheLAT.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o baseLibsvmReader.o ReadHelper.o\
+OBJ = cacheLAT.o cacheLRU.o cacheMLRU.o cacheMRU.o DataIO.o BaseLibsvmReader.o ReadHelper.o\
 	  fileOps.o hostStorageManager.o\
-	  commandLineParser.o gpu_global_utility.o initCuda_cu.o\
-	  baseHessian_cu.o accessHessian.o parAccessor.o seqAccessor.o svmProblem.o deviceHessian_cu.o\
-	  deviceHessianOnFly_cu.o kernelFunction.o rbfKernelFunction.o\
-	  LinearCalculater_cu.o LinearCalGPUHelper_cu.o PolynomialCalGPUHelper_cu.o PolynomialCalculater_cu.o\
-	  RBFCalculater_cu.o RBFCalGPUHelper_cu.o SigmoidCalculater_cu.o SigmoidCalGPUHelper_cu.o\
-	  devUtility_cu.o storageManager_cu.o classificationKernel_cu.o\
-	  smoGPUHelper_cu.o baseSMO_cu.o smoSharedSolver_cu.o smoSolver_cu.o svmPredictor_cu.o\
-	  svmSharedTrainer_cu.o svmTrainer_cu.o modelSelector_cu.o trainingFunction_cu.o svmModel_cu.o\
-	  cvFunction.o svmMain.o MultiSmoSolver_cu.o gpuCache.o predictionGPUHelper_cu.o\
-	  multiPredictor_cu.o
+	  commandLineParser.o gpu_global_utility.o initCuda.o\
+	  baseHessian.o accessHessian.o parAccessor.o seqAccessor.o svmProblem.o deviceHessian.o\
+	  deviceHessianOnFly.o kernelFunction.o rbfKernelFunction.o\
+	  LinearCalculater.o LinearCalGPUHelper.o PolynomialCalGPUHelper.o PolynomialCalculater.o\
+	  RBFCalculater.o RBFCalGPUHelper.o SigmoidCalculater.o SigmoidCalGPUHelper.o\
+	  devUtility.o storageManager.o classificationKernel.o\
+	  smoGPUHelper.o baseSMO.o smoSharedSolver.o smoSolver.o svmPredictor.o\
+	  svmSharedTrainer.o svmTrainer.o modelSelector.o trainingFunction.o svmModel.o\
+	  cvFunction.o svmMain.o multiSmoSolver.o gpuCache.o predictionGPUHelper.o\
+	  multiPredictor.o
 
 $(release_bin): $(OBJ)
 	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o $@ $^
@@ -45,126 +45,33 @@ debug: NVCCFLAGS += -G -g
 debug: LASTFLAG += -G -g
 debug: $(debug_bin)
 
-
-cvFunction.o: mascot/cvFunction.cpp
-	g++ $(CCFLAGS) $(LDFLAGS) -o $@ -c $<
-
-hostStorageManager.o: svm-shared/hostStorageManager.*
-	$(CXX) $(CCFLAGS) -o $@ -c svm-shared/hostStorageManager.cpp
-
-fileOps.o: svm-shared/fileOps.cpp
-	$(CXX) $(CCFLAGS) -o $@ -c $<
-
-baseLibsvmReader.o: mascot/DataIOOps/BaseLibsvmReader.*
-	g++ $(CCFLAGS) -o $@ -c mascot/DataIOOps/BaseLibsvmReader.cpp
-
-classificationKernel_cu.o: mascot/classificationKernel.*
-	$(NVCC) $(NVCCFLAGS) -o $@ -c mascot/classificationKernel.cu
-
-commandLineParser.o: mascot/commandLineParser.*
-	g++ $(CCFLAGS) -o $@ -c mascot/commandLineParser.cpp
-
-gpu_global_utility.o: svm-shared/gpu_global_utility.*
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/gpu_global_utility.cu
-
-initCuda_cu.o: svm-shared/initCuda.*
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/initCuda.cu
-
-storageManager_cu.o: svm-shared/storageManager.*
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/storageManager.cu
-
-modelSelector_cu.o: mascot/modelSelector.* svm-shared/HessianIO/*.h\
-					svm-shared/storageManager.h svm-shared/svmTrainer.h svm-shared/host_constant.h
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c mascot/modelSelector.cu
-
-devUtility_cu.o: svm-shared/devUtility.*
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/devUtility.cu
-
-smoGPUHelper_cu.o: svm-shared/smoGPUHelper.* svm-shared/devUtility.h
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/smoGPUHelper.cu
-
-smoSharedSolver_cu.o: svm-shared/smoSharedSolver.cu svm-shared/smoSolver.h
+#compile files of mascot
+%.o: mascot/%.c* mascot/*.h svm-shared/*.h svm-shared/HessianIO/*.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c $<
 
-smoSolver_cu.o: svm-shared/smoSolver.* svm-shared/baseSMO.h
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c mascot/smoSolver.cu
-
-svmMain.o: mascot/svmMain.cu mascot/*.h
+#compile files of svm-shared 
+%.o: svm-shared/%.c* svm-shared/*.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c $<
-
-svmPredictor_cu.o: mascot/svmPredictor.* svm-shared/host_constant.h
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c mascot/svmPredictor.cu
-
-svmSharedTrainer_cu.o: svm-shared/svmSharedTrainer.cu svm-shared/svmTrainer.h
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c $<
-
-svmTrainer_cu.o: svm-shared/svmTrainer.*
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c mascot/svmTrainer.cu
-
-trainingFunction_cu.o: mascot/trainingFunction.* svm-shared/host_constant.h
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c mascot/trainingFunction.cu
-
+	
 #compile caching strategies
-%.o: svm-shared/Cache/%.cpp svm-shared/Cache/cache.h
+%.o: svm-shared/Cache/%.c* svm-shared/Cache/*.h
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c $<
+
+#compile data reader
+%.o: mascot/DataIOOps/%.cpp mascot/DataIOOps/*.h
 	$(CXX) $(CCFLAGS) -o $@ -c $<
 
-gpuCache.o: svm-shared/Cache/gpuCache.*
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/Cache/gpuCache.cu
-
-DataIO.o: mascot/DataIOOps/DataIO.*
-	g++ $(CCFLAGS) -o $@ -c mascot/DataIOOps/DataIO.cpp
-
-ReadHelper.o: mascot/DataIOOps/ReadHelper.cpp
-	g++ $(CCFLAGS) -o $@ -c $<
-
-svmProblem.o: mascot/svmProblem.*
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c mascot/svmProblem.cu
-
-kernelFunction.o: svm-shared/HessianIO/hostKernelCalculater/kernelFunction.*
-	g++ $(CCFLAGS) -o $@ -c svm-shared/HessianIO/hostKernelCalculater/kernelFunction.cpp
-
-rbfKernelFunction.o: svm-shared/HessianIO/hostKernelCalculater/rbfKernelFunction.*
-	g++ $(CCFLAGS) -o $@ -c svm-shared/HessianIO/hostKernelCalculater/rbfKernelFunction.cpp
-
-svmModel_cu.o: mascot/svmModel.*
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c mascot/svmModel.cu
-
-baseHessian_cu.o: svm-shared/HessianIO/baseHessian.* svm-shared/host_constant.h
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/HessianIO/baseHessian.cu
-
-accessHessian.o: svm-shared/HessianIO/accessHessian.* 
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/HessianIO/accessHessian.cpp
-
-parAccessor.o: svm-shared/HessianIO/parAccessor.* svm-shared/HessianIO/accessHessian.h svm-shared/host_constant.h
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/HessianIO/parAccessor.cpp
-
-seqAccessor.o: svm-shared/HessianIO/seqAccessor.* svm-shared/HessianIO/accessHessian.h
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/HessianIO/seqAccessor.cpp
-
-deviceHessian_cu.o: svm-shared/HessianIO/baseHessian.h svm-shared/HessianIO/deviceHessian.*
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/HessianIO/deviceHessian.cu
-
-deviceHessianOnFly_cu.o: svm-shared/HessianIO/deviceHessianOnFly.* 
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/HessianIO/deviceHessianOnFly.cu
+#compile hessian operators
+%.o: svm-shared/HessianIO/%.c* svm-shared/HessianIO/*.h svm-shared/host_constant.h	
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c $<
 
 #compile kernel value calculaters
-%_cu.o: svm-shared/kernelCalculater/%.cu svm-shared/kernelCalculater/kernelCalculater.h
+%.o: svm-shared/kernelCalculater/%.cu svm-shared/kernelCalculater/kernelCalculater.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c $<
-
-baseSMO_cu.o: svm-shared/baseSMO.* svm-shared/smoGPUHelper.h
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/baseSMO.cu
-
-MultiSmoSolver_cu.o: mascot/multiSmoSolver.* svm-shared/baseSMO.h
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c mascot/multiSmoSolver.cu
-	
-predictionGPUHelper_cu.o: mascot/predictionGPUHelper.*
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c mascot/predictionGPUHelper.cu
-
-multiPredictor_cu.o: mascot/multiPredictor.*
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c mascot/multiPredictor.cu
+%.o: svm-shared/HessianIO/hostKernelCalculater/%.cpp svm-shared/HessianIO/hostKernelCalculater/*.h
+	$(CXX) $(CCFLAGS) -o $@ -c $<
 
 .PHONY:clean
 
 clean:
 	rm -f *.o *.txt bin/*.bin bin/result.txt bin/release/* bin/debug/*
-
