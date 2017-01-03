@@ -73,8 +73,7 @@ initCuda_cu.o: svm-shared/initCuda.*
 storageManager_cu.o: svm-shared/storageManager.*
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c svm-shared/storageManager.cu
 
-modelSelector_cu.o: mascot/modelSelector.* svm-shared/HessianIO/deviceHessian.h\
-					svm-shared/HessianIO/baseHessian.h svm-shared/HessianIO/parAccessor.h svm-shared/HessianIO/seqAccessor.h\
+modelSelector_cu.o: mascot/modelSelector.* svm-shared/HessianIO/*.h\
 					svm-shared/storageManager.h svm-shared/svmTrainer.h svm-shared/host_constant.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c mascot/modelSelector.cu
 
@@ -90,7 +89,7 @@ smoSharedSolver_cu.o: svm-shared/smoSharedSolver.cu svm-shared/smoSolver.h
 smoSolver_cu.o: svm-shared/smoSolver.* svm-shared/baseSMO.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c mascot/smoSolver.cu
 
-svmMain.o: mascot/svmMain.cu mascot/commandLineParser.h svm-shared/initCuda.h mascot/cvFunction.h mascot/trainingFunction.h mascot/svmModel.h
+svmMain.o: mascot/svmMain.cu mascot/*.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c $<
 
 svmPredictor_cu.o: mascot/svmPredictor.* svm-shared/host_constant.h
