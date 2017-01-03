@@ -14,10 +14,10 @@ debug_bin := $(ODIR)/debug/$(exe_name)
 $(shell mkdir -p $(ODIR)/release)
 $(shell mkdir -p $(ODIR)/debug)
 
-FILES = $(wildcard svm-shared/*/*/*.c*) $(wildcard svm-shared/*/*.c*) $(wildcard svm-shared/*.c*) $(wildcard mascot/*.c*) $(wildcard mascot/*/*.c*) 
-SOURCE = $(notdir $(FILES))						 #remove directory
-OBJS := $(patsubst %.cpp, %.o,$(SOURCE:.cpp=.o)) #replace .cpp to .o
-OBJ = $(patsubst %.cu, %.o,$(OBJS:.cu=.o))		 #replace .cu to .o
+FILES = $(shell find ./ -name '*.c*')
+SOURCE = $(notdir $(FILES))				#remove directory
+OBJS = $(patsubst %.cpp, %.o,$(SOURCE:.cpp=.o)) #replace .cpp to .o
+OBJ = $(patsubst %.cu, %.o,$(OBJS:.cu=.o))		#replace .cu to .o
 
 $(release_bin): $(OBJ)
 	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o $@ $^
