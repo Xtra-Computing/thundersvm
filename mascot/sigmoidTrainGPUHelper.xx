@@ -10,7 +10,7 @@
 #include "sigmoidTrainGPUHelper.h"
 //#include "svm-shared/host_constant.h"
 
-__global__ void dev_getfApB(int l, float_point *dev_fApB,const float_point *dev_dec_values ,float_point A,float_point B){
+__global__ void dev_getfApB(int l, float_point *dev_fApB, const float_point *dev_dec_values, float_point A, float_point B){
 	
 	int idx=blockIdx.x*blockDim.x+threadIdx.x;
 	if(idx<l)
