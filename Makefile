@@ -74,4 +74,4 @@ debug: $(debug_bin)
 .PHONY:clean
 
 clean:
-	rm -f *.o *.txt bin/*.bin bin/result.txt bin/release/* bin/debug/*
+	rm -f *.o  bin/*.bin bin/result.txt bin/release/* bin/debug/*

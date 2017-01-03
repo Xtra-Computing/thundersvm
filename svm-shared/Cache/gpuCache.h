@@ -14,8 +14,6 @@ class GpuCache {
 public:
     GpuCache(const SvmProblem &problem, const SVMParam &param);
     ~GpuCache();
-    void preComputeSharedCache();
-    void preComputeUniqueCache();
     void enable(int i, int j, const SvmProblem &subProblem);
     void getHessianRow(int rowIndex, float_point *devHessianRow);
     void disable(int i, int j);
@@ -36,7 +34,10 @@ private:
     vector<size_t> sizeOfEachRowInUniqueCache;
     DeviceHessianOnFly* hessianCalculator;
 
+    bool canPreComputeSharedCache;
+    bool canPreComputeUniqueCache;
     void preComputeUniqueCache(int i, int j, const SvmProblem &subProblem);
+    void preComputeSharedCache();
 };
 
 
