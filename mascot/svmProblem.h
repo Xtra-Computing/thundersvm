@@ -40,7 +40,7 @@ public:
 
     unsigned int getNumOfClasses() const;
 
-    unsigned long long getNumOfSamples() const;
+    unsigned int getNumOfSamples() const;
 };
 
 class CSRMatrix {

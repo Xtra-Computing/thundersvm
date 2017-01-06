@@ -60,12 +60,14 @@ SvmProblem SvmProblem::getSubProblem(int i, int j) const {
         v_nLabels.push_back(-1);
     }
     SvmProblem subProblem(v_vSamples, numOfFeatures, v_nLabels);
-    subProblem.label.push_back(i);
-    subProblem.label.push_back(j);
-    subProblem.start.push_back(0);
-    subProblem.start.push_back(count[i]);
-    subProblem.count.push_back(count[i]);
-    subProblem.count.push_back(count[j]);
+    subProblem.label[0] = i;
+    subProblem.label[1] = j;
+//    subProblem.label.push_back(i);
+//    subProblem.label.push_back(j);
+//    subProblem.start.push_back(0);
+//    subProblem.start.push_back(count[i]);
+//    subProblem.count.push_back(count[i]);
+//    subProblem.count.push_back(count[j]);
     subProblem.originalIndex = originalIndex;
     subProblem.originalLabel = originalLabel;
     subProblem.subProblem = true;
@@ -76,7 +78,7 @@ unsigned int SvmProblem::getNumOfClasses() const {
     return (unsigned int) label.size();
 }
 
-unsigned long long SvmProblem::getNumOfSamples() const {
+unsigned int SvmProblem::getNumOfSamples() const {
     return v_vSamples.size();
 }
 

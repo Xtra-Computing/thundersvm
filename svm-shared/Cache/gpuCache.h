@@ -27,6 +27,7 @@ private:
     vector<int> numOfElementEachRowInCache;
     vector<size_t> sizeOfEachRowInCache;
     vector<int> cacheSize;
+    float_point *hostHessianMatrix;
 
     vector<float_point*> devUniqueCache;
     vector<CLATCache*> uniqueCacheStrategy;
@@ -36,8 +37,10 @@ private:
 
     bool canPreComputeSharedCache;
     bool canPreComputeUniqueCache;
+    bool preComputeInHost;
     void preComputeUniqueCache(int i, int j, const SvmProblem &subProblem);
     void preComputeSharedCache();
+    void preComputeAndStoreInHost();
 };
 
 
