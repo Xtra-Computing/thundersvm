@@ -15,6 +15,7 @@
 #include"helper_cuda.h"
 #include "../gpu_global_utility.h"
 #include "../../mascot/svmProblem.h"
+#include "../../mascot/csrMatrix.h"
 
 class DeviceHessianOnFly : public BaseHessian {
 public:
