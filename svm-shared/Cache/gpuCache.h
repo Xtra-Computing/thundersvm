@@ -42,6 +42,9 @@ private:
     void preComputeUniqueCache(int i, int j, const SvmProblem &subProblem);
     void preComputeSharedCache();
     void preComputeAndStoreInHost();
+
+    void computeSubHessianMatrix(cusparseHandle_t handle, cusparseMatDescr_t descr,
+    							 CSRMatrix &csrMatrix0, int n, CSRMatrix &csrMatrix1, int m, int k, float_point *devC);
 };
 
 
