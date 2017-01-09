@@ -231,7 +231,7 @@ void GpuCache::prepareCSRContext(cusparseHandle_t &handle, cusparseMatDescr_t &d
 /**
  * @brief: release handle and descr
  */
-void releaseCSRContext(cusparseHandle_t &handle, cusparseMatDescr_t &descr){
+void GpuCache::releaseCSRContext(cusparseHandle_t &handle, cusparseMatDescr_t &descr){
     cusparseDestroy(handle);
     cusparseDestroyMatDescr(descr);
 }
