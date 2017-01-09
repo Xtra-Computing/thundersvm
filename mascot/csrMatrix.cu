@@ -6,6 +6,9 @@
 #include <helper_cuda.h>
 #include "csrMatrix.h"
 
+/**
+ * @brief: CSR matrix constructor; construct from libsvm format data.
+ */
 CSRMatrix::CSRMatrix(const vector<vector<svm_node> > &samples, int numOfFeatures) : samples(samples),
                                                                                     numOfFeatures(numOfFeatures) {
     int start = 0;
@@ -24,6 +27,9 @@ CSRMatrix::CSRMatrix(const vector<vector<svm_node> > &samples, int numOfFeatures
     csrRowPtr.push_back(start);
 }
 
+/**
+ * @brief: get the number of nonzero elements of the CSR matrix.
+ */
 int CSRMatrix::getNnz() const {
     return csrVal.size();
 }
@@ -48,11 +54,18 @@ int CSRMatrix::getNumOfSamples() const {
     return samples.size();
 }
 
-void
-CSRMatrix::CSRmm2Dense(cusparseHandle_t handle, cusparseOperation_t transA, cusparseOperation_t transB, int m, int n,
+int CSRMatrix::getNumOfFeatures() const {
+    return numOfFeatures;
+}
+
+/**
+ * @brief: multiple two sparse matrices and output a dense matrixC.
+ * @k: the dimension of training data.
+ */
+void CSRMatrix::CSRmm2Dense(cusparseHandle_t handle, cusparseOperation_t transA, cusparseOperation_t transB, int m, int n,
                        int k, const cusparseMatDescr_t descrA, const int nnzA, const float *valA, const int *rowPtrA,
                        const int *colIndA, const cusparseMatDescr_t descrB, const int nnzB, const float *valB,
-                       const int *rowPtrB, const int *colIndB, float *C) {
+                       const int *rowPtrB, const int *colIndB, float *matrixC) {
     /*
      * The CSRmm2Dense result is column-major instead of row-major. To avoid transposing the result
      * we compute B'A' instead of AB' : (AB)' = B'A'
@@ -83,16 +96,15 @@ CSRMatrix::CSRmm2Dense(cusparseHandle_t handle, cusparseOperation_t transA, cusp
     checkCudaErrors(cudaMalloc((void **) &valC, sizeof(float) * nnzC));
     cusparseScsrgemm(handle, transB, transA, n, m, k, descrB, nnzB, valB, rowPtrB, colIndB, descrA, nnzA,
                      valA, rowPtrA, colIndA, descrC, valC, rowPtrC, colIndC);
-    cusparseScsr2dense(handle, n, m, descrC, valC, rowPtrC, colIndC, C, n);
+    cusparseScsr2dense(handle, n, m, descrC, valC, rowPtrC, colIndC, matrixC, n);
     checkCudaErrors(cudaFree(colIndC));
     checkCudaErrors(cudaFree(valC));
     checkCudaErrors(cudaFree(rowPtrC));
 }
 
-int CSRMatrix::getNumOfFeatures() const {
-    return numOfFeatures;
-}
-
+/**
+ * @brief: copy the CSR matrix to device memory.
+ */
 void CSRMatrix::copy2Dev(float_point *&devVal, int *&devRowPtr, int *&devColInd) {
 
     int nnz = this->getNnz();
@@ -105,6 +117,9 @@ void CSRMatrix::copy2Dev(float_point *&devVal, int *&devRowPtr, int *&devColInd)
     checkCudaErrors(cudaMemcpy(devColInd, this->getCSRColInd(), sizeof(int) * nnz, cudaMemcpyHostToDevice));
 }
 
+/**
+ * @brief: release the device CSR matrix
+ */
 void CSRMatrix::freeDev(float_point *&devVal, int *&devRowPtr, int *&devColInd) {
     checkCudaErrors(cudaFree(devVal));
     checkCudaErrors(cudaFree(devRowPtr));

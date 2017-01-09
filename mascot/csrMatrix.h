@@ -40,7 +40,7 @@ public:
                             const int nnzA, const float *valA, const int *rowPtrA, const int *colIndA,
                             const cusparseMatDescr_t descrB,
                             const int nnzB, const float *valB, const int *rowPtrB, const int *colIndB,
-                            float *C);
+                            float *matrixC);
     void copy2Dev(float_point *&devVal, int *&devRowPtr, int *&devColInd);
     void freeDev(float_point *&devVal, int *&devRowPtr, int *&devColInd);
 };
