@@ -238,7 +238,7 @@ void GpuCache::computeSubHessianMatrix(cusparseHandle_t handle, cusparseMatDescr
 	float_point *devVal1 = devVal0;
 	int *devRowPtr1 = devRowPtr0, *devColInd1 = devColInd0;
 	float_point *devSelfDot1 = devSelfDot0;
-	if(csrMatrix1 != csrMatrix0){//compare two addresses
+	if(&csrMatrix1 != &csrMatrix0){//compare two addresses
 		csrMatrix1.copy2Dev(devVal1, devRowPtr1, devColInd1);
 		nnz1 = csrMatrix1.getNnz();
 		checkCudaErrors(cudaMalloc((void **) &devSelfDot1, sizeof(float_point) * m));
@@ -250,7 +250,7 @@ void GpuCache::computeSubHessianMatrix(cusparseHandle_t handle, cusparseMatDescr
 
 	checkCudaErrors(cudaFree(devSelfDot0));
     csrMatrix0.freeDev(devVal0, devRowPtr0, devColInd0);
-    if(csrMatrix1 != csrMatrix0){
+    if(&csrMatrix1 != &csrMatrix0){
     	checkCudaErrors(cudaFree(devSelfDot1));
     	csrMatrix1.freeDev(devVal1, devRowPtr1, devColInd1);
     }
@@ -285,12 +285,12 @@ void GpuCache::preComputeSharedCache() {
         checkCudaErrors(
                 cudaMemcpy(devSelfDot, csrMatrix.getCSRValSelfDot(), sizeof(float_point) * n, cudaMemcpyHostToDevice));
         RBFKernel << < Ceil(n * n, BLOCK_SIZE), BLOCK_SIZE >> > (devSelfDot, devSelfDot, devC, n, n, param.gamma);
+        csrMatrix.freeDev(devVal, devRowPtr, devColInd);
 */
         computeSubHessianMatrix(handle, descr, csrMatrix, n, csrMatrix, n, k, devC);
 
         checkCudaErrors(cudaMemcpy(hostSharedCache[i], devC, sizeof(float_point) * n * n, cudaMemcpyDeviceToHost));
         checkCudaErrors(cudaFree(devC));
-        csrMatrix.freeDev(devVal, devRowPtr, devColInd);
     }
     cusparseDestroy(handle);
     cusparseDestroyMatDescr(descr);
