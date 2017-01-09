@@ -43,6 +43,8 @@ private:
     void preComputeSharedCache();
     void preComputeAndStoreInHost();
 
+    void prepareCSRContext(cusparseHandle_t &handle, cusparseMatDescr_t &descr);
+    void releaseCSRContext(cusparseHandle_t &handle, cusparseMatDescr_t &descr);
     void computeSubHessianMatrix(cusparseHandle_t handle, cusparseMatDescr_t descr,
     							 CSRMatrix &csrMatrix0, int n, CSRMatrix &csrMatrix1, int m, int k, float_point *devC);
 };

@@ -219,6 +219,24 @@ __global__ void RBFKernel(const float_point *selfDot0, const float_point *selfDo
 }
 
 /**
+ * @brief: create handle and descr for CSR matrix operations
+ */
+void GpuCache::prepareCSRContext(cusparseHandle_t &handle, cusparseMatDescr_t &descr){
+    cusparseCreate(&handle);
+    cusparseCreateMatDescr(&descr);
+    cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);
+    cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
+}
+
+/**
+ * @brief: release handle and descr
+ */
+void releaseCSRContext(cusparseHandle_t &handle, cusparseMatDescr_t &descr){
+    cusparseDestroy(handle);
+    cusparseDestroyMatDescr(descr);
+}
+
+/**
  * @brief: compute a sub/whole kernel matrix
  * @param: n is the number of rows of matrix0; m is the number of rows of matrix1; k is the dimension.
  */
@@ -258,11 +276,9 @@ void GpuCache::computeSubHessianMatrix(cusparseHandle_t handle, cusparseMatDescr
 
 void GpuCache::preComputeSharedCache() {
     cusparseHandle_t handle;
-    cusparseCreate(&handle);
     cusparseMatDescr_t descr;
-    cusparseCreateMatDescr(&descr);
-    cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);
-    cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
+    prepareCSRContext(handle, descr);
+
     for (int i = 0; i < problem.getNumOfClasses(); ++i) {
         printf("pre-compute shared cache %d\n", i);
         vector<vector<svm_node> > oneClass = problem.getOneClassSamples(i);
@@ -276,18 +292,16 @@ void GpuCache::preComputeSharedCache() {
         checkCudaErrors(cudaMemcpy(hostSharedCache[i], devC, sizeof(float_point) * n * n, cudaMemcpyDeviceToHost));
         checkCudaErrors(cudaFree(devC));
     }
-    cusparseDestroy(handle);
-    cusparseDestroyMatDescr(descr);
+
+    releaseCSRContext(handle, descr);
 }
 
 void GpuCache::preComputeUniqueCache(int i, int j, const SvmProblem &subProblem) {
     printf("pre-compute unique cache....");
     cusparseHandle_t handle;
-    cusparseCreate(&handle);
     cusparseMatDescr_t descr;
-    cusparseCreateMatDescr(&descr);
-    cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);
-    cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
+    prepareCSRContext(handle, descr);
+
     int n = subProblem.count[0];
     int m = subProblem.count[1];
     int k = subProblem.getNumOfFeatures();
@@ -312,8 +326,7 @@ void GpuCache::preComputeUniqueCache(int i, int j, const SvmProblem &subProblem)
     cublasDestroy(handle2);
 
     checkCudaErrors(cudaFree(devC));
-    cusparseDestroy(handle);
-    cusparseDestroyMatDescr(descr);
+    releaseCSRContext(handle, descr);
     printf("done\n");
 }
 
@@ -327,11 +340,9 @@ void GpuCache::preComputeAndStoreInHost() {
         permutedSamples.push_back(problem.v_vSamples[problem.perm[i]]);
     }
     cusparseHandle_t handle;
-    cusparseCreate(&handle);
     cusparseMatDescr_t descr;
-    cusparseCreateMatDescr(&descr);
-    cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);
-    cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
+    prepareCSRContext(handle, descr);
+
     int m = problem.getNumOfSamples();
     int k = problem.getNumOfFeatures();
     int n = m / 20;
@@ -365,8 +376,7 @@ void GpuCache::preComputeAndStoreInHost() {
         checkCudaErrors(cudaFree(devC));
     }
     checkCudaErrors(cudaFree(devSelfDot));
-    cusparseDestroy(handle);
-    cusparseDestroyMatDescr(descr);
+    releaseCSRContext(handle, descr);
     end = clock();
     printf("time elapsed for pre-compute hessian matrix in host: %f\n", (float) (end - start) / CLOCKS_PER_SEC);
 }
