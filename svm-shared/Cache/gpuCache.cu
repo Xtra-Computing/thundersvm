@@ -270,23 +270,7 @@ void GpuCache::preComputeSharedCache() {
         int k = problem.getNumOfFeatures();
         CSRMatrix csrMatrix(oneClass, k);
         float_point *devC;
-        checkCudaErrors(cudaMalloc((void **) &devC, sizeof(float_point) * n * n));
-/*        float_point *devVal = NULL;
-        int *devRowPtr = NULL, *devColInd = NULL;
-        int nnz = csrMatrix.getNnz();
-        csrMatrix.copy2Dev(devVal, devRowPtr, devColInd);
-        CSRMatrix::CSRmm2Dense(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE, n, n,
-                               k,
-                               descr, nnz, devVal, devRowPtr, devColInd, descr, nnz, devVal,
-                               devRowPtr,
-                               devColInd, devC);
-        float_point *devSelfDot;
-        checkCudaErrors(cudaMalloc((void **) &devSelfDot, sizeof(float_point) * n));
-        checkCudaErrors(
-                cudaMemcpy(devSelfDot, csrMatrix.getCSRValSelfDot(), sizeof(float_point) * n, cudaMemcpyHostToDevice));
-        RBFKernel << < Ceil(n * n, BLOCK_SIZE), BLOCK_SIZE >> > (devSelfDot, devSelfDot, devC, n, n, param.gamma);
-        csrMatrix.freeDev(devVal, devRowPtr, devColInd);
-*/
+        checkCudaErrors(cudaMalloc((void **) &devC, sizeof(float_point) * n * n));//this can be moved out of for-loop by reusing the memory.
         computeSubHessianMatrix(handle, descr, csrMatrix, n, csrMatrix, n, k, devC);
 
         checkCudaErrors(cudaMemcpy(hostSharedCache[i], devC, sizeof(float_point) * n * n, cudaMemcpyDeviceToHost));
@@ -313,31 +297,6 @@ void GpuCache::preComputeUniqueCache(int i, int j, const SvmProblem &subProblem)
     CSRMatrix csrMatrix1(samples1, k);
     float_point *devC;
     checkCudaErrors(cudaMalloc((void **) &devC, sizeof(float_point) * n * m));
-/*    float_point *devVal0, *devVal1;
-    int *devRowPtr0, *devRowPtr1, *devColInd0, *devColInd1;
-    csrMatrix0.copy2Dev(devVal0, devRowPtr0, devColInd0);
-    csrMatrix1.copy2Dev(devVal1, devRowPtr1, devColInd1);
-    int nnz0 = csrMatrix0.getNnz();
-    int nnz1 = csrMatrix1.getNnz();
-    float_point *devSelfDot0, *devSelfDot1;
-    checkCudaErrors(cudaMalloc((void **) &devSelfDot0, sizeof(float_point) * n));
-    checkCudaErrors(cudaMalloc((void **) &devSelfDot1, sizeof(float_point) * m));
-    checkCudaErrors(
-            cudaMemcpy(devSelfDot0, csrMatrix0.getCSRValSelfDot(), sizeof(float_point) * n, cudaMemcpyHostToDevice));
-    checkCudaErrors(
-            cudaMemcpy(devSelfDot1, csrMatrix1.getCSRValSelfDot(), sizeof(float_point) * m, cudaMemcpyHostToDevice));
-    float_point *devC;
-    checkCudaErrors(cudaMalloc((void **) &devC, sizeof(float_point) * n * m));
-    CSRMatrix::CSRmm2Dense(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE, n, m,
-                           k,
-                           descr, nnz0, devVal0, devRowPtr0, devColInd0, descr, nnz1, devVal1,
-                           devRowPtr1,
-                           devColInd1, devC);
-    RBFKernel << < Ceil(n * m, BLOCK_SIZE), BLOCK_SIZE >> > (devSelfDot0, devSelfDot1, devC, n, m, param.gamma);
-
-    csrMatrix0.freeDev(devVal0, devRowPtr0, devColInd0);
-    csrMatrix1.freeDev(devVal1, devRowPtr1, devColInd1);
-*/
     computeSubHessianMatrix(handle, descr, csrMatrix0, n, csrMatrix1, m, k, devC);
 
     checkCudaErrors(cudaMemcpy2D(devUniqueCache[0], sizeOfEachRowInUniqueCache[0], devC,
