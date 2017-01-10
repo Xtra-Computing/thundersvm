@@ -150,9 +150,11 @@ void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
             if (cacheFull)
                 uniqueCacheStrategy[label]->ReplaceExpired(rowIndex + uniqueCacheOffset, cacheLocation, NULL);
 
+            //unique cache position for this row
+            float_point *tempUniqueCachePos = devUniqueCache[label] +
+            								  cacheLocation * numOfElementEachRowInUniqueCache[label];
             if (preComputeInHost)
-                checkCudaErrors(cudaMemcpy(devUniqueCache[label] +
-                                           cacheLocation * numOfElementEachRowInUniqueCache[label],
+                checkCudaErrors(cudaMemcpy(tempUniqueCachePos,
                                            hostHessianMatrix
                                            + problem.getNumOfSamples() *
                                              (problem.start[originalLabel] + rowIndex + sharedCacheOffset)
@@ -160,11 +162,8 @@ void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
                                            uniqueCacheCount * sizeof(float_point),
                                            cudaMemcpyHostToDevice));
             else
-                hessianCalculator->ReadRow(rowIndex,
-                                           devUniqueCache[label] +
-                                           cacheLocation * numOfElementEachRowInUniqueCache[label],
-                                           uniqueCacheStart,
-                                           uniqueCacheStart + uniqueCacheCount);
+                hessianCalculator->ReadRow(rowIndex, tempUniqueCachePos, uniqueCacheStart,
+                						   uniqueCacheStart + uniqueCacheCount);
         }
     }
     checkCudaErrors(cudaMemcpy(
@@ -183,9 +182,11 @@ void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
             if (cacheFull)
                 sharedCacheStrategy[originalLabel]->ReplaceExpired(rowIndex + sharedCacheOffset, cacheLocation,
                                                                    NULL);
+            //shared cache position
+            float_point *tempSharedCachePos = devSharedCache[originalLabel] +
+                    						  cacheLocation * numOfElementEachRowInCache[originalLabel];
             if (preComputeInHost)
-                checkCudaErrors(cudaMemcpy(devSharedCache[originalLabel] +
-                                           cacheLocation * numOfElementEachRowInCache[originalLabel],
+                checkCudaErrors(cudaMemcpy(tempSharedCachePos,
                                            hostHessianMatrix
                                            + problem.getNumOfSamples() *
                                              (problem.start[originalLabel] + rowIndex + sharedCacheOffset)
@@ -193,10 +194,7 @@ void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
                                            sharedCacheCount * sizeof(float_point),
                                            cudaMemcpyHostToDevice));
             else
-                hessianCalculator->ReadRow(rowIndex,
-                                           devSharedCache[originalLabel] +
-                                           cacheLocation * numOfElementEachRowInCache[originalLabel],
-                                           sharedCacheStart,
+                hessianCalculator->ReadRow(rowIndex, tempSharedCachePos, sharedCacheStart,
                                            sharedCacheStart + sharedCacheCount);
         }
     }
