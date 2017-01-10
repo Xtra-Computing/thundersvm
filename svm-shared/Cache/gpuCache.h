@@ -9,7 +9,8 @@
 #include "cache.h"
 #include "../HessianIO/deviceHessianOnFly.h"
 #include "../../mascot/svmParam.h"
-#include "../../mascot/csrMatrix.h"
+#include "../../mascot/svmProblem.h"
+#include "../csrMatrix.h"
 
 class GpuCache {
 public:

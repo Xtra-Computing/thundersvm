@@ -10,11 +10,11 @@
 #include <driver_types.h>
 #include <helper_cuda.h>
 #include <cuda.h>
-#include "../svm-shared/gpu_global_utility.h"
+#include"pthread.h"
 #include "svmParam.h"
 #include "svmProblem.h"
-#include "csrMatrix.h"
-#include"pthread.h"
+#include "../svm-shared/csrMatrix.h"
+#include "../svm-shared/gpu_global_utility.h"
 using std::vector;
 
 class SvmModel {

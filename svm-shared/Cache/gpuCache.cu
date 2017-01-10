@@ -94,7 +94,7 @@ GpuCache::GpuCache(const SvmProblem &problem, const SVMParam &param) :
         preComputeInHost(false) {
     checkCudaErrors(cudaMallocHost((void **) &hostHessianMatrix,
                                    sizeof(float_point) * problem.getNumOfSamples() * problem.getNumOfSamples()));
-    preComputeAndStoreInHost();
+    //preComputeAndStoreInHost();
     for (int i = 0; i < problem.getNumOfClasses(); ++i) {
         int rowLength = problem.count[i];
         sharedCacheStrategy.push_back(new CLATCache(rowLength));
