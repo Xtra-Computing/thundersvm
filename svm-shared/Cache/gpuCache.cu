@@ -54,7 +54,7 @@ void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
 
     if (canPreComputeUniqueCache) {
     	SubHessianCalculater::preComputeUniqueCache(i, j, subProblem,
-    			devUniqueCache, sizeOfEachRowInUniqueCache, numOfElementEachRowInUniqueCache);
+    			devUniqueCache, sizeOfEachRowInUniqueCache, numOfElementEachRowInUniqueCache, param);
     } else {
         if (!preComputeInHost) {
             printf("compute unique kernels on fly\n");
@@ -96,7 +96,7 @@ GpuCache::GpuCache(const SvmProblem &problem, const SVMParam &param) :
         preComputeInHost(false) {
     checkCudaErrors(cudaMallocHost((void **) &hostHessianMatrix,
                                    sizeof(float_point) * problem.getNumOfSamples() * problem.getNumOfSamples()));
-    SubHessianCalculater::preComputeAndStoreInHost(hostHessianMatrix, problem, preComputeInHost);
+    //SubHessianCalculater::preComputeAndStoreInHost(hostHessianMatrix, problem, preComputeInHost, param);
     for (int i = 0; i < problem.getNumOfClasses(); ++i) {
         int rowLength = problem.count[i];
         sharedCacheStrategy.push_back(new CLATCache(rowLength));
@@ -109,7 +109,7 @@ GpuCache::GpuCache(const SvmProblem &problem, const SVMParam &param) :
     }
     if (canPreComputeSharedCache) {
         printf("cache is large enough, pre-computing shared cache\n");
-        SubHessianCalculater::preComputeSharedCache(hostSharedCache, problem);
+        SubHessianCalculater::preComputeSharedCache(hostSharedCache, problem, param);
     } else {
         if (!preComputeInHost)
             printf("compute shared kernels on fly\n");

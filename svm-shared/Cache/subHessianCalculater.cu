@@ -5,7 +5,11 @@
  *      Author: Zeyi Wen
  */
 
+#include <cuda.h>
+#include <helper_cuda.h>
+#include <cuda_runtime_api.h>
 #include "subHessianCalculater.h"
+#include "../constant.h"
 
 __global__ void RBFKernel(const float_point *selfDot0, const float_point *selfDot1,
                           float_point *dotProduct, int n, int m,
@@ -42,7 +46,7 @@ void SubHessianCalculater::releaseCSRContext(cusparseHandle_t &handle, cusparseM
  */
 void SubHessianCalculater::computeSubHessianMatrix(cusparseHandle_t handle, cusparseMatDescr_t descr,
 									   CSRMatrix &csrMatrix0, int n, CSRMatrix &csrMatrix1, int m, int k,
-									   float_point *devC){
+									   float_point *devC, const SVMParam &param){
 	float_point *devVal0;
 	int *devRowPtr0, *devColInd0;
 	csrMatrix0.copy2Dev(devVal0, devRowPtr0, devColInd0);
@@ -74,7 +78,8 @@ void SubHessianCalculater::computeSubHessianMatrix(cusparseHandle_t handle, cusp
     }
 }
 
-void SubHessianCalculater::preComputeSharedCache(vector<float_point*> &hostSharedCache, SvmProblem &problem) {
+void SubHessianCalculater::preComputeSharedCache(vector<float_point*> &hostSharedCache, const SvmProblem &problem,
+                                                 const SVMParam &param) {
     cusparseHandle_t handle;
     cusparseMatDescr_t descr;
     prepareCSRContext(handle, descr);
@@ -87,7 +92,7 @@ void SubHessianCalculater::preComputeSharedCache(vector<float_point*> &hostShare
         CSRMatrix csrMatrix(oneClass, k);
         float_point *devC;
         checkCudaErrors(cudaMalloc((void **) &devC, sizeof(float_point) * n * n));//this can be moved out of for-loop by reusing the memory.
-        computeSubHessianMatrix(handle, descr, csrMatrix, n, csrMatrix, n, k, devC);
+        computeSubHessianMatrix(handle, descr, csrMatrix, n, csrMatrix, n, k, devC, param);
 
         checkCudaErrors(cudaMemcpy(hostSharedCache[i], devC, sizeof(float_point) * n * n, cudaMemcpyDeviceToHost));
         checkCudaErrors(cudaFree(devC));
@@ -98,7 +103,7 @@ void SubHessianCalculater::preComputeSharedCache(vector<float_point*> &hostShare
 
 void SubHessianCalculater::preComputeUniqueCache(int i, int j, const SvmProblem &subProblem,
 		    	vector<float_point*> &devUniqueCache, vector<size_t> &sizeOfEachRowInUniqueCache,
-				vector<int> &numOfElementEachRowInUniqueCache) {
+				vector<int> &numOfElementEachRowInUniqueCache, const SVMParam &param) {
     printf("pre-compute unique cache....");
     cusparseHandle_t handle;
     cusparseMatDescr_t descr;
@@ -113,7 +118,7 @@ void SubHessianCalculater::preComputeUniqueCache(int i, int j, const SvmProblem 
     CSRMatrix csrMatrix1(samples1, k);
     float_point *devC;
     checkCudaErrors(cudaMalloc((void **) &devC, sizeof(float_point) * n * m));
-    computeSubHessianMatrix(handle, descr, csrMatrix0, n, csrMatrix1, m, k, devC);
+    computeSubHessianMatrix(handle, descr, csrMatrix0, n, csrMatrix1, m, k, devC, param);
 
     checkCudaErrors(cudaMemcpy2D(devUniqueCache[0], sizeOfEachRowInUniqueCache[0], devC,
                                  m * sizeof(float_point), m * sizeof(float_point), n, cudaMemcpyDeviceToDevice));
@@ -132,8 +137,8 @@ void SubHessianCalculater::preComputeUniqueCache(int i, int j, const SvmProblem 
     printf("done\n");
 }
 
-void SubHessianCalculater::preComputeAndStoreInHost(float_point *hostHessianMatrix, SvmProblem &problem,
-													bool &preComputeInHost) {
+void SubHessianCalculater::preComputeAndStoreInHost(float_point *hostHessianMatrix, const SvmProblem &problem,
+													bool &preComputeInHost, const SVMParam &param) {
     printf("pre-compute in host\n");
     preComputeInHost = true;
     clock_t start, end;
