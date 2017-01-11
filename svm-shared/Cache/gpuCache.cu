@@ -12,16 +12,21 @@ void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
     //enable shared cache for class i and j
     this->subProblem = &subProblem;
     canPreComputeUniqueCache = false;
+
+    //allocate memory for two shared caches
     checkCudaErrors(cudaMallocPitch((void **) &(devSharedCache[i]),
                                     &sizeOfEachRowInCache[i], problem.count[i] * sizeof(float_point), cacheSize[i]));
     checkCudaErrors(cudaMallocPitch((void **) &(devSharedCache[j]),
                                     &sizeOfEachRowInCache[j], problem.count[j] * sizeof(float_point), cacheSize[j]));
     numOfElementEachRowInCache[i] = sizeOfEachRowInCache[i] / sizeof(float_point);
     numOfElementEachRowInCache[j] = sizeOfEachRowInCache[j] / sizeof(float_point);
+
+    //allocate memory for the first unique cache
     int uniqueCacheRowLength = problem.count[j];
     int uniqueCacheSize = min(CACHE_SIZE * 1024 * 1024 / 6 / uniqueCacheRowLength, cacheSize[i]);
     if (cacheSize[i] < problem.count[i]) canPreComputeUniqueCache = false;
     printf("unique cache 0 row length %d, size %d\n", uniqueCacheRowLength, uniqueCacheSize);
+
     checkCudaErrors(cudaMallocPitch((void **) &devUniqueCache[0],
                                     &sizeOfEachRowInUniqueCache[0],
                                     uniqueCacheRowLength * sizeof(float_point),
@@ -30,7 +35,7 @@ void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
     uniqueCacheStrategy[0] = new CLATCache(problem.count[i]);
     uniqueCacheStrategy[0]->SetCacheSize(uniqueCacheSize);
     uniqueCacheStrategy[0]->InitializeCache(uniqueCacheSize, problem.count[i]);
-
+    //allocate memory for the second unique cache
     uniqueCacheRowLength = problem.count[i];
     uniqueCacheSize = min(CACHE_SIZE * 1024 * 1024 / 6 / uniqueCacheRowLength, cacheSize[j]);
     printf("unique cache 1 row length %d, size %d\n", uniqueCacheRowLength, uniqueCacheSize);
@@ -43,6 +48,8 @@ void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
     uniqueCacheStrategy[1] = new CLATCache(problem.count[j]);
     uniqueCacheStrategy[1]->SetCacheSize(uniqueCacheSize);
     uniqueCacheStrategy[1]->InitializeCache(uniqueCacheSize, problem.count[j]);
+
+    //fill the two shared caches
     checkCudaErrors(cudaMemcpy2D(
             devSharedCache[i], sizeOfEachRowInCache[i],
             hostSharedCache[i], problem.count[i] * sizeof(float_point),
@@ -52,12 +59,13 @@ void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
             hostSharedCache[j], problem.count[j] * sizeof(float_point),
             problem.count[j] * sizeof(float_point), cacheSize[j], cudaMemcpyHostToDevice));
 
+    //fill the two unique caches, or decide to compute them on-the-fly
     if (canPreComputeUniqueCache) {
     	SubHessianCalculater::preComputeUniqueCache(i, j, subProblem,
     			devUniqueCache, sizeOfEachRowInUniqueCache, numOfElementEachRowInUniqueCache, param);
     } else {
         if (!preComputeInHost) {
-            printf("compute unique kernels on fly\n");
+            printf("compute unique kernels on-the-fly\n");
             hessianCalculator = new DeviceHessianOnFly(subProblem, param.gamma);
         } else
             printf("use pre-compute hessian matrix in host\n");
@@ -69,6 +77,7 @@ void GpuCache::disable(int i, int j) {
         delete hessianCalculator;
     delete uniqueCacheStrategy[0];
     delete uniqueCacheStrategy[1];
+    //copy the two precomputed shared caches back to host
     checkCudaErrors(cudaMemcpy2D(
             hostSharedCache[i], problem.count[i] * sizeof(float_point),
             devSharedCache[i], sizeOfEachRowInCache[i],
