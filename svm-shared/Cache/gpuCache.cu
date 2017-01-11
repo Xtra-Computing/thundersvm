@@ -121,7 +121,7 @@ GpuCache::GpuCache(const SvmProblem &problem, const SVMParam &param) :
         SubHessianCalculater::preComputeSharedCache(hostSharedCache, problem, param);
     } else {
         if (!preComputeInHost)
-            printf("compute shared kernels on fly\n");
+            printf("compute shared kernels on-the-fly\n");
         else
             printf("use pre-compute hessian matrix in host\n");
     }
