@@ -10,7 +10,7 @@
 #include <cuda.h>
 #include <helper_cuda.h>
 #include <cuda_runtime_api.h>
-#include "../svm-shared/host_constant.h"
+#include "../SharedUtility/DataType.h"
 
 __global__ void rbfKernel(const float_point *sampleSelfDot, int numOfSamples,
                           const float_point *svMapSelfDot, int svMapSize,

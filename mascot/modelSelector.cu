@@ -15,8 +15,8 @@ bool CModelSelector::GridSearch(const Grid &SGrid, vector<vector<float_point> > 
 {
 	bool bReturn = false;
 
-	vector<float_point> &vfGamma = SGrid.vfGamma;
-	vector<float_point> &vfC = SGrid.vfC;
+	const vector<float_point> &vfGamma = SGrid.vfGamma;
+	const vector<float_point> &vfC = SGrid.vfC;
 
 	int nNumofSample = v_vDocVector.size();
 	int *pnPredictedLabel = new int[nNumofSample];
