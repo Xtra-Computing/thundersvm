@@ -108,6 +108,11 @@ bool DeviceHessian::ComputeSubHessianMatrix(float_point *pfDevTotalSamples, floa
 	float_point elapsedTime;
 	gettimeofday(&t1, NULL);
 //	cout << "computing " << nSubMatrixRow << " sub Hessian rows which have " << nSubMatrixCol << " column each" << endl;
+	if(cudaGetLastError() != cudaSuccess)
+	{
+		cerr << "cuda error before ComputeHessianRows" << endl;
+		exit(0);
+	}
 
 	//pfDevTotalSamples is for row width (|); pfDevTransSamples is for col width (-)
 	bool bComputeRows = m_pKernelCalculater->ComputeHessianRows(pfDevTotalSamples, pfDevTransSamples, pfDevSelfDot, pfDevNumofHessianRows,
