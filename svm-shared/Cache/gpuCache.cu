@@ -5,13 +5,13 @@
 #include <cublas_v2.h>
 #include "gpuCache.h"
 #include "../constant.h"
-#include "subHessianCalculater.h"
+#include "subHessianCalculator.h"
 
 
 void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
     //enable shared cache for class i and j
     this->subProblem = &subProblem;
-    canPreComputeUniqueCache = false;
+    canPreComputeUniqueCache = true;
 
     //allocate memory for two shared caches
     checkCudaErrors(cudaMallocPitch((void **) &(devSharedCache[i]),
@@ -73,7 +73,7 @@ void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
 }
 
 void GpuCache::disable(int i, int j) {
-    if (!canPreComputeUniqueCache)
+    if (NULL != hessianCalculator)
         delete hessianCalculator;
     delete uniqueCacheStrategy[0];
     delete uniqueCacheStrategy[1];
@@ -101,11 +101,12 @@ GpuCache::GpuCache(const SvmProblem &problem, const SVMParam &param) :
         uniqueCacheStrategy(2),
         numOfElementEachRowInUniqueCache(2),
         sizeOfEachRowInUniqueCache(2),
-        canPreComputeSharedCache(false),
-        preComputeInHost(false) {
+        canPreComputeSharedCache(true),
+        preComputeInHost(false),
+        hessianCalculator(NULL) {
     checkCudaErrors(cudaMallocHost((void **) &hostHessianMatrix,
                                    sizeof(float_point) * problem.getNumOfSamples() * problem.getNumOfSamples()));
-    //SubHessianCalculater::preComputeAndStoreInHost(hostHessianMatrix, problem, preComputeInHost, param);
+    SubHessianCalculater::preComputeAndStoreInHost(hostHessianMatrix, problem, preComputeInHost, param);
     for (int i = 0; i < problem.getNumOfClasses(); ++i) {
         int rowLength = problem.count[i];
         sharedCacheStrategy.push_back(new CLATCache(rowLength));

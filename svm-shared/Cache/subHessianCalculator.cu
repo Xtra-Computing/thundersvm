@@ -8,7 +8,7 @@
 #include <cuda.h>
 #include <helper_cuda.h>
 #include <cuda_runtime_api.h>
-#include "subHessianCalculater.h"
+#include "subHessianCalculator.h"
 #include "../constant.h"
 
 __global__ void RBFKernel(const float_point *selfDot0, const float_point *selfDot1,
@@ -153,7 +153,7 @@ void SubHessianCalculater::preComputeAndStoreInHost(float_point *hostHessianMatr
 
     int m = problem.getNumOfSamples();
     int k = problem.getNumOfFeatures();
-    int n = m / 20;
+    int n = m / 100;
     float_point *devValA, *devValB, *devSelfDot;
     int *devRowPtrA, *devColIndA, *devRowPtrB, *devColIndB;
     float_point *devC;
