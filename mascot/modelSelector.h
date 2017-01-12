@@ -34,7 +34,7 @@ public:
 	}
 	~CModelSelector(){};
 
-	bool GridSearch(const grid&, vector<vector<float_point> >&, vector<int> &vnLabel);
+	bool GridSearch(const Grid&, vector<vector<float_point> >&, vector<int> &vnLabel);
 	bool CrossValidation(const int&, vector<int> &vnLabel, int *&);
 
 private:

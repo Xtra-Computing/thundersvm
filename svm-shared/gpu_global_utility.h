@@ -12,6 +12,8 @@
 #include <vector>
 #include "../mascot/DataIOOps/BaseLibsvmReader.h"
 
+using std::vector;
+
 extern float_point gfPCost;    //cost for positive samples in training SVM model (i.e., error tolerance)
 extern float_point gfNCost;    //cost for negative samples in training SVM model
 extern float_point gfGamma;
@@ -19,11 +21,9 @@ extern float_point gfGamma;
 extern int gNTest;
 
 /* a set of parameters which looks like a grid*/
-struct grid {
-    float_point *pfGamma;
-    int nNumofGamma;
-    float_point *pfCost;
-    int nNumofC;
+struct Grid {
+    vector<float_point> vfGamma;
+    vector<float_point> vfC;
 };
 
 /* */

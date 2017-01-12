@@ -1,28 +1,26 @@
 
+#include <helper_cuda.h>
 #include "modelSelector.h"
 #include "../svm-shared/svmTrainer.h"
 #include "../svm-shared/HessianIO/baseHessian.h"
 #include "../svm-shared/HessianIO/parAccessor.h"
 #include "../svm-shared/HessianIO/seqAccessor.h"
-#include <helper_cuda.h>
 #include "../svm-shared/storageManager.h"
+#include "../SharedUtility/DataType.h"
 
 /**
  * @brief: search the best pair of parameters
  */
-bool CModelSelector::GridSearch(const grid &SGrid, vector<vector<float_point> > &v_vDocVector, vector<int> &vnLabel)
+bool CModelSelector::GridSearch(const Grid &SGrid, vector<vector<float_point> > &v_vDocVector, vector<int> &vnLabel)
 {
 	bool bReturn = false;
 
-	float_point *pfGamma = SGrid.pfGamma;
-	int nNumofGamma = SGrid.nNumofGamma;
-	float_point *pfCost = SGrid.pfCost;
-	int nNumofC = SGrid.nNumofC;
+	vector<float_point> &vfGamma = SGrid.vfGamma;
+	vector<float_point> &vfC = SGrid.vfC;
 
 	int nNumofSample = v_vDocVector.size();
 	int *pnPredictedLabel = new int[nNumofSample];
 	int nNumofFold = 10;//10 means 10-fold cross
-
 
 	DeviceHessian::m_nTotalNumofInstance = v_vDocVector.size();
 	CLRUCache cacheStrategy(v_vDocVector.size());
@@ -31,10 +29,9 @@ bool CModelSelector::GridSearch(const grid &SGrid, vector<vector<float_point> > 
 	ofstream confusion;
 	confusion.open("matrix.txt", std::ofstream::out | std::ofstream::app);
 
-	for(int j = 0; j < nNumofGamma; j++)
+	for(uint j = 0; j < vfGamma.size(); j++)
 	{
-
-		CRBFKernel rbf(pfGamma[j]);//ignore
+		CRBFKernel rbf(vfGamma[j]);//ignore
 		DeviceHessian hessianIOOps(&rbf);
 		//initial Hessian accessor
 		SeqAccessor accessor;
@@ -48,7 +45,7 @@ bool CModelSelector::GridSearch(const grid &SGrid, vector<vector<float_point> > 
 		hessianIOOps.PrecomputeKernelMatrix(v_vDocVector, &hessianIOOps);
 
 		//start n-fold-cross-validation, by changing C for SVM
-		for(int k = 0; k < nNumofC; k++)
+		for(uint k = 0; k < vfC.size(); k++)
 		{
 			CSMOSolver s(&hessianIOOps, &cacheStrategy);
 
@@ -57,11 +54,11 @@ bool CModelSelector::GridSearch(const grid &SGrid, vector<vector<float_point> > 
 			m_pPredictor = &svmPredicter;
 
 			memset(pnPredictedLabel, 0, sizeof(int) * nNumofSample);
-			gfNCost = pfCost[k];
-			gfPCost = pfCost[k];
-			gfGamma = pfGamma[j];
+			gfNCost = vfC[k];
+			gfPCost = vfC[k];
+			gfGamma = vfGamma[j];
 			ofstream writeOut(OUTPUT_FILE, ios::app | ios::out);
-			writeOut << "Gamma=" << pfGamma[j] << "; Cost=" << pfCost[k] << endl;
+			writeOut << "Gamma=" << vfGamma[j] << "; Cost=" << vfC[k] << endl;
 
 			timespec timeValidS, timeValidE;
 			clock_gettime(CLOCK_REALTIME, &timeValidS);

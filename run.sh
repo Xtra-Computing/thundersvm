@@ -5,7 +5,7 @@
 PROB="-b 0" #0 for no probability output; 1 for probability output.
 
 #task type
-TASK="-o 2" #0 for training; 1 for cross validation; 2 for evaluation
+TASK="-o 2" #0, 1, 2 and 3 for training, cross-validation, evaluation and grid search, respectively.
 
 #gamma for RBF kernel
 GAMMA="-g 0.125"

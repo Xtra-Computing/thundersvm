@@ -14,7 +14,7 @@
 #include "trainingFunction.h"
 #include "cvFunction.h"
 #include "commandLineParser.h"
-#include "../svm-shared/initCuda.h"
+#include "../SharedUtility/initCuda.h"
 #include "svmModel.h"
 using std::cout;
 using std::endl;
@@ -31,17 +31,17 @@ int main(int argc, char **argv)
 		return 0;
 	printf("CUDA initialized.\n");
 
-	if(parser.task_type == 1){
-		//perform cross validation*/
-		cout << "performing cross-validation" << endl;
-		crossValidation(parser.param, fileName);
-	}
-    else if(parser.task_type == 0){
+    if(parser.task_type == 0){
 		//perform svm training
 		cout << "performing training" << endl;
 		SvmModel model;
 		trainSVM(parser.param, fileName, parser.nNumofFeature, model, parser.compute_training_error);
     }
+    else if(parser.task_type == 1){
+		//perform cross validation*/
+		cout << "performing cross-validation" << endl;
+		crossValidation(parser.param, fileName);
+	}
     else if(parser.task_type == 2){
  		//perform svm evaluation 
 		cout << "performing evaluation" << endl;
@@ -50,6 +50,13 @@ int main(int argc, char **argv)
 		trainSVM(parser.param, fileName, parser.nNumofFeature, model, parser.compute_training_error);
         cout << "start evaluation..." << endl;
         evaluateSVMClassifier(model, strcat(fileName, ".t"), parser.nNumofFeature);
+    }
+    else if(parser.task_type == 3){
+    	cout << "performing grid search" << endl;
+    	Grid paramGrid;
+    	paramGrid.vfC.push_back(parser.param.C);
+    	paramGrid.vfGamma.push_back(parser.param.gamma);
+    	gridSearch(paramGrid, fileName);
     }
     else{
     	cout << "unknown task type" << endl;

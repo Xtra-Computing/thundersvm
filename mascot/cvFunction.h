@@ -8,12 +8,13 @@
 #ifndef CVFUNCTION_H_
 #define CVFUNCTION_H_
 
-#include "svmParam.h"
 #include <iostream>
+#include "svmParam.h"
+#include "../svm-shared/gpu_global_utility.h"
 
 using std::string;
 
 void crossValidation(SVMParam &param, string strTrainingFileName);
-
+void gridSearch(Grid &SGrid, string strTrainingFileName);
 
 #endif /* CVFUNCTION_H_ */

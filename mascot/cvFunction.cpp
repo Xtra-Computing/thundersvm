@@ -11,7 +11,6 @@
 using std::cout;
 using std::endl;
 
-#include "../svm-shared/gpu_global_utility.h"
 #include "../svm-shared/HessianIO/seqAccessor.h"
 #include "../svm-shared/HessianIO/parAccessor.h"
 //#include "hessianIO.h"
@@ -29,29 +28,8 @@ using std::endl;
 #include "classificationKernel.h"
 #include "cvFunction.h"
 
-
-void crossValidation(SVMParam &param, string strTrainingFileName)
-{
-//	gnNumofThread = 16;
+void gridSearch(Grid &SGrid, string strTrainingFileName){
 	lIO_timer = 0;
-
-	//initialize grid
-	grid SGrid;
-	SGrid.nNumofGamma = 1;
-	SGrid.nNumofC = 1;
-
-	SGrid.pfCost = new float_point[SGrid.nNumofC];
-	SGrid.pfCost[0] = param.C;
-	SGrid.pfGamma = new float_point[SGrid.nNumofGamma];
-	SGrid.pfGamma[0] = param.gamma;
-	for(int i = 1; i < SGrid.nNumofGamma; i++)
-	{
-		SGrid.pfGamma[i] = SGrid.pfGamma[i - 1] * 4;
-	}
-	for(int i = 1; i < SGrid.nNumofC; i++)
-	{
-		SGrid.pfCost[i] = SGrid.pfCost[i - 1] * 4;
-	}
 
 	CDataIOOps rawDataRead;
 	vector<vector<float_point> > v_vDocVector;
@@ -73,4 +51,13 @@ void crossValidation(SVMParam &param, string strTrainingFileName)
 	elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
 	elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 	//cout << elapsedTime << " ms.\n";
+}
+
+void crossValidation(SVMParam &param, string strTrainingFileName){
+	//initialize grid
+	Grid SGrid;
+	SGrid.vfC.push_back(param.C);
+	SGrid.vfGamma.push_back(param.gamma);
+
+	gridSearch(SGrid, strTrainingFileName);
 }

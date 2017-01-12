@@ -25,6 +25,4 @@
 #define EPS 0.001//0.0001
 #define ITERATION_FACTOR 50	//maximum iteration
 
-typedef float float_point; //this type is for facilitating interchangeability of float and double
-
 #endif /* HOST_CONSTANT_H_ */
