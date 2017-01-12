@@ -9,20 +9,15 @@ CXX := g++
 
 ODIR = bin
 exe_name = mascot
-release_bin := $(ODIR)/release/$(exe_name)
-debug_bin := $(ODIR)/debug/$(exe_name)
+release_bin := $(ODIR)/release
+debug_bin := $(ODIR)/debug
 $(shell mkdir -p $(ODIR)/release)
 $(shell mkdir -p $(ODIR)/debug)
 
-FILES = $(shell find ./ -name '*.c*')
+FILES = $(shell find ./mascot ./svm-shared  -name '*.c*')
 SOURCE = $(notdir $(FILES))				#remove directory
 OBJS = $(patsubst %.cpp, %.o,$(SOURCE:.cpp=.o)) #replace .cpp to .o
 OBJ = $(patsubst %.cu, %.o,$(OBJS:.cu=.o))		#replace .cu to .o
-
-$(release_bin): $(OBJ)
-	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o $@ $^
-$(debug_bin): $(OBJ)
-	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o $@ $^
 
 .PHONY: release
 .PHONY: debug
@@ -30,12 +25,14 @@ $(debug_bin): $(OBJ)
 release: CCFLAGS += -O2
 release: NVCCFLAGS += -O2
 release: LASTFLAG += -O2
-release: $(release_bin)
+release: $(OBJ)
+	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o $(release_bin)/mascot $^
 
 debug: CCFLAGS += -g
 debug: NVCCFLAGS += -G -g
 debug: LASTFLAG += -G -g
-debug: $(debug_bin)
+debug: $(OBJ)
+	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o $(debug_bin)/mascot $^
 
 #compile files of svm-shared 
 %.o: svm-shared/%.c* svm-shared/*.h
