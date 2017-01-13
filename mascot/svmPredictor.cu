@@ -283,7 +283,7 @@ float_point* CSVMPredictor::Predict(svm_model *pModel, int *pnTestSampleId, cons
 }
 
 double k_function(const svm_node *x, const svm_node *y,
-			  const svm_param &param)
+			  const SVMParam &param)
 {
 	switch(param.kernel_type)
 	{

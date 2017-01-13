@@ -8,7 +8,7 @@
 #ifndef COMMANDLINEPARSER_H_
 #define COMMANDLINEPARSER_H_
 
-#include "../svm-shared/SVMParam.h"
+#include "../svm-shared/svmParam.h"
 
 class Parser
 {
