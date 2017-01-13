@@ -11,7 +11,7 @@
 #include <cublas_v2.h>
 #include "../csrMatrix.h"
 #include "../../mascot/svmProblem.h"
-#include "../../mascot/svmParam.h"
+#include "../svmParam.h"
 
 class SubHessianCalculater{
 public:

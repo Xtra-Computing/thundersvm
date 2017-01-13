@@ -8,8 +8,9 @@
 #ifndef UTILITY_H_
 #define UTILITY_H_
 
-#include "host_constant.h"
 #include <vector>
+#include "host_constant.h"
+#include "SVMParam.h"
 #include "../mascot/DataIOOps/BaseLibsvmReader.h"
 
 using std::vector;
@@ -47,29 +48,9 @@ struct svm_node {
             index(index),value(value){};
 };
 
-struct svm_param {
-    int svm_type;
-    int kernel_type;
-    int degree;    /* for poly */
-    float_point gamma;    /* for poly/rbf/sigmoid */
-    float_point coef0;    /* for poly/sigmoid */
-
-    /* these are for training only */
-    float_point cache_size; /* in MB */
-    float_point eps;    /* stopping criteria */
-    float_point C;    /* for C_SVC, EPSILON_SVR and NU_SVR */
-    int nr_weight;        /* for C_SVC */
-    int *weight_label;    /* for C_SVC */
-    float_point *weight;        /* for C_SVC */
-    float_point nu;    /* for NU_SVC, ONE_CLASS, and NU_SVR */
-    float_point p;    /* for EPSILON_SVR */
-    int shrinking;    /* use the shrinking heuristics */
-    int probability; /* do probability estimates */
-};
-
 class svm_model {
 public:
-    struct svm_param param;    /* parameter */
+    struct SVMParam param;    /* parameter */
     int nr_class;        /* number of classes, = 2 in regression/one class svm */
     int l;            /* total #SV */
     struct svm_node **SV;        /* SVs (SV[l]) */

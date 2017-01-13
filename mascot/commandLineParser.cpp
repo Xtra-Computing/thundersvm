@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "svmParam.h"
+#include "../svm-shared/svmParam.h"
 #include "kernelType.h"
 #include "commandLineParser.h"
 

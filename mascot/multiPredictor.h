@@ -12,7 +12,7 @@
 #include "../svm-shared/host_constant.h"
 #include "../svm-shared/gpu_global_utility.h"
 #include "svmModel.h"
-#include "svmParam.h"
+#include "../svm-shared/svmParam.h"
 
 using std::vector;
 

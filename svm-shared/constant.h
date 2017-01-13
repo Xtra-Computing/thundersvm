@@ -11,9 +11,6 @@
 #include <math.h>
 #include "host_constant.h"
 
-//for experiment
-
-
 #define BATCH_WRITE_SIZE 256000000//4096000000	//4GB for each batch write
 #define MAX_SIZE_PER_READ 3072000000 //3GB for each batch read
 #define NORMAL_NUMOF_DIM 1204000
@@ -23,18 +20,7 @@
 #define REDUCE0  0x00000001
 #define REDUCE1  0x00000002
 
-
 #define CACHE_SIZE 1024
-//#define NUMOFSAMPLE 32561			//49749 web-a.dst; 31420 K9.data; 72309 real-sim;
-									//32561 adult a9a.txt; 60000 mnist.scale; 7291 usps; 400,000 (30,60,90,120) epsilon_normalized
-//#define TRAINING_DATA "dataset/a9a.txt"
-//#define NUMOF_GAMMA	1				//1 is for web-a.dst and a9a.txt; 7 for K9.data;
-//#define	START_GAMMA	0.5			//7.8125 web-a.dst; pow(2, -15) K9.data; 0.5 a9a.txt;
-								//0.125 mnist.scale and usps; 1 epsilon_normalized
-//#define NUMOF_COST 1				//1 is for web-a.dst and a9a.txt; 11 for K9.data;
-//#define COST_POSITIVE_SAMPLE 64		//64 web-a.dst; pow(2.0, -5) K9.data, 32768=2^15 seems good for C; 100 a9a.txt; 10 mnist.scale and usps
-//#define COST_NEGATIVE_SAMPLE 16		//pow(2.0, -5), epsilon 0.01
-
 
 //constant in device
 #define UNROLL_REDUCE 7

@@ -8,7 +8,7 @@
 #ifndef TESTTRAINER_H_
 #define TESTTRAINER_H_
 
-#include "svmParam.h"
+#include "../svm-shared/svmParam.h"
 #include "../svm-shared/gpu_global_utility.h"
 #include <iostream>
 

@@ -9,7 +9,7 @@
 #define CVFUNCTION_H_
 
 #include <iostream>
-#include "svmParam.h"
+#include "../svm-shared/svmParam.h"
 #include "../svm-shared/gpu_global_utility.h"
 
 using std::string;

@@ -11,7 +11,6 @@
 #include <helper_cuda.h>
 #include <cuda.h>
 #include"pthread.h"
-#include "svmParam.h"
 #include "svmProblem.h"
 #include "../svm-shared/csrMatrix.h"
 #include "../svm-shared/gpu_global_utility.h"
