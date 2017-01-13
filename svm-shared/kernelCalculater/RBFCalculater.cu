@@ -83,6 +83,11 @@ bool CRBFKernel::ComputeHessianMatrix(float_point *pfDevSamples, float_point *pf
 	dim3 dimGrid(nGridDimX, nGridDimY);
 
 	assert(nBlockSize >= 0);
+	if(cudaGetLastError() != cudaSuccess)
+	{
+		cerr << "cuda error calling ObtainRBFKernel" << endl;
+		exit(0);
+	}
 //	cout << "gamma=" << m_fGamma << endl;
 ///################# problem here. nNumofCols should be nNumofTotalSample
 	ObtainRBFKernel<<<dimGrid, nBlockSize>>>(pfDevHessianRows, pfDevSelfDot, nNumofCols, nNumofRows, m_fGamma, nStartRow, nStartCol);
