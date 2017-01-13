@@ -13,9 +13,8 @@
 #include <iostream>
 #include <iomanip>
 #include<cassert>
-//#include <boost/interprocess/mapped_region.hpp>
 
-#include "host_constant.h"
+#include "../SharedUtility/DataType.h"
 
 using std::string;
 using std::fstream;
