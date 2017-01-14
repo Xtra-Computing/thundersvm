@@ -188,3 +188,15 @@ void SubHessianCalculater::preComputeAndStoreInHost(float_point *hostHessianMatr
     end = clock();
     printf("time elapsed for pre-compute hessian matrix in host: %f\n", (float) (end - start) / CLOCKS_PER_SEC);
 }
+
+void SubHessianCalculater::preComputeCache4BinaryProblem(float_point *devC, const SvmProblem &problem,
+                                                         const SVMParam &param) {
+    cusparseHandle_t handle;
+    cusparseMatDescr_t descr;
+    prepareCSRContext(handle, descr);
+    CSRMatrix csrMatrix(problem.v_vSamples, problem.getNumOfFeatures());
+    int n = problem.getNumOfSamples();
+    int k = problem.getNumOfFeatures();
+    computeSubHessianMatrix(handle, descr, csrMatrix, n, csrMatrix, n, k, devC, param);
+    releaseCSRContext(handle, descr);
+}

@@ -21,6 +21,7 @@ public:
     void disable(int i, int j);
 private:
     const SvmProblem &problem;
+    bool binary;
     const SvmProblem *subProblem;
     const SVMParam &param;
     vector<float_point*> devSharedCache;
