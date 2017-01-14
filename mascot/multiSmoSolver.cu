@@ -25,12 +25,16 @@ void MultiSmoSolver::solve() {
                            ? INT_MAX
                            : ITERATION_FACTOR * subProblem.getNumOfSamples()) * 4;
             int numOfIter;
+            int start, end;
+            start = clock();
             for (numOfIter = 0; numOfIter < maxIter && !iterate(subProblem, param.C); numOfIter++) {
                 if (numOfIter % 1000 == 0 && numOfIter != 0) {
                     std::cout << ".";
                     std::cout.flush();
                 }
             }
+            end = clock();
+            printf("\ntotal iteration time : %f\n", (float)(end - start)/CLOCKS_PER_SEC);
             cache.disable(i, j);
 
             cout << "# of iteration: " << numOfIter << endl;

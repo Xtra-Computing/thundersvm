@@ -19,6 +19,7 @@ public:
     						   vector<float_point*> &devUniqueCache, vector<size_t> &sizeOfEachRowInUniqueCache,
 							   vector<int> &numOfElementEachRowInUniqueCache, const SVMParam &param);
     static void preComputeSharedCache(vector<float_point*> &hostSharedCache, const SvmProblem &problem, const SVMParam &param);
+	static void preComputeCache4BinaryProblem(float_point *devC, const SvmProblem &problem, const SVMParam &param);
     static void preComputeAndStoreInHost(float_point *hostHessianMatrix, const SvmProblem &problem, bool &preComputeInHost, const SVMParam &param);
     static void computeSubHessianMatrix(cusparseHandle_t handle, cusparseMatDescr_t descr,
     							 CSRMatrix &csrMatrix0, int n, CSRMatrix &csrMatrix1, int m, int k, float_point *devC,
