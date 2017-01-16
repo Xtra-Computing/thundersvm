@@ -3,14 +3,16 @@
 //
 
 #include <cublas_v2.h>
+#include <sys/time.h>
 #include "gpuCache.h"
 #include "../constant.h"
 #include "subHessianCalculator.h"
 
-
+float calculateKernelTime = 0;
+float preComputeTime = 0;
 void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
+    int start, end;
     if (binary) {
-
         //for binary case, use 1 shared cache to store the whole rows of hessian matrix
         checkCudaErrors(cudaMallocPitch((void **) &devSharedCache[0],
                                         &sizeOfEachRowInCache[0],
@@ -18,6 +20,7 @@ void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
                                         cacheSize[0]));
         numOfElementEachRowInCache[0] = sizeOfEachRowInCache[0] / sizeof(float_point);
         if (canPreComputeSharedCache) {
+            start = clock();
             printf("cache is large enough, pre-computing\n");
             float_point *devC;
             checkCudaErrors(cudaMalloc((void **) &devC,
@@ -32,6 +35,8 @@ void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
                                          cacheSize[0],
                                          cudaMemcpyDeviceToDevice));
             checkCudaErrors(cudaFree(devC));
+            end = clock();
+            preComputeTime += (float)(end - start)/CLOCKS_PER_SEC;
         } else {
             hessianCalculator = new DeviceHessianOnFly(subProblem, param.gamma);
         }
@@ -188,9 +193,11 @@ GpuCache::~GpuCache() {
 }
 
 void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
+    timeval start, end;
     int cacheLocation;
     bool cacheFull;
     bool cacheHit;
+    gettimeofday(&start,NULL);
     if (binary) {
         if (canPreComputeSharedCache) {
             cacheLocation = rowIndex;
@@ -285,4 +292,6 @@ void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
                 sizeof(float_point) * sharedCacheCount,
                 cudaMemcpyDeviceToDevice));
     }
+    gettimeofday(&end,NULL);
+    calculateKernelTime += (end.tv_usec - start.tv_usec) / 1e6 + (end.tv_sec - start.tv_sec);
 }

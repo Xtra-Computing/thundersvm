@@ -31,11 +31,13 @@ extern long lGetHessianRowCounter;
 extern long cacheMissCount;
 extern long cacheMissMemcpyTime;
 
+extern float calculateKernelTime;
+extern float preComputeTime;
 
 void evaluate(SvmModel &model, vector<vector<svm_node> > &v_v_Instance, vector<int> &v_nLabel);
 
 void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, SvmModel &model, bool evaluteTrainingError) {
-    clock_t start, end;
+    timeval start, end;
     vector<vector<svm_node> > v_v_Instance;
     vector<int> v_nLabel;
 
@@ -47,10 +49,10 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
 //    v_v_DocVector = vector<vector<svm_node> >(v_v_DocVector.begin(),v_v_DocVector.begin()+5000);
 //    v_nLabel = vector<int>(v_nLabel.begin(), v_nLabel.begin()+5000);
     SvmProblem problem(v_v_Instance, nNumofFeature, v_nLabel);
-    start = clock();
+    gettimeofday(&start,NULL);
     model.fit(problem, param);
-    end = clock();
-    printf("training time elapsed: %.2fs\n", (float) (end - start) / CLOCKS_PER_SEC);
+    gettimeofday(&end,NULL);
+    printf("training time elapsed: %f s\n", (end.tv_usec - start.tv_usec) / 1e6 + (end.tv_sec - start.tv_sec));
 //    printf("total iteration time: %.2fs\n", nTimeOfLoop / 1e9);
 //    printf("read row time: %.2fs, read row count %ld\n", lGetHessianRowTime / 1e9, lGetHessianRowCounter);
 //    printf("cache hit time: %.2fs, cache hit count %ld\n", (lGetHessianRowTime - readRowTime) / 1e9, lGetHessianRowCounter - cacheMissCount);
@@ -61,6 +63,8 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
 //    printf("ave time cache hit  %lf\nave time cache miss %lf\n",
 //           (lGetHessianRowTime-readRowTime)/1e9/(lGetHessianRowCounter-cacheMissCount), readRowTime/1e9/cacheMissCount);
 
+    printf("kernel pre-compute time: %f\n", preComputeTime);
+    printf("kernel calculation time: %f\n", calculateKernelTime);
     //evaluate training error
     if(evaluteTrainingError == true){
     	printf("Computing training error...\n");
