@@ -27,6 +27,7 @@ public:
         checkCudaErrors(cudaFree(devRowPtr));
         checkCudaErrors(cudaFree(devRowPtrSplit));
         checkCudaErrors(cudaFree(devColInd));
+        checkCudaErrors(cudaFree(devDenseVector));
         cusparseDestroyMatDescr(descr);
         cusparseDestroy(handle);
     }
@@ -54,6 +55,7 @@ private:
     cusparseMatDescr_t descr;
     float_point *devVal;
     float_point *devValSelfDot;
+    float_point *devDenseVector;
     vector<int> csrRowPtrSplit;
     int *devRowPtr;
     int *devRowPtrSplit;

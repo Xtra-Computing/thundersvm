@@ -3,13 +3,13 @@
 //
 
 #include <zconf.h>
+#include <sys/time.h>
 #include "multiSmoSolver.h"
 #include "../svm-shared/constant.h"
 #include "cuda_runtime.h"
 #include "trainingFunction.h"
 #include "../svm-shared/smoGPUHelper.h"
 #include "../svm-shared/HessianIO/deviceHessianOnFly.h"
-
 void MultiSmoSolver::solve() {
     initCache(CACHE_SIZE);
     int nrClass = problem.getNumOfClasses();
@@ -25,12 +25,16 @@ void MultiSmoSolver::solve() {
                            ? INT_MAX
                            : ITERATION_FACTOR * subProblem.getNumOfSamples()) * 4;
             int numOfIter;
+            timeval start, end;
+            gettimeofday(&start,NULL);
             for (numOfIter = 0; numOfIter < maxIter && !iterate(subProblem, param.C); numOfIter++) {
                 if (numOfIter % 1000 == 0 && numOfIter != 0) {
                     std::cout << ".";
                     std::cout.flush();
                 }
             }
+            gettimeofday(&end,NULL);
+            printf("\ntotal iteration time : %f\n", (end.tv_usec - start.tv_usec) / 1e6 + (end.tv_sec - start.tv_sec));
             cache.disable(i, j);
 
             cout << "# of iteration: " << numOfIter << endl;

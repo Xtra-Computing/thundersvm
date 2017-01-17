@@ -10,7 +10,7 @@
 
 #include <vector>
 #include "host_constant.h"
-#include "SVMParam.h"
+#include "svmParam.h"
 #include "../mascot/DataIOOps/BaseLibsvmReader.h"
 
 using std::vector;

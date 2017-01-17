@@ -18,39 +18,35 @@ __global__ void RBFKernel(const float_point *aSelfDot, float_point bSelfDot, flo
 }
 
 void DeviceHessianOnFly::ReadRow(int nPosofRowAtHessian, float_point *devHessianRow, int start, int end) {
-//    end = csrMat.getNumOfSamples();
-//    printf("start %d, end %d\n",start,end);
     const int numOfSamples = end - start;
     const int *csrRowPtr = csrMat.getCSRRowPtr();
     const int numOfFeatures = csrMat.getNumOfFeatures();
     const int nnzA = csrRowPtr[end] - csrRowPtr[start];
-    const int *devARowPtr = devRowPtrSplit + start;
-    if (start!=0)
-        devARowPtr++;
+    const int *devARowPtr;
+    if (numOfSamples == csrMat.getNumOfSamples()){
+        //for binary case
+        devARowPtr = devRowPtr;
+    } else{
+        //for multi-class case
+        devARowPtr = devRowPtrSplit + start;
+        if (start!=0)
+            devARowPtr++;
+    }
     const float_point *devAVal = devVal + csrRowPtr[start];
     const int *devAColInd = devColInd + csrRowPtr[start];
     const int nnzB = csrRowPtr[nPosofRowAtHessian + 1] - csrRowPtr[nPosofRowAtHessian];
     const float_point *devBVal = devVal + csrRowPtr[nPosofRowAtHessian];
     const int *devBColInd = devColInd + csrRowPtr[nPosofRowAtHessian];
-    float_point *devBDense;
-    checkCudaErrors(cudaMalloc((void **) &devBDense, sizeof(float_point) * numOfFeatures));
-    checkCudaErrors(cudaMemset(devBDense, 0, sizeof(float_point) * numOfFeatures));
-    cusparseSsctr(handle, nnzB, devBVal, devBColInd, devBDense, CUSPARSE_INDEX_BASE_ZERO);
-    checkCudaErrors(cudaMemset(devHessianRow,0,sizeof(float_point) * numOfSamples));
-//    if (numOfSamples != 100) {
+//    float_point *devDenseVector;
+//    checkCudaErrors(cudaMalloc((void **) &devDenseVector, sizeof(float_point) * numOfFeatures));
+    checkCudaErrors(cudaMemset(devDenseVector, 0, sizeof(float_point) * numOfFeatures));
+    cusparseSsctr(handle, nnzB, devBVal, devBColInd, devDenseVector, CUSPARSE_INDEX_BASE_ZERO);
+//    checkCudaErrors(cudaMemset(devHessianRow,0,sizeof(float_point) * numOfSamples));
         cusparseScsrmm(handle, CUSPARSE_OPERATION_NON_TRANSPOSE,
                        numOfSamples, 1, numOfFeatures,
                        nnzA, &one, descr, devAVal, devARowPtr, devAColInd,
-                       devBDense, numOfFeatures, &zero,
+                       devDenseVector, numOfFeatures, &zero,
                        devHessianRow, numOfSamples);
-//    }
-//    else {
-//        cusparseScsrmm(handle, CUSPARSE_OPERATION_NON_TRANSPOSE,
-//                       numOfSamples, 1, numOfFeatures,
-//                       nnzA, &one, descr, devVal, devRowPtr, devColInd,
-//                       devBDense, numOfFeatures, &zero,
-//                       devHessianRow, numOfSamples);
-//    }
     RBFKernel << < Ceil(numOfSamples, BLOCK_SIZE), BLOCK_SIZE >> >
             (devValSelfDot + start, csrMat.csrValSelfDot[nPosofRowAtHessian], devHessianRow, numOfSamples, gamma);
 //    float_point *hrow = new float_point[numOfSamples];
@@ -69,8 +65,7 @@ void DeviceHessianOnFly::ReadRow(int nPosofRowAtHessian, float_point *devHessian
 //    printf("compute row %d, total err %f\n",nPosofRowAtHessian,totalErr);
 //    memcpy(devHessianRow,hostKernel,sizeof(float_point) * numOfSamples);
 //    delete[] hostKernel;
-    checkCudaErrors(cudaFree(devBDense));
-//    checkCudaErrors(cudaFree(devC));
+//    checkCudaErrors(cudaFree(devDenseVector));
 }
 
 bool DeviceHessianOnFly::PrecomputeHessian(const string &strHessianMatrixFileName, const string &strDiagHessianFileName,
@@ -114,6 +109,7 @@ DeviceHessianOnFly:: DeviceHessianOnFly(const SvmProblem &subProblem, float_poin
                                cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(devColInd, csrMat.getCSRColInd(), sizeof(int) * (csrMat.getNnz()),
                                cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMalloc((void**)&devDenseVector,sizeof(float_point)*subProblem.getNumOfFeatures()));
 
 }
 
