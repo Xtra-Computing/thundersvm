@@ -3,7 +3,6 @@
  * @brief: this file includes the definition of functions for reading data
  * Created on: May 21, 2012
  * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
  **/
 
 #include "DataIO.h"

@@ -2,7 +2,6 @@
  * trainingDataIO.h
  * Created on: May 21, 2012
  * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
  **/
 
 #ifndef TRAININGDATAIO_H_
