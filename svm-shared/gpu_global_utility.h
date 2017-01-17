@@ -11,7 +11,7 @@
 #include <vector>
 #include "host_constant.h"
 #include "svmParam.h"
-#include "../mascot/DataIOOps/BaseLibsvmReader.h"
+#include "../DataReader/BaseLibsvmReader.h"
 
 using std::vector;
 
