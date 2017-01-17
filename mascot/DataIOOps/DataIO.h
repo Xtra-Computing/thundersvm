@@ -5,8 +5,8 @@
  * Copyright @DBGroup University of Melbourne
  **/
 
-#ifndef TRAININGDATAIO_H_
-#define TRAININGDATAIO_H_
+#ifndef DATAIO_H_
+#define DATAIO_H_
 
 #include <iostream>
 #include <stdlib.h>
@@ -56,12 +56,12 @@ public:
                        string strFileName, int nNumofFeatures, int nNumofSamples);
 
     static void
-    ReadLibSVMMultiClassData(vector<vector<float_point> > &v_vSamples, vector<int> &v_nLabels, const string strFileName,
-                             const long nNumofFeatures);
+    ReadLibSVMMultiClassData(vector<vector<float_point> > &v_vSamples, vector<int> &v_nLabels, string strFileName,
+                             long nNumofFeatures);
 
     static void ReadLibSVMMultiClassDataSparse(vector<vector<svm_node> > &v_vSamples, vector<int> &v_nLabels,
                                                const string strFileName, const long nNumofFeatures);
 };
 
 
-#endif /* TRAININGDATAIO_H_ */
+#endif /* DATAIO_H_ */

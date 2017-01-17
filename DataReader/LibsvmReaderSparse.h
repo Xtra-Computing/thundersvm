@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <fstream>
 #include <vector>
+#include <limits>
 #include "BaseLibsvmReader.h"
 #include "../SharedUtility/DataType.h"
 #include "../SharedUtility/KeyValue.h"
@@ -36,12 +37,12 @@ public:
 
 	template<class T>
 	void ReadLibSVMDataFormat(vector<vector<float_point> > &v_vSample, vector<T> &v_targetValue,
-							  string strFileName, int nNumofFeatures, int nNumofInstance);
+							  string strFileName, int nNumofFeatures, int nNumofInstance = -1);
 
 
 	template<class T>
 	void ReadLibSVMFormatSparse(vector<vector<KeyValue> > &v_vSample, vector<T> &v_targetValue,
-			  	  	  	  	  	string strFileName, int nNumofFeatures, int nNumofInstance);
+			  	  	  	  	  	string strFileName, int nNumofFeatures, int nNumofInstance = -1);
 
 private:
 	template<class T>
@@ -55,8 +56,11 @@ private:
  */
 template<class T>
 void LibSVMDataReader::ReadLibSVMFormatSparse(vector<vector<KeyValue> > &v_vInstance, vector<T> &v_targetValue,
-											  string strFileName, int nNumofFeatures, int nNumofInstance)
+											  string strFileName, int nNumofFeatures, int nNumofInstance = -1)
 {
+	if(nNumofInstance == -1){
+		nNumofInstance = std::numeric_limits<int>::max();
+	}
 	ReaderHelper(v_vInstance, v_targetValue, strFileName, nNumofFeatures, nNumofInstance, false);
 }
 
@@ -65,13 +69,16 @@ void LibSVMDataReader::ReadLibSVMFormatSparse(vector<vector<KeyValue> > &v_vInst
  */
 template<class T>
 void LibSVMDataReader::ReadLibSVMDataFormat(vector<vector<float_point> > &v_vInstance, vector<T> &v_targetValue,
-									  	    string strFileName, int nNumofFeatures, int nNumofExamples)
+									  	    string strFileName, int nNumofFeatures, int nNumofExamples = -1)
 {
+	if(nNumofExamples == -1){
+		nNumofExamples = std::numeric_limits<int>::max();
+	}
 	vector<vector<KeyValue> > v_vInstanceKeyValue;
 	ReaderHelper(v_vInstanceKeyValue, v_targetValue, strFileName, nNumofFeatures, nNumofExamples, true);
 
 	//convert key values to values only.
-	for(int i = 0; i < nNumofExamples; i++)
+	for(int i = 0; i < v_vInstanceKeyValue.size(); i++)
 	{
 		vector<float_point> vIns;
 		for(int j = 0; j < nNumofFeatures; j++)
@@ -154,7 +161,7 @@ void LibSVMDataReader::ReaderHelper(vector<vector<KeyValue> > &v_vInstance, vect
 
 		//clear vector
 		vSample.clear();
-	} while (readIn.eof() != true && j < nNumofInstance);
+	} while (readIn.eof() != true && j < nNumofInstance);//nNumofInstance is to enable reading a subset.
 
 	//clean eof bit, when pointer reaches end of file
 	if(readIn.eof())

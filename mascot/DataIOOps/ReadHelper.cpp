@@ -8,6 +8,7 @@
 #include <sstream>
 #include <limits>
 #include "DataIO.h"
+#include "../../DataReader/LibsvmReaderSparse.h"
 
 using std::istringstream;
 
@@ -197,7 +198,11 @@ void CReadHelper::ReadMultiClassData(vector<vector<float_point> > &v_vPosSample,
  * @brief: read libsvm format data and store in dense form.
  */
 void CReadHelper::ReadLibSVMMultiClassData(vector<vector<float_point> > &v_vSamples, vector<int> &v_nLabels,
-										   const string strFileName, const long nNumofFeatures){
+										   string strFileName, long nNumofFeatures){
+	LibSVMDataReader drHelper;
+	drHelper.ReadLibSVMDataFormat(v_vSamples, v_nLabels, strFileName, nNumofFeatures);
+
+	/*
     ifstream readIn;
     readIn.open(strFileName.c_str());
     assert(readIn.is_open());
@@ -245,7 +250,7 @@ void CReadHelper::ReadLibSVMMultiClassData(vector<vector<float_point> > &v_vSamp
     {
         //cout << "end of file" << endl;
         readIn.clear();
-    }
+    }*/
 }
 
 /**
