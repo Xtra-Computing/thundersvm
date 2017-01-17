@@ -56,7 +56,7 @@ private:
  */
 template<class T>
 void LibSVMDataReader::ReadLibSVMAsSparse(vector<vector<KeyValue> > &v_vInstance, vector<T> &v_targetValue,
-											  string strFileName, int nNumofFeatures, int nNumofInstance = -1)
+											  string strFileName, int nNumofFeatures, int nNumofInstance)
 {
 	if(nNumofInstance == -1){
 		nNumofInstance = std::numeric_limits<int>::max();
@@ -69,7 +69,7 @@ void LibSVMDataReader::ReadLibSVMAsSparse(vector<vector<KeyValue> > &v_vInstance
  */
 template<class T>
 void LibSVMDataReader::ReadLibSVMAsDense(vector<vector<float_point> > &v_vInstance, vector<T> &v_targetValue,
-									  	    string strFileName, int nNumofFeatures, int nNumofExamples = -1)
+									  	    string strFileName, int nNumofFeatures, int nNumofExamples)
 {
 	if(nNumofExamples == -1){
 		nNumofExamples = std::numeric_limits<int>::max();
@@ -111,7 +111,7 @@ void LibSVMDataReader::ReaderHelper(vector<vector<KeyValue> > &v_vInstance, vect
 	do {
 		j++;
 		getline(readIn, str);
-
+        if (str == "") break;
 		istringstream in(str);
 		int i = 0;
 //		bool bMiss = false;

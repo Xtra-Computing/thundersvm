@@ -201,56 +201,6 @@ void CReadHelper::ReadLibSVMMultiClassData(vector<vector<float_point> > &v_vSamp
 										   string strFileName, long nNumofFeatures){
 	LibSVMDataReader drHelper;
 	drHelper.ReadLibSVMAsDense(v_vSamples, v_nLabels, strFileName, nNumofFeatures);
-
-	/*
-    ifstream readIn;
-    readIn.open(strFileName.c_str());
-    assert(readIn.is_open());
-    vector<float_point> vSample;
-    int j = 0;
-    string str;
-    //get a sample
-    char cColon;
-    while (!readIn.eof()) {
-        j++;
-        getline(readIn, str);
-        if (str == "") break;
-        istringstream in(str);
-        int i = 0;
-        int nLabel = 0;
-        in >> nLabel;
-
-        //get features of a sample
-        int nFeature;
-        float_point x;
-        while (in >> nFeature >> cColon >> x) {
-            i++;
-            //assert(x >= -1 && x <= 1);
-            assert(nFeature <= nNumofFeatures && cColon == ':');
-            while(vSample.size() < nFeature - 1)
-            {
-                vSample.push_back(0);
-            }
-            vSample.push_back(x);
-            assert(vSample.size() <= nNumofFeatures);
-        }
-        //fill the value of the rest of the features as 0
-        while(vSample.size() < nNumofFeatures)
-        {
-            vSample.push_back(0);
-        }
-        v_vSamples.push_back(vSample);
-        v_nLabels.push_back(nLabel);
-        //clear vector
-        vSample.clear();
-    };
-
-    //clean eof bit, when pointer reaches end of file
-    if(readIn.eof())
-    {
-        //cout << "end of file" << endl;
-        readIn.clear();
-    }*/
 }
 
 /**
