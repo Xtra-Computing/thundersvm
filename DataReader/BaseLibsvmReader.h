@@ -10,11 +10,10 @@
 #define BASELIBSVMREADER_H_
 
 #include <fstream>
+#include "../SharedUtility/DataType.h"
 
 using std::string;
 using std::ifstream;
-
-typedef float float_point;
 
 class BaseLibSVMReader
 {

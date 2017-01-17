@@ -49,11 +49,7 @@ public:
 
     static void
     ReadLibSVMDataFormat(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
-                         string strFileName, int nNumofFeatures);
-
-    static void
-    ReadLibSVMDataFormat(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
-                         string strFileName, int nNumofFeatures, int nNumofSamples);
+                         string strFileName, int nNumofFeatures, int nNumofSamples = -1);
 
     static void
     ReadMultiClassData(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,

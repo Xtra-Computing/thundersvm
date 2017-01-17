@@ -22,7 +22,7 @@ using std::endl;
 #include "../svm-shared/Cache/cache.h"
 #include "../svm-shared/fileOps.h"
 #include "DataIOOps/DataIO.h"
-#include "DataIOOps/BaseLibsvmReader.h"
+#include "../DataReader/BaseLibsvmReader.h"
 //device function for CPairSelector
 
 #include "classificationKernel.h"
