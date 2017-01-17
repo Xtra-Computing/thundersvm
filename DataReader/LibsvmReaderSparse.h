@@ -36,12 +36,12 @@ public:
 	~LibSVMDataReader(){}
 
 	template<class T>
-	void ReadLibSVMDataFormat(vector<vector<float_point> > &v_vSample, vector<T> &v_targetValue,
+	void ReadLibSVMAsDense(vector<vector<float_point> > &v_vSample, vector<T> &v_targetValue,
 							  string strFileName, int nNumofFeatures, int nNumofInstance = -1);
 
 
 	template<class T>
-	void ReadLibSVMFormatSparse(vector<vector<KeyValue> > &v_vSample, vector<T> &v_targetValue,
+	void ReadLibSVMAsSparse(vector<vector<KeyValue> > &v_vSample, vector<T> &v_targetValue,
 			  	  	  	  	  	string strFileName, int nNumofFeatures, int nNumofInstance = -1);
 
 private:
@@ -55,7 +55,7 @@ private:
  * @brief: represent the data in a sparse form
  */
 template<class T>
-void LibSVMDataReader::ReadLibSVMFormatSparse(vector<vector<KeyValue> > &v_vInstance, vector<T> &v_targetValue,
+void LibSVMDataReader::ReadLibSVMAsSparse(vector<vector<KeyValue> > &v_vInstance, vector<T> &v_targetValue,
 											  string strFileName, int nNumofFeatures, int nNumofInstance = -1)
 {
 	if(nNumofInstance == -1){
@@ -68,7 +68,7 @@ void LibSVMDataReader::ReadLibSVMFormatSparse(vector<vector<KeyValue> > &v_vInst
  * @brief: store the instances in a dense form
  */
 template<class T>
-void LibSVMDataReader::ReadLibSVMDataFormat(vector<vector<float_point> > &v_vInstance, vector<T> &v_targetValue,
+void LibSVMDataReader::ReadLibSVMAsDense(vector<vector<float_point> > &v_vInstance, vector<T> &v_targetValue,
 									  	    string strFileName, int nNumofFeatures, int nNumofExamples = -1)
 {
 	if(nNumofExamples == -1){

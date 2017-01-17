@@ -200,7 +200,7 @@ void CReadHelper::ReadMultiClassData(vector<vector<float_point> > &v_vPosSample,
 void CReadHelper::ReadLibSVMMultiClassData(vector<vector<float_point> > &v_vSamples, vector<int> &v_nLabels,
 										   string strFileName, long nNumofFeatures){
 	LibSVMDataReader drHelper;
-	drHelper.ReadLibSVMDataFormat(v_vSamples, v_nLabels, strFileName, nNumofFeatures);
+	drHelper.ReadLibSVMAsDense(v_vSamples, v_nLabels, strFileName, nNumofFeatures);
 
 	/*
     ifstream readIn;
