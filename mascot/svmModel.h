@@ -14,6 +14,7 @@
 #include "svmProblem.h"
 #include "../svm-shared/csrMatrix.h"
 #include "../svm-shared/gpu_global_utility.h"
+#include "../SharedUtility/KeyValue.h"
 using std::vector;
 
 class SvmModel {
@@ -22,7 +23,7 @@ public:
     unsigned int nrClass;
     int numOfFeatures;
     vector<vector<int> > svIndex;
-    vector<vector<svm_node> > svMap;
+    vector<vector<KeyValue> > svMap;
     CSRMatrix *svMapCSRMat = NULL;
     vector<vector<float_point> > coef;
     vector<float_point> probA;
@@ -73,7 +74,7 @@ public:
 
     void fit(const SvmProblem &problem, const SVMParam &param);
 
-    vector<int> predict(const vector<vector<svm_node> > &, bool probability = false) const;
+    vector<int> predict(const vector<vector<KeyValue> > &, bool probability = false) const;
 
     void
     addBinaryModel(const SvmProblem &subProblem, const vector<int> &svIndex, const vector<float_point> &coef,

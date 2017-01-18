@@ -428,7 +428,7 @@ void SvmModel::addBinaryModel(const SvmProblem &problem, const vector<int> &svIn
     numOfSVs += svIndex.size();
 }
 
-vector<int> SvmModel::predict(const vector<vector<svm_node> > &v_vSamples, bool probability) const {
+vector<int> SvmModel::predict(const vector<vector<KeyValue> > &v_vSamples, bool probability) const {
 	MultiPredictor predictor(*this, param);
     return predictor.predict(v_vSamples, probability);
 }

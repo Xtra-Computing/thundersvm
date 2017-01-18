@@ -206,8 +206,11 @@ void CReadHelper::ReadLibSVMMultiClassData(vector<vector<float_point> > &v_vSamp
 /**
  * @brief: read libsvm format data and store in sparse form.
  */
-void CReadHelper::ReadLibSVMMultiClassDataSparse(vector<vector<svm_node> > &v_vInstance, vector<int> &v_nLabels,
-												 const string strFileName, const long nNumofFeatures){
+void CReadHelper::ReadLibSVMMultiClassDataSparse(vector<vector<KeyValue> > &v_vInstance, vector<int> &v_nLabels,
+												 string strFileName, long nNumofFeatures){
+	LibSVMDataReader drHelper;
+	drHelper.ReadLibSVMAsSparse(v_vInstance, v_nLabels, strFileName, nNumofFeatures);
+/*
     ifstream readIn;
     readIn.open(strFileName.c_str());
     assert(readIn.is_open());
@@ -245,5 +248,5 @@ void CReadHelper::ReadLibSVMMultiClassDataSparse(vector<vector<svm_node> > &v_vI
     if(readIn.eof())
     {
         readIn.clear();
-    }
+    }*/
 }

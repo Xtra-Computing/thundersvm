@@ -7,9 +7,10 @@
 
 #include "trainingFunction.h"
 #include <sys/time.h>
-#include "../svm-shared/Cache/cache.h"
 #include "DataIOOps/DataIO.h"
+#include "../svm-shared/Cache/cache.h"
 #include "../svm-shared/HessianIO/deviceHessianOnFly.h"
+#include "../SharedUtility/KeyValue.h"
 
 extern float calculateKernelTime;
 extern float preComputeTime;
@@ -17,11 +18,11 @@ extern float selectTime;
 extern float updateAlphaTime;
 extern float updateGValueTime;
 extern float iterationTime;
-void evaluate(SvmModel &model, vector<vector<svm_node> > &v_v_Instance, vector<int> &v_nLabel);
+void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<int> &v_nLabel);
 
 void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, SvmModel &model, bool evaluteTrainingError) {
     timeval start, end;
-    vector<vector<svm_node> > v_v_Instance;
+    vector<vector<KeyValue> > v_v_Instance;
     vector<int> v_nLabel;
 
     CDataIOOps rawDataRead;
@@ -48,7 +49,7 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
 }
 
 void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNumofFeature) {
-    vector<vector<svm_node> > v_v_Instance;
+    vector<vector<KeyValue> > v_v_Instance;
     vector<int> v_nLabel;
 
     CDataIOOps rawDataRead;
@@ -64,7 +65,7 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNum
 /**
  * @brief: evaluate the svm model, given some labeled instances.
  */
-void evaluate(SvmModel &model, vector<vector<svm_node> > &v_v_Instance, vector<int> &v_nLabel)
+void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<int> &v_nLabel)
 {
     //perform svm classification
 
@@ -74,7 +75,7 @@ void evaluate(SvmModel &model, vector<vector<svm_node> > &v_v_Instance, vector<i
     clock_t start, end;
     start = clock();
     while (begin < v_v_Instance.size()) {
-        vector<vector<svm_node> > samples(v_v_Instance.begin() + begin,
+        vector<vector<KeyValue> > samples(v_v_Instance.begin() + begin,
                                           v_v_Instance.begin() + min(begin + batchSize, (int) v_v_Instance.size()));
         vector<int> predictLabelPart = model.predict(samples, model.isProbability());
         predictLabels.insert(predictLabels.end(), predictLabelPart.begin(), predictLabelPart.end());
