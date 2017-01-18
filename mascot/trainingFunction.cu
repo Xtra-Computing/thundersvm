@@ -14,10 +14,8 @@
 #include "../SharedUtility/KeyValue.h"
 
 
-void evaluate(SvmModel &model, vector<vector<svm_node> > &v_v_Instance, vector<int> &v_nLabel);
 
 void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, SvmModel &model, bool evaluteTrainingError) {
-    timeval start, end;
     vector<vector<KeyValue> > v_v_Instance;
     vector<int> v_nLabel;
 
