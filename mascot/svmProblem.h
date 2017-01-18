@@ -7,13 +7,14 @@
 
 #include <vector>
 #include <cusparse.h>
-#include"../svm-shared/gpu_global_utility.h"
+#include "../svm-shared/gpu_global_utility.h"
+#include "../SharedUtility/KeyValue.h"
 
 using std::vector;
 
 class SvmProblem {
 public:
-    vector<vector<svm_node> > v_vSamples;
+    vector<vector<KeyValue> > v_vSamples;
     vector<int> v_nLabels;
     vector<int> count;
     vector<int> start;
@@ -28,7 +29,7 @@ public:
     vector<int> originalIndex;
     vector<int> originalLabel;
 
-    SvmProblem(const vector<vector<svm_node> > &v_vSamples, int numOfFeatures, const vector<int> &v_nLabels) :
+    SvmProblem(const vector<vector<KeyValue> > &v_vSamples, int numOfFeatures, const vector<int> &v_nLabels) :
             v_vSamples(v_vSamples), v_nLabels(v_nLabels), numOfFeatures(numOfFeatures), subProblem(false){
         this->groupClasses();
     }
@@ -36,7 +37,7 @@ public:
     void groupClasses();
 
     SvmProblem getSubProblem(int i, int j) const;
-    vector<vector<svm_node> > getOneClassSamples(int i) const;
+    vector<vector<KeyValue> > getOneClassSamples(int i) const;
 
     unsigned int getNumOfClasses() const;
 
