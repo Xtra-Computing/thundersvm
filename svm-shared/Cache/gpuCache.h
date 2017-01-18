@@ -14,7 +14,7 @@
 
 class GpuCache {
 public:
-    GpuCache(const SvmProblem &problem, const SVMParam &param);
+    GpuCache(const SvmProblem &problem, const SVMParam &param, bool binary);
     ~GpuCache();
     void enable(int i, int j, const SvmProblem &subProblem);
     void getHessianRow(int rowIndex, float_point *devHessianRow);

@@ -34,7 +34,7 @@ void MultiSmoSolver::solve() {
                 }
             }
             gettimeofday(&end,NULL);
-            printf("\ntotal iteration time : %f\n", (end.tv_usec - start.tv_usec) / 1e6 + (end.tv_sec - start.tv_sec));
+            printf("\ntotal iteration time : %f\n", timeElapse(start, end));
             cache.disable(i, j);
 
             cout << "# of iteration: " << numOfIter << endl;

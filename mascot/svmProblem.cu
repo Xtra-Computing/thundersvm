@@ -87,12 +87,16 @@ int SvmProblem::getNumOfFeatures() const {
 }
 
 vector<vector<svm_node> > SvmProblem::getOneClassSamples(int i) const {
-    vector<vector<svm_node> >samples;
+    vector<vector<svm_node> > samples;
     int si = start[i];
     int ci = count[i];
     for (int k = 0; k < ci; ++k) {
-        samples.push_back(v_vSamples[perm[si+k]]);
+        samples.push_back(v_vSamples[perm[si + k]]);
     }
     return samples;
+}
+
+bool SvmProblem::isBinary() const {
+    return 2 == this->getNumOfClasses();
 }
 

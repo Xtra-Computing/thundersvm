@@ -52,7 +52,7 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
     gettimeofday(&start,NULL);
     model.fit(problem, param);
     gettimeofday(&end,NULL);
-    printf("training time elapsed: %f s\n", (end.tv_usec - start.tv_usec) / 1e6 + (end.tv_sec - start.tv_sec));
+    printf("training time elapsed: %f s\n", timeElapse(start, end));
 //    printf("total iteration time: %.2fs\n", nTimeOfLoop / 1e9);
 //    printf("read row time: %.2fs, read row count %ld\n", lGetHessianRowTime / 1e9, lGetHessianRowCounter);
 //    printf("cache hit time: %.2fs, cache hit count %ld\n", (lGetHessianRowTime - readRowTime) / 1e9, lGetHessianRowCounter - cacheMissCount);
@@ -62,7 +62,6 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
 //    printf("cache hit rate %.2f%%\n", (1 - (float) cacheMissCount / lGetHessianRowCounter) * 100);
 //    printf("ave time cache hit  %lf\nave time cache miss %lf\n",
 //           (lGetHessianRowTime-readRowTime)/1e9/(lGetHessianRowCounter-cacheMissCount), readRowTime/1e9/cacheMissCount);
-
     printf("kernel pre-compute time: %f\n", preComputeTime);
     printf("kernel calculation time: %f\n", calculateKernelTime);
     //evaluate training error

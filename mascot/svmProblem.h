@@ -41,6 +41,7 @@ public:
     unsigned int getNumOfClasses() const;
 
     unsigned int getNumOfSamples() const;
+    bool isBinary() const;
 };
 
 

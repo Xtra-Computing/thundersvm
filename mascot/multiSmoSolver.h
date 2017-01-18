@@ -18,7 +18,7 @@ class MultiSmoSolver: public BaseSMO
 {
 public:
     MultiSmoSolver(const SvmProblem &problem, SvmModel &model, const SVMParam &param) :
-            problem(problem), model(model), param(param),cache(problem, param) {
+            problem(problem), model(model), param(param), cache(problem, param, problem.isBinary()) {
     }
 
     ~MultiSmoSolver(){

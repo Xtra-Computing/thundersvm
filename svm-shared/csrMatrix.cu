@@ -66,40 +66,56 @@ void CSRMatrix::CSRmm2Dense(cusparseHandle_t handle, cusparseOperation_t transA,
                        int k, const cusparseMatDescr_t descrA, const int nnzA, const float *valA, const int *rowPtrA,
                        const int *colIndA, const cusparseMatDescr_t descrB, const int nnzB, const float *valB,
                        const int *rowPtrB, const int *colIndB, float *matrixC) {
-    /*
-     * The CSRmm2Dense result is column-major instead of row-major. To avoid transposing the result
-     * we compute B'A' instead of AB' : (AB)' = B'A'
-     * */
+//    /*
+//     * The CSRmm2Dense result is column-major instead of row-major. To avoid transposing the result
+//     * we compute B'A' instead of AB' : (AB)' = B'A'
+//     * */
     if (transA == CUSPARSE_OPERATION_NON_TRANSPOSE)
         transA = CUSPARSE_OPERATION_TRANSPOSE;
     else transA = CUSPARSE_OPERATION_NON_TRANSPOSE;
     if (transB == CUSPARSE_OPERATION_NON_TRANSPOSE)
         transB = CUSPARSE_OPERATION_TRANSPOSE;
     else transB = CUSPARSE_OPERATION_NON_TRANSPOSE;
-    cusparseMatDescr_t descrC = descrA;
-    int baseC, nnzC; // nnzTotalDevHostPtr points to host memory
-    int *nnzTotalDevHostPtr = &nnzC;
-    cusparseSetPointerMode(handle, CUSPARSE_POINTER_MODE_HOST);
-    int *colIndC;
-    float *valC;
-    int *rowPtrC;
-    checkCudaErrors(cudaMalloc((void **) &rowPtrC, sizeof(int) * (n + 1)));
-    cusparseXcsrgemmNnz(handle, transB, transA, n, m, k, descrB, nnzB, rowPtrB, colIndB, descrA, nnzA, rowPtrA,
-                        colIndA, descrC, rowPtrC, nnzTotalDevHostPtr);
-    if (NULL != nnzTotalDevHostPtr) { nnzC = *nnzTotalDevHostPtr; }
-    else {
-        checkCudaErrors(cudaMemcpy(&nnzC, rowPtrC + m, sizeof(int), cudaMemcpyDeviceToHost));
-        checkCudaErrors(cudaMemcpy(&baseC, rowPtrC, sizeof(int), cudaMemcpyDeviceToHost));
-        nnzC -= baseC;
-    }
-    checkCudaErrors(cudaMalloc((void **) &colIndC, sizeof(int) * nnzC));
-    checkCudaErrors(cudaMalloc((void **) &valC, sizeof(float) * nnzC));
-    cusparseScsrgemm(handle, transB, transA, n, m, k, descrB, nnzB, valB, rowPtrB, colIndB, descrA, nnzA,
-                     valA, rowPtrA, colIndA, descrC, valC, rowPtrC, colIndC);
-    cusparseScsr2dense(handle, n, m, descrC, valC, rowPtrC, colIndC, matrixC, n);
-    checkCudaErrors(cudaFree(colIndC));
-    checkCudaErrors(cudaFree(valC));
-    checkCudaErrors(cudaFree(rowPtrC));
+    float_point *devA;
+    checkCudaErrors(cudaMalloc((void**)&devA,sizeof(float_point)*m*k));
+    cusparseScsr2dense(handle,m,k,descrA,valA,rowPtrA,colIndA,devA,m);
+    float one(1);
+    float zero(0);
+    cusparseScsrmm2(handle,transB,transA,n,m,k,nnzB,&one,descrB,valB,rowPtrB,colIndB,devA,m,&zero,matrixC,n);
+    checkCudaErrors(cudaFree(devA));
+/**
+ * the code below is csr * csr, much slower than the code above.
+ */
+//    if (transA == CUSPARSE_OPERATION_NON_TRANSPOSE)
+//        transA = CUSPARSE_OPERATION_TRANSPOSE;
+//    else transA = CUSPARSE_OPERATION_NON_TRANSPOSE;
+//    if (transB == CUSPARSE_OPERATION_NON_TRANSPOSE)
+//        transB = CUSPARSE_OPERATION_TRANSPOSE;
+//    else transB = CUSPARSE_OPERATION_NON_TRANSPOSE;
+//    cusparseMatDescr_t descrC = descrA;
+//    int baseC, nnzC; // nnzTotalDevHostPtr points to host memory
+//    int *nnzTotalDevHostPtr = &nnzC;
+//    cusparseSetPointerMode(handle, CUSPARSE_POINTER_MODE_HOST);
+//    int *colIndC;
+//    float *valC;
+//    int *rowPtrC;
+//    checkCudaErrors(cudaMalloc((void **) &rowPtrC, sizeof(int) * (n + 1)));
+//    cusparseXcsrgemmNnz(handle, transB, transA, n, m, k, descrB, nnzB, rowPtrB, colIndB, descrA, nnzA, rowPtrA,
+//                        colIndA, descrC, rowPtrC, nnzTotalDevHostPtr);
+//    if (NULL != nnzTotalDevHostPtr) { nnzC = *nnzTotalDevHostPtr; }
+//    else {
+//        checkCudaErrors(cudaMemcpy(&nnzC, rowPtrC + m, sizeof(int), cudaMemcpyDeviceToHost));
+//        checkCudaErrors(cudaMemcpy(&baseC, rowPtrC, sizeof(int), cudaMemcpyDeviceToHost));
+//        nnzC -= baseC;
+//    }
+//    checkCudaErrors(cudaMalloc((void **) &colIndC, sizeof(int) * nnzC));
+//    checkCudaErrors(cudaMalloc((void **) &valC, sizeof(float) * nnzC));
+//    cusparseScsrgemm(handle, transB, transA, n, m, k, descrB, nnzB, valB, rowPtrB, colIndB, descrA, nnzA,
+//                     valA, rowPtrA, colIndA, descrC, valC, rowPtrC, colIndC);
+//    cusparseScsr2dense(handle, n, m, descrC, valC, rowPtrC, colIndC, matrixC, n);
+//    checkCudaErrors(cudaFree(colIndC));
+//    checkCudaErrors(cudaFree(valC));
+//    checkCudaErrors(cudaFree(rowPtrC));
 }
 
 /**

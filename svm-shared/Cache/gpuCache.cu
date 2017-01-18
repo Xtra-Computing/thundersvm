@@ -132,8 +132,8 @@ void GpuCache::disable(int i, int j) {
     }
 }
 
-GpuCache::GpuCache(const SvmProblem &problem, const SVMParam &param) :
-        problem(problem), param(param),
+GpuCache::GpuCache(const SvmProblem &problem, const SVMParam &param, bool binary) :
+        problem(problem), param(param),binary(binary),
         numOfElementEachRowInCache(problem.getNumOfClasses()),
         devSharedCache(problem.getNumOfClasses(), NULL),
         sizeOfEachRowInCache(problem.getNumOfClasses()),
@@ -144,8 +144,7 @@ GpuCache::GpuCache(const SvmProblem &problem, const SVMParam &param) :
         canPreComputeSharedCache(true),
         preComputeInHost(false),
         hessianCalculator(NULL) {
-    if (problem.getNumOfClasses() == 2) {
-        binary = true;
+    if (binary) {
         printf("binary problem, use only one cache\n");
         int rowLength = problem.getNumOfSamples();
         sharedCacheStrategy.push_back(new CLATCache(rowLength));
@@ -293,5 +292,5 @@ void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
                 cudaMemcpyDeviceToDevice));
     }
     gettimeofday(&end,NULL);
-    calculateKernelTime += (end.tv_usec - start.tv_usec) / 1e6 + (end.tv_sec - start.tv_sec);
+    calculateKernelTime += timeElapse(start, end);
 }
