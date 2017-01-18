@@ -6,34 +6,17 @@
  */
 
 #include "trainingFunction.h"
-
-#include<iostream>
-#include<cassert>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
 #include <sys/time.h>
-
-#include "../svm-shared/gpu_global_utility.h"
-#include "../svm-shared/constant.h"
 #include "../svm-shared/Cache/cache.h"
 #include "DataIOOps/DataIO.h"
-#include "../DataReader/BaseLibsvmReader.h"
-
-#include "svmProblem.h"
 #include "../svm-shared/HessianIO/deviceHessianOnFly.h"
-
-extern long nTimeOfLoop;
-extern long lGetHessianRowTime;
-extern long readRowTime;
-extern long lGetHessianRowCounter;
-extern long cacheMissCount;
-extern long cacheMissMemcpyTime;
 
 extern float calculateKernelTime;
 extern float preComputeTime;
-
+extern float selectTime;
+extern float updateAlphaTime;
+extern float updateGValueTime;
+extern float iterationTime;
 void evaluate(SvmModel &model, vector<vector<svm_node> > &v_v_Instance, vector<int> &v_nLabel);
 
 void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, SvmModel &model, bool evaluteTrainingError) {
@@ -46,25 +29,17 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
     long long nNumofValue = 0;  //not used
     BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
     rawDataRead.ReadFromFileSparse(strTrainingFileName, nNumofFeature, v_v_Instance, v_nLabel);
-//    v_v_DocVector = vector<vector<svm_node> >(v_v_DocVector.begin(),v_v_DocVector.begin()+5000);
-//    v_nLabel = vector<int>(v_nLabel.begin(), v_nLabel.begin()+5000);
     SvmProblem problem(v_v_Instance, nNumofFeature, v_nLabel);
     gettimeofday(&start,NULL);
     model.fit(problem, param);
     gettimeofday(&end,NULL);
-    printf("training time elapsed: %f s\n", (end.tv_usec - start.tv_usec) / 1e6 + (end.tv_sec - start.tv_sec));
-//    printf("total iteration time: %.2fs\n", nTimeOfLoop / 1e9);
-//    printf("read row time: %.2fs, read row count %ld\n", lGetHessianRowTime / 1e9, lGetHessianRowCounter);
-//    printf("cache hit time: %.2fs, cache hit count %ld\n", (lGetHessianRowTime - readRowTime) / 1e9, lGetHessianRowCounter - cacheMissCount);
-//    printf("cache miss time: %.2fs, cache miss count %ld\n", readRowTime / 1e9, cacheMissCount);
-//    printf("cache miss cuda memcpy time: %.2fs\n", cacheMissMemcpyTime / 1e9);
-//    printf("cache miss calculate hessian row time: %.2fs\n", (readRowTime - cacheMissMemcpyTime) / 1e9);
-//    printf("cache hit rate %.2f%%\n", (1 - (float) cacheMissCount / lGetHessianRowCounter) * 100);
-//    printf("ave time cache hit  %lf\nave time cache miss %lf\n",
-//           (lGetHessianRowTime-readRowTime)/1e9/(lGetHessianRowCounter-cacheMissCount), readRowTime/1e9/cacheMissCount);
-
-    printf("kernel pre-compute time: %f\n", preComputeTime);
-    printf("kernel calculation time: %f\n", calculateKernelTime);
+    printf("training time: %fs\n", timeElapse(start, end));
+    printf("iteration time : %fs\n", iterationTime);
+    printf("kernel pre-computation time: %fs\n", preComputeTime);
+    printf("2 instances selection time: %fs\n", selectTime);
+    printf("kernel calculation time: %fs\n", calculateKernelTime);
+    printf("alpha updating time: %fs\n",updateAlphaTime);
+    printf("g value updating time: %fs\n",updateGValueTime);
     //evaluate training error
     if(evaluteTrainingError == true){
     	printf("Computing training accuracy...\n");
@@ -93,7 +68,7 @@ void evaluate(SvmModel &model, vector<vector<svm_node> > &v_v_Instance, vector<i
 {
     //perform svm classification
 
-    int batchSize = 1000;
+    int batchSize = 2000;
     int begin = 0;
     vector<int> predictLabels;
     clock_t start, end;

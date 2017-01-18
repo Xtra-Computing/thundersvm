@@ -81,7 +81,9 @@ template<class T>
 static inline T min(T x, T y) { return (x < y) ? x : y; }
 
 #endif
-
+inline float timeElapse(timeval start, timeval end){
+    return (end.tv_usec - start.tv_usec) / 1e6f + (end.tv_sec - start.tv_sec);
+}
 #define Ceil(a, b) (a%b!=0)?((a/b)+1):(a/b)
 
 //#define CUDA_KERNEL_DIM(a, b)  <<< a, b >>>
