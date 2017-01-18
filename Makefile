@@ -14,7 +14,7 @@ debug_bin := $(ODIR)/debug
 $(shell mkdir -p $(ODIR)/release)
 $(shell mkdir -p $(ODIR)/debug)
 
-FILES = $(shell find ./mascot ./svm-shared ./SharedUtility  -name '*.c*')
+FILES = $(shell find ./mascot ./svm-shared ./DataReader ./SharedUtility  -name '*.c*')
 SOURCE = $(notdir $(FILES))				#remove directory
 OBJS = $(patsubst %.cpp, %.o,$(SOURCE:.cpp=.o)) #replace .cpp to .o
 OBJ = $(patsubst %.cu, %.o,$(OBJS:.cu=.o))		#replace .cu to .o
@@ -33,6 +33,10 @@ debug: NVCCFLAGS += -G -g
 debug: LASTFLAG += -G -g
 debug: $(OBJ)
 	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o $(debug_bin)/mascot $^
+
+#compile data reader
+%.o: DataReader/%.c* DataReader/*.h
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c $<
 
 #compile shared utility
 %.o: SharedUtility/%.c* SharedUtility/*.h

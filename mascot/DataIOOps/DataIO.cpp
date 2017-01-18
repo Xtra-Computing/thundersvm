@@ -23,14 +23,14 @@ bool CDataIOOps::ReadFromFile(string strFileName, int nNumofFeature, vector<vect
     return nReturn;
 }
 
-bool CDataIOOps::ReadFromFileSparse(string strFileName, int nNumofFeature, vector<vector<svm_node> > &v_vSampleData,
-                              vector<int> &v_nLabel) {
+bool CDataIOOps::ReadFromFileSparse(string strFileName, int nNumofFeature, vector<vector<svm_node> > &v_vInstance,
+                              	    vector<int> &v_nLabel) {
     bool nReturn = true;
     v_nLabel.clear();
-    cout << "reading multi-class data with sparse format..." << endl;
+    cout << "reading libsvm data with sparse format..." << endl;
     //read data from file
-    CReadHelper::ReadLibSVMMultiClassDataSparse(v_vSampleData, v_nLabel, strFileName, nNumofFeature);
-    printf("dataset size:%d, # of features:%d\n", v_vSampleData.size(), nNumofFeature);
+    CReadHelper::ReadLibSVMMultiClassDataSparse(v_vInstance, v_nLabel, strFileName, nNumofFeature);
+    printf("# of instances: %d; # of features: %d\n", v_vInstance.size(), nNumofFeature);
     return nReturn;
 }
 /*

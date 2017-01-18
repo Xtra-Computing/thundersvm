@@ -19,7 +19,7 @@
 #include "../svm-shared/constant.h"
 #include "../svm-shared/Cache/cache.h"
 #include "DataIOOps/DataIO.h"
-#include "DataIOOps/BaseLibsvmReader.h"
+#include "../DataReader/BaseLibsvmReader.h"
 
 #include "svmProblem.h"
 #include "../svm-shared/HessianIO/deviceHessianOnFly.h"
@@ -66,7 +66,7 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
     printf("kernel calculation time: %f\n", calculateKernelTime);
     //evaluate training error
     if(evaluteTrainingError == true){
-    	printf("Computing training error...\n");
+    	printf("Computing training accuracy...\n");
     	evaluate(model, v_v_Instance, v_nLabel);
     }
 }

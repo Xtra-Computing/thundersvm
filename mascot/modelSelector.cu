@@ -101,7 +101,7 @@ bool CModelSelector::CrossValidation(const int &nFold, vector<int> &vnLabel, int
 	{
 		if(vnLabel[l] != 1 && vnLabel[l] != -1)
 		{
-			cerr << "error label" << endl;
+			cerr << "error label (valid label is -1 or 1): " << vnLabel[l] << endl;
 			exit(0);
 		}
 		pnLabelAll[l] = vnLabel[l];
