@@ -11,6 +11,7 @@
 #include <sys/time.h>
 #include "subHessianCalculator.h"
 #include "../constant.h"
+#include "../../SharedUtility/KeyValue.h"
 
 __global__ void RBFKernel(const float_point *selfDot0, const float_point *selfDot1,
                           float_point *dotProduct, int n, int m,
@@ -87,7 +88,7 @@ void SubHessianCalculater::preComputeSharedCache(vector<float_point*> &hostShare
 
     for (int i = 0; i < problem.getNumOfClasses(); ++i) {
         printf("pre-compute shared cache %d\n", i);
-        vector<vector<svm_node> > oneClass = problem.getOneClassSamples(i);
+        vector<vector<KeyValue> > oneClass = problem.getOneClassSamples(i);
         int n = oneClass.size();
         int k = problem.getNumOfFeatures();
         CSRMatrix csrMatrix(oneClass, k);
@@ -113,8 +114,8 @@ void SubHessianCalculater::preComputeUniqueCache(int i, int j, const SvmProblem 
     int n = subProblem.count[0];
     int m = subProblem.count[1];
     int k = subProblem.getNumOfFeatures();
-    vector<vector<svm_node> > samples0(subProblem.v_vSamples.begin(), subProblem.v_vSamples.begin() + n);
-    vector<vector<svm_node> > samples1(subProblem.v_vSamples.begin() + n, subProblem.v_vSamples.begin() + n + m);
+    vector<vector<KeyValue> > samples0(subProblem.v_vSamples.begin(), subProblem.v_vSamples.begin() + n);
+    vector<vector<KeyValue> > samples1(subProblem.v_vSamples.begin() + n, subProblem.v_vSamples.begin() + n + m);
     CSRMatrix csrMatrix0(samples0, k);
     CSRMatrix csrMatrix1(samples1, k);
     float_point *devC;
@@ -144,7 +145,7 @@ void SubHessianCalculater::preComputeAndStoreInHost(float_point *hostHessianMatr
     preComputeInHost = true;
     timeval start, end;
     gettimeofday(&start,NULL);
-    vector<vector<svm_node> > permutedSamples;
+    vector<vector<KeyValue> > permutedSamples;
     for (int i = 0; i < problem.v_vSamples.size(); ++i) {
         permutedSamples.push_back(problem.v_vSamples[problem.perm[i]]);
     }
@@ -167,7 +168,7 @@ void SubHessianCalculater::preComputeAndStoreInHost(float_point *hostHessianMatr
     float totalTime = 0;
     for (int i = 0; i < m / n + 1; ++i) {
         CSRMatrix sub(
-                vector<vector<svm_node> >(permutedSamples.begin() + n * i, permutedSamples.begin() + (n * (i + 1)>m?m:(n*(i+1)))),
+                vector<vector<KeyValue> >(permutedSamples.begin() + n * i, permutedSamples.begin() + (n * (i + 1)>m?m:(n*(i+1)))),
                 k);
         int tn = sub.getNumOfSamples();
         int nnzB = sub.getNnz();

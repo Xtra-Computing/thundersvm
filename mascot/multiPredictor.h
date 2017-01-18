@@ -9,10 +9,11 @@
 #define MASCOT_MULTIPREDICTOR_H_
 
 #include <vector>
-#include "../svm-shared/host_constant.h"
-#include "../svm-shared/gpu_global_utility.h"
 #include "svmModel.h"
 #include "../svm-shared/svmParam.h"
+#include "../svm-shared/host_constant.h"
+#include "../svm-shared/gpu_global_utility.h"
+#include "../SharedUtility/KeyValue.h"
 
 using std::vector;
 
@@ -25,11 +26,11 @@ public:
 	MultiPredictor(const SvmModel &model, const SVMParam &param):model(model), param(param){}
 	~MultiPredictor(){}
 
-    vector<int> predict(const vector<vector<svm_node> > &v_vSamples, bool probability) const;
+    vector<int> predict(const vector<vector<KeyValue> > &v_vSamples, bool probability) const;
 
-    vector<vector<float_point> > predictProbability(const vector<vector<svm_node> > &) const;
+    vector<vector<float_point> > predictProbability(const vector<vector<KeyValue> > &) const;
 
-    void predictValues(const vector<vector<svm_node> > &, vector<vector<float_point> > &) const;
+    void predictValues(const vector<vector<KeyValue> > &, vector<vector<float_point> > &) const;
 
 private:
     float_point sigmoidPredict(float_point decValue, float_point A, float_point B) const;

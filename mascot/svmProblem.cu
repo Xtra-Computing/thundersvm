@@ -39,7 +39,7 @@ void SvmProblem::groupClasses() {
 }
 
 SvmProblem SvmProblem::getSubProblem(int i, int j) const {
-    vector<vector<svm_node> > v_vSamples;
+    vector<vector<KeyValue> > v_vSamples;
     vector<int> v_nLabels;
     vector<int> originalIndex;
     vector<int> originalLabel;
@@ -86,8 +86,8 @@ int SvmProblem::getNumOfFeatures() const {
     return numOfFeatures;
 }
 
-vector<vector<svm_node> > SvmProblem::getOneClassSamples(int i) const {
-    vector<vector<svm_node> > samples;
+vector<vector<KeyValue> > SvmProblem::getOneClassSamples(int i) const {
+    vector<vector<KeyValue> > samples;
     int si = start[i];
     int ci = count[i];
     for (int k = 0; k < ci; ++k) {

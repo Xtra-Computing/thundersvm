@@ -9,18 +9,18 @@
 /**
  * @brief: CSR matrix constructor; construct from libsvm format data.
  */
-CSRMatrix::CSRMatrix(const vector<vector<svm_node> > &samples, int numOfFeatures) : samples(samples),
+CSRMatrix::CSRMatrix(const vector<vector<KeyValue> > &samples, int numOfFeatures) : samples(samples),
                                                                                     numOfFeatures(numOfFeatures) {
     int start = 0;
     for (int i = 0; i < samples.size(); ++i) {
         csrRowPtr.push_back(start);
-        int size = samples[i].size() - 1; //ignore end node for libsvm data format
+        int size = samples[i].size();//get the number of features with nonzero value
         start += size;
         float_point sum = 0;
         for (int j = 0; j < size; ++j) {
-            csrVal.push_back(samples[i][j].value);
-            sum += samples[i][j].value * samples[i][j].value;
-            csrColInd.push_back(samples[i][j].index - 1);//libsvm data format is one-based, convert it to zero-based
+            csrVal.push_back(samples[i][j].featureValue);
+            sum += samples[i][j].featureValue * samples[i][j].featureValue;
+            csrColInd.push_back(samples[i][j].id);
         }
         csrValSelfDot.push_back(sum);
     }

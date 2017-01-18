@@ -11,14 +11,14 @@
 #include "DataIOOps/DataIO.h"
 #include "../svm-shared/HessianIO/deviceHessianOnFly.h"
 #include "../SharedUtility/Timer.h"
+#include "../SharedUtility/KeyValue.h"
 
 
 void evaluate(SvmModel &model, vector<vector<svm_node> > &v_v_Instance, vector<int> &v_nLabel);
 
-void
-trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, SvmModel &model, bool evaluteTrainingError) {
-//    timeval start, end;
-    vector<vector<svm_node> > v_v_Instance;
+void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, SvmModel &model, bool evaluteTrainingError) {
+    timeval start, end;
+    vector<vector<KeyValue> > v_v_Instance;
     vector<int> v_nLabel;
 
     CDataIOOps rawDataRead;
@@ -43,7 +43,7 @@ trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, SvmMode
 }
 
 void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNumofFeature) {
-    vector<vector<svm_node> > v_v_Instance;
+    vector<vector<KeyValue> > v_v_Instance;
     vector<int> v_nLabel;
 
     CDataIOOps rawDataRead;
@@ -59,7 +59,8 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNum
 /**
  * @brief: evaluate the svm model, given some labeled instances.
  */
-void evaluate(SvmModel &model, vector<vector<svm_node> > &v_v_Instance, vector<int> &v_nLabel) {
+void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<int> &v_nLabel)
+{
     //perform svm classification
 
     int batchSize = 2000;
@@ -68,7 +69,7 @@ void evaluate(SvmModel &model, vector<vector<svm_node> > &v_v_Instance, vector<i
     clock_t start, end;
     start = clock();
     while (begin < v_v_Instance.size()) {
-        vector<vector<svm_node> > samples(v_v_Instance.begin() + begin,
+        vector<vector<KeyValue> > samples(v_v_Instance.begin() + begin,
                                           v_v_Instance.begin() + min(begin + batchSize, (int) v_v_Instance.size()));
         vector<int> predictLabelPart = model.predict(samples, model.isProbability());
         predictLabels.insert(predictLabels.end(), predictLabelPart.begin(), predictLabelPart.end());

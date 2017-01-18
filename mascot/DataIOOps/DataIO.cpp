@@ -3,7 +3,6 @@
  * @brief: this file includes the definition of functions for reading data
  * Created on: May 21, 2012
  * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
  **/
 
 #include "DataIO.h"
@@ -23,7 +22,7 @@ bool CDataIOOps::ReadFromFile(string strFileName, int nNumofFeature, vector<vect
     return nReturn;
 }
 
-bool CDataIOOps::ReadFromFileSparse(string strFileName, int nNumofFeature, vector<vector<svm_node> > &v_vInstance,
+bool CDataIOOps::ReadFromFileSparse(string strFileName, int nNumofFeature, vector<vector<KeyValue> > &v_vInstance,
                               	    vector<int> &v_nLabel) {
     bool nReturn = true;
     v_nLabel.clear();

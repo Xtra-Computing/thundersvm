@@ -15,6 +15,7 @@
 #include "../../svm-shared/my_assert.h"
 #include "../../svm-shared/constant.h"
 #include "../../svm-shared/gpu_global_utility.h"
+#include "../../SharedUtility/KeyValue.h"
 
 using std::string;
 using std::vector;
@@ -39,7 +40,7 @@ public:
     bool OrganizeSamples(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
                          vector<vector<float_point> > &v_vAllSample, vector<int> &v_nLabel);
 
-    bool ReadFromFileSparse(string strFileName, int nNumofFeature, vector<vector<svm_node> > &v_vSampleData,
+    bool ReadFromFileSparse(string strFileName, int nNumofFeature, vector<vector<KeyValue> > &v_vSampleData,
                             vector<int> &v_nLabel);
 };
 
@@ -59,8 +60,8 @@ public:
     ReadLibSVMMultiClassData(vector<vector<float_point> > &v_vSamples, vector<int> &v_nLabels, string strFileName,
                              long nNumofFeatures);
 
-    static void ReadLibSVMMultiClassDataSparse(vector<vector<svm_node> > &v_vSamples, vector<int> &v_nLabels,
-                                               const string strFileName, const long nNumofFeatures);
+    static void ReadLibSVMMultiClassDataSparse(vector<vector<KeyValue> > &v_vSamples, vector<int> &v_nLabels,
+                                               string strFileName, long nNumofFeatures);
 };
 
 

@@ -83,7 +83,7 @@ void MultiPredictor::multiClassProbability(const vector<vector<float_point> > &r
     free(Qp);
 }
 
-vector<vector<float_point> > MultiPredictor::predictProbability(const vector<vector<svm_node> > &v_vSamples) const {
+vector<vector<float_point> > MultiPredictor::predictProbability(const vector<vector<KeyValue> > &v_vSamples) const {
 	int nrClass = model.nrClass;
     vector<vector<float_point> > result;
     vector<vector<float_point> > decValues;
@@ -106,7 +106,7 @@ vector<vector<float_point> > MultiPredictor::predictProbability(const vector<vec
     return result;
 }
 
-void MultiPredictor::predictValues(const vector<vector<svm_node> > &v_vSamples,
+void MultiPredictor::predictValues(const vector<vector<KeyValue> > &v_vSamples,
                         		   vector<vector<float_point> > &decisionValues) const {
     //copy samples to device
     CSRMatrix sampleCSRMat(v_vSamples, model.numOfFeatures);
@@ -178,7 +178,7 @@ void MultiPredictor::predictValues(const vector<vector<svm_node> > &v_vSamples,
     cusparseDestroyMatDescr(descr);
 }
 
-vector<int> MultiPredictor::predict(const vector<vector<svm_node> > &v_vSamples, bool probability) const{
+vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples, bool probability) const{
 	int nrClass = model.nrClass;
     vector<int> labels;
     if (!probability) {

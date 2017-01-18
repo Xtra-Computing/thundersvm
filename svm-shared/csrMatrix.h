@@ -7,13 +7,14 @@
 
 #include <vector>
 #include <cusparse.h>
-#include"gpu_global_utility.h"
+#include "gpu_global_utility.h"
+#include "../SharedUtility/KeyValue.h"
 
 using std::vector;
 
 class CSRMatrix {
 public:
-    const vector<vector<svm_node> > &samples;
+    const vector<vector<KeyValue> > &samples;
     vector<float_point> csrVal;
     vector<float_point> csrValSelfDot;
     vector<int> csrRowPtr;
@@ -22,7 +23,7 @@ public:
 
     int getNumOfFeatures() const;
 
-    CSRMatrix(const vector<vector<svm_node> >&samples, int numOfFeatures);
+    CSRMatrix(const vector<vector<KeyValue> >&samples, int numOfFeatures);
     int getNnz() const;
 
     const float_point *getCSRVal() const;
