@@ -13,7 +13,6 @@
 #include"pthread.h"
 #include "svmProblem.h"
 #include "../svm-shared/csrMatrix.h"
-#include "../svm-shared/gpu_global_utility.h"
 #include "../SharedUtility/KeyValue.h"
 using std::vector;
 

@@ -7,7 +7,6 @@
 
 #include <vector>
 #include <cusparse.h>
-#include "../svm-shared/gpu_global_utility.h"
 #include "../SharedUtility/KeyValue.h"
 
 using std::vector;
