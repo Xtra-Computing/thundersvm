@@ -10,11 +10,8 @@
 #include "trainingFunction.h"
 #include "../svm-shared/smoGPUHelper.h"
 #include "../svm-shared/HessianIO/deviceHessianOnFly.h"
+#include "../SharedUtility/Timer.h"
 
-float iterationTime = 0;
-float selectTime = 0;
-float updateAlphaTime = 0;
-float updateGValueTime = 0;
 void MultiSmoSolver::solve() {
     int nrClass = problem.getNumOfClasses();
     //train nrClass*(nrClass-1)/2 binary models
@@ -29,16 +26,14 @@ void MultiSmoSolver::solve() {
                            ? INT_MAX
                            : ITERATION_FACTOR * subProblem.getNumOfSamples()) * 4;
             int numOfIter;
-            timeval start, end;
-            gettimeofday(&start,NULL);
+            TIMER_START(iterationTimer)
             for (numOfIter = 0; numOfIter < maxIter && !iterate(subProblem, param.C); numOfIter++) {
                 if (numOfIter % 1000 == 0 && numOfIter != 0) {
                     std::cout << ".";
                     std::cout.flush();
                 }
             }
-            gettimeofday(&end,NULL);
-            iterationTime += timeElapse(start, end);
+            TIMER_STOP(iterationTimer)
             cache.disable(i, j);
 
             cout << "# of iteration: " << numOfIter << endl;
@@ -57,15 +52,13 @@ void MultiSmoSolver::solve() {
 }
 
 bool MultiSmoSolver::iterate(SvmProblem &subProblem, float_point C) {
-    timeval start, end;
     int trainingSize = subProblem.getNumOfSamples();
 
-    gettimeofday(&start,NULL);
+    TIMER_START(selectTimer)
     SelectFirst(trainingSize, C);
     SelectSecond(trainingSize, C);
+    TIMER_STOP(selectTimer)
 
-    gettimeofday(&end,NULL);
-    selectTime += timeElapse(start, end);
 
     IdofInstanceTwo = int(hostBuffer[0]);
 
@@ -89,16 +82,14 @@ bool MultiSmoSolver::iterate(SvmProblem &subProblem, float_point C) {
 
     float_point fY1AlphaDiff, fY2AlphaDiff;
     float_point fMinValue = -upValue;
-    gettimeofday(&start, NULL);
+    TIMER_START(updateAlphaTimer)
     UpdateTwoWeight(fMinLowValue, fMinValue, IdofInstanceOne, IdofInstanceTwo, fKernelValue,
                     fY1AlphaDiff, fY2AlphaDiff, subProblem.v_nLabels.data(), C);
 
-    gettimeofday(&end, NULL);
-    updateAlphaTime += timeElapse(start, end);
-    gettimeofday(&start, NULL);
+    TIMER_STOP(updateAlphaTimer)
+    TIMER_START(updateGTimer)
     UpdateYiGValue(trainingSize, fY1AlphaDiff, fY2AlphaDiff);
-    gettimeofday(&end,NULL);
-    updateGValueTime += timeElapse(start, end);
+    TIMER_STOP(updateGTimer)
 
     return false;
 }

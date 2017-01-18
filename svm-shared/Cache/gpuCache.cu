@@ -7,11 +7,9 @@
 #include "gpuCache.h"
 #include "../constant.h"
 #include "subHessianCalculator.h"
+#include "../../SharedUtility/Timer.h"
 
-//float calculateKernelTime = 0;
-float preComputeTime = 0;
 void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
-    int start, end;
     if (binary) {
         //for binary case, use 1 shared cache to store the whole rows of hessian matrix
         checkCudaErrors(cudaMallocPitch((void **) &devSharedCache[0],
@@ -20,13 +18,14 @@ void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
                                         cacheSize[0]));
         numOfElementEachRowInCache[0] = sizeOfEachRowInCache[0] / sizeof(float_point);
         if (canPreComputeSharedCache) {
-            start = clock();
             printf("cache is large enough, pre-computing\n");
             float_point *devC;
             checkCudaErrors(cudaMalloc((void **) &devC,
                                        sizeof(float_point) * problem.getNumOfSamples() * problem.getNumOfSamples()));
             //sub-problem is the same as problem but permuted
-            SubHessianCalculater::preComputeCache4BinaryProblem(devC, subProblem, param);
+            ACCUMULATE_TIME(preComputeTimer,
+                            SubHessianCalculater::preComputeCache4BinaryProblem(devC, subProblem, param);
+            )
             checkCudaErrors(cudaMemcpy2D(devSharedCache[0],
                                          sizeOfEachRowInCache[0],
                                          devC,
@@ -35,8 +34,6 @@ void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
                                          cacheSize[0],
                                          cudaMemcpyDeviceToDevice));
             checkCudaErrors(cudaFree(devC));
-            end = clock();
-            preComputeTime += (float)(end - start)/CLOCKS_PER_SEC;
         } else {
             hessianCalculator = new DeviceHessianOnFly(subProblem, param.gamma);
         }
@@ -192,13 +189,10 @@ GpuCache::~GpuCache() {
 }
 
 void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
-//    timeval start, end;
-//    clock_t start, end;
+    TIMER_START(calculateKernelTimer)
     int cacheLocation;
     bool cacheFull;
     bool cacheHit;
-//    gettimeofday(&start,NULL);
-//    start = clock();
     if (binary) {
         if (canPreComputeSharedCache) {
             cacheLocation = rowIndex;
@@ -298,8 +292,5 @@ void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
                 sizeof(float_point) * sharedCacheCount,
                 cudaMemcpyDeviceToDevice));
     }
-//    gettimeofday(&end,NULL);
-//    end = clock();
-//    calculateKernelTime += timeElapse(start, end);
-//    calculateKernelTime += (float) (end - start)/CLOCKS_PER_SEC;
+    TIMER_STOP(calculateKernelTimer)
 }

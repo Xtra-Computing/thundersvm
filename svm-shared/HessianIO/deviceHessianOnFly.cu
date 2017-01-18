@@ -10,10 +10,6 @@ float calculateKernelTime = 0;
 __global__ void RBFKernel(const float_point *aSelfDot, float_point bSelfDot, float_point *dotProduct, int numOfSamples,
                           float gamma) {
     const int idx = blockDim.x * blockIdx.x + threadIdx.x;
-//    __shared__ float_point _bSelfDot;
-//    if (0 == idx)
-//        _bSelfDot = bSelfDot;
-//    __syncthreads();
     if (idx < numOfSamples) {
         dotProduct[idx] = expf(-(aSelfDot[idx] + bSelfDot - dotProduct[idx] * 2) * gamma);
     }
