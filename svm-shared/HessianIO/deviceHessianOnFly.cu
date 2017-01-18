@@ -2,9 +2,11 @@
 // Created by ss on 16-11-15.
 //
 
+#include <sys/time.h>
 #include "deviceHessianOnFly.h"
 #include "../constant.h"
 
+float calculateKernelTime = 0;
 __global__ void RBFKernel(const float_point *aSelfDot, float_point bSelfDot, float_point *dotProduct, int numOfSamples,
                           float gamma) {
     const int idx = blockDim.x * blockIdx.x + threadIdx.x;
@@ -18,18 +20,20 @@ __global__ void RBFKernel(const float_point *aSelfDot, float_point bSelfDot, flo
 }
 
 void DeviceHessianOnFly::ReadRow(int nPosofRowAtHessian, float_point *devHessianRow, int start, int end) {
+    timeval start_t, end_t;
+    gettimeofday(&start_t, NULL);
     const int numOfSamples = end - start;
     const int *csrRowPtr = csrMat.getCSRRowPtr();
     const int numOfFeatures = csrMat.getNumOfFeatures();
     const int nnzA = csrRowPtr[end] - csrRowPtr[start];
     const int *devARowPtr;
-    if (numOfSamples == csrMat.getNumOfSamples()){
+    if (numOfSamples == csrMat.getNumOfSamples()) {
         //for binary case
         devARowPtr = devRowPtr;
-    } else{
+    } else {
         //for multi-class case
         devARowPtr = devRowPtrSplit + start;
-        if (start!=0)
+        if (start != 0)
             devARowPtr++;
     }
     const float_point *devAVal = devVal + csrRowPtr[start];
@@ -42,13 +46,14 @@ void DeviceHessianOnFly::ReadRow(int nPosofRowAtHessian, float_point *devHessian
     checkCudaErrors(cudaMemset(devDenseVector, 0, sizeof(float_point) * numOfFeatures));
     cusparseSsctr(handle, nnzB, devBVal, devBColInd, devDenseVector, CUSPARSE_INDEX_BASE_ZERO);
 //    checkCudaErrors(cudaMemset(devHessianRow,0,sizeof(float_point) * numOfSamples));
-        cusparseScsrmm(handle, CUSPARSE_OPERATION_NON_TRANSPOSE,
-                       numOfSamples, 1, numOfFeatures,
-                       nnzA, &one, descr, devAVal, devARowPtr, devAColInd,
-                       devDenseVector, numOfFeatures, &zero,
-                       devHessianRow, numOfSamples);
+    cusparseScsrmm(handle, CUSPARSE_OPERATION_NON_TRANSPOSE,
+                   numOfSamples, 1, numOfFeatures,
+                   nnzA, &one, descr, devAVal, devARowPtr, devAColInd,
+                   devDenseVector, numOfFeatures, &zero,
+                   devHessianRow, numOfSamples);
     RBFKernel << < Ceil(numOfSamples, BLOCK_SIZE), BLOCK_SIZE >> >
-            (devValSelfDot + start, csrMat.csrValSelfDot[nPosofRowAtHessian], devHessianRow, numOfSamples, gamma);
+                                                   (devValSelfDot +
+                                                    start, csrMat.csrValSelfDot[nPosofRowAtHessian], devHessianRow, numOfSamples, gamma);
 //    float_point *hrow = new float_point[numOfSamples];
 //    checkCudaErrors(
 //            cudaMemcpy(hrow, devHessianRow, sizeof(float_point) * numOfSamples, cudaMemcpyDeviceToHost));
@@ -66,22 +71,24 @@ void DeviceHessianOnFly::ReadRow(int nPosofRowAtHessian, float_point *devHessian
 //    memcpy(devHessianRow,hostKernel,sizeof(float_point) * numOfSamples);
 //    delete[] hostKernel;
 //    checkCudaErrors(cudaFree(devDenseVector));
+    gettimeofday(&end_t, NULL);
+    calculateKernelTime += timeElapse(start_t, end_t);
 }
 
 bool DeviceHessianOnFly::PrecomputeHessian(const string &strHessianMatrixFileName, const string &strDiagHessianFileName,
-                                         vector<vector<float_point> > &v_v_DocVector) {
+                                           vector<vector<float_point> > &v_v_DocVector) {
     return true;
 }
 
 bool DeviceHessianOnFly::GetHessianDiag(const string &strFileName, const int &nNumofTraingSamples,
-                                      float_point *pfHessianDiag) {
+                                        float_point *pfHessianDiag) {
     for (int i = 0; i < nNumofTraingSamples; ++i) {
         pfHessianDiag[i] = 1;
     }
     return true;
 }
 
-DeviceHessianOnFly:: DeviceHessianOnFly(const SvmProblem &subProblem, float_point gamma) :
+DeviceHessianOnFly::DeviceHessianOnFly(const SvmProblem &subProblem, float_point gamma) :
         gamma(gamma), zero(0.0f), one(1.0f),
         csrMat(subProblem.v_vSamples, subProblem.getNumOfFeatures()) {
     cusparseCreate(&handle);
@@ -101,7 +108,7 @@ DeviceHessianOnFly:: DeviceHessianOnFly(const SvmProblem &subProblem, float_poin
                                cudaMemcpyHostToDevice));
     //nnz for samples with label +1
     int nnzA = csrMat.csrRowPtr[subProblem.count[0]];
-    csrRowPtrSplit = vector<int>(csrMat.csrRowPtr.begin(),csrMat.csrRowPtr.begin()+subProblem.count[0]+1);
+    csrRowPtrSplit = vector<int>(csrMat.csrRowPtr.begin(), csrMat.csrRowPtr.begin() + subProblem.count[0] + 1);
     for (int i = 0; i <= subProblem.count[1]; ++i) {
         csrRowPtrSplit.push_back(csrMat.csrRowPtr[subProblem.count[0] + i] - nnzA);
     }
@@ -109,19 +116,18 @@ DeviceHessianOnFly:: DeviceHessianOnFly(const SvmProblem &subProblem, float_poin
                                cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(devColInd, csrMat.getCSRColInd(), sizeof(int) * (csrMat.getNnz()),
                                cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMalloc((void**)&devDenseVector,sizeof(float_point)*subProblem.getNumOfFeatures()));
+    checkCudaErrors(cudaMalloc((void **) &devDenseVector, sizeof(float_point) * subProblem.getNumOfFeatures()));
 
 }
 
-//bool HostHessianOnFly::AllocateBuffer(int nNumofRows) {
-//    checkCudaErrors(cudaMallocHost((void**)&m_pfHessianRows,sizeof(float_point)*m_nTotalNumofInstance*nNumofRows));
-////    return BaseHessian::AllocateBuffer(nNumofRows);
-//    return true;
-//}
-//
-//bool HostHessianOnFly::ReleaseBuffer() {
-////    return BaseHessian::ReleaseBuffer();
-//    checkCudaErrors(cudaFreeHost(m_pfHessianRows));
-//    return true;
-//}
+DeviceHessianOnFly::~DeviceHessianOnFly() {
+    checkCudaErrors(cudaFree(devVal));
+    checkCudaErrors(cudaFree(devValSelfDot));
+    checkCudaErrors(cudaFree(devRowPtr));
+    checkCudaErrors(cudaFree(devRowPtrSplit));
+    checkCudaErrors(cudaFree(devColInd));
+    checkCudaErrors(cudaFree(devDenseVector));
+    cusparseDestroyMatDescr(descr);
+    cusparseDestroy(handle);
+}
 

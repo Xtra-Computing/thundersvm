@@ -8,6 +8,7 @@
 #include <cuda.h>
 #include <helper_cuda.h>
 #include <cuda_runtime_api.h>
+#include <sys/time.h>
 #include "subHessianCalculator.h"
 #include "../constant.h"
 
@@ -141,8 +142,8 @@ void SubHessianCalculater::preComputeAndStoreInHost(float_point *hostHessianMatr
 													bool &preComputeInHost, const SVMParam &param) {
     printf("pre-compute in host\n");
     preComputeInHost = true;
-    clock_t start, end;
-    start = clock();
+    timeval start, end;
+    gettimeofday(&start,NULL);
     vector<vector<svm_node> > permutedSamples;
     for (int i = 0; i < problem.v_vSamples.size(); ++i) {
         permutedSamples.push_back(problem.v_vSamples[problem.perm[i]]);
@@ -177,7 +178,6 @@ void SubHessianCalculater::preComputeAndStoreInHost(float_point *hostHessianMatr
                                devColIndA, devC);
         RBFKernel << < Ceil(tn * m, BLOCK_SIZE), BLOCK_SIZE >> >
                                                 (devSelfDot + n * i, devSelfDot, devC, tn, m, param.gamma);
-        totalTime += (float) (end - start) / CLOCKS_PER_SEC;
         sub.freeDev(devValB, devRowPtrB, devColIndB);
         checkCudaErrors(
                 cudaMemcpy(hostHessianMatrix + n * m * i, devC, sizeof(float_point) * tn * m, cudaMemcpyDeviceToHost));
@@ -185,8 +185,8 @@ void SubHessianCalculater::preComputeAndStoreInHost(float_point *hostHessianMatr
     }
     checkCudaErrors(cudaFree(devSelfDot));
     releaseCSRContext(handle, descr);
-    end = clock();
-    printf("time elapsed for pre-compute hessian matrix in host: %f\n", (float) (end - start) / CLOCKS_PER_SEC);
+    gettimeofday(&end,NULL);
+    printf("time elapsed for pre-compute hessian matrix in host: %f\n", timeElapse(start,end));
 }
 
 void SubHessianCalculater::preComputeCache4BinaryProblem(float_point *devC, const SvmProblem &problem,

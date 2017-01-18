@@ -30,7 +30,6 @@ private:
     SvmModel &model;
     const SVMParam &param;
 
-    void initCache(int cacheSize);
     CCache *gpuCache;
 	GpuCache cache;
     DeviceHessianOnFly *hessianCalculator;

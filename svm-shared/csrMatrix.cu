@@ -66,10 +66,10 @@ void CSRMatrix::CSRmm2Dense(cusparseHandle_t handle, cusparseOperation_t transA,
                        int k, const cusparseMatDescr_t descrA, const int nnzA, const float *valA, const int *rowPtrA,
                        const int *colIndA, const cusparseMatDescr_t descrB, const int nnzB, const float *valB,
                        const int *rowPtrB, const int *colIndB, float *matrixC) {
-//    /*
-//     * The CSRmm2Dense result is column-major instead of row-major. To avoid transposing the result
-//     * we compute B'A' instead of AB' : (AB)' = B'A'
-//     * */
+    /*
+     * The CSRmm2Dense result is column-major instead of row-major. To avoid transposing the result
+     * we compute B'A' instead of AB' : (AB)' = B'A'
+     * */
     if (transA == CUSPARSE_OPERATION_NON_TRANSPOSE)
         transA = CUSPARSE_OPERATION_TRANSPOSE;
     else transA = CUSPARSE_OPERATION_NON_TRANSPOSE;

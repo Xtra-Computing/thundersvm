@@ -10,8 +10,12 @@
 #include "trainingFunction.h"
 #include "../svm-shared/smoGPUHelper.h"
 #include "../svm-shared/HessianIO/deviceHessianOnFly.h"
+
+float iterationTime = 0;
+float selectTime = 0;
+float updateAlphaTime = 0;
+float updateGValueTime = 0;
 void MultiSmoSolver::solve() {
-    initCache(CACHE_SIZE);
     int nrClass = problem.getNumOfClasses();
     //train nrClass*(nrClass-1)/2 binary models
     int k = 0;
@@ -34,7 +38,7 @@ void MultiSmoSolver::solve() {
                 }
             }
             gettimeofday(&end,NULL);
-            printf("\ntotal iteration time : %f\n", timeElapse(start, end));
+            iterationTime += timeElapse(start, end);
             cache.disable(i, j);
 
             cout << "# of iteration: " << numOfIter << endl;
@@ -52,16 +56,16 @@ void MultiSmoSolver::solve() {
     }
 }
 
-void MultiSmoSolver::initCache(int cacheSize) {
-//    gpuCache = new CLATCache(cacheSize);
-
-}
-
 bool MultiSmoSolver::iterate(SvmProblem &subProblem, float_point C) {
+    timeval start, end;
     int trainingSize = subProblem.getNumOfSamples();
 
+    gettimeofday(&start,NULL);
     SelectFirst(trainingSize, C);
     SelectSecond(trainingSize, C);
+
+    gettimeofday(&end,NULL);
+    selectTime += timeElapse(start, end);
 
     IdofInstanceTwo = int(hostBuffer[0]);
 
@@ -72,12 +76,7 @@ bool MultiSmoSolver::iterate(SvmProblem &subProblem, float_point C) {
     fKernelValue = hostBuffer[2];
 
 
-//    float_point *two = devHessianMatrixCache + getHessianRow(m_nIndexofSampleTwo);
     cache.getHessianRow(IdofInstanceTwo,devHessianInstanceRow2);
-//    test<<<1,1>>>(two,devHessianSampleRow2,trainingSize);
-//    cudaMemcpy(devHessianSampleRow2,two,sizeof(float_point)*trainingSize, cudaMemcpyDeviceToDevice);
-//    printf("\n");
-//	cudaDeviceSynchronize();
 
 
     lowValue = -hostBuffer[3];
@@ -90,10 +89,16 @@ bool MultiSmoSolver::iterate(SvmProblem &subProblem, float_point C) {
 
     float_point fY1AlphaDiff, fY2AlphaDiff;
     float_point fMinValue = -upValue;
+    gettimeofday(&start, NULL);
     UpdateTwoWeight(fMinLowValue, fMinValue, IdofInstanceOne, IdofInstanceTwo, fKernelValue,
                     fY1AlphaDiff, fY2AlphaDiff, subProblem.v_nLabels.data(), C);
 
+    gettimeofday(&end, NULL);
+    updateAlphaTime += timeElapse(start, end);
+    gettimeofday(&start, NULL);
     UpdateYiGValue(trainingSize, fY1AlphaDiff, fY2AlphaDiff);
+    gettimeofday(&end,NULL);
+    updateGValueTime += timeElapse(start, end);
 
     return false;
 }
