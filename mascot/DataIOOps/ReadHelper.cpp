@@ -210,43 +210,4 @@ void CReadHelper::ReadLibSVMMultiClassDataSparse(vector<vector<KeyValue> > &v_vI
 												 string strFileName, long nNumofFeatures){
 	LibSVMDataReader drHelper;
 	drHelper.ReadLibSVMAsSparse(v_vInstance, v_nLabels, strFileName, nNumofFeatures);
-/*
-    ifstream readIn;
-    readIn.open(strFileName.c_str());
-    assert(readIn.is_open());
-    vector<svm_node> vIns;
-    int j = 0;
-    string str;
-    //get a sample
-    char cColon;
-    while (!readIn.eof()) {
-        j++;
-        getline(readIn, str);
-        if (str == "") break;
-        istringstream in(str);
-        int i = 0;
-        int nLabel = 0;
-        in >> nLabel;
-
-        //get features of a sample
-        int featureId;
-        float_point x;
-        while (in >> featureId >> cColon >> x) {
-            i++;
-            assert(featureId <= nNumofFeatures && cColon == ':');
-            vIns.push_back(svm_node(featureId,x));
-        }
-        vIns.push_back(svm_node(-1,0));
-
-        v_vInstance.push_back(vIns);
-        v_nLabels.push_back(nLabel);
-        //clear vector
-        vIns.clear();
-    };
-
-    //clean eof bit, when pointer reaches end of file
-    if(readIn.eof())
-    {
-        readIn.clear();
-    }*/
 }
