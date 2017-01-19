@@ -5,12 +5,12 @@
  *  Author: Zeyi Wen
  */
 
-#include "../DataReaderForCV/ReaderForCV.h"
-
 #include <stdlib.h>
 #include <sstream>
 #include <limits>
+#include <fstream>
 #include "../../svm-shared/my_assert.h"
+#include "../DataReaderForCV/ReaderForCV.h"
 
 using std::istringstream;
 using std::ifstream;

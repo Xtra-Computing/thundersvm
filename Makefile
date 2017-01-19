@@ -51,7 +51,7 @@ debug: $(OBJ)
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -dc $<
 
 #compile data reader
-%.o: mascot/DataIOOps/%.cpp mascot/DataIOOps/*.h
+%.o: mascot/DataReaderForCV/%.cpp mascot/DataReaderForCV/*.h
 	$(CXX) $(CCFLAGS) -o $@ -c $<
 %.o: svm-shared/DataReader/%.cpp svm-shared/DataReader/*.h
 	$(CXX) $(CCFLAGS) -o $@ -c $<
