@@ -6,7 +6,6 @@
 #include "deviceHessianOnFly.h"
 #include "../constant.h"
 
-float calculateKernelTime = 0;
 __global__ void RBFKernel(const float_point *aSelfDot, float_point bSelfDot, float_point *dotProduct, int numOfSamples,
                           float gamma) {
     const int idx = blockDim.x * blockIdx.x + threadIdx.x;
@@ -16,8 +15,6 @@ __global__ void RBFKernel(const float_point *aSelfDot, float_point bSelfDot, flo
 }
 
 void DeviceHessianOnFly::ReadRow(int nPosofRowAtHessian, float_point *devHessianRow, int start, int end) {
-    timeval start_t, end_t;
-    gettimeofday(&start_t, NULL);
     const int numOfSamples = end - start;
     const int *csrRowPtr = csrMat.getCSRRowPtr();
     const int numOfFeatures = csrMat.getNumOfFeatures();
@@ -67,8 +64,6 @@ void DeviceHessianOnFly::ReadRow(int nPosofRowAtHessian, float_point *devHessian
 //    memcpy(devHessianRow,hostKernel,sizeof(float_point) * numOfSamples);
 //    delete[] hostKernel;
 //    checkCudaErrors(cudaFree(devDenseVector));
-    gettimeofday(&end_t, NULL);
-    calculateKernelTime += timeElapse(start_t, end_t);
 }
 
 bool DeviceHessianOnFly::PrecomputeHessian(const string &strHessianMatrixFileName, const string &strDiagHessianFileName,

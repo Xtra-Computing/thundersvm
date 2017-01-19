@@ -30,7 +30,7 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
     PRINT_TIME("2 instances selection",selectTimer)
     PRINT_TIME("kernel calculation",calculateKernelTimer)
     PRINT_TIME("alpha updating",updateAlphaTimer)
-    PRINT_TIME("g value updating time",updateGTimer)
+    PRINT_TIME("g value updating",updateGTimer)
     //evaluate training error
     if (evaluteTrainingError == true) {
         printf("Computing training accuracy...\n");
