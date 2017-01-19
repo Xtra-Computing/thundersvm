@@ -8,8 +8,8 @@
 #include<iostream>
 #include<cassert>
 #include <stdio.h>
-using std::cout;
-using std::endl;
+
+#include "cvFunction.h"
 
 #include "../svm-shared/HessianIO/seqAccessor.h"
 #include "../svm-shared/HessianIO/parAccessor.h"
@@ -23,11 +23,11 @@ using std::endl;
 #include "../svm-shared/fileOps.h"
 #include "../DataReader/BaseLibsvmReader.h"
 #include "../DataReader/LibsvmReaderSparse.h"
+
+using std::cout;
+using std::endl;
+
 //device function for CPairSelector
-
-#include "classificationKernel.h"
-#include "cvFunction.h"
-
 void gridSearch(Grid &SGrid, string strTrainingFileName){
 	lIO_timer = 0;
 

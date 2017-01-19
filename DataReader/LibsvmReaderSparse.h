@@ -27,27 +27,30 @@ using std::cerr;
 using std::endl;
 using std::cout;
 
-
 class LibSVMDataReader: public BaseLibSVMReader
 {
 public:
 	LibSVMDataReader(){}
 	~LibSVMDataReader(){}
 
-	template<class T>
+    template<class T>
 	void ReadLibSVMAsDense(vector<vector<float_point> > &v_vSample, vector<T> &v_targetValue,
 							  string strFileName, int nNumofFeatures, int nNumofInstance = -1);
 
-
-	template<class T>
+    template<class T>
 	void ReadLibSVMAsSparse(vector<vector<KeyValue> > &v_vSample, vector<T> &v_targetValue,
 			  	  	  	  	  	string strFileName, int nNumofFeatures, int nNumofInstance = -1);
 
 private:
-	template<class T>
+    template<class T>
 	void ReaderHelper(vector<vector<KeyValue> > &v_vSample, vector<T> &v_targetValue,
 	  	  	  		  string strFileName, int nNumofFeatures, int nNumofInstance, bool bUseDense);
-	void Push(int feaId, float_point value, vector<KeyValue> &vIns);
+	void Push(int feaId, float_point value, vector<KeyValue> &vIns){
+        KeyValue pair;
+        pair.id = feaId;
+        pair.featureValue = value;
+        vIns.push_back(pair);
+    }
 };
 
 /**
@@ -60,6 +63,7 @@ void LibSVMDataReader::ReadLibSVMAsSparse(vector<vector<KeyValue> > &v_vInstance
 	if(nNumofInstance == -1){
 		nNumofInstance = std::numeric_limits<int>::max();
 	}
+    cout << "reading libsvm data as sparse format..." << endl;
 	ReaderHelper(v_vInstance, v_targetValue, strFileName, nNumofFeatures, nNumofInstance, false);
 }
 
@@ -74,6 +78,7 @@ void LibSVMDataReader::ReadLibSVMAsDense(vector<vector<float_point> > &v_vInstan
 		nNumofExamples = std::numeric_limits<int>::max();
 	}
 	vector<vector<KeyValue> > v_vInstanceKeyValue;
+    cout << "readign libsvm data as dense format..." << endl;
 	ReaderHelper(v_vInstanceKeyValue, v_targetValue, strFileName, nNumofFeatures, nNumofExamples, true);
 
 	//convert key values to values only.
@@ -167,18 +172,9 @@ void LibSVMDataReader::ReaderHelper(vector<vector<KeyValue> > &v_vInstance, vect
 	{
 		readIn.clear();
 	}
+    printf("# of instances: %d; # of features: %d\n", v_vInstance.size(), nNumofFeatures);
 }
 
-/**
- * @brief:
- */
-void LibSVMDataReader::Push(int feaId, float_point value, vector<KeyValue> &vIns)
-{
-	KeyValue pair;
-	pair.id = feaId;
-	pair.featureValue = value;
-	vIns.push_back(pair);
-}
 
 
 #endif /* TRAININGDATAIO_H_ */

@@ -8,7 +8,7 @@
 #include "trainingFunction.h"
 #include <sys/time.h>
 #include "../svm-shared/Cache/cache.h"
-#include "DataIOOps/DataIO.h"
+#include "../DataReader/LibsvmReaderSparse.h"
 #include "../svm-shared/HessianIO/deviceHessianOnFly.h"
 #include "../SharedUtility/Timer.h"
 #include "../SharedUtility/KeyValue.h"

@@ -8,10 +8,8 @@
 #include <sstream>
 #include <limits>
 #include "DataIO.h"
-#include "../../DataReader/LibsvmReaderSparse.h"
 
 using std::istringstream;
-
 /*
  * @brief: randomise
  */
@@ -194,20 +192,3 @@ void CReadHelper::ReadMultiClassData(vector<vector<float_point> > &v_vPosSample,
     }
 }
 
-/**
- * @brief: read libsvm format data and store in dense form.
- */
-void CReadHelper::ReadLibSVMMultiClassData(vector<vector<float_point> > &v_vSamples, vector<int> &v_nLabels,
-										   string strFileName, long nNumofFeatures){
-	LibSVMDataReader drHelper;
-	drHelper.ReadLibSVMAsDense(v_vSamples, v_nLabels, strFileName, nNumofFeatures);
-}
-
-/**
- * @brief: read libsvm format data and store in sparse form.
- */
-void CReadHelper::ReadLibSVMMultiClassDataSparse(vector<vector<KeyValue> > &v_vInstance, vector<int> &v_nLabels,
-												 string strFileName, long nNumofFeatures){
-	LibSVMDataReader drHelper;
-	drHelper.ReadLibSVMAsSparse(v_vInstance, v_nLabels, strFileName, nNumofFeatures);
-}
