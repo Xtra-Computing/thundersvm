@@ -2,40 +2,23 @@
  * trainingDataIO.h
  * Created on: May 21, 2012
  * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
  **/
 
 #ifndef DATAIO_H_
 #define DATAIO_H_
 
 #include <iostream>
-#include <stdlib.h>
-#include <fstream>
 #include <vector>
-#include "../../svm-shared/my_assert.h"
-#include "../../svm-shared/constant.h"
-#include "../../svm-shared/gpu_global_utility.h"
-#include "../../SharedUtility/KeyValue.h"
+#include "../../SharedUtility/DataType.h"
 
 using std::string;
 using std::vector;
-using std::ifstream;
-using std::cerr;
-using std::endl;
-using std::cout;
 
-class CDataIOOps {
+
+class CReadForCrossValidation {
 public:
-    CDataIOOps() {}
-
-    virtual ~CDataIOOps() {}
-
-    bool OrganizeSamples(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
+    static bool OrganizeSamples(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
                          vector<vector<float_point> > &v_vAllSample, vector<int> &v_nLabel);
-};
-
-class CReadHelper {
-public:
     static void Randomize(vector<vector<float_point> > &v_vPos, vector<vector<float_point> > &v_vNeg);
 
     static void

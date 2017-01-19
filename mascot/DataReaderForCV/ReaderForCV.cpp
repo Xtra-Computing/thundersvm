@@ -5,15 +5,67 @@
  *  Author: Zeyi Wen
  */
 
+#include "../DataReaderForCV/ReaderForCV.h"
+
+#include <stdlib.h>
 #include <sstream>
 #include <limits>
-#include "DataIO.h"
+#include "../../svm-shared/my_assert.h"
 
 using std::istringstream;
+using std::ifstream;
+using std::cerr;
+using std::endl;
+using std::cout;
+
+/*
+ * @brief: uniformly distribute positive and negative samples
+ */
+bool CReadForCrossValidation::OrganizeSamples(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
+                                 vector<vector<float_point> > &v_vAllSample, vector<int> &v_nLabel) {
+    //merge two sets of samples into one
+    int nSizeofPSample = v_vPosSample.size();
+    int nSizeofNSample = v_vNegSample.size();
+    double dRatio = ((double) nSizeofPSample) / nSizeofNSample;
+
+    //put samples in a uniform way. This is to avoid the training set only having one class, during n-fold-cross-validation
+    int nNumofPosInEachPart = 0;
+    int nNumofNegInEachPart = 0;
+    if (dRatio < 1) {
+        nNumofPosInEachPart = 1;
+        nNumofNegInEachPart = int(1.0 / dRatio);
+    } else {
+        nNumofPosInEachPart = (int) dRatio;
+        nNumofNegInEachPart = 1;
+    }
+
+    vector<vector<float_point> >::iterator itPositive = v_vPosSample.begin();
+    vector<vector<float_point> >::iterator itNegative = v_vNegSample.begin();
+    int nCounter = 0;
+    while (itPositive != v_vPosSample.end() || itNegative != v_vNegSample.end()) {
+        for (int i = 0; i < nNumofPosInEachPart && itPositive != v_vPosSample.end(); i++) {
+            nCounter++;
+            v_vAllSample.push_back(*itPositive);
+            v_nLabel.push_back(1);
+            itPositive++;
+        }
+
+        for (int i = 0; i < nNumofNegInEachPart && itNegative != v_vNegSample.end(); i++) {
+            nCounter++;
+            v_vAllSample.push_back(*itNegative);
+            v_nLabel.push_back(-1);
+            itNegative++;
+        }
+    }
+    v_vPosSample.clear();
+    v_vNegSample.clear();
+    return true;
+}
+
 /*
  * @brief: randomise
  */
-void CReadHelper::Randomize(vector<vector<float_point> > &v_vPos, vector<vector<float_point> > &v_vNeg)
+void CReadForCrossValidation::Randomize(vector<vector<float_point> > &v_vPos, vector<vector<float_point> > &v_vNeg)
 {
     vector<vector<float_point> > v_vTempPos;
     vector<vector<float_point> > v_vTempNeg;
@@ -42,7 +94,7 @@ void CReadHelper::Randomize(vector<vector<float_point> > &v_vPos, vector<vector<
 /**
  * @brief: read libsvm format 2-class data and store in dense format. For reading the whole set or a subset.
  */
-void CReadHelper::ReadLibSVMDataFormat(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
+void CReadForCrossValidation::ReadLibSVMDataFormat(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
         							   string strFileName, int nNumofFeatures, int nNumofSamples)
 {
 	if(nNumofSamples == -1){//read the whole dataset
@@ -126,7 +178,7 @@ void CReadHelper::ReadLibSVMDataFormat(vector<vector<float_point> > &v_vPosSampl
 /**
  * @brief: read multiclass data and convert to 2-class data by even and odd.
  */
-void CReadHelper::ReadMultiClassData(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
+void CReadForCrossValidation::ReadMultiClassData(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
         string strFileName, int nNumofFeatures, int nNumofSamples)
 {
     ifstream readIn;
