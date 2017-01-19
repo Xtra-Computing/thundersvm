@@ -21,8 +21,8 @@ using std::endl;
 #include "../svm-shared/smoSolver.h"
 #include "../svm-shared/Cache/cache.h"
 #include "../svm-shared/fileOps.h"
-#include "DataIOOps/DataIO.h"
 #include "../DataReader/BaseLibsvmReader.h"
+#include "../DataReader/LibsvmReaderSparse.h"
 //device function for CPairSelector
 
 #include "classificationKernel.h"
@@ -31,7 +31,6 @@ using std::endl;
 void gridSearch(Grid &SGrid, string strTrainingFileName){
 	lIO_timer = 0;
 
-	CDataIOOps rawDataRead;
 	vector<vector<float_point> > v_vDocVector;
 	vector<int> v_nLabel;
 
@@ -39,7 +38,8 @@ void gridSearch(Grid &SGrid, string strTrainingFileName){
 	int nNumofInstance = 0;
 	long long nNumofValue = 0;
 	BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
-	rawDataRead.ReadFromFile(strTrainingFileName, nNumofFeature, v_vDocVector, v_nLabel);
+	LibSVMDataReader drHelper;
+	drHelper.ReadLibSVMAsDense(v_vDocVector, v_nLabel, strTrainingFileName, nNumofFeature);
 
 	CModelSelector modelSelector;
 

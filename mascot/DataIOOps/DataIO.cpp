@@ -5,8 +5,9 @@
  * Author: Zeyi Wen
  **/
 
-#include "DataIO.h"
 #include <iostream>
+#include "DataIO.h"
+#include "../../DataReader/LibsvmReaderSparse.h"
 
 using std::cout;
 using std::endl;
@@ -17,7 +18,8 @@ bool CDataIOOps::ReadFromFile(string strFileName, int nNumofFeature, vector<vect
     v_nLabel.clear();
     cout << "reading multi-class data..." << endl;
     //read data from file
-    CReadHelper::ReadLibSVMMultiClassData(v_vSampleData, v_nLabel, strFileName, nNumofFeature);
+	LibSVMDataReader drHelper;
+	drHelper.ReadLibSVMAsDense(v_vSampleData, v_nLabel, strFileName, nNumofFeature);
     printf("dataset size:%d, # of features:%d\n", v_vSampleData.size(), nNumofFeature);
     return nReturn;
 }
@@ -28,7 +30,8 @@ bool CDataIOOps::ReadFromFileSparse(string strFileName, int nNumofFeature, vecto
     v_nLabel.clear();
     cout << "reading libsvm data with sparse format..." << endl;
     //read data from file
-    CReadHelper::ReadLibSVMMultiClassDataSparse(v_vInstance, v_nLabel, strFileName, nNumofFeature);
+	LibSVMDataReader drHelper;
+	drHelper.ReadLibSVMAsSparse(v_vInstance, v_nLabel, strFileName, nNumofFeature);
     printf("# of instances: %d; # of features: %d\n", v_vInstance.size(), nNumofFeature);
     return nReturn;
 }

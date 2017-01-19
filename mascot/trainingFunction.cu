@@ -13,17 +13,15 @@
 #include "../SharedUtility/Timer.h"
 #include "../SharedUtility/KeyValue.h"
 
-
-
 void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, SvmModel &model, bool evaluteTrainingError) {
     vector<vector<KeyValue> > v_v_Instance;
     vector<int> v_nLabel;
 
-    CDataIOOps rawDataRead;
     int nNumofInstance = 0;     //not used
     long long nNumofValue = 0;  //not used
     BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
-    rawDataRead.ReadFromFileSparse(strTrainingFileName, nNumofFeature, v_v_Instance, v_nLabel);
+	LibSVMDataReader drHelper;
+	drHelper.ReadLibSVMAsSparse(v_v_Instance, v_nLabel, strTrainingFileName, nNumofFeature);
     SvmProblem problem(v_v_Instance, nNumofFeature, v_nLabel);
     ACCUMULATE_TIME(trainingTimer, model.fit(problem, param))
     PRINT_TIME("training", trainingTimer)
@@ -44,11 +42,11 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNum
     vector<vector<KeyValue> > v_v_Instance;
     vector<int> v_nLabel;
 
-    CDataIOOps rawDataRead;
     int nNumofInstance = 0;     //not used
     long long nNumofValue = 0;  //not used
     BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
-    rawDataRead.ReadFromFileSparse(strTrainingFileName, nNumofFeature, v_v_Instance, v_nLabel);
+	LibSVMDataReader drHelper;
+	drHelper.ReadLibSVMAsSparse(v_v_Instance, v_nLabel, strTrainingFileName, nNumofFeature);
 
     //evaluate testing error
     evaluate(model, v_v_Instance, v_nLabel);
