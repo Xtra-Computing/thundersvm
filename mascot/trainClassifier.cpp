@@ -5,13 +5,13 @@
  *      Author: Zeyi Wen
  */
 
-#include "trainingFunction.h"
 #include <sys/time.h>
-#include "../svm-shared/Cache/cache.h"
 #include "../DataReader/LibsvmReaderSparse.h"
+#include "../svm-shared/Cache/cache.h"
 #include "../svm-shared/HessianIO/deviceHessianOnFly.h"
 #include "../SharedUtility/Timer.h"
 #include "../SharedUtility/KeyValue.h"
+#include "trainClassifier.h"
 
 void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, SvmModel &model, bool evaluteTrainingError) {
     vector<vector<KeyValue> > v_v_Instance;

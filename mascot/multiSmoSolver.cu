@@ -7,10 +7,10 @@
 #include "multiSmoSolver.h"
 #include "../svm-shared/constant.h"
 #include "cuda_runtime.h"
-#include "trainingFunction.h"
 #include "../svm-shared/smoGPUHelper.h"
 #include "../svm-shared/HessianIO/deviceHessianOnFly.h"
 #include "../SharedUtility/Timer.h"
+#include "trainClassifier.h"
 
 void MultiSmoSolver::solve() {
     int nrClass = problem.getNumOfClasses();

@@ -14,10 +14,10 @@
 #include <cuda_runtime_api.h>
 #include <zconf.h>
 #include <cuda_profiler_api.h>
-#include "trainingFunction.h"
 #include "multiSmoSolver.h"
 #include "multiPredictor.h"
 #include<map>
+#include "trainClassifier.h"
 
 //#include "sigmoidTrainGPUHelper.h"
 

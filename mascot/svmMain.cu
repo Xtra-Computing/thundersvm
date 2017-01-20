@@ -11,11 +11,11 @@
 #include <helper_cuda.h>
 #include <cuda.h>
 
-#include "trainingFunction.h"
 #include "cvFunction.h"
 #include "commandLineParser.h"
 #include "../SharedUtility/initCuda.h"
 #include "svmModel.h"
+#include "trainClassifier.h"
 using std::cout;
 using std::endl;
 
