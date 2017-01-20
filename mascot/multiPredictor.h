@@ -19,14 +19,14 @@ using std::vector;
 
 class MultiPredictor{
 private:
-    const SvmModel &model;
+    SvmModel &model;
     const SVMParam &param;
 
 public:
-	MultiPredictor(const SvmModel &model, const SVMParam &param):model(model), param(param){}
+	MultiPredictor(SvmModel &model, const SVMParam &param):model(model), param(param){}
 	~MultiPredictor(){}
 
-    vector<int> predict(const vector<vector<KeyValue> > &v_vSamples) const;
+    vector<int> predict(const vector<vector<KeyValue> > &v_vSamples, const vector<int> &vnOriginalLabel = vector<int>()) const;
 private:
     vector<vector<float_point> > predictProbability(const vector<vector<KeyValue> > &) const;
     void computeDecisionValues(const vector<vector<KeyValue> > &, vector<vector<float_point> > &) const;

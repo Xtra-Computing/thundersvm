@@ -42,6 +42,8 @@ public:
     int *devSVIndex;
     bool probability;
 
+    vector<vector<int> > missLabellingMatrix;	//for measuring classification error for each sub-classifier
+
 private:
     int numOfSVs;
     vector<int> start;					//for multiclass, start position for each class of instances

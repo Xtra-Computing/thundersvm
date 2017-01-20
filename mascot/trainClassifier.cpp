@@ -58,22 +58,28 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNum
  */
 void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<int> &v_nLabel)
 {
-    //perform svm classification
-
     int batchSize = 2000;
+
+    //create a miss labeling matrix for measuring the sub-classifier errors.
+    model.missLabellingMatrix = vector<vector<int>(model.nrClass, 0)>(model.nrClass, 0);
+    MultiPredictor predictor(model, model.param);
+
+	clock_t start, finish;
+    start = clock();
     int begin = 0;
     vector<int> predictLabels;
-    clock_t start, end;
-	MultiPredictor predictor(model, model.param);
-    start = clock();
     while (begin < v_v_Instance.size()) {
+    	//get a subset of instances
+    	int end = min(begin + batchSize, (int) v_v_Instance.size());
         vector<vector<KeyValue> > samples(v_v_Instance.begin() + begin,
-                                          v_v_Instance.begin() + min(begin + batchSize, (int) v_v_Instance.size()));
-        vector<int> predictLabelPart = predictor.predict(samples);
+                                          v_v_Instance.begin() + end);
+        vector<int> vLabel(v_nLabel.begin() + begin, v_nLabel.begin() + end);
+        //predict labels for the subset of instances
+        vector<int> predictLabelPart = predictor.predict(samples, vLabel);
         predictLabels.insert(predictLabels.end(), predictLabelPart.begin(), predictLabelPart.end());
         begin += batchSize;
     }
-    end = clock();
+    finish = clock();
     int numOfCorrect = 0;
     for (int i = 0; i < v_v_Instance.size(); ++i) {
         if (predictLabels[i] == v_nLabel[i])
@@ -81,5 +87,5 @@ void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<i
     }
     printf("classifier accuracy = %.2f%%(%d/%d)\n", numOfCorrect / (float) v_v_Instance.size() * 100,
            numOfCorrect, (int) v_v_Instance.size());
-    printf("prediction time elapsed: %.2fs\n", (float) (end - start) / CLOCKS_PER_SEC);
+    printf("prediction time elapsed: %.2fs\n", (float) (finish - start) / CLOCKS_PER_SEC);
 }
