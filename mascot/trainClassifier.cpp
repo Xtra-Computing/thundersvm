@@ -13,6 +13,7 @@
 #include "../SharedUtility/KeyValue.h"
 #include "trainClassifier.h"
 #include "multiPredictor.h"
+#include "classifierEvaluater.h"
 
 void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, SvmModel &model, bool evaluteTrainingError) {
     vector<vector<KeyValue> > v_v_Instance;
@@ -35,7 +36,7 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
     //evaluate training error
     if (evaluteTrainingError == true) {
         printf("Computing training accuracy...\n");
-        evaluate(model, v_v_Instance, v_nLabel);
+        evaluate(model, v_v_Instance, v_nLabel, ClassifierEvaluater::trainingError);
     }
 }
 
@@ -50,33 +51,14 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNum
 	drHelper.ReadLibSVMAsSparse(v_v_Instance, v_nLabel, strTrainingFileName, nNumofFeature);
 
     //evaluate testing error
-    evaluate(model, v_v_Instance, v_nLabel);
-}
-
-/**
- * @brief: evaluate sub-classifiers for multi-class classification
- */
-void evaluateSubClassifier(const vector<vector<int> > &missLabellingMatrix){
-	int row = missLabellingMatrix.size();
-	int col = missLabellingMatrix[0].size();
-	int totalIns = 0, totalMiss = 0;
-	for(int r = 0; r < row; r++){
-		for(int c = r + 1; c < col; c++){
-			int totalRC = missLabellingMatrix[r][r] + missLabellingMatrix[c][c];
-			totalIns += totalRC;
-			int rcMissLabelling = missLabellingMatrix[r][c] + missLabellingMatrix[c][r];
-			totalMiss += rcMissLabelling;
-			printf("%d and %d accuracy is %f\n", r, c, (float)rcMissLabelling / totalRC);
-		}
-	}
-    printf("classifier incorrect rate = %.2f%%(%d/%d)\n", totalMiss / (float) totalIns * 100,
-    		totalMiss, totalIns);
+    evaluate(model, v_v_Instance, v_nLabel, ClassifierEvaluater::testingError);
 }
 
 /**
  * @brief: evaluate the svm model, given some labeled instances.
  */
-void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<int> &v_nLabel){
+void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<int> &v_nLabel,
+			  vector<float_point> &classificationError){
     int batchSize = 2000;
 
     //create a miss labeling matrix for measuring the sub-classifier errors.
@@ -110,6 +92,6 @@ void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<i
            numOfCorrect, (int) v_v_Instance.size());
     printf("prediction time elapsed: %.2fs\n", (float) (finish - start) / CLOCKS_PER_SEC);
     if(model.nrClass > 2){
-    	evaluateSubClassifier(model.missLabellingMatrix);
+    	ClassifierEvaluater::evaluateSubClassifier(model.missLabellingMatrix, classificationError);
     }
 }

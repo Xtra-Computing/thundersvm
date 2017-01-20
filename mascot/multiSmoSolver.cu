@@ -14,6 +14,11 @@
 
 void MultiSmoSolver::solve() {
     int nrClass = problem.getNumOfClasses();
+
+    if(model.vC.size() == 0){//initialize C for all the binary classes
+    	model.vC = vector<float_point>(nrClass * (nrClass - 1)/2, param.C);
+    }
+
     //train nrClass*(nrClass-1)/2 binary models
     int k = 0;
     for (int i = 0; i < nrClass; ++i) {
@@ -27,7 +32,7 @@ void MultiSmoSolver::solve() {
                            : ITERATION_FACTOR * subProblem.getNumOfSamples()) * 4;
             int numOfIter;
             TIMER_START(iterationTimer)
-            for (numOfIter = 0; numOfIter < maxIter && !iterate(subProblem, param.C); numOfIter++) {
+            for (numOfIter = 0; numOfIter < maxIter && !iterate(subProblem, model.vC[k]); numOfIter++) {
                 if (numOfIter % 1000 == 0 && numOfIter != 0) {
                     std::cout << ".";
                     std::cout.flush();

@@ -55,8 +55,9 @@ esac
 #svm with probability output
 PROB="-b 0" #0 for no probability output; 1 for probability output.
 
-#task type
-TASK="-o 2" #0, 1, 2 and 3 for training, cross-validation, evaluation and grid search, respectively.
+#task type: 0 for training; 1 for cross-validation; 2 for evaluation
+#	    3 for grid search; 4 for selecting better C.
+TASK="-o 2"
 
 #evaluate training error
 E="-r 1" #0 not evaluate training error; evaluate training error otherwise.

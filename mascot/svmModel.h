@@ -43,6 +43,7 @@ public:
     bool probability;
 
     vector<vector<int> > missLabellingMatrix;	//for measuring classification error for each sub-classifier
+    vector<float_point> vC;							//keep improving C
 
 private:
     int numOfSVs;
