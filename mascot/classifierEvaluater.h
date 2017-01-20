@@ -9,6 +9,7 @@
 #define MASCOT_CLASSIFIEREVALUATER_H_
 
 #include <vector>
+#include <stdio.h>
 #include "../SharedUtility/DataType.h"
 
 using std::vector;
@@ -34,7 +35,7 @@ public:
 				int rcMissLabelling = missLabellingMatrix[r][c] + missLabellingMatrix[c][r];
 				totalMiss += rcMissLabelling;
 				//printf("%d and %d accuracy is %f\n", r, c, (float)rcMissLabelling / totalRC);
-				vErrorRate((float)rcMissLabelling / totalRC);
+				vErrorRate.push_back((float)rcMissLabelling / totalRC);
 			}
 		}
 	    printf("classifier incorrect rate = %.2f%%(%d/%d)\n", totalMiss / (float) totalIns * 100,
