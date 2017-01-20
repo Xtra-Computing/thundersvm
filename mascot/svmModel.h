@@ -18,8 +18,8 @@ using std::vector;
 
 class SvmModel {
 public:
-    vector<int> label;
-    unsigned int nrClass;
+    vector<int> label;					//class labels; its size equals to the number of classes.
+    uint nrClass;
     int numOfFeatures;
     vector<vector<int> > svIndex;
     vector<vector<KeyValue> > svMap;
@@ -38,7 +38,7 @@ public:
     float_point *devProbA = NULL;
     float_point *devProbB = NULL;
     SVMParam param;
-    unsigned int cnr2;					//total number of svm models to train
+    uint cnr2;							//total number of svm models to train
     int *devSVIndex;
     bool probability;
 
@@ -50,7 +50,7 @@ private:
 
     //device pointers
 //    svm_node **devSVs = NULL;
-    unsigned int inline getK(int i, int j) const;
+    uint inline getK(int i, int j) const;
 
 	//have changed the type of *dec_values,& A,& B
 //	void gpu_sigmoid_train(int l, const float_point *dec_values, const float_point *labels,

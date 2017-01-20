@@ -4,20 +4,20 @@
    *
 */
 
-#include "svmModel.h"
-
-#include "svmPredictor.h"
-#include "../svm-shared/HessianIO/deviceHessian.h"
-#include "../svm-shared/storageManager.h"
+#include <map>
 #include <cuda.h>
+#include <zconf.h>
 #include <helper_cuda.h>
 #include <cuda_runtime_api.h>
-#include <zconf.h>
 #include <cuda_profiler_api.h>
+
+#include "svmModel.h"
+#include "svmPredictor.h"
 #include "multiSmoSolver.h"
 #include "multiPredictor.h"
-#include<map>
 #include "trainClassifier.h"
+#include "../svm-shared/HessianIO/deviceHessian.h"
+#include "../svm-shared/storageManager.h"
 
 //#include "sigmoidTrainGPUHelper.h"
 
@@ -36,7 +36,10 @@ SvmModel::~SvmModel() {
     if (svMapCSRMat) delete svMapCSRMat;
 }
 
-unsigned int SvmModel::getK(int i, int j) const {
+/*
+ * @brief: get the classifier id based on i and j.
+ */
+uint SvmModel::getK(int i, int j) const {
     return ((nrClass - 1) + (nrClass - i)) * i / 2 + j - i - 1;
 }
 

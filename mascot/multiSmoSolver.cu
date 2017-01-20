@@ -42,8 +42,6 @@ void MultiSmoSolver::solve() {
             float_point rho;
             extractModel(subProblem, svIndex, coef, rho);
 
-            //measure training errors and prediction errors
-
             model.addBinaryModel(subProblem, svIndex, coef, rho, i, j);
             k++;
             deinit4Training();

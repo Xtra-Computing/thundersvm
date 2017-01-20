@@ -87,7 +87,7 @@ vector<vector<float_point> > MultiPredictor::predictProbability(const vector<vec
 	int nrClass = model.nrClass;
     vector<vector<float_point> > result;
     vector<vector<float_point> > decValues;
-    predictValues(v_vSamples, decValues);
+    computeDecisionValues(v_vSamples, decValues);
     for (int l = 0; l < v_vSamples.size(); ++l) {
         vector<vector<float_point> > r(nrClass, vector<float_point>(nrClass));
         double min_prob = 1e-7;
@@ -106,7 +106,10 @@ vector<vector<float_point> > MultiPredictor::predictProbability(const vector<vec
     return result;
 }
 
-void MultiPredictor::predictValues(const vector<vector<KeyValue> > &v_vSamples,
+/**
+ * @brief: compute the decision value
+ */
+void MultiPredictor::computeDecisionValues(const vector<vector<KeyValue> > &v_vSamples,
                         		   vector<vector<float_point> > &decisionValues) const {
     //copy samples to device
     CSRMatrix sampleCSRMat(v_vSamples, model.numOfFeatures);
@@ -183,7 +186,7 @@ vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples,
     vector<int> labels;
     if (!probability) {
         vector<vector<float_point> > decisionValues;
-        predictValues(v_vSamples, decisionValues);
+        computeDecisionValues(v_vSamples, decisionValues);
         for (int l = 0; l < v_vSamples.size(); ++l) {
             vector<int> votes(nrClass, 0);
             int k = 0;

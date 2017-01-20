@@ -9,6 +9,8 @@
 void SvmProblem::groupClasses() {
     if (!subProblem) {
         vector<int> dataLabel(v_nLabels.size());
+
+        //get the class labels; count the number of instances in each class.
         for (int i = 0; i < v_nLabels.size(); ++i) {
             int j;
             for (j = 0; j < label.size(); ++j) {
@@ -18,13 +20,14 @@ void SvmProblem::groupClasses() {
                 }
             }
             dataLabel[i] = j;
-            //if the label is unseen, add it to label set
+            //if the label is unseen, add it to label vector.
             if (j == label.size()) {
                 label.push_back(v_nLabels[i]);
                 count.push_back(1);
             }
         }
 
+        //logically put instances of the same class consecutively.
         start.push_back(0);
         for (int i = 1; i < count.size(); ++i) {
             start.push_back(start[i - 1] + count[i - 1]);
