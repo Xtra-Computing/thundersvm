@@ -59,13 +59,18 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNum
 void evaluateSubClassifier(const vector<vector<int> > &missLabellingMatrix){
 	int row = missLabellingMatrix.size();
 	int col = missLabellingMatrix[0].size();
+	int totalIns = 0, totalMiss = 0;
 	for(int r = 0; r < row; r++){
 		for(int c = r + 1; c < col; c++){
-			int totalIns = missLabellingMatrix[r][r] + missLabellingMatrix[c][c];
+			int totalRC = missLabellingMatrix[r][r] + missLabellingMatrix[c][c];
+			totalIns += totalRC;
 			int rcMissLabelling = missLabellingMatrix[r][c] + missLabellingMatrix[c][r];
-			printf("%d and %d accuracy is %f\n", r, c, (float)rcMissLabelling / totalIns);
+			totalMiss += rcMissLabelling;
+			printf("%d and %d accuracy is %f\n", r, c, (float)rcMissLabelling / totalRC);
 		}
 	}
+    printf("classifier incorrect rate = %.2f%%(%d/%d)\n", totalMiss / (float) totalIns * 100,
+    		totalMiss, totalIns);
 }
 
 /**
