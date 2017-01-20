@@ -54,10 +54,24 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNum
 }
 
 /**
+ * @brief: evaluate sub-classifiers for multi-class classification
+ */
+void evaluateSubClassifier(const vector<vector<int> > &missLabellingMatrix){
+	int row = missLabellingMatrix.size();
+	int col = missLabellingMatrix[0].size();
+	for(int r = 0; r < row; r++){
+		for(int c = r + 1; c < col; c++){
+			int totalIns = missLabellingMatrix[r][r] + missLabellingMatrix[c][c];
+			int rcMissLabelling = missLabellingMatrix[r][c] + missLabellingMatrix[c][r];
+			printf("%d and %d accuracy is %f\n", r, c, (float)rcMissLabelling / totalIns);
+		}
+	}
+}
+
+/**
  * @brief: evaluate the svm model, given some labeled instances.
  */
-void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<int> &v_nLabel)
-{
+void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<int> &v_nLabel){
     int batchSize = 2000;
 
     //create a miss labeling matrix for measuring the sub-classifier errors.
@@ -74,6 +88,8 @@ void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<i
         vector<vector<KeyValue> > samples(v_v_Instance.begin() + begin,
                                           v_v_Instance.begin() + end);
         vector<int> vLabel(v_nLabel.begin() + begin, v_nLabel.begin() + end);
+        if(model.nrClass == 2)
+        	vLabel.clear();
         //predict labels for the subset of instances
         vector<int> predictLabelPart = predictor.predict(samples, vLabel);
         predictLabels.insert(predictLabels.end(), predictLabelPart.begin(), predictLabelPart.end());
@@ -88,4 +104,7 @@ void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<i
     printf("classifier accuracy = %.2f%%(%d/%d)\n", numOfCorrect / (float) v_v_Instance.size() * 100,
            numOfCorrect, (int) v_v_Instance.size());
     printf("prediction time elapsed: %.2fs\n", (float) (finish - start) / CLOCKS_PER_SEC);
+    if(model.nrClass > 2){
+    	evaluateSubClassifier(model.missLabellingMatrix);
+    }
 }
