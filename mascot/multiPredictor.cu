@@ -181,8 +181,9 @@ void MultiPredictor::computeDecisionValues(const vector<vector<KeyValue> > &v_vS
     cusparseDestroyMatDescr(descr);
 }
 
-vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples, bool probability) const{
+vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples) const{
 	int nrClass = model.nrClass;
+	bool probability = model.isProbability();
     vector<int> labels;
     if (!probability) {
         vector<vector<float_point> > decisionValues;

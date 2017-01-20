@@ -63,11 +63,12 @@ void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<i
     int begin = 0;
     vector<int> predictLabels;
     clock_t start, end;
+	MultiPredictor predictor(model, model.param);
     start = clock();
     while (begin < v_v_Instance.size()) {
         vector<vector<KeyValue> > samples(v_v_Instance.begin() + begin,
                                           v_v_Instance.begin() + min(begin + batchSize, (int) v_v_Instance.size()));
-        vector<int> predictLabelPart = model.predict(samples, model.isProbability());
+        vector<int> predictLabelPart = predictor.predict(samples);
         predictLabels.insert(predictLabels.end(), predictLabelPart.begin(), predictLabelPart.end());
         begin += batchSize;
     }

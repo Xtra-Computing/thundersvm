@@ -68,17 +68,11 @@ private:
 
 public:
     ~SvmModel();
-
     SvmModel() {};
 
     void fit(const SvmProblem &problem, const SVMParam &param);
-
-    vector<int> predict(const vector<vector<KeyValue> > &, bool probability = false) const;
-
-    void
-    addBinaryModel(const SvmProblem &subProblem, const vector<int> &svIndex, const vector<float_point> &coef,
-                   float_point rho, int i,
-                   int j);
+    void addBinaryModel(const SvmProblem &subProblem, const vector<int> &svIndex,
+    					const vector<float_point> &coef, float_point rho, int i, int j);
 
     bool isProbability() const;
 };
