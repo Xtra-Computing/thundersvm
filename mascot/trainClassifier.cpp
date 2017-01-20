@@ -12,6 +12,7 @@
 #include "../SharedUtility/Timer.h"
 #include "../SharedUtility/KeyValue.h"
 #include "trainClassifier.h"
+#include "multiPredictor.h"
 
 void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, SvmModel &model, bool evaluteTrainingError) {
     vector<vector<KeyValue> > v_v_Instance;
