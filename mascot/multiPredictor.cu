@@ -196,7 +196,12 @@ vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples,
         	if(!vnOriginalLabel.empty())//want to measure sub-classifier error
         	{
         		//update model labeling information
-				int originalLabel = vnOriginalLabel[l];
+                int rawLabel = vnOriginalLabel[l];
+				int originalLabel = -1;
+                for(int pos = 0; pos < model.label.size(); pos++){
+                    if(model.label[pos] == rawLabel)
+                        originalLabel = pos;
+                }
 				model.missLabellingMatrix[originalLabel][originalLabel]++;//increase the total occurrence of a label.
 				int k = 0;
 	            for (int i = 0; i < nrClass; ++i) {

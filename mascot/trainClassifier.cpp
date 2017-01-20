@@ -61,7 +61,7 @@ void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<i
     int batchSize = 2000;
 
     //create a miss labeling matrix for measuring the sub-classifier errors.
-    model.missLabellingMatrix = vector<vector<int>(model.nrClass, 0)>(model.nrClass, 0);
+    model.missLabellingMatrix = vector<vector<int> >(model.nrClass, vector<int>(model.nrClass, 0));
     MultiPredictor predictor(model, model.param);
 
 	clock_t start, finish;
