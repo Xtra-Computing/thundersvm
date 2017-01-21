@@ -18,8 +18,8 @@ using std::vector;
 
 class SvmModel {
 public:
-    vector<int> label;
-    unsigned int nrClass;
+    vector<int> label;					//class labels; its size equals to the number of classes.
+    uint nrClass;
     int numOfFeatures;
     vector<vector<int> > svIndex;
     vector<vector<KeyValue> > svMap;
@@ -38,9 +38,12 @@ public:
     float_point *devProbA = NULL;
     float_point *devProbB = NULL;
     SVMParam param;
-    unsigned int cnr2;					//total number of svm models to train
+    uint cnr2;							//total number of svm models to train
     int *devSVIndex;
     bool probability;
+
+    vector<vector<int> > missLabellingMatrix;	//for measuring classification error for each sub-classifier
+    vector<float_point> vC;							//keep improving C
 
 private:
     int numOfSVs;
@@ -50,7 +53,7 @@ private:
 
     //device pointers
 //    svm_node **devSVs = NULL;
-    unsigned int inline getK(int i, int j) const;
+    uint inline getK(int i, int j) const;
 
 	//have changed the type of *dec_values,& A,& B
 //	void gpu_sigmoid_train(int l, const float_point *dec_values, const float_point *labels,
@@ -68,17 +71,11 @@ private:
 
 public:
     ~SvmModel();
-
     SvmModel() {};
 
     void fit(const SvmProblem &problem, const SVMParam &param);
-
-    vector<int> predict(const vector<vector<KeyValue> > &, bool probability = false) const;
-
-    void
-    addBinaryModel(const SvmProblem &subProblem, const vector<int> &svIndex, const vector<float_point> &coef,
-                   float_point rho, int i,
-                   int j);
+    void addBinaryModel(const SvmProblem &subProblem, const vector<int> &svIndex,
+    					const vector<float_point> &coef, float_point rho, int i, int j);
 
     bool isProbability() const;
 };

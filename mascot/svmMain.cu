@@ -11,11 +11,12 @@
 #include <helper_cuda.h>
 #include <cuda.h>
 
-#include "trainingFunction.h"
 #include "cvFunction.h"
 #include "commandLineParser.h"
 #include "../SharedUtility/initCuda.h"
 #include "svmModel.h"
+#include "trainClassifier.h"
+#include "classifierEvaluater.h"
 using std::cout;
 using std::endl;
 
@@ -36,13 +37,11 @@ int main(int argc, char **argv)
 		cout << "performing training" << endl;
 		SvmModel model;
 		trainSVM(parser.param, fileName, parser.nNumofFeature, model, parser.compute_training_error);
-    }
-    else if(parser.task_type == 1){
+    }else if(parser.task_type == 1){
 		//perform cross validation*/
 		cout << "performing cross-validation" << endl;
 		crossValidation(parser.param, fileName);
-	}
-    else if(parser.task_type == 2){
+	}else if(parser.task_type == 2){
  		//perform svm evaluation 
 		cout << "performing evaluation" << endl;
 		SvmModel model;
@@ -50,15 +49,27 @@ int main(int argc, char **argv)
 		trainSVM(parser.param, fileName, parser.nNumofFeature, model, parser.compute_training_error);
         cout << "start evaluation..." << endl;
         evaluateSVMClassifier(model, strcat(fileName, ".t"), parser.nNumofFeature);
+    }else if(parser.task_type == 4){
+    	//perform selecting best C
+    	cout << "perform C selection" << endl;
+    	vector<float_point> vC;
+    	for(int i = 0; i < 3; i++){
+			SvmModel model;
+			model.vC = vC;
+			cout << "start training..." << endl;
+			trainSVM(parser.param, fileName, parser.nNumofFeature, model, parser.compute_training_error);
+			cout << "start evaluation..." << endl;
+			evaluateSVMClassifier(model, strcat(fileName, ".t"), parser.nNumofFeature);
+			vC = ClassifierEvaluater::updateC(model.vC);
+    	}
     }
-    else if(parser.task_type == 3){
+	else if(parser.task_type == 3){
     	cout << "performing grid search" << endl;
     	Grid paramGrid;
     	paramGrid.vfC.push_back(parser.param.C);
     	paramGrid.vfGamma.push_back(parser.param.gamma);
     	gridSearch(paramGrid, fileName);
-    }
-    else{
+    }else{
     	cout << "unknown task type" << endl;
     }
 

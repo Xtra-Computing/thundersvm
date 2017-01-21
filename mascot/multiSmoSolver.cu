@@ -7,13 +7,18 @@
 #include "multiSmoSolver.h"
 #include "../svm-shared/constant.h"
 #include "cuda_runtime.h"
-#include "trainingFunction.h"
 #include "../svm-shared/smoGPUHelper.h"
 #include "../svm-shared/HessianIO/deviceHessianOnFly.h"
 #include "../SharedUtility/Timer.h"
+#include "trainClassifier.h"
 
 void MultiSmoSolver::solve() {
     int nrClass = problem.getNumOfClasses();
+
+    if(model.vC.size() == 0){//initialize C for all the binary classes
+    	model.vC = vector<float_point>(nrClass * (nrClass - 1)/2, param.C);
+    }
+
     //train nrClass*(nrClass-1)/2 binary models
     int k = 0;
     for (int i = 0; i < nrClass; ++i) {
@@ -28,7 +33,7 @@ void MultiSmoSolver::solve() {
             int numOfIter;
             for (numOfIter = 0; numOfIter < maxIter ; numOfIter++) {
                 TIMER_START(iterationTimer)
-                if (iterate(subProblem, param.C))
+                if (iterate(subProblem, model.vC[k]))
                     break;
                 if (numOfIter % 1000 == 0 && numOfIter != 0) {
                     std::cout << ".";
@@ -43,8 +48,6 @@ void MultiSmoSolver::solve() {
             vector<float_point> coef;
             float_point rho;
             extractModel(subProblem, svIndex, coef, rho);
-
-            //measure training errors and prediction errors
 
             model.addBinaryModel(subProblem, svIndex, coef, rho, i, j);
             k++;
@@ -75,6 +78,8 @@ bool MultiSmoSolver::iterate(SvmProblem &subProblem, float_point C) {
     lowValue = -hostBuffer[3];
     //check if the problem is converged
     if (upValue + lowValue <= EPS) {
+        //cout << upValue << " : " << lowValue << endl;
+        //m_pGPUCache->PrintCachingStatistics();
         return true;
     }
 

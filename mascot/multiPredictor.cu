@@ -87,7 +87,7 @@ vector<vector<float_point> > MultiPredictor::predictProbability(const vector<vec
 	int nrClass = model.nrClass;
     vector<vector<float_point> > result;
     vector<vector<float_point> > decValues;
-    predictValues(v_vSamples, decValues);
+    computeDecisionValues(v_vSamples, decValues);
     for (int l = 0; l < v_vSamples.size(); ++l) {
         vector<vector<float_point> > r(nrClass, vector<float_point>(nrClass));
         double min_prob = 1e-7;
@@ -106,7 +106,10 @@ vector<vector<float_point> > MultiPredictor::predictProbability(const vector<vec
     return result;
 }
 
-void MultiPredictor::predictValues(const vector<vector<KeyValue> > &v_vSamples,
+/**
+ * @brief: compute the decision value
+ */
+void MultiPredictor::computeDecisionValues(const vector<vector<KeyValue> > &v_vSamples,
                         		   vector<vector<float_point> > &decisionValues) const {
     //copy samples to device
     CSRMatrix sampleCSRMat(v_vSamples, model.numOfFeatures);
@@ -178,21 +181,51 @@ void MultiPredictor::predictValues(const vector<vector<KeyValue> > &v_vSamples,
     cusparseDestroyMatDescr(descr);
 }
 
-vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples, bool probability) const{
+/**
+ * @brief: predict the label of the instances
+ * @param: vnOriginalLabel is for computing errors of sub-classifier.
+ */
+vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples, const vector<int> &vnOriginalLabel) const{
 	int nrClass = model.nrClass;
+	bool probability = model.isProbability();
     vector<int> labels;
     if (!probability) {
         vector<vector<float_point> > decisionValues;
-        predictValues(v_vSamples, decisionValues);
+        computeDecisionValues(v_vSamples, decisionValues);
         for (int l = 0; l < v_vSamples.size(); ++l) {
+        	if(!vnOriginalLabel.empty())//want to measure sub-classifier error
+        	{
+        		//update model labeling information
+                int rawLabel = vnOriginalLabel[l];
+				int originalLabel = -1;
+                for(int pos = 0; pos < model.label.size(); pos++){
+                    if(model.label[pos] == rawLabel)
+                        originalLabel = pos;
+                }
+				model.missLabellingMatrix[originalLabel][originalLabel]++;//increase the total occurrence of a label.
+				int k = 0;
+	            for (int i = 0; i < nrClass; ++i) {
+	                for (int j = i + 1; j < nrClass; ++j) {
+	                	int labelViaBinary = j;
+	                    if (decisionValues[l][k++] > 0)
+	                    	labelViaBinary = i;
+
+	    				if(i == originalLabel || j == originalLabel){
+	    					if(labelViaBinary != originalLabel)//miss classification
+	    						model.missLabellingMatrix[originalLabel][labelViaBinary]++;
+	    				}
+	                }
+	            }
+        	}
+
             vector<int> votes(nrClass, 0);
             int k = 0;
             for (int i = 0; i < nrClass; ++i) {
                 for (int j = i + 1; j < nrClass; ++j) {
                     if (decisionValues[l][k++] > 0)
-                        votes[i]++;
+                    	votes[i]++;
                     else
-                        votes[j]++;
+                    	votes[j]++;
                 }
             }
             int maxVoteClass = 0;
