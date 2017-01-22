@@ -21,7 +21,7 @@ public:
     vector<int> label;					//class labels; its size equals to the number of classes.
     uint nrClass;
     int numOfFeatures;
-    vector<vector<int> > svIndex;
+    vector<vector<int> > svIndex;   //indices of SVs in each training subset
     vector<vector<KeyValue> > svMap;
     CSRMatrix *svMapCSRMat = NULL;
     vector<vector<float_point> > coef;
@@ -74,7 +74,7 @@ public:
     SvmModel() {};
 
     void fit(const SvmProblem &problem, const SVMParam &param);
-    void addBinaryModel(const SvmProblem &subProblem, const vector<int> &svIndex,
+    void addBinaryModel(const SvmProblem &subProblem, const vector<int> &svLocalIndex,
     					const vector<float_point> &coef, float_point rho, int i, int j);
 
     bool isProbability() const;

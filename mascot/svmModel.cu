@@ -412,23 +412,26 @@ void SvmModel::sigmoidTrain(const float_point *decValues, const int l, const vec
     free(t);
 }
 
-void SvmModel::addBinaryModel(const SvmProblem &problem, const vector<int> &svIndex, const vector<float_point> &coef,
-                              float_point rho, int i,
-                              int j) {
+/**
+  *@brief: add a binary svm model to the multi-class svm model.
+**/
+void SvmModel::addBinaryModel(const SvmProblem &problem, const vector<int> &svLocalIndex, const vector<float_point> &coef,
+                              float_point rho, int i, int j) {
     static map<int, int> indexMap;
     int k = getK(i, j);
     this->coef[k] = coef;
-    for (int l = 0; l < svIndex.size(); ++l) {
-        int originalIndex = problem.originalIndex[svIndex[l]];
-        if (indexMap.find(originalIndex) != indexMap.end()) {
+    for (int l = 0; l < svLocalIndex.size(); ++l) {
+        //map SV local index to the instance index (global index) in the whole training set
+        int originalIndex = problem.originalIndex[svLocalIndex[l]];
+        if (indexMap.find(originalIndex) != indexMap.end()) {//instance of this sv has been stored in svMap
         } else {
-            indexMap[originalIndex] = svMap.size();
-            svMap.push_back(problem.v_vSamples[svIndex[l]]);
+            indexMap[originalIndex] = svMap.size();//key is SV's global index; value is the id (in the map) for this SV instance.
+            svMap.push_back(problem.v_vSamples[svLocalIndex[l]]);
         }
-        this->svIndex[k].push_back(indexMap[originalIndex]);
+        this->svIndex[k].push_back(indexMap[originalIndex]);//svIndex is the id in the map.
     }
     this->rho[k] = rho;
-    numOfSVs += svIndex.size();
+    numOfSVs += svLocalIndex.size();
 }
 
 bool SvmModel::isProbability() const {

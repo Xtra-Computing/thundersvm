@@ -63,6 +63,10 @@ void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<i
 
     //create a miss labeling matrix for measuring the sub-classifier errors.
     model.missLabellingMatrix = vector<vector<int> >(model.nrClass, vector<int>(model.nrClass, 0));
+    bool bEvaluateSubClass = false; //choose whether to evaluate sub-classifiers
+    if(model.nrClass == 2)  //absolutely not necessary to evaluate sub-classifers
+        bEvaluateSubClass = false;
+
     MultiPredictor predictor(model, model.param);
 
 	clock_t start, finish;
@@ -75,7 +79,7 @@ void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<i
         vector<vector<KeyValue> > samples(v_v_Instance.begin() + begin,
                                           v_v_Instance.begin() + end);
         vector<int> vLabel(v_nLabel.begin() + begin, v_nLabel.begin() + end);
-        if(model.nrClass == 2)
+        if(bEvaluateSubClass == false)
         	vLabel.clear();
         //predict labels for the subset of instances
         vector<int> predictLabelPart = predictor.predict(samples, vLabel);
@@ -91,7 +95,7 @@ void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<i
     printf("classifier accuracy = %.2f%%(%d/%d)\n", numOfCorrect / (float) v_v_Instance.size() * 100,
            numOfCorrect, (int) v_v_Instance.size());
     printf("prediction time elapsed: %.2fs\n", (float) (finish - start) / CLOCKS_PER_SEC);
-    if(model.nrClass > 2){
+    if(bEvaluateSubClass == true){
     	ClassifierEvaluater::evaluateSubClassifier(model.missLabellingMatrix, classificationError);
     }
 }

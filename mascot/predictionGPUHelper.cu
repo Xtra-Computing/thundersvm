@@ -36,7 +36,7 @@ __global__ void sumKernelValues(const float_point *kernelValues, int numOfSample
     int modelId = idx % cnr2;
     if (sampleId < numOfSamples) {
         float_point sum = 0;
-        const float_point *kernelValue = kernelValues + sampleId * svMapSize;
+        const float_point *kernelValue = kernelValues + sampleId * svMapSize;//kernel values of this instance
         int si = start[modelId];
         int ci = count[modelId];
         for (int i = 0; i < ci; ++i) {//can be improved.
