@@ -4,7 +4,7 @@
 #include "Timer.h"
 
 float Timer::diff(timeval t1, timeval t2) {
-    return (t2.tv_usec - t1.tv_usec) / 1e6f + (t2.tv_sec - t1.tv_sec);
+    return (t2.tv_usec - t1.tv_usec) + (t2.tv_sec - t1.tv_sec) * 1000000;
 }
 
 void Timer::getTime(timeval &t) {
@@ -18,11 +18,21 @@ void Timer::start() {
 void Timer::stop() {
     getTime(end);
     accumulator += diff(begin, end);
+    count++;
 }
 
 float Timer::getTotalTime() {
-    return accumulator;
+    return accumulator / 1e6f;
 }
+
+float Timer::getAverageTime() {
+    return getTotalTime() / getCount();
+}
+
+unsigned int Timer::getCount() {
+    return count;
+}
+
 Timer trainingTimer;
 Timer calculateKernelTimer;
 Timer preComputeTimer;

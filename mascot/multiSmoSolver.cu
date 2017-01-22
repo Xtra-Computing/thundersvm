@@ -31,14 +31,16 @@ void MultiSmoSolver::solve() {
                            ? INT_MAX
                            : ITERATION_FACTOR * subProblem.getNumOfSamples()) * 4;
             int numOfIter;
-            TIMER_START(iterationTimer)
-            for (numOfIter = 0; numOfIter < maxIter && !iterate(subProblem, model.vC[k]); numOfIter++) {
+            for (numOfIter = 0; numOfIter < maxIter ; numOfIter++) {
+                TIMER_START(iterationTimer)
+                if (iterate(subProblem, model.vC[k]))
+                    break;
                 if (numOfIter % 1000 == 0 && numOfIter != 0) {
                     std::cout << ".";
                     std::cout.flush();
                 }
+                TIMER_STOP(iterationTimer)
             }
-            TIMER_STOP(iterationTimer)
             cache.disable(i, j);
 
             cout << "# of iteration: " << numOfIter << endl;
@@ -57,10 +59,8 @@ void MultiSmoSolver::solve() {
 bool MultiSmoSolver::iterate(SvmProblem &subProblem, float_point C) {
     int trainingSize = subProblem.getNumOfSamples();
 
-    TIMER_START(selectTimer)
     SelectFirst(trainingSize, C);
     SelectSecond(trainingSize, C);
-    TIMER_STOP(selectTimer)
 
 
     IdofInstanceTwo = int(hostBuffer[0]);
@@ -118,26 +118,6 @@ void MultiSmoSolver::init4Training(const SvmProblem &subProblem) {
     checkCudaErrors(cudaMalloc((void **) &devHessianInstanceRow1, sizeof(float_point) * trainingSize));
     checkCudaErrors(cudaMalloc((void **) &devHessianInstanceRow2, sizeof(float_point) * trainingSize));
 
-//    int cacheSize = CACHE_SIZE * 1024 * 1024 / 4 / trainingSize;
-//    gpuCache = new CLATCache(trainingSize);
-//    gpuCache->SetCacheSize(cacheSize);
-//    gpuCache->InitializeCache(cacheSize, trainingSize);
-//    size_t sizeOfEachRowInCache;
-//    checkCudaErrors(
-//            cudaMallocPitch((void **) &devHessianMatrixCache, &sizeOfEachRowInCache, trainingSize * sizeof(float_point),
-//                            cacheSize));
-//    //temp memory for reading result to cache
-//    numOfElementEachRowInCache = sizeOfEachRowInCache / sizeof(float_point);
-//    if (numOfElementEachRowInCache != trainingSize) {
-//        cout << "cache memory aligned to: " << numOfElementEachRowInCache
-//             << "; number of the training instances is: " << trainingSize << endl;
-//    }
-//    cout << "cache size v.s. ins is " << cacheSize << " v.s. " << trainingSize << endl;
-//
-//    checkCudaErrors(cudaMemset(devHessianMatrixCache, 0, cacheSize * sizeOfEachRowInCache));
-
-//    hessianCalculator = new DeviceHessianOnFly(subProblem, param.gamma);
-//    hessianCalculator->GetHessianDiag("", trainingSize, hessianDiag);
     for (int j = 0; j < trainingSize; ++j) {
         hessianDiag[j] = 1;//assume using RBF kernel
     }
@@ -151,7 +131,6 @@ void MultiSmoSolver::deinit4Training() {
 
     DeInitSolver();
 
-//    checkCudaErrors(cudaFree(devHessianMatrixCache));
     checkCudaErrors(cudaFree(devHessianInstanceRow1));
     checkCudaErrors(cudaFree(devHessianInstanceRow2));
 }

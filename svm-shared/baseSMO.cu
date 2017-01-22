@@ -9,6 +9,7 @@
 #include <cuda_runtime_api.h>
 #include <helper_cuda.h>
 #include "smoGPUHelper.h"
+#include "../SharedUtility/Timer.h"
 
 /**
  * @brief: initialise some variables of smo solver
@@ -57,6 +58,7 @@ void BaseSMO::DeInitSolver()
  */
 void BaseSMO::SelectFirst(int numTrainingInstance, float_point CforPositive)
 {
+    TIMER_START(selectTimer)
 	GetBlockMinYiGValue<<<gridSize, BLOCK_SIZE>>>(devYiGValue, devAlpha, devLabel, CforPositive,
 														   numTrainingInstance, devBlockMin, devBlockMinGlobalKey);
 	//global reducer
@@ -65,6 +67,7 @@ void BaseSMO::SelectFirst(int numTrainingInstance, float_point CforPositive)
 	//copy result back to host
 	cudaMemcpy(hostBuffer, devBuffer, sizeof(float_point) * 2, cudaMemcpyDeviceToHost);
 	IdofInstanceOne = (int)hostBuffer[0];
+    TIMER_STOP(selectTimer)
 
 	devHessianInstanceRow1 = ObtainRow(numTrainingInstance);
 }
@@ -74,6 +77,7 @@ void BaseSMO::SelectFirst(int numTrainingInstance, float_point CforPositive)
  */
 void BaseSMO::SelectSecond(int numTrainingInstance, float_point CforNegative)
 {
+    TIMER_START(selectTimer)
 	float_point fUpSelfKernelValue = 0;
 	fUpSelfKernelValue = hessianDiag[IdofInstanceOne];
 
@@ -99,6 +103,7 @@ void BaseSMO::SelectSecond(int numTrainingInstance, float_point CforNegative)
 
 	//copy result back to host
 	cudaMemcpy(hostBuffer, devBuffer, sizeof(float_point) * 4, cudaMemcpyDeviceToHost);
+    TIMER_STOP(selectTimer)
 }
 
 /**
@@ -230,4 +235,5 @@ void BaseSMO::UpdateYiGValue(int numTrainingInstance, float_point fY1AlphaDiff, 
     UpdateYiFValueKernel <<< gridSize, BLOCK_SIZE >>> (devAlpha, devBuffer, devYiGValue,
             devHessianInstanceRow1, devHessianInstanceRow2,
             fY1AlphaDiff, fY2AlphaDiff, numTrainingInstance);
+    cudaDeviceSynchronize();
 }

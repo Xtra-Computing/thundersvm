@@ -91,10 +91,12 @@ void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
                 problem.count[j] * sizeof(float_point), cacheSize[j], cudaMemcpyHostToDevice));
 
         //fill the two unique caches, or decide to compute them on-the-fly
-        if (canPreComputeUniqueCache) {
-            SubHessianCalculater::preComputeUniqueCache(i, j, subProblem,
-                                                        devUniqueCache, sizeOfEachRowInUniqueCache,
-                                                        numOfElementEachRowInUniqueCache, param);
+        ACCUMULATE_TIME(preComputeTimer,
+                        if (canPreComputeUniqueCache) {
+                                SubHessianCalculater::preComputeUniqueCache(i, j, subProblem,
+                                devUniqueCache, sizeOfEachRowInUniqueCache,
+                                numOfElementEachRowInUniqueCache, param);
+        )
         } else {
             if (!preComputeInHost) {
                 printf("compute unique kernels on-the-fly\n");
@@ -130,7 +132,7 @@ void GpuCache::disable(int i, int j) {
 }
 
 GpuCache::GpuCache(const SvmProblem &problem, const SVMParam &param, bool binary) :
-        problem(problem), param(param),binary(binary),
+        problem(problem), param(param), binary(binary),
         numOfElementEachRowInCache(problem.getNumOfClasses()),
         devSharedCache(problem.getNumOfClasses(), NULL),
         sizeOfEachRowInCache(problem.getNumOfClasses()),
@@ -163,7 +165,9 @@ GpuCache::GpuCache(const SvmProblem &problem, const SVMParam &param, bool binary
         }
         if (canPreComputeSharedCache) {
             printf("cache is large enough, pre-computing shared cache\n");
-            SubHessianCalculater::preComputeSharedCache(hostSharedCache, problem, param);
+            ACCUMULATE_TIME(preComputeTimer,
+                            SubHessianCalculater::preComputeSharedCache(hostSharedCache, problem, param);
+            )
         } else {
             if (!preComputeInHost)
                 printf("compute shared kernels on-the-fly\n");
@@ -201,7 +205,7 @@ void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
             if (!cacheHit) {
                 if (cacheFull)
                     sharedCacheStrategy[0]->ReplaceExpired(rowIndex, cacheLocation, NULL);
-                if(preComputeInHost){
+                if (preComputeInHost) {
                     checkCudaErrors(cudaMemcpy(devSharedCache[0] + cacheLocation * numOfElementEachRowInCache[0],
                                                hostHessianMatrix + rowIndex * problem.getNumOfSamples(),
                                                sizeof(float_point) * problem.getNumOfSamples(),
