@@ -24,6 +24,9 @@ void BaseLibSVMReader::GetDataInfo(string strFileName, int &nNumofFeatures, int 
 
 	ifstream readIn;
 	readIn.open(strFileName.c_str());
+	if(readIn.is_open() == false){
+		printf("opening %s failed\n", strFileName.c_str());
+	}
 	assert(readIn.is_open());
 
 	//for storing character from file
