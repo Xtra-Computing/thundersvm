@@ -54,9 +54,10 @@ extern Timer selectTimer;
 extern Timer updateAlphaTimer;
 extern Timer updateGTimer;
 extern Timer iterationTimer;
+extern Timer initTimer;
 #ifdef COUNT_TIME
-#define TIMER_START(timer) timer.start();
-#define TIMER_STOP(timer) timer.stop();
+#define TIMER_START(timer) cudaDeviceSynchronize();timer.start();
+#define TIMER_STOP(timer) cudaDeviceSynchronize();timer.stop();
 #define ACCUMULATE_TIME(timer, code) TIMER_START(timer);code;TIMER_STOP(timer);
 
 #define PRINT_TIME(msg, timer) printf("%s time : %fs, count : %d, ave : %f \n", msg, timer.getTotalTime(),timer.getCount(),timer.getAverageTime());

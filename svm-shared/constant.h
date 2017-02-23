@@ -28,7 +28,7 @@
 #define TASK_OF_THREAD_LOW 64
 #define TASK_OF_THREAD_UP 64
 #define MIN_BLOCK_SIZE 64			//Minimum block size
-#define BLOCK_SIZE 128				//Block_Size shouldn't larger than 1024
+#define BLOCK_SIZE 128//Block_Size shouldn't larger than 1024
 #define NUM_OF_BLOCK 65535			//Maximum number of blocks per dimension
 #define MAX_GRID_SIZE_PER_DIM 65535 //Maximum size for each dimension of grid
 

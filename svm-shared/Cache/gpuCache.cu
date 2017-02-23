@@ -24,7 +24,7 @@ void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
                                        sizeof(float_point) * problem.getNumOfSamples() * problem.getNumOfSamples()));
             //sub-problem is the same as problem but permuted
             ACCUMULATE_TIME(preComputeTimer,
-                            SubHessianCalculater::preComputeCache4BinaryProblem(devC, subProblem, param);
+                            SubHessianCalculator::preComputeCache4BinaryProblem(devC, subProblem, param);
             )
             checkCudaErrors(cudaMemcpy2D(devSharedCache[0],
                                          sizeOfEachRowInCache[0],
@@ -93,7 +93,7 @@ void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
         //fill the two unique caches, or decide to compute them on-the-fly
         ACCUMULATE_TIME(preComputeTimer,
                         if (canPreComputeUniqueCache) {
-                                SubHessianCalculater::preComputeUniqueCache(i, j, subProblem,
+                                SubHessianCalculator::preComputeUniqueCache(i, j, subProblem,
                                 devUniqueCache, sizeOfEachRowInUniqueCache,
                                 numOfElementEachRowInUniqueCache, param);
         )
@@ -166,7 +166,7 @@ GpuCache::GpuCache(const SvmProblem &problem, const SVMParam &param, bool binary
         if (canPreComputeSharedCache) {
             printf("cache is large enough, pre-computing shared cache\n");
             ACCUMULATE_TIME(preComputeTimer,
-                            SubHessianCalculater::preComputeSharedCache(hostSharedCache, problem, param);
+                            SubHessianCalculator::preComputeSharedCache(hostSharedCache, problem, param);
             )
         } else {
             if (!preComputeInHost)
@@ -177,7 +177,7 @@ GpuCache::GpuCache(const SvmProblem &problem, const SVMParam &param, bool binary
     }
 //    checkCudaErrors(cudaMallocHost((void **) &hostHessianMatrix,
 //                                   sizeof(float_point) * problem.getNumOfSamples() * problem.getNumOfSamples()));
-//    SubHessianCalculater::preComputeAndStoreInHost(hostHessianMatrix, problem, preComputeInHost, param);
+//    SubHessianCalculator::preComputeAndStoreInHost(hostHessianMatrix, problem, preComputeInHost, param);
 }
 
 GpuCache::~GpuCache() {
@@ -193,6 +193,7 @@ GpuCache::~GpuCache() {
 }
 
 void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
+//    printf("get row %d\n",rowIndex);
     TIMER_START(calculateKernelTimer)
     int cacheLocation;
     bool cacheFull;

@@ -48,8 +48,10 @@ SvmProblem SvmProblem::getSubProblem(int i, int j) const {
     vector<int> originalLabel;
     int si = start[i];
     int ci = count[i];
+//    int ci = 5000;
     int sj = start[j];
     int cj = count[j];
+//    int cj = 5000;
     for (int k = 0; k < ci; ++k) {
         v_vSamples.push_back(this->v_vSamples[perm[si + k]]);
         originalIndex.push_back(perm[si + k]);

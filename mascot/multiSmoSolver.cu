@@ -2,8 +2,8 @@
 // Created by ss on 16-12-14.
 //
 
-#include <zconf.h>
 #include <sys/time.h>
+#include <cfloat>
 #include "multiSmoSolver.h"
 #include "../svm-shared/constant.h"
 #include "cuda_runtime.h"
@@ -11,14 +11,19 @@
 #include "../svm-shared/HessianIO/deviceHessianOnFly.h"
 #include "../SharedUtility/Timer.h"
 #include "trainClassifier.h"
+#include <thrust/sort.h>
+#include <thrust/device_ptr.h>
+#include "../svm-shared/devUtility.h"
+#include "../svm-shared/Cache/subHessianCalculator.h"
 
 void MultiSmoSolver::solve() {
     int nrClass = problem.getNumOfClasses();
 
-    if(model.vC.size() == 0){//initialize C for all the binary classes
-    	model.vC = vector<float_point>(nrClass * (nrClass - 1)/2, param.C);
+    if (model.vC.size() == 0) {//initialize C for all the binary classes
+        model.vC = vector<float_point>(nrClass * (nrClass - 1) / 2, param.C);
     }
 
+    printf("q = %d, working set size = %d\n", q, workingSetSize);
     //train nrClass*(nrClass-1)/2 binary models
     int k = 0;
     for (int i = 0; i < nrClass; ++i) {
@@ -26,24 +31,38 @@ void MultiSmoSolver::solve() {
             printf("training classifier with label %d and %d\n", i, j);
             SvmProblem subProblem = problem.getSubProblem(i, j);
             init4Training(subProblem);
-            cache.enable(i, j, subProblem);
-            int maxIter = (subProblem.getNumOfSamples() > INT_MAX / ITERATION_FACTOR
-                           ? INT_MAX
-                           : ITERATION_FACTOR * subProblem.getNumOfSamples()) * 4;
-            int numOfIter;
-            for (numOfIter = 0; numOfIter < maxIter ; numOfIter++) {
-                TIMER_START(iterationTimer)
-                if (iterate(subProblem, model.vC[k]))
-                    break;
-                if (numOfIter % 1000 == 0 && numOfIter != 0) {
-                    std::cout << ".";
-                    std::cout.flush();
+            CSRMatrix subProblemMat(subProblem.v_vSamples, subProblem.getNumOfFeatures());
+            subProblemMat.copy2Dev(devVal, devRowPtr, devColInd, devSelfDot);
+            nnz = subProblemMat.getNnz();
+            printf("#positive ins %d, #negative ins %d\n", subProblem.count[0], subProblem.count[1]);
+            int totalIter = 0;
+            TIMER_START(trainingTimer)
+            for (int l = 0;; ++l) {
+                if (l == 0) {
+                    selectWorkingSetAndPreCompute(subProblem, workingSetSize / 2);
+                } else {
+                    selectWorkingSetAndPreCompute(subProblem, q / 2);
                 }
+                TIMER_START(iterationTimer)
+                localSMO << < 1, workingSetSize, workingSetSize * sizeof(float) * 3 + 2 * sizeof(float) >> >
+                                                 (devLabel, devYiGValue, devAlpha, devAlphaDiff, devWorkingSet, workingSetSize, param.C, devHessianMatrixCache, subProblem.getNumOfSamples());
                 TIMER_STOP(iterationTimer)
+                TIMER_START(updateGTimer)
+                updateF << < gridSize, BLOCK_SIZE >> >
+                                       (devYiGValue, devLabel, devWorkingSet, workingSetSize, devAlphaDiff, devHessianMatrixCache, subProblem.getNumOfSamples());
+                TIMER_STOP(updateGTimer)
+                float diff;
+                checkCudaErrors(cudaMemcpyFromSymbol(&diff, devDiff, sizeof(float_point), 0, cudaMemcpyDeviceToHost));
+                if (l % 10 == 0)
+                    printf(".");
+                cout.flush();
+                if (diff < EPS) {
+                    printf("\nup + low = %f\n", diff);
+                    break;
+                }
             }
-            cache.disable(i, j);
-
-            cout << "# of iteration: " << numOfIter << endl;
+            TIMER_STOP(trainingTimer)
+            subProblemMat.freeDev(devVal, devRowPtr, devColInd, devSelfDot);
             vector<int> svIndex;
             vector<float_point> coef;
             float_point rho;
@@ -56,47 +75,6 @@ void MultiSmoSolver::solve() {
     }
 }
 
-bool MultiSmoSolver::iterate(SvmProblem &subProblem, float_point C) {
-    int trainingSize = subProblem.getNumOfSamples();
-
-    SelectFirst(trainingSize, C);
-    SelectSecond(trainingSize, C);
-
-
-    IdofInstanceTwo = int(hostBuffer[0]);
-
-    //get kernel value K(Sample1, Sample2)
-    float_point fKernelValue = 0;
-    float_point fMinLowValue;
-    fMinLowValue = hostBuffer[1];
-    fKernelValue = hostBuffer[2];
-
-
-    cache.getHessianRow(IdofInstanceTwo,devHessianInstanceRow2);
-
-
-    lowValue = -hostBuffer[3];
-    //check if the problem is converged
-    if (upValue + lowValue <= EPS) {
-        //cout << upValue << " : " << lowValue << endl;
-        //m_pGPUCache->PrintCachingStatistics();
-        return true;
-    }
-
-    float_point fY1AlphaDiff, fY2AlphaDiff;
-    float_point fMinValue = -upValue;
-    TIMER_START(updateAlphaTimer)
-    UpdateTwoWeight(fMinLowValue, fMinValue, IdofInstanceOne, IdofInstanceTwo, fKernelValue,
-                    fY1AlphaDiff, fY2AlphaDiff, subProblem.v_nLabels.data(), C);
-
-    TIMER_STOP(updateAlphaTimer)
-    TIMER_START(updateGTimer)
-    UpdateYiGValue(trainingSize, fY1AlphaDiff, fY2AlphaDiff);
-    TIMER_STOP(updateGTimer)
-
-    return false;
-}
-
 void MultiSmoSolver::init4Training(const SvmProblem &subProblem) {
     unsigned int trainingSize = subProblem.getNumOfSamples();
 
@@ -107,21 +85,25 @@ void MultiSmoSolver::init4Training(const SvmProblem &subProblem) {
     checkCudaErrors(cudaMemset(devAlpha, 0, sizeof(float_point) * trainingSize));
     vector<float_point> negatedLabel(trainingSize);
     for (int i = 0; i < trainingSize; ++i) {
-    	negatedLabel[i] = -subProblem.v_nLabels[i];
+        negatedLabel[i] = -subProblem.v_nLabels[i];
     }
     checkCudaErrors(cudaMemcpy(devYiGValue, negatedLabel.data(), sizeof(float_point) * trainingSize,
                                cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(devLabel, subProblem.v_nLabels.data(), sizeof(int) * trainingSize, cudaMemcpyHostToDevice));
+    checkCudaErrors(
+            cudaMemcpy(devLabel, subProblem.v_nLabels.data(), sizeof(int) * trainingSize, cudaMemcpyHostToDevice));
 
     InitSolver(trainingSize);//initialise base solver
 
-    checkCudaErrors(cudaMalloc((void **) &devHessianInstanceRow1, sizeof(float_point) * trainingSize));
-    checkCudaErrors(cudaMalloc((void **) &devHessianInstanceRow2, sizeof(float_point) * trainingSize));
+    checkCudaErrors(cudaMalloc((void **) &devHessianMatrixCache, sizeof(float_point) * workingSetSize * trainingSize));
 
     for (int j = 0; j < trainingSize; ++j) {
         hessianDiag[j] = 1;//assume using RBF kernel
     }
-    checkCudaErrors(cudaMemcpy(devHessianDiag, hessianDiag, sizeof(float_point) * trainingSize, cudaMemcpyHostToDevice));
+    checkCudaErrors(
+            cudaMemcpy(devHessianDiag, hessianDiag, sizeof(float_point) * trainingSize, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMalloc((void **) &devFValue4Sort, sizeof(float_point) * trainingSize));
+    checkCudaErrors(cudaMalloc((void **) &devIdx4Sort, sizeof(int) * trainingSize));
+
 }
 
 void MultiSmoSolver::deinit4Training() {
@@ -131,22 +113,10 @@ void MultiSmoSolver::deinit4Training() {
 
     DeInitSolver();
 
-    checkCudaErrors(cudaFree(devHessianInstanceRow1));
-    checkCudaErrors(cudaFree(devHessianInstanceRow2));
+    checkCudaErrors(cudaFree(devHessianMatrixCache));
+    checkCudaErrors(cudaFree(devFValue4Sort));
+    checkCudaErrors(cudaFree(devIdx4Sort));
 }
-
-int MultiSmoSolver::getHessianRow(int rowIndex) {
-    int cacheLocation;
-    bool cacheFull = false;
-    bool cacheHit = gpuCache->GetDataFromCache(rowIndex,cacheLocation,cacheFull);
-    if (!cacheHit) {
-        if (cacheFull)
-            gpuCache->ReplaceExpired(rowIndex, cacheLocation, NULL);
-        hessianCalculator->ReadRow(rowIndex, devHessianMatrixCache + cacheLocation * numOfElementEachRowInCache,0 ,100);
-    }
-    return cacheLocation * numOfElementEachRowInCache;
-}
-
 
 void MultiSmoSolver::extractModel(const SvmProblem &subProblem, vector<int> &svIndex, vector<float_point> &coef,
                                   float_point &rho) const {
@@ -160,6 +130,85 @@ void MultiSmoSolver::extractModel(const SvmProblem &subProblem, vector<int> &svI
             svIndex.push_back(i);
         }
     }
-    rho = (lowValue - upValue) / 2;
+    checkCudaErrors(cudaMemcpyFromSymbol(&rho, devRho, sizeof(float_point), 0, cudaMemcpyDeviceToHost));
     printf("# of SV %lu\nbias = %f\n", svIndex.size(), rho);
 }
+
+MultiSmoSolver::MultiSmoSolver(const SvmProblem &problem, SvmModel &model, const SVMParam &param) :
+        problem(problem), model(model), param(param) {
+    q = 256;
+    workingSetSize = 512;
+    //workingSetSize must be 2^n and less than 1024
+    assert(workingSetSize <= 1024);
+    for (int i = 0; i < problem.getNumOfClasses(); ++i) {
+        assert(workingSetSize <= problem.count[i]);
+    }
+    workingSet = vector<int>(workingSetSize);
+    checkCudaErrors(cudaMalloc((void **) &devAlphaDiff, sizeof(float_point) * workingSetSize));
+    checkCudaErrors(cudaMalloc((void **) &devWorkingSet, sizeof(int) * workingSetSize));
+}
+
+MultiSmoSolver::~MultiSmoSolver() {
+    checkCudaErrors(cudaFree(devAlphaDiff));
+    checkCudaErrors(cudaFree(devWorkingSet));
+}
+
+void MultiSmoSolver::selectWorkingSetAndPreCompute(const SvmProblem &subProblem, uint numOfSelectPairs) {
+    uint numOfSamples = subProblem.getNumOfSamples();
+    uint oldSize = workingSetSize / 2 - numOfSelectPairs;
+    TIMER_START(selectTimer)
+    thrust::device_ptr<float> valuePointer = thrust::device_pointer_cast(devFValue4Sort);
+    thrust::device_ptr<int> indexPointer = thrust::device_pointer_cast(devIdx4Sort);
+    vector<int> oldWorkingSet = workingSet;
+
+    //get q most violation pairs
+    getFUpValues << < gridSize, BLOCK_SIZE >> >
+                                (devYiGValue, devAlpha, devLabel, numOfSamples, param.C, devFValue4Sort, devIdx4Sort);
+    thrust::sort_by_key(valuePointer, valuePointer + numOfSamples, indexPointer, thrust::greater<float>());
+    checkCudaErrors(cudaMemcpy(workingSet.data() + oldSize * 2, devIdx4Sort, sizeof(int) * numOfSelectPairs,
+                               cudaMemcpyDeviceToHost));
+    getFLowValues << < gridSize, BLOCK_SIZE >> >
+                                 (devYiGValue, devAlpha, devLabel, numOfSamples, param.C, devFValue4Sort, devIdx4Sort);
+    thrust::sort_by_key(valuePointer, valuePointer + numOfSamples, indexPointer, thrust::greater<float>());
+    checkCudaErrors(
+            cudaMemcpy(workingSet.data() + oldSize * 2 + numOfSelectPairs, devIdx4Sort, sizeof(int) * numOfSelectPairs,
+                       cudaMemcpyDeviceToHost));
+
+    //get pairs from last working set
+    for (int i = 0; i < oldSize * 2; ++i) {
+        workingSet[i] = oldWorkingSet[numOfSelectPairs * 2 + i];
+    }
+    checkCudaErrors(cudaMemcpy(devWorkingSet, workingSet.data(), sizeof(int) * workingSetSize, cudaMemcpyHostToDevice));
+    TIMER_STOP(selectTimer)
+
+    //move old kernel values to get space
+    checkCudaErrors(cudaMemcpy(devHessianMatrixCache,
+                               devHessianMatrixCache + numOfSamples * numOfSelectPairs * 2,
+                               sizeof(float_point) * numOfSamples * oldSize * 2,
+                               cudaMemcpyDeviceToDevice));
+    vector<vector<KeyValue> > computeSamples;
+    for (int i = 0; i < numOfSelectPairs * 2; ++i) {
+        computeSamples.push_back(subProblem.v_vSamples[workingSet[oldSize * 2 + i]]);
+    }
+    TIMER_START(preComputeTimer)
+    //preCompute kernel values of new selected instances
+    cusparseHandle_t handle;
+    cusparseMatDescr_t descr;
+    CSRMatrix workingSetMat(computeSamples, subProblem.getNumOfFeatures());
+    float_point * devWSVal;
+    int *devWSColInd;
+    int *devWSRowPtr;
+    float_point * devWSSelfDot;
+    workingSetMat.copy2Dev(devWSVal, devWSRowPtr, devWSColInd, devWSSelfDot);
+    SubHessianCalculator::prepareCSRContext(handle, descr);
+    CSRMatrix::CSRmm2Dense(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE, numOfSelectPairs * 2,
+                           numOfSamples, subProblem.getNumOfFeatures(), descr,
+                           workingSetMat.getNnz(), devWSVal, devWSRowPtr, devWSColInd, descr, nnz, devVal, devRowPtr,
+                           devColInd, devHessianMatrixCache + numOfSamples * oldSize * 2);
+    RBFKernel << < Ceil(numOfSelectPairs * 2 * numOfSamples, BLOCK_SIZE), BLOCK_SIZE >> > (devWSSelfDot, devSelfDot,
+            devHessianMatrixCache + numOfSamples * oldSize * 2, numOfSelectPairs * 2, numOfSamples, param.gamma);
+    SubHessianCalculator::releaseCSRContext(handle, descr);
+    workingSetMat.freeDev(devWSVal, devWSRowPtr, devWSColInd, devWSSelfDot);
+    TIMER_STOP(preComputeTimer)
+}
+

@@ -1,5 +1,21 @@
 #include "devUtility.h"
 
+
+__device__ int getBlockMin(const float *values, int *index) {
+	int tid = threadIdx.x;
+	index[tid] = tid;
+	__syncthreads();
+	for (int offset = blockDim.x / 2; offset > 0; offset >>= 1) {
+		if (tid < offset) {
+			if (values[index[tid + offset]] < values[index[tid]]) {
+				index[tid] = index[tid + offset];
+			}
+		}
+		__syncthreads();
+	}
+	return index[0];
+}
+
 __device__ void GetMinValueOriginal(float_point *pfValues, int *pnKey, int nNumofBlock)
 {
 	/*if(1024 < BLOCK_SIZE)
@@ -8,87 +24,96 @@ __device__ void GetMinValueOriginal(float_point *pfValues, int *pnKey, int nNumo
 		return;
 	}*/
 	//Reduce by a factor of 2, and minimize step size
-	int nTid = threadIdx.x;
-	int compOffset;
-
-	if(BLOCK_SIZE == 128)
-	{
-		compOffset = nTid + 64;
-		if(nTid < 64)
-		{
-			if(compOffset < nNumofBlock)
-			{
-				if(pfValues[compOffset] < pfValues[nTid])
-				{
-					pnKey[nTid] = pnKey[compOffset];
-					pfValues[nTid] = pfValues[compOffset];
-				}
-			}
-		}
-		//synchronise threads to avoid read dirty value (dirty read may happen if two steps reduction, say 32 and 16, run simultaneously)
-		__syncthreads();
+	for (int i = nNumofBlock / 2; i > 0 ; i >>= 1) {
+		int tid = threadIdx.x;
+		if (tid < i)
+			if (pfValues[tid + i] < pfValues[tid]) {
+                pfValues[tid] = pfValues[tid + i];
+                pnKey[tid] = pnKey[tid +i];
+            }
+        __syncthreads();
 	}
-		compOffset = nTid + 32;
-		if(nTid < 32 && (compOffset < nNumofBlock))
-		{
-			if(pfValues[compOffset] < pfValues[nTid])
-			{
-				pnKey[nTid] = pnKey[compOffset];
-				pfValues[nTid] = pfValues[compOffset];
-			}
-		}
-		//synchronise threads to avoid read dirty value (dirty read may happen if two steps reduction, say 32 and 16, run simultaneously)
-		__syncthreads();
-
-		compOffset = nTid + 16;
-		if(nTid < 16 && (compOffset < nNumofBlock))
-		{
-			if(pfValues[compOffset] < pfValues[nTid])
-			{
-				pnKey[nTid] = pnKey[compOffset];
-				pfValues[nTid] = pfValues[compOffset];
-			}
-		}
-
-		compOffset = nTid + 8;
-		if(nTid < 8 && (compOffset < nNumofBlock))
-		{
-			if(pfValues[compOffset] < pfValues[nTid])
-			{
-				pnKey[nTid] = pnKey[compOffset];
-				pfValues[nTid] = pfValues[compOffset];
-			}
-		}
-
-		compOffset = nTid + 4;
-		if(nTid < 4 && (compOffset < nNumofBlock))
-		{
-			if(pfValues[compOffset] < pfValues[nTid])
-			{
-				pnKey[nTid] = pnKey[compOffset];
-				pfValues[nTid] = pfValues[compOffset];
-			}
-		}
-
-		compOffset = nTid + 2;
-		if(nTid < 2 && (compOffset < nNumofBlock))
-		{
-			if(pfValues[compOffset] < pfValues[nTid])
-			{
-				pnKey[nTid] = pnKey[compOffset];
-				pfValues[nTid] = pfValues[compOffset];
-			}
-		}
-
-		compOffset = nTid + 1;
-		if(nTid < 1 && (compOffset < nNumofBlock))
-		{
-			if(pfValues[compOffset] < pfValues[nTid])
-			{
-				pnKey[nTid] = pnKey[compOffset];
-				pfValues[nTid] = pfValues[compOffset];
-			}
-		}
+//	int nTid = threadIdx.x;
+//	int compOffset;
+//
+//	if(BLOCK_SIZE == 128)
+//	{
+//		compOffset = nTid + 64;
+//		if(nTid < 64)
+//		{
+//			if(compOffset < nNumofBlock)
+//			{
+//				if(pfValues[compOffset] < pfValues[nTid])
+//				{
+//					pnKey[nTid] = pnKey[compOffset];
+//					pfValues[nTid] = pfValues[compOffset];
+//				}
+//			}
+//		}
+//		//synchronise threads to avoid read dirty value (dirty read may happen if two steps reduction, say 32 and 16, run simultaneously)
+//		__syncthreads();
+//	}
+//		compOffset = nTid + 32;
+//		if(nTid < 32 && (compOffset < nNumofBlock))
+//		{
+//			if(pfValues[compOffset] < pfValues[nTid])
+//			{
+//				pnKey[nTid] = pnKey[compOffset];
+//				pfValues[nTid] = pfValues[compOffset];
+//			}
+//		}
+//		//synchronise threads to avoid read dirty value (dirty read may happen if two steps reduction, say 32 and 16, run simultaneously)
+//		__syncthreads();
+//
+//		compOffset = nTid + 16;
+//		if(nTid < 16 && (compOffset < nNumofBlock))
+//		{
+//			if(pfValues[compOffset] < pfValues[nTid])
+//			{
+//				pnKey[nTid] = pnKey[compOffset];
+//				pfValues[nTid] = pfValues[compOffset];
+//			}
+//		}
+//
+//		compOffset = nTid + 8;
+//		if(nTid < 8 && (compOffset < nNumofBlock))
+//		{
+//			if(pfValues[compOffset] < pfValues[nTid])
+//			{
+//				pnKey[nTid] = pnKey[compOffset];
+//				pfValues[nTid] = pfValues[compOffset];
+//			}
+//		}
+//
+//		compOffset = nTid + 4;
+//		if(nTid < 4 && (compOffset < nNumofBlock))
+//		{
+//			if(pfValues[compOffset] < pfValues[nTid])
+//			{
+//				pnKey[nTid] = pnKey[compOffset];
+//				pfValues[nTid] = pfValues[compOffset];
+//			}
+//		}
+//
+//		compOffset = nTid + 2;
+//		if(nTid < 2 && (compOffset < nNumofBlock))
+//		{
+//			if(pfValues[compOffset] < pfValues[nTid])
+//			{
+//				pnKey[nTid] = pnKey[compOffset];
+//				pfValues[nTid] = pfValues[compOffset];
+//			}
+//		}
+//
+//		compOffset = nTid + 1;
+//		if(nTid < 1 && (compOffset < nNumofBlock))
+//		{
+//			if(pfValues[compOffset] < pfValues[nTid])
+//			{
+//				pnKey[nTid] = pnKey[compOffset];
+//				pfValues[nTid] = pfValues[compOffset];
+//			}
+//		}
 
 }
 
@@ -100,6 +125,13 @@ __device__ void GetMinValueOriginal(float_point *pfValues, int nNumofBlock)
 		return;
 	}*/
 	//Reduce by a factor of 2, and minimize step size
+//	for (int i = nNumofBlock / 2; i > 0 ; i >>= 1) {
+//		int tid = threadIdx.x;
+//		if (tid < i)
+//			if (pfValues[tid + i] < pfValues[tid])
+//				pfValues[tid] = pfValues[tid + i];
+//        __syncthreads();
+//	}
 	int nTid = threadIdx.x;
 	int compOffset;
 
@@ -190,6 +222,15 @@ __device__ void GetMinValue(float_point *pfValues, int *pnKey, int nNumofBlock)
 		return;
 	}*/
 	//Reduce by a factor of 2, and minimize step size
+//    for (int i = nNumofBlock / 2; i > 0 ; i >>= 1) {
+//		int tid = threadIdx.x;
+//		if (tid < i)
+//			if (pfValues[tid + i] < pfValues[tid]) {
+//                pfValues[tid] = pfValues[tid + i];
+//                pnKey[tid] = pnKey[tid +i];
+//            }
+//        __syncthreads();
+//	}
 	int nTid = threadIdx.x;
 	int compOffset;
 	float_point fValue1, fValue2;

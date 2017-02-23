@@ -29,4 +29,6 @@ __device__ void GetMinValue(float_point*, int);
 __device__ void GetBigMinValue(float_point*, int*);
 __device__ void GetBigMinValue(float_point*);
 
+__device__  int getBlockMin(const float *values, int *index);
+
 #endif /* SVM_DEVUTILITY_H_ */

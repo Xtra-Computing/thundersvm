@@ -94,9 +94,41 @@ __global__ void GetBigBlockMinYiGValue(float_point *pfYiFValue, float_point *pfA
  * @param: pnBlockMinGlobalKey: the key of each block minimum value (the output of this kernel)
  * @param: pfBlockMinYiFValue: the block minimum gradient (the output of this kernel. for convergence check)
  */
+extern __device__ float_point devDiff;//fUp - fLow
+extern __device__ float_point devRho;//bias
+/**
+ * local SMO in one block
+ * @param label: label for all instances in training set
+ * @param FValues: f value for all instances in training set
+ * @param alpha: alpha for all instances in training set
+ * @param alphaDiff: difference of each alpha in working set after local SMO
+ * @param workingSet: index of each instance in training set
+ * @param wsSize: size of working set
+ * @param C: C parameter in SVM
+ * @param hessianMatrixCache: |working set| * |training set| kernel matrix, row major
+ * @param ld: number of instances each row in hessianMatrixCache
+ */
 __global__ void GetBigBlockMinLowValue(float_point *pfYiFValue, float_point *pfAlpha, int *pnLabel, float_point fNCost,
 									int nNumofTrainingSamples, int nNumofInstance, float_point *pfDiagHessian, float_point *pfHessianRow,
 									float_point fMinusYiUpValue, float_point fUpValueKernel, float_point *pfBlockMin,
 									int *pnBlockMinGlobalKey, float_point *pfBlockMinYiFValue);
 
+__global__ void localSMO(const int *label, float_point *FValues, float_point *alpha, float_point *alphaDiff,
+						 const int *workingSet, int wsSize, float C, const float *hessianMatrixCache, int ld);
+/**
+ * update f values using alpha diff
+ * @param FValues: f values for all instances in training set
+ * @param label: label for all instances in training set
+ * @param workingSet: index of each instance in working set
+ * @param wsSize: size of working set
+ * @param alphaDiff: difference of alpha in working set
+ * @param hessianMatrixCache: |working set| * |training set| kernel matrix, row major
+ * @param numOfSamples
+ */
+__global__ void updateF(float_point *FValues, const int *label, const int *workingSet, int wsSize, const float_point *alphaDiff,
+		const float_point *hessianMatrixCache, int numOfSamples);
+__global__ void getFUpValues(const float_point *FValues, const float_point *alpha, const int *labels,
+							 int numOfSamples, int C, float_point *FValue4Sort, int *Idx4Sort);
+__global__ void getFLowValues(const float_point *FValues, const float_point *alpha, const int *labels,
+							  int numOfSamples, int C, float_point *FValue4Sort, int *Idx4Sort);
 #endif /* WORKINGSETGPUHELPER_H_ */

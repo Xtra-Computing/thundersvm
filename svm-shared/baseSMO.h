@@ -59,6 +59,7 @@ protected:
 
     int numOfBlock;
     dim3 gridSize;
+	void configureCudaKernel(int numOfTrainingInstance);
 };
 
 

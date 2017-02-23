@@ -18,9 +18,7 @@ void BaseSMO::InitSolver(int nNumofTrainingIns)
 {
 	alpha = vector<float_point>(nNumofTrainingIns, 0);
 
-	//configure cuda kernel
-	numOfBlock = Ceil(nNumofTrainingIns, BLOCK_SIZE);
-	gridSize = dim3(numOfBlock > NUM_OF_BLOCK ? NUM_OF_BLOCK : numOfBlock, Ceil(numOfBlock, NUM_OF_BLOCK));
+    configureCudaKernel(nNumofTrainingIns);
 	//allocate device memory for min/max search
 	checkCudaErrors(cudaMalloc((void**)&devBlockMin, sizeof(float_point) * numOfBlock));
 	checkCudaErrors(cudaMalloc((void**)&devBlockMinGlobalKey, sizeof(int) * numOfBlock));
@@ -237,3 +235,10 @@ void BaseSMO::UpdateYiGValue(int numTrainingInstance, float_point fY1AlphaDiff, 
             fY1AlphaDiff, fY2AlphaDiff, numTrainingInstance);
     cudaDeviceSynchronize();
 }
+
+void BaseSMO::configureCudaKernel(int numOfTrainingInstance) {
+    //configure cuda kernel
+    numOfBlock = Ceil(numOfTrainingInstance, BLOCK_SIZE);
+    gridSize = dim3(numOfBlock > NUM_OF_BLOCK ? NUM_OF_BLOCK : numOfBlock, Ceil(numOfBlock, NUM_OF_BLOCK));
+}
+

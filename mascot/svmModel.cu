@@ -6,7 +6,6 @@
 
 #include <map>
 #include <cuda.h>
-#include <zconf.h>
 #include <helper_cuda.h>
 #include <cuda_runtime_api.h>
 #include <cuda_profiler_api.h>

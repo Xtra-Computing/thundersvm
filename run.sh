@@ -45,6 +45,16 @@ case $1 in
         C=${C}"4"
         FILENAME=${DATASET_DIR}/"news20.binary"
         ;;
+    cov1)
+        GAMMA=${GAMMA}"1"
+        C=${C}"3"
+        FILENAME=${DATASET_DIR}/"cov1"
+        ;;
+    real-sim)
+        GAMMA=${GAMMA}"4"
+        C=${C}"0.5"
+        FILENAME=${DATASET_DIR}/"real-sim"
+        ;;
     *)
         echo "undefined dataset, use GAMMA=0.5, C=10"
         GAMMA=${GAMMA}"0.5"

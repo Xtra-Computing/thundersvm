@@ -25,14 +25,17 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
 	LibSVMDataReader drHelper;
 	drHelper.ReadLibSVMAsSparse(v_v_Instance, v_nLabel, strTrainingFileName, nNumofFeature);
     SvmProblem problem(v_v_Instance, nNumofFeature, v_nLabel);
-    ACCUMULATE_TIME(trainingTimer, model.fit(problem, param))
+//    problem = problem.getSubProblem(0,1);
+    model.fit(problem, param);
     PRINT_TIME("training", trainingTimer)
+    PRINT_TIME("working set selection",selectTimer)
     PRINT_TIME("pre-computation kernel",preComputeTimer)
     PRINT_TIME("iteration",iterationTimer)
-    PRINT_TIME("2 instances selection",selectTimer)
-    PRINT_TIME("kernel calculation",calculateKernelTimer)
-    PRINT_TIME("alpha updating",updateAlphaTimer)
     PRINT_TIME("g value updating",updateGTimer)
+//    PRINT_TIME("2 instances selection",selectTimer)
+//    PRINT_TIME("kernel calculation",calculateKernelTimer)
+//    PRINT_TIME("alpha updating",updateAlphaTimer)
+//    PRINT_TIME("init cache",initTimer)
     //evaluate training error
     if (evaluteTrainingError == true) {
         printf("Computing training accuracy...\n");
@@ -59,7 +62,7 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNum
  */
 void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<int> &v_nLabel,
 			  vector<float_point> &classificationError){
-    int batchSize = 2000;
+    int batchSize = 10000;
 
     //create a miss labeling matrix for measuring the sub-classifier errors.
     model.missLabellingMatrix = vector<vector<int> >(model.nrClass, vector<int>(model.nrClass, 0));

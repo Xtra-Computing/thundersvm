@@ -12,6 +12,7 @@
 #include "subHessianCalculator.h"
 #include "../constant.h"
 #include "../../SharedUtility/KeyValue.h"
+#include "../../SharedUtility/Timer.h"
 
 __global__ void RBFKernel(const float_point *selfDot0, const float_point *selfDot1,
                           float_point *dotProduct, int n, int m,
@@ -27,7 +28,7 @@ __global__ void RBFKernel(const float_point *selfDot0, const float_point *selfDo
 /**
  * @brief: create handle and descr for CSR matrix operations
  */
-void SubHessianCalculater::prepareCSRContext(cusparseHandle_t &handle, cusparseMatDescr_t &descr){
+void SubHessianCalculator::prepareCSRContext(cusparseHandle_t &handle, cusparseMatDescr_t &descr){
     cusparseCreate(&handle);
     cusparseCreateMatDescr(&descr);
     cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);
@@ -37,7 +38,7 @@ void SubHessianCalculater::prepareCSRContext(cusparseHandle_t &handle, cusparseM
 /**
  * @brief: release handle and descr
  */
-void SubHessianCalculater::releaseCSRContext(cusparseHandle_t &handle, cusparseMatDescr_t &descr){
+void SubHessianCalculator::releaseCSRContext(cusparseHandle_t &handle, cusparseMatDescr_t &descr){
     cusparseDestroy(handle);
     cusparseDestroyMatDescr(descr);
 }
@@ -46,7 +47,7 @@ void SubHessianCalculater::releaseCSRContext(cusparseHandle_t &handle, cusparseM
  * @brief: compute a sub/whole kernel matrix
  * @param: n is the number of rows of matrix0; m is the number of rows of matrix1; k is the dimension.
  */
-void SubHessianCalculater::computeSubHessianMatrix(cusparseHandle_t handle, cusparseMatDescr_t descr,
+void SubHessianCalculator::computeSubHessianMatrix(cusparseHandle_t handle, cusparseMatDescr_t descr,
 									   CSRMatrix &csrMatrix0, int n, CSRMatrix &csrMatrix1, int m, int k,
 									   float_point *devC, const SVMParam &param){
 	float_point *devVal0;
@@ -80,7 +81,7 @@ void SubHessianCalculater::computeSubHessianMatrix(cusparseHandle_t handle, cusp
     }
 }
 
-void SubHessianCalculater::preComputeSharedCache(vector<float_point*> &hostSharedCache, const SvmProblem &problem,
+void SubHessianCalculator::preComputeSharedCache(vector<float_point*> &hostSharedCache, const SvmProblem &problem,
                                                  const SVMParam &param) {
     cusparseHandle_t handle;
     cusparseMatDescr_t descr;
@@ -103,7 +104,7 @@ void SubHessianCalculater::preComputeSharedCache(vector<float_point*> &hostShare
     releaseCSRContext(handle, descr);
 }
 
-void SubHessianCalculater::preComputeUniqueCache(int i, int j, const SvmProblem &subProblem,
+void SubHessianCalculator::preComputeUniqueCache(int i, int j, const SvmProblem &subProblem,
 		    	vector<float_point*> &devUniqueCache, vector<size_t> &sizeOfEachRowInUniqueCache,
 				vector<int> &numOfElementEachRowInUniqueCache, const SVMParam &param) {
     printf("pre-compute unique cache....");
@@ -139,7 +140,7 @@ void SubHessianCalculater::preComputeUniqueCache(int i, int j, const SvmProblem 
     printf("done\n");
 }
 
-void SubHessianCalculater::preComputeAndStoreInHost(float_point *hostHessianMatrix, const SvmProblem &problem,
+void SubHessianCalculator::preComputeAndStoreInHost(float_point *hostHessianMatrix, const SvmProblem &problem,
 													bool &preComputeInHost, const SVMParam &param) {
     printf("pre-compute in host\n");
     preComputeInHost = true;
@@ -190,7 +191,7 @@ void SubHessianCalculater::preComputeAndStoreInHost(float_point *hostHessianMatr
     printf("time elapsed for pre-compute hessian matrix in host: %f\n", timeElapse(start,end));
 }
 
-void SubHessianCalculater::preComputeCache4BinaryProblem(float_point *devC, const SvmProblem &problem,
+void SubHessianCalculator::preComputeCache4BinaryProblem(float_point *devC, const SvmProblem &problem,
                                                          const SVMParam &param) {
     cusparseHandle_t handle;
     cusparseMatDescr_t descr;

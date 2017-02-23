@@ -44,6 +44,10 @@ public:
                             float *matrixC);
     void copy2Dev(float_point *&devVal, int *&devRowPtr, int *&devColInd);
     void freeDev(float_point *&devVal, int *&devRowPtr, int *&devColInd);
+
+    void copy2Dev(float_point *&devVal, int *&devRowPtr, int *&devColInd, float_point *&devSelfDot);
+
+    void freeDev(float_point *&devVal, int *&devRowPtr, int *&devColInd, float_point *&devSelfDot);
 };
 
 #endif //MASCOT_SVM_CSRMATRIX_H

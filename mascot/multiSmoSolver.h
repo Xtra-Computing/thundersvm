@@ -17,12 +17,9 @@
 class MultiSmoSolver: public BaseSMO
 {
 public:
-    MultiSmoSolver(const SvmProblem &problem, SvmModel &model, const SVMParam &param) :
-            problem(problem), model(model), param(param), cache(problem, param, problem.isBinary()) {
-    }
+    MultiSmoSolver(const SvmProblem &problem, SvmModel &model, const SVMParam &param);
 
-    ~MultiSmoSolver(){
-    };
+    ~MultiSmoSolver();;
     void solve();
 
 private:
@@ -30,26 +27,32 @@ private:
     SvmModel &model;
     const SVMParam &param;
 
-    CCache *gpuCache;
-	GpuCache cache;
-    DeviceHessianOnFly *hessianCalculator;
-
     void init4Training(const SvmProblem &subProblem);
 
-    bool iterate(SvmProblem &subProblem, float_point C);
-    int getHessianRow(int rowIndex);
+
+    void selectWorkingSetAndPreCompute(const SvmProblem &subProblem, uint numOfSelectPairs);
 
     void extractModel(const SvmProblem &subProblem, vector<int> &svIndex, vector<float_point> &coef, float_point &rho) const;
     void deinit4Training();
 
     virtual float_point *ObtainRow(int numTrainingInstance)
     {
-    	cache.getHessianRow(IdofInstanceOne, devHessianInstanceRow1);
     	return devHessianInstanceRow1;
     }
 
+    float_point *devAlphaDiff;
+    int *devWorkingSet;
     float_point *devHessianMatrixCache;
-	int numOfElementEachRowInCache;
+    int nnz;
+    float_point *devVal;
+    int *devColInd;
+    int *devRowPtr;
+    float_point *devSelfDot;
+    float_point *devFValue4Sort;
+    int *devIdx4Sort;
+    int workingSetSize;
+    int q;
+    vector<int> workingSet;
 
 };
 

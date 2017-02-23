@@ -132,7 +132,11 @@ void CSRMatrix::copy2Dev(float_point *&devVal, int *&devRowPtr, int *&devColInd)
                                cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(devColInd, this->getCSRColInd(), sizeof(int) * nnz, cudaMemcpyHostToDevice));
 }
-
+void CSRMatrix::copy2Dev(float_point *&devVal, int *&devRowPtr, int *&devColInd, float_point *&devSelfDot) {
+    this->copy2Dev(devVal, devRowPtr, devColInd);
+    checkCudaErrors(cudaMalloc((void **) &devSelfDot, sizeof(int) * getNumOfSamples()));
+    checkCudaErrors(cudaMemcpy(devSelfDot, this->getCSRValSelfDot(), sizeof(int) * getNumOfSamples(), cudaMemcpyHostToDevice));
+}
 /**
  * @brief: release the device CSR matrix
  */
@@ -142,3 +146,9 @@ void CSRMatrix::freeDev(float_point *&devVal, int *&devRowPtr, int *&devColInd) 
     checkCudaErrors(cudaFree(devColInd));
 }
 
+void CSRMatrix::freeDev(float_point *&devVal, int *&devRowPtr, int *&devColInd, float_point *&devSelfDot) {
+    checkCudaErrors(cudaFree(devVal));
+    checkCudaErrors(cudaFree(devRowPtr));
+    checkCudaErrors(cudaFree(devColInd));
+    checkCudaErrors(cudaFree(devSelfDot));
+}

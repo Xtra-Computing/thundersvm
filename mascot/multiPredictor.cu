@@ -9,7 +9,6 @@
 #include <helper_cuda.h>
 #include <driver_types.h>
 #include <cuda_runtime_api.h>
-#include <zconf.h>
 #include <cuda_profiler_api.h>
 #include <assert.h>
 #include "multiPredictor.h"
