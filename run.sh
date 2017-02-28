@@ -23,43 +23,43 @@ case $1 in
     iris)
         GAMMA=${GAMMA}"0.5"
         C=${C}"100"
-        FILENAME=${DATASET_DIR}/"iris.scale"
+        TrainingSet=${DATASET_DIR}/"iris.scale"
         ;;
     mnist)
         GAMMA=${GAMMA}"0.125"
         C=${C}"10"
-        FILENAME=${DATASET_DIR}/"mnist.scale"
+        TrainingSet=${DATASET_DIR}/"mnist.scale"
         ;;
     a9a | a6a)
         GAMMA=${GAMMA}"0.5"
         C=${C}"100"
-        FILENAME=${DATASET_DIR}/$1
+        TrainingSet=${DATASET_DIR}/$1
         ;;
     w8a)
         GAMMA=${GAMMA}"0.5"
         C=${C}"10"
-        FILENAME=${DATASET_DIR}/"w8a"
+        TrainingSet=${DATASET_DIR}/"w8a"
         ;;
     news20)
         GAMMA=${GAMMA}"0.5"
         C=${C}"4"
-        FILENAME=${DATASET_DIR}/"news20.binary"
+        TrainingSet=${DATASET_DIR}/"news20.binary"
         ;;
     cov1)
         GAMMA=${GAMMA}"1"
         C=${C}"3"
-        FILENAME=${DATASET_DIR}/"cov1"
+        TrainingSet=${DATASET_DIR}/"cov1"
         ;;
     real-sim)
         GAMMA=${GAMMA}"4"
         C=${C}"0.5"
-        FILENAME=${DATASET_DIR}/"real-sim"
+        TrainingSet=${DATASET_DIR}/"real-sim"
         ;;
     *)
         echo "undefined dataset, use GAMMA=0.5, C=10"
         GAMMA=${GAMMA}"0.5"
         C=${C}"10"
-        FILENAME=${DATASET_DIR}/$1
+        TrainingSet=${DATASET_DIR}/$1
 esac
 ###options
 #svm with probability output
@@ -68,6 +68,10 @@ PROB="-b 0" #0 for no probability output; 1 for probability output.
 #task type: 0 for training; 1 for cross-validation; 2 for evaluation
 #	    3 for grid search; 4 for selecting better C.
 TASK="-o 2"
+
+#test set name ("e" stands for evaluation)
+#In this example test set name, if you use "mnist.scale", the test set name is "mnist.scale.t"
+TestSet="-e "${TrainingSet}".t"
 
 #evaluate training error
 E="-r 1" #0 not evaluate training error; evaluate training error otherwise.
@@ -79,4 +83,4 @@ E="-r 1" #0 not evaluate training error; evaluate training error otherwise.
 set -x
 
 #command
-./bin/release/mascot ${PROB} ${TASK} ${GAMMA} ${C} ${E} ${NUMFEATURE} ${FILENAME}
+./bin/release/mascot ${PROB} ${TASK} ${GAMMA} ${C} ${E} ${NUMFEATURE} ${TestSet} ${TrainingSet}

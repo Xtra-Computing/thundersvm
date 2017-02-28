@@ -8,7 +8,10 @@
 #ifndef COMMANDLINEPARSER_H_
 #define COMMANDLINEPARSER_H_
 
+#include <iostream>
 #include "../svm-shared/svmParam.h"
+
+using std::string;
 
 class Parser
 {
@@ -18,6 +21,7 @@ public:
 	static int nr_fold;
 	static int nNumofFeature;
 	static SVMParam param;
+	static string testSetName;
 public:
 	static void ParseLine(int argc, char **argv, char *pcFileName, char *pcSavedFileName);
 	static void HelpInfo();

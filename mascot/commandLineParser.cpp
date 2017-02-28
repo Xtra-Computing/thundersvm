@@ -17,6 +17,7 @@ int Parser::task_type = 1;
 bool Parser::compute_training_error = false;
 int Parser::nr_fold = 0;
 int Parser::nNumofFeature = 0;
+string Parser::testSetName = "";
 SVMParam Parser::param;
 
 void print_null(const char *s) {}
@@ -76,6 +77,9 @@ void Parser::ParseLine(int argc, char **argv, char *pcFileName, char *pcSavedFil
             case 'r':
             	compute_training_error = atoi(argv[i]);//boolean variable
             	break;
+			case 'e':
+				testSetName = argv[i];
+				break;
 		/*
 			case 's':
 				param.svm_type = atoi(argv[i]);

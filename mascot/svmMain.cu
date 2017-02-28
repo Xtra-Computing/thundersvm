@@ -48,7 +48,7 @@ int main(int argc, char **argv)
         cout << "start training..." << endl;
 		trainSVM(parser.param, fileName, parser.nNumofFeature, model, parser.compute_training_error);
         cout << "start evaluation..." << endl;
-        evaluateSVMClassifier(model, strcat(fileName, ".t"), parser.nNumofFeature);
+        evaluateSVMClassifier(model, parser.testSetName, parser.nNumofFeature);
     }else if(parser.task_type == 4){
     	//perform selecting best C
     	cout << "perform C selection" << endl;
