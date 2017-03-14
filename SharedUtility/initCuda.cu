@@ -29,6 +29,28 @@ void UseDevice(int deviceId, CUcontext &context)
 		fprintf(stderr, "Device %d cannot map host memory!\n", deviceId);
 }
 
+/**
+ * @brief: get the device with maximum memory
+ */
+int GetMaxMemDevice(int count){
+	int id = 0;
+	unsigned int maxMem = 0;
+	for(int i = 0; i < count; i++) {
+        cudaDeviceProp prop;
+        checkCudaErrors(cudaGetDeviceProperties(&prop, i));
+        if(cudaGetDeviceProperties(&prop, i) == cudaSuccess) {
+			//check memory size
+			checkCudaErrors(cudaSetDevice(i));
+			size_t nFreeMem, nTotalMem;
+			checkCudaErrors(cudaMemGetInfo(&nFreeMem, &nTotalMem));  
+			if(nFreeMem > maxMem){
+				maxMem = nFreeMem;
+				id = i;
+			}
+        }
+    }
+	return id;
+}
 
 /**
  * @brief: initialize CUDA device
@@ -44,9 +66,18 @@ bool InitCUDA(CUcontext &context, char gpuType = 'T')
         return false;
     }
 
+	//use the device with the largest available memory
+	int bestId = GetMaxMemDevice(count);
+    cudaDeviceProp prop;
+    checkCudaErrors(cudaGetDeviceProperties(&prop, bestId));
+	if(prop.name[0] == gpuType){
+		UseDevice(bestId, context);
+		return true;
+	}
+
+	//choose the device with the prefer name
     int i;
     for(i = 0; i < count; i++) {
-        cudaDeviceProp prop;
         checkCudaErrors(cudaGetDeviceProperties(&prop, i));
         if(cudaGetDeviceProperties(&prop, i) == cudaSuccess) {
         	cout << prop.name << endl;
