@@ -41,7 +41,9 @@ SvmModel::~SvmModel() {
 uint SvmModel::getK(int i, int j) const {
     return ((nrClass - 1) + (nrClass - i)) * i / 2 + j - i - 1;
 }
-
+uint SvmModel::getLibK(int i, int j) const{
+	return getK(i,j);
+}
 void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
     //reset model to fit a new SvmProblem
     nrClass = problem.getNumOfClasses();
@@ -58,7 +60,11 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
     start.clear();
     count.clear();
     probability = false;
+    nSV.clear();
+	nonzero.clear();
 
+    nSV.resize(nrClass,0);
+	nonzero.resize(problem.v_nLabels.size(),false);
     coef.resize(cnr2);
     rho.resize(cnr2);
     probA.resize(cnr2);
@@ -415,7 +421,7 @@ void SvmModel::sigmoidTrain(const float_point *decValues, const int l, const vec
   *@brief: add a binary svm model to the multi-class svm model.
 **/
 void SvmModel::addBinaryModel(const SvmProblem &problem, const vector<int> &svLocalIndex, const vector<float_point> &coef,
-                              float_point rho, int i, int j) {
+                              float_point rho, int i, int j, int nSVi, int nSVj) {
     static map<int, int> indexMap;
     int k = getK(i, j);
     this->coef[k] = coef;
@@ -430,11 +436,40 @@ void SvmModel::addBinaryModel(const SvmProblem &problem, const vector<int> &svLo
         this->svIndex[k].push_back(indexMap[originalIndex]);//svIndex is the id in the map.
     }
     this->rho[k] = rho;
+    this->nSV[i]+=nSVi;
+    this->nSV[j]+=nSVj;
     numOfSVs += svLocalIndex.size();
+}
+
+void SvmModel::addBinaryLibModel(const SvmProblem &problem, const vector<int> &svLocalIndex, const vector<float_point> &coef,
+                              float_point rho, int i, int j, int nSVi, int nSVj, vector<bool> nonzero, int posi_svcount,vector<int> &prob_start) 
+{
+	static map<int, int> indexMap;
+	int k = getK(i, j);
+	this->coef[k] = coef;
+	for (int l = 0; l < svLocalIndex.size(); ++l) {
+		int originalIndex = problem.originalIndex[svLocalIndex[l]];
+		if (indexMap.find(originalIndex) != indexMap.end()) {//instance of this sv has been stored in svMap
+		} else {	 														              if (i<posi_svcount)											                  nonzero[prob_start[i]+svLocalIndex[l]]=true;
+		      else															                  nonzero[prob_start[j]+svLocalIndex[l]-posi_svcount]=true;
+              indexMap[originalIndex] = svMap.size();
+			  svMap.push_back(problem.v_vSamples[svLocalIndex[l]]);																							          }
+																				          this->svIndex[k].push_back(indexMap[originalIndex]);
+																					}
+																					this->rho[k] = rho;
+    	this->nSV[i]+=nSVi;
+    	this->nSV[j]+=nSVj;
+	    numOfSVs += svLocalIndex.size();
+																	
 }
 
 bool SvmModel::isProbability() const {
     return probability;
 }
 
-
+unsigned int SvmModel::getnumofSV() const{
+return this->numOfSVs; 
+}
+vector<float_point> SvmModel::get_rho() const{
+return this->rho;
+}

@@ -44,7 +44,8 @@ public:
 
     vector<vector<int> > missLabellingMatrix;	//for measuring classification error for each sub-classifier
     vector<float_point> vC;							//keep improving C
-
+    vector<int> nSV;
+    vector<bool> nonzero;
 private:
     int numOfSVs;
     vector<int> start;					//for multiclass, start position for each class of instances
@@ -75,9 +76,14 @@ public:
 
     void fit(const SvmProblem &problem, const SVMParam &param);
     void addBinaryModel(const SvmProblem &subProblem, const vector<int> &svLocalIndex,
-    					const vector<float_point> &coef, float_point rho, int i, int j);
+    					const vector<float_point> &coef, float_point rho, int i, int j, int nSVi, int nSVj);
 
+	void addBinaryLibModel(const SvmProblem &problem, const vector<int> &svLocalIndex, const vector<float_point> &coef,
+                              float_point rho, int i, int j, int nSVi, int nSVj, vector<bool> nonzero, int posi_svcount,vector<int> &prob_start);
+	uint getLibK(int i, int j) const;
     bool isProbability() const;
+    unsigned int getnumofSV() const;
+    vector<float_point> get_rho() const;
 };
 
 #endif //MASCOT_SVM_SVMMODEL_H

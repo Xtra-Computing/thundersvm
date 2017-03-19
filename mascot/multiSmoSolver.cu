@@ -19,15 +19,18 @@
 void MultiSmoSolver::solve() {
     int nrClass = problem.getNumOfClasses();
 
-    if (model.vC.size() == 0) {//initialize C for all the binary classes
+   if (model.vC.size() == 0) {//initialize C for all the binary classes
         model.vC = vector<float_point>(nrClass * (nrClass - 1) / 2, param.C);
     }
 
     printf("q = %d, working set size = %d\n", q, workingSetSize);
     //train nrClass*(nrClass-1)/2 binary models
     int k = 0;
+	vector<int> prob_start(problem.start);
     for (int i = 0; i < nrClass; ++i) {
         for (int j = i + 1; j < nrClass; ++j) {
+            int nSVi=0;
+            int nSVj=0;
             printf("training classifier with label %d and %d\n", i, j);
             SvmProblem subProblem = problem.getSubProblem(i, j);
             init4Training(subProblem);
@@ -66,10 +69,17 @@ void MultiSmoSolver::solve() {
             vector<int> svIndex;
             vector<float_point> coef;
             float_point rho;
-            extractModel(subProblem, svIndex, coef, rho);
+            /****original code
+			extractModel(subProblem, svIndex, coef, rho,nSVi,nSVj);
 
-            model.addBinaryModel(subProblem, svIndex, coef, rho, i, j);
-            k++;
+            model.addBinaryModel(subProblem, svIndex, coef, rho, i, j,nSVi,nSVj);
+            *******/
+			//new code for save libmodel
+			int posi_svcount=0;
+			extractLibModel(subProblem, svIndex, coef, rho, nSVi, nSVj, posi_svcount);
+	        model.addBinaryLibModel(subProblem, svIndex, coef, rho, i, j, nSVi, nSVj, model.nonzero, posi_svcount, prob_start);
+	        //end new code
+	        k++;
             deinit4Training();
         }
     }
@@ -119,7 +129,7 @@ void MultiSmoSolver::deinit4Training() {
 }
 
 void MultiSmoSolver::extractModel(const SvmProblem &subProblem, vector<int> &svIndex, vector<float_point> &coef,
-                                  float_point &rho) const {
+                                  float_point &rho,int nSVi,int nSVj) const {
     const unsigned int trainingSize = subProblem.getNumOfSamples();
     vector<float_point> alpha(trainingSize);
     const vector<int> &label = subProblem.v_nLabels;
@@ -128,10 +138,33 @@ void MultiSmoSolver::extractModel(const SvmProblem &subProblem, vector<int> &svI
         if (alpha[i] != 0) {
             coef.push_back(label[i] * alpha[i]);
             svIndex.push_back(i);
+            if(label[i]>0)
+                nSVi++;
+            else
+                nSVj++;
         }
     }
     checkCudaErrors(cudaMemcpyFromSymbol(&rho, devRho, sizeof(float_point), 0, cudaMemcpyDeviceToHost));
     printf("# of SV %lu\nbias = %f\n", svIndex.size(), rho);
+}
+
+void MultiSmoSolver::extractLibModel(const SvmProblem &subProblem, vector<int> &svIndex, vector<float_point> &coef,
+                                  float_point &rho, int nSVi, int nSVj, int posi_svcount) const {
+	const unsigned int trainingSize = subProblem.getNumOfSamples();
+	vector<float_point> alpha(trainingSize);
+	const vector<int> &label = subProblem.v_nLabels;
+	checkCudaErrors(cudaMemcpy(alpha.data(), devAlpha, sizeof(float_point) * trainingSize, cudaMemcpyDeviceToHost));
+	for (int i = 0; i < trainingSize; ++i) {
+		if (alpha[i] != 0) {
+	        coef.push_back(label[i] * alpha[i]);						                svIndex.push_back(i);
+            if(label[i]>0){		 										                    posi_svcount++;
+				nSVi++;
+			}else
+				nSVj++;
+		}																        }
+	checkCudaErrors(cudaMemcpyFromSymbol(&rho, devRho, sizeof(float_point), 0, cudaMemcpyDeviceToHost));
+	printf("# of SV %lu\nbias = %f\n", svIndex.size(), rho);
+																	
 }
 
 MultiSmoSolver::MultiSmoSolver(const SvmProblem &problem, SvmModel &model, const SVMParam &param) :
