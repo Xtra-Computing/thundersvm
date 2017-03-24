@@ -64,7 +64,7 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
 	nonzero.clear();
 
     nSV.resize(nrClass,0);
-	nonzero.resize(problem.v_nLabels.size(),false);
+	nonzero.resize(problem.getNumOfSamples(),false);
     coef.resize(cnr2);
     rho.resize(cnr2);
     probA.resize(cnr2);
@@ -421,7 +421,7 @@ void SvmModel::sigmoidTrain(const float_point *decValues, const int l, const vec
   *@brief: add a binary svm model to the multi-class svm model.
 **/
 void SvmModel::addBinaryModel(const SvmProblem &problem, const vector<int> &svLocalIndex, const vector<float_point> &coef,
-                              float_point rho, int i, int j, int nSVi, int nSVj) {
+                              float_point rho, int i, int j) {
     static map<int, int> indexMap;
     int k = getK(i, j);
     this->coef[k] = coef;
@@ -436,30 +436,34 @@ void SvmModel::addBinaryModel(const SvmProblem &problem, const vector<int> &svLo
         this->svIndex[k].push_back(indexMap[originalIndex]);//svIndex is the id in the map.
     }
     this->rho[k] = rho;
-    this->nSV[i]+=nSVi;
-    this->nSV[j]+=nSVj;
     numOfSVs += svLocalIndex.size();
 }
 
 void SvmModel::addBinaryLibModel(const SvmProblem &problem, const vector<int> &svLocalIndex, const vector<float_point> &coef,
-                              float_point rho, int i, int j, int nSVi, int nSVj, vector<bool> nonzero, int posi_svcount,vector<int> &prob_start) 
+                              float_point rho, int i, int j, vector<int> &prob_start, int ci) 
 {
 	static map<int, int> indexMap;
 	int k = getK(i, j);
-	this->coef[k] = coef;
+	//this->coef[k] = coef;
 	for (int l = 0; l < svLocalIndex.size(); ++l) {
 		int originalIndex = problem.originalIndex[svLocalIndex[l]];
 		if (indexMap.find(originalIndex) != indexMap.end()) {//instance of this sv has been stored in svMap
-		} else {	 														              if (i<posi_svcount)											                  nonzero[prob_start[i]+svLocalIndex[l]]=true;
-		      else															                  nonzero[prob_start[j]+svLocalIndex[l]-posi_svcount]=true;
-              indexMap[originalIndex] = svMap.size();
-			  svMap.push_back(problem.v_vSamples[svLocalIndex[l]]);																							          }
-																				          this->svIndex[k].push_back(indexMap[originalIndex]);
-																					}
-																					this->rho[k] = rho;
-    	this->nSV[i]+=nSVi;
-    	this->nSV[j]+=nSVj;
-	    numOfSVs += svLocalIndex.size();
+		} else {	 	 
+            if (svLocalIndex[l]<ci){											                 
+                nonzero[prob_start[i]+svLocalIndex[l]]=true;
+                nSV[i]++;
+            }
+		    else{	
+                nonzero[prob_start[j]+svLocalIndex[l]-ci ]=true;
+                nSV[j]++;
+            }
+            indexMap[originalIndex] = svMap.size();
+			//svMap.push_back(problem.v_vSamples[svLocalIndex[l]]);		
+            }
+		//this->svIndex[k].push_back(indexMap[originalIndex]);
+	}
+	//this->rho[k] = rho;
+	//numOfSVs += svLocalIndex.size();
 																	
 }
 

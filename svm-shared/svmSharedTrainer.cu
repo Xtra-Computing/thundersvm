@@ -7,7 +7,9 @@
 #include "svmTrainer.h"
 #include "storageManager.h"
 #include <sys/time.h>
-
+#include "svmParam.h"
+#include "../mascot/svmModel.h"
+#include "../SharedUtility/KeyValue.h"
 /*
  * @brief: set data involved in training, as in n-fold-cross validation, training data may be consisted of two parts
  * @param: nStart1: the start position of the first continuous piece of data
@@ -280,3 +282,94 @@ bool CSVMTrainer::SaveModel(string strFileName, svm_model *model, vector<vector<
 	writeOut.close();
 	return bReturn;
 }
+
+const char*sType[]={"C_SVC", "NU_SVC", "ONE_CLASS", "EPSILON_SVR", "NU_SVR" };  /* svm_type */
+const char*kType[]={"linear", "polynomial", "rbf", "sigmoid", "precomputed","NULL" };
+
+bool SaveLibmodel(string filename,const SvmProblem &problem, const SvmModel& model){
+    bool ret=false;
+    ofstream libmod;
+    libmod.open(filename.c_str());
+    if(!libmod.is_open()){
+        cout<<"can't open file "<<filename<<endl;
+        return ret;
+    }
+
+    const SVMParam &param=model.param;
+    //kernelType ktype;
+    //SVMType stype;
+    libmod<<"svm_type "<<sType[param.svm_type]<<endl;
+    libmod<<"kernel_type "<<kType[param.kernel_type]<<endl;;
+    if(param.kernel_type==1)
+        libmod<<"degree "<<param.degree<<endl;
+    if(param.kernel_type == 1|| param.kernel_type == 2|| param.kernel_type ==3)/*1:poly 2:rbf 3:sigmoid*/
+        libmod<<"gamma "<<param.gamma<<endl;
+    if(param.kernel_type == 1 || param.kernel_type == 3)
+        libmod<<"coef0 "<<param.coef0<<endl;
+
+    unsigned int nr_class=model.nrClass;
+    unsigned int total_sv=model.getnumofSV();
+    libmod<<"nr_class "<<nr_class<<endl;
+    libmod<<"total_sv "<<total_sv<<endl;
+
+    vector<float_point> frho=model.get_rho();
+    libmod<<"rho";
+    for(int i=0;i<nr_class*(nr_class)/2;i++){
+        libmod<<" "<<frho[i];
+    }
+    libmod<<endl;
+
+    if(param.svm_type==0){
+        libmod<<"label";
+        for(int i=0;i<nr_class;i++){
+            libmod<<" "<<model.label[i];
+        }
+        libmod<<endl;
+
+    }
+
+    if(model.probability) // regression has probA only
+    {
+        libmod<<"probA";
+        for(int i=0;i<nr_class*(nr_class-1)/2;i++)
+            libmod<<" "<<model.probA[i];
+        libmod<<endl;;
+
+        libmod<<"probB";
+        for(int i=0;i<nr_class*(nr_class-1)/2;i++)
+            libmod<<" "<<model.probB[i];
+        libmod<<endl;;
+    }
+    if(param.svm_type==0)//c-svm
+    {
+        libmod<<"nr_sv";
+        for(int i=0;i<nr_class;i++)
+            libmod<<" "<<model.nSV[i];
+        libmod<<endl;
+    }
+
+    libmod<<"SV"<<endl;;
+	vector<int> prob_count(problem.count);
+	vector<int> prob_start(problem.start);
+	for(int i=0;i<nr_class;i++){
+		for(int k=0;k<prob_count[i];i++){
+			if(model.nonzero[prob_start[i]+k]){
+				for(int j=0;j<nr_class;j++){
+					if(i<j)
+						libmod<<model.coef[model.getLibK(i,j)][k]<<" ";
+					if(i>j)
+						libmod<<model.coef[model.getLibK(i,j)][prob_count[j]+k]<<" ";
+					}	
+			}
+			vector<KeyValue> keyvalue(problem.v_vSamples[problem.perm[prob_start[i]+k]]);
+			for(int l=0;l<keyvalue.size();l++)
+				libmod<<keyvalue[l].id<<":"<<keyvalue[l].featureValue<<" ";
+			libmod<<endl;
+		}
+	}
+
+	libmod.close();
+	ret=true;
+    return ret;
+}
+
