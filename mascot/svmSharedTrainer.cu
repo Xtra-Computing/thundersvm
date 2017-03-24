@@ -286,7 +286,7 @@ bool CSVMTrainer::SaveModel(string strFileName, svm_model *model, vector<vector<
 const char*sType[]={"C_SVC", "NU_SVC", "ONE_CLASS", "EPSILON_SVR", "NU_SVR" };  /* svm_type */
 const char*kType[]={"linear", "polynomial", "rbf", "sigmoid", "precomputed","NULL" };
 
-bool SaveLibmodel(string filename,const SvmProblem &problem, const SvmModel& model){
+bool CSVMTrainer::SaveLibmodel(string filename,const SvmProblem &problem, const SvmModel& model){
     bool ret=false;
     ofstream libmod;
     libmod.open(filename.c_str());

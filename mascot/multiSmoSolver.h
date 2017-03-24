@@ -35,6 +35,8 @@ private:
     void extractModel(const SvmProblem &subProblem, vector<int> &svIndex, vector<float_point> &coef, float_point &rho) const;
     void deinit4Training();
 
+	//void countPosiSV(const SvmProblem &subProblem, vector<int> &svIndex, vector<float_point> &coef, float_point &rho,  int posi_svcount) const; 
+
     virtual float_point *ObtainRow(int numTrainingInstance)
     {
     	return devHessianInstanceRow1;
