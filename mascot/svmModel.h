@@ -80,6 +80,7 @@ public:
     					const vector<float_point> &coef, float_point rho, int i, int j);
 	void getModelParam(const SvmProblem &subProblem, const vector<int> &svIndex,const vector<float_point> &coef, 
 	                            vector<int> &prob_start, int ci,int i, int j);
+	void updateAllCoef(int l, int indOffset, int nr_class, int &count, int k, const vector<int> & svIndex, const vector<float_point> &coef,vector<int> &prob_start);
     bool isProbability() const;
 	bool saveLibModel(string filename, const SvmProblem &problem);
 };

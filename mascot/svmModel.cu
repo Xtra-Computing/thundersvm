@@ -438,35 +438,30 @@ void SvmModel::addBinaryModel(const SvmProblem &problem, const vector<int> &svLo
     this->rho[k] = rho;
     numOfSVs += svLocalIndex.size();
 }
+void SvmModel::updateAllCoef(int l, int indOffset, int nr_class, int &count, int k, const vector<int> &svIndex, const vector<float_point> &coef,vector<int> &prob_start){
+	
+	for(int i=0;i<l;i++){
+	if(i+indOffset==svIndex[count]){
+		allcoef[k].push_back(coef[count++]);
+		if(!nonzero[prob_start[nr_class]+i]) {                                       	nonzero[prob_start[nr_class]+i]=true;
+			nSV[nr_class]++;
+		}
+	}
+		else{
+			allcoef[k].push_back(0);
+		}
+																				}
+}
 
 void SvmModel::getModelParam(const SvmProblem &subProblem, const vector<int> &svIndex,const vector<float_point> &coef, 
                     vector<int> &prob_start, int ci,int i, int j){
 	const unsigned int trainingSize = subProblem.getNumOfSamples();
-	int k=this->getK(i,j);
+	int k=getK(i,j);
 	int count=0;
-	for(int l=0;l<ci;l++){
-	if(l==svIndex[count]){
-		this->allcoef[k].push_back(coef[count++]);
-		if(!this->nonzero[prob_start[i]+l]) {                                       	this->nonzero[prob_start[i]+l]=true;
-			this->nSV[i]++;
-		}
-	}
-		else{
-			this->allcoef[k].push_back(0);
-		}
-																				}
-																				for(int l=ci;l<trainingSize;l++){
-		if(l==svIndex[count]){
-			this->allcoef[k].push_back(coef[count++]);
-			if(!nonzero[prob_start[j]+l-ci]) {                                              this->nonzero[prob_start[j]+l-ci]=true;
-			    this->nSV[j]++;
-			}
-		}
-			else{
-	            this->allcoef[k].push_back(0);
-
-		}
-	} 
+    //update coef, nonzero, nSV, of class i
+	updateAllCoef(ci, 0, i, count, k, svIndex, coef, prob_start);
+    //update coef, nonzero, nSV, of class j
+	updateAllCoef(trainingSize-ci, ci, j, count, k, svIndex, coef, prob_start);
 }
 
 bool SvmModel::isProbability() const {
@@ -496,7 +491,7 @@ bool SvmModel::saveLibModel(string filename,const SvmProblem &problem){
 	unsigned int total_sv=this->numOfSVs;
 	libmod<<"nr_class "<<nr_class<<endl;
 	libmod<<"total_sv "<<total_sv<<endl;
-	vector<float_point> frho=this->rho;
+	vector<float_point> frho=rho;
 	libmod<<"rho";
 	for(int i=0;i<nr_class*(nr_class-1)/2;i++){
 		libmod<<" "<<frho[i];
@@ -505,7 +500,7 @@ bool SvmModel::saveLibModel(string filename,const SvmProblem &problem){
 	if(param.svm_type==0){
 		libmod<<"label";
 		for(int i=0;i<nr_class;i++){
-			libmod<<" "<<this->label[i];
+			libmod<<" "<<label[i];
 																																								}
 		libmod<<endl;
 	}
@@ -513,18 +508,18 @@ bool SvmModel::saveLibModel(string filename,const SvmProblem &problem){
 	{
 		libmod<<"probA";
 		for(int i=0;i<nr_class*(nr_class-1)/2;i++)
-			libmod<<" "<<this->probA[i];
+			libmod<<" "<<probA[i];
 		libmod<<endl;
 		libmod<<"probB";
 		for(int i=0;i<nr_class*(nr_class-1)/2;i++)
-			libmod<<" "<<this->probB[i];
+			libmod<<" "<<probB[i];
 		libmod<<endl;
 	}
 	if(param.svm_type==0)//c-svm
 	{
 		libmod<<"nr_sv";
 		for(int i=0;i<nr_class;i++)
-			libmod<<" "<<this->nSV[i];
+			libmod<<" "<<nSV[i];
 		libmod<<endl;
 	}
 
@@ -537,10 +532,10 @@ bool SvmModel::saveLibModel(string filename,const SvmProblem &problem){
 				for(int j=0;j<nr_class;j++){
 					
 					if(i<j)
-						libmod<<this->allcoef[this->getK(i,j)][k]<<" ";
+						libmod<<allcoef[this->getK(i,j)][k]<<" ";
 						
 					if(i>j)
-						libmod<<this->allcoef[this->getK(j,i)][prob_count[j]+k]<<" ";
+						libmod<<allcoef[this->getK(j,i)][prob_count[j]+k]<<" ";
 					
 	            }   
 			
