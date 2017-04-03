@@ -41,7 +41,9 @@ SvmModel::~SvmModel() {
 uint SvmModel::getK(int i, int j) const {
     return ((nrClass - 1) + (nrClass - i)) * i / 2 + j - i - 1;
 }
-
+uint SvmModel::getLibK(int i, int j) const{
+	return getK(i,j);
+}
 void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
     //reset model to fit a new SvmProblem
     nrClass = problem.getNumOfClasses();
@@ -49,6 +51,7 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
     numOfSVs = 0;
     numOfFeatures = 0;
     coef.clear();
+	allcoef.clear();
     rho.clear();
     probA.clear();
     probB.clear();
@@ -58,8 +61,13 @@ void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
     start.clear();
     count.clear();
     probability = false;
+    nSV.clear();
+	nonzero.clear();
 
+    nSV.resize(nrClass,0);
+	nonzero.resize(problem.getNumOfSamples(),false);
     coef.resize(cnr2);
+    allcoef.resize(cnr2);
     rho.resize(cnr2);
     probA.resize(cnr2);
     probB.resize(cnr2);
@@ -433,8 +441,119 @@ void SvmModel::addBinaryModel(const SvmProblem &problem, const vector<int> &svLo
     numOfSVs += svLocalIndex.size();
 }
 
+void SvmModel::addBinaryLibModel(const SvmProblem &problem, const vector<int> &svLocalIndex, const vector<float_point> &coef, const vector<float_point> &allcoef, 
+                              float_point rho, int i, int j, vector<int> &prob_start, int ci) 
+{
+	static map<int, int> indexMap;
+	int k = getK(i, j);
+	this->coef[k] = coef;
+	this->allcoef[k]=allcoef;
+	for (int l = 0; l < svLocalIndex.size(); ++l) {
+		int originalIndex = problem.originalIndex[svLocalIndex[l]];
+		if (indexMap.find(originalIndex) != indexMap.end()) {//instance of this sv has been stored in svMap
+		} else {	 	 
+            if (svLocalIndex[l]<ci){											                 
+                nonzero[prob_start[i]+svLocalIndex[l]]=true;
+                nSV[i]++;
+            }
+		    else{	
+                nonzero[prob_start[j]+svLocalIndex[l]-ci ]=true;
+                nSV[j]++;
+            }
+            indexMap[originalIndex] = svMap.size();
+			svMap.push_back(problem.v_vSamples[svLocalIndex[l]]);		
+            }
+		this->svIndex[k].push_back(indexMap[originalIndex]);
+	}
+	this->rho[k] = rho;
+	numOfSVs += svLocalIndex.size();
+																	
+}
+
 bool SvmModel::isProbability() const {
     return probability;
 }
 
+bool SvmModel::saveLibModel(string filename,const SvmProblem &problem){
+    bool ret=false;
+	ofstream libmod;
+	string str=filename + ".model";
+	libmod.open(str.c_str());
+	if(!libmod.is_open()){
+		cout<<"can't open file "<<filename<<endl;
+		return ret;
+	}
+	const SVMParam &param=this->param;
+	const char*sType[]={"c_svc", "nu_svc", "one_class", "epsilon_svr", "nu_svr","NULL" };  /* svm_type */
+	const char*kType[]={"linear", "polynomial", "rbf", "sigmoid", "precomputed","NULL" };
+	libmod<<"svm_type "<<sType[param.svm_type]<<endl;
+	libmod<<"kernel_type "<<kType[param.kernel_type]<<endl;;
+	if(param.kernel_type==1)
+		libmod<<"degree "<<param.degree<<endl;
+	if(param.kernel_type == 1|| param.kernel_type == 2|| param.kernel_type ==3)/*1:poly 2:rbf 3:sigmoid*/														libmod<<"gamma "<<param.gamma<<endl;
+	if(param.kernel_type == 1 || param.kernel_type == 3)
+		libmod<<"coef0 "<<param.coef0<<endl;
+	unsigned int nr_class=this->nrClass;
+	unsigned int total_sv=this->numOfSVs;
+	libmod<<"nr_class "<<nr_class<<endl;
+	libmod<<"total_sv "<<total_sv<<endl;
+	vector<float_point> frho=this->rho;
+	libmod<<"rho";
+	for(int i=0;i<nr_class*(nr_class-1)/2;i++){
+		libmod<<" "<<frho[i];
+	}
+	libmod<<endl;
+	if(param.svm_type==0){
+		libmod<<"label";
+		for(int i=0;i<nr_class;i++){
+			libmod<<" "<<this->label[i];
+																																								}
+		libmod<<endl;
+	}
+	if(this->probability) // regression has probA only
+	{
+		libmod<<"probA";
+		for(int i=0;i<nr_class*(nr_class-1)/2;i++)
+			libmod<<" "<<this->probA[i];
+		libmod<<endl;
+		libmod<<"probB";
+		for(int i=0;i<nr_class*(nr_class-1)/2;i++)
+			libmod<<" "<<this->probB[i];
+		libmod<<endl;
+	}
+	if(param.svm_type==0)//c-svm
+	{
+		libmod<<"nr_sv";
+		for(int i=0;i<nr_class;i++)
+			libmod<<" "<<this->nSV[i];
+		libmod<<endl;
+	}
+
+	libmod<<"SV"<<endl;
+																				vector<int> prob_count(problem.count);
+	vector<int> prob_start(problem.start);
+	for(int i=0;i<nr_class;i++){
+		for(int k=0;k<prob_count[i];k++){
+			if(this->nonzero[prob_start[i]+k]){
+				for(int j=0;j<nr_class;j++){
+					
+					if(i<j)
+						libmod<<this->allcoef[this->getLibK(i,j)][k]<<" ";
+						
+					if(i>j)
+						libmod<<this->allcoef[this->getLibK(j,i)][prob_count[j]+k]<<" ";
+					
+	            }   
+			
+				vector<KeyValue> keyvalue(problem.v_vSamples[problem.perm[prob_start[i]+k]]);
+				for(int l=0;l<keyvalue.size();l++){
+					libmod<<keyvalue[l].id<<":"<<keyvalue[l].featureValue<<" ";}
+				libmod<<endl;
+			}
+		}
+	}
+	libmod.close();
+	ret=true;
+	return ret;
+}
 
