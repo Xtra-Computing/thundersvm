@@ -32,8 +32,10 @@ private:
 
     void selectWorkingSetAndPreCompute(const SvmProblem &subProblem, uint numOfSelectPairs);
 
-    void extractModel(const SvmProblem &subProblem, vector<int> &svIndex, vector<float_point> &coef, float_point &rho) const;
+    void extractModel(const SvmProblem &subProblem, vector<int> &svIndex, vector<float_point> &coef, float_point &rho, vector<float_point> &allcoef) const;
     void deinit4Training();
+
+	//void countPosiSV(const SvmProblem &subProblem, vector<int> &svIndex, vector<float_point> &coef, float_point &rho,  int posi_svcount) const; 
 
     virtual float_point *ObtainRow(int numTrainingInstance)
     {

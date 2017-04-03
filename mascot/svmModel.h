@@ -78,8 +78,15 @@ public:
     void fit(const SvmProblem &problem, const SVMParam &param);
     void addBinaryModel(const SvmProblem &subProblem, const vector<int> &svLocalIndex,
     					const vector<float_point> &coef, float_point rho, int i, int j);
+<<<<<<< HEAD
 	void getModelParam(const SvmProblem &subProblem, const vector<int> &svIndex,const vector<float_point> &coef, 
 	                            vector<int> &prob_start, int ci,int i, int j);
+=======
+
+	void addBinaryLibModel(const SvmProblem &problem, const vector<int> &svLocalIndex, const vector<float_point> &coef,
+                               const vector<float_point> &allcoef, float_point rho, int i, int j, vector<int> &prob_start, int ci);
+	uint getLibK(int i, int j) const;
+>>>>>>> origin/master
     bool isProbability() const;
 	bool saveLibModel(string filename, const SvmProblem &problem);
 };

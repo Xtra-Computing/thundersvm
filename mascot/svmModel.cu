@@ -41,7 +41,9 @@ SvmModel::~SvmModel() {
 uint SvmModel::getK(int i, int j) const {
     return ((nrClass - 1) + (nrClass - i)) * i / 2 + j - i - 1;
 }
-
+uint SvmModel::getLibK(int i, int j) const{
+	return getK(i,j);
+}
 void SvmModel::fit(const SvmProblem &problem, const SVMParam &param) {
     //reset model to fit a new SvmProblem
     nrClass = problem.getNumOfClasses();
@@ -439,6 +441,7 @@ void SvmModel::addBinaryModel(const SvmProblem &problem, const vector<int> &svLo
     numOfSVs += svLocalIndex.size();
 }
 
+<<<<<<< HEAD
 void SvmModel::getModelParam(const SvmProblem &subProblem, const vector<int> &svIndex,const vector<float_point> &coef, 
                     vector<int> &prob_start, int ci,int i, int j){
 	const unsigned int trainingSize = subProblem.getNumOfSamples();
@@ -467,6 +470,35 @@ void SvmModel::getModelParam(const SvmProblem &subProblem, const vector<int> &sv
 
 		}
 	} 
+=======
+void SvmModel::addBinaryLibModel(const SvmProblem &problem, const vector<int> &svLocalIndex, const vector<float_point> &coef, const vector<float_point> &allcoef, 
+                              float_point rho, int i, int j, vector<int> &prob_start, int ci) 
+{
+	static map<int, int> indexMap;
+	int k = getK(i, j);
+	this->coef[k] = coef;
+	this->allcoef[k]=allcoef;
+	for (int l = 0; l < svLocalIndex.size(); ++l) {
+		int originalIndex = problem.originalIndex[svLocalIndex[l]];
+		if (indexMap.find(originalIndex) != indexMap.end()) {//instance of this sv has been stored in svMap
+		} else {	 	 
+            if (svLocalIndex[l]<ci){											                 
+                nonzero[prob_start[i]+svLocalIndex[l]]=true;
+                nSV[i]++;
+            }
+		    else{	
+                nonzero[prob_start[j]+svLocalIndex[l]-ci ]=true;
+                nSV[j]++;
+            }
+            indexMap[originalIndex] = svMap.size();
+			svMap.push_back(problem.v_vSamples[svLocalIndex[l]]);		
+            }
+		this->svIndex[k].push_back(indexMap[originalIndex]);
+	}
+	this->rho[k] = rho;
+	numOfSVs += svLocalIndex.size();
+																	
+>>>>>>> origin/master
 }
 
 bool SvmModel::isProbability() const {
@@ -537,10 +569,17 @@ bool SvmModel::saveLibModel(string filename,const SvmProblem &problem){
 				for(int j=0;j<nr_class;j++){
 					
 					if(i<j)
+<<<<<<< HEAD
 						libmod<<this->allcoef[this->getK(i,j)][k]<<" ";
 						
 					if(i>j)
 						libmod<<this->allcoef[this->getK(j,i)][prob_count[j]+k]<<" ";
+=======
+						libmod<<this->allcoef[this->getLibK(i,j)][k]<<" ";
+						
+					if(i>j)
+						libmod<<this->allcoef[this->getLibK(j,i)][prob_count[j]+k]<<" ";
+>>>>>>> origin/master
 					
 	            }   
 			
