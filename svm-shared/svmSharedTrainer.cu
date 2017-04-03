@@ -7,7 +7,6 @@
 #include "svmTrainer.h"
 #include "storageManager.h"
 #include <sys/time.h>
-
 /*
  * @brief: set data involved in training, as in n-fold-cross validation, training data may be consisted of two parts
  * @param: nStart1: the start position of the first continuous piece of data
@@ -280,3 +279,4 @@ bool CSVMTrainer::SaveModel(string strFileName, svm_model *model, vector<vector<
 	writeOut.close();
 	return bReturn;
 }
+

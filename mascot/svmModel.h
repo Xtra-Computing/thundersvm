@@ -25,6 +25,7 @@ public:
     vector<vector<KeyValue> > svMap;
     CSRMatrix *svMapCSRMat = NULL;
     vector<vector<float_point> > coef;
+    vector<vector<float_point> > allcoef;
     vector<float_point> probA;
     vector<float_point> probB;
     float_point *devSVMapVal;
@@ -45,7 +46,7 @@ public:
     vector<vector<int> > missLabellingMatrix;	//for measuring classification error for each sub-classifier
     vector<float_point> vC;							//keep improving C
     vector<int> nSV;
-    vector<bool> nonzero;
+    vector<bool> nonzero;//chen add
 private:
     int numOfSVs;
     vector<int> start;					//for multiclass, start position for each class of instances
@@ -76,14 +77,11 @@ public:
 
     void fit(const SvmProblem &problem, const SVMParam &param);
     void addBinaryModel(const SvmProblem &subProblem, const vector<int> &svLocalIndex,
-    					const vector<float_point> &coef, float_point rho, int i, int j, int nSVi, int nSVj);
-
-	void addBinaryLibModel(const SvmProblem &problem, const vector<int> &svLocalIndex, const vector<float_point> &coef,
-                              float_point rho, int i, int j, int nSVi, int nSVj, vector<bool> nonzero, int posi_svcount,vector<int> &prob_start);
-	uint getLibK(int i, int j) const;
+    					const vector<float_point> &coef, float_point rho, int i, int j);
+	void getModelParam(const SvmProblem &subProblem, const vector<int> &svIndex,const vector<float_point> &coef, 
+	                            vector<int> &prob_start, int ci,int i, int j);
     bool isProbability() const;
-    unsigned int getnumofSV() const;
-    vector<float_point> get_rho() const;
+	bool saveLibModel(string filename, const SvmProblem &problem);
 };
 
 #endif //MASCOT_SVM_SVMMODEL_H
