@@ -32,6 +32,7 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
     PRINT_TIME("pre-computation kernel",preComputeTimer)
     PRINT_TIME("iteration",iterationTimer)
     PRINT_TIME("g value updating",updateGTimer)
+	model.saveLibModel(strTrainingFileName,problem);//save model in the same format as LIBSVM's
 //    PRINT_TIME("2 instances selection",selectTimer)
 //    PRINT_TIME("kernel calculation",calculateKernelTimer)
 //    PRINT_TIME("alpha updating",updateAlphaTimer)
@@ -40,7 +41,8 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
     if (evaluteTrainingError == true) {
         printf("Computing training accuracy...\n");
         evaluate(model, v_v_Instance, v_nLabel, ClassifierEvaluater::trainingError);
-    }
+    
+	}
 }
 
 void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNumofFeature) {
