@@ -1,6 +1,6 @@
 GPU-SVM
 ======
-GPU-SVM has modules for multi-class SVM training and classification, and also supports probabilistic output. We are currently upgrading GPU-SVM to support SVM regression.
+GPU-SVM has modules for binary SVM training and classification. We are currently upgrading GPU-SVM to support SVM regression.
 
 The associated paper of this source code is: <i>Wen, Zeyi, et al. "MASCOT: fast and highly scalable SVM cross-validation using GPUs and SSDs." 2014 IEEE International Conference on Data Mining</i>.
 
