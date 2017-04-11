@@ -2,19 +2,20 @@
 // Created by ss on 16-12-14.
 //
 
+#include <thrust/device_ptr.h>
+#include <thrust/sort.h>
 #include <sys/time.h>
+#include <cuda_runtime.h>
 #include <cfloat>
-#include "multiSmoSolver.h"
 #include "../svm-shared/constant.h"
-#include "cuda_runtime.h"
 #include "../svm-shared/smoGPUHelper.h"
 #include "../svm-shared/HessianIO/deviceHessianOnFly.h"
-#include "../SharedUtility/Timer.h"
-#include "trainClassifier.h"
-#include <thrust/sort.h>
-#include <thrust/device_ptr.h>
 #include "../svm-shared/devUtility.h"
 #include "../svm-shared/Cache/subHessianCalculator.h"
+#include "../SharedUtility/Timer.h"
+#include "../SharedUtility/powerOfTwo.h"
+#include "trainClassifier.h"
+#include "multiSmoSolver.h"
 
 void MultiSmoSolver::solve() {
     int nrClass = problem.getNumOfClasses();
@@ -145,7 +146,7 @@ MultiSmoSolver::MultiSmoSolver(const SvmProblem &problem, SvmModel &model, const
     q = 256;
     workingSetSize = 512;
     if(problem.v_vSamples.size() < workingSetSize){
-    	workingSetSize = problem.v_vSamples.size();
+    	workingSetSize = floorPow2(problem.v_vSamples.size());
     	q = workingSetSize;
     }
     //workingSetSize must be 2^n and less than 1024
