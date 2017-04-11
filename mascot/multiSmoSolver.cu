@@ -144,6 +144,10 @@ MultiSmoSolver::MultiSmoSolver(const SvmProblem &problem, SvmModel &model, const
         problem(problem), model(model), param(param) {
     q = 256;
     workingSetSize = 512;
+    if(problem.v_vSamples.size() < workingSetSize){
+    	workingSetSize = problem.v_vSamples.size();
+    	q = workingSetSize;
+    }
     //workingSetSize must be 2^n and less than 1024
     assert(workingSetSize <= 1024);
     for (int i = 0; i < problem.getNumOfClasses(); ++i) {

@@ -70,6 +70,8 @@ debug: $(OBJ)
 %.o: mascot/%.c* mascot/*.h svm-shared/*.h svm-shared/HessianIO/*.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -dc $<
 
+all: debug
+
 .PHONY:clean
 
 clean:
