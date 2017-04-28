@@ -17,8 +17,8 @@
 #include "trainClassifier.h"
 #include "../svm-shared/HessianIO/deviceHessian.h"
 #include "../svm-shared/storageManager.h"
-
-//#include "sigmoidTrainGPUHelper.h"
+#include <cstring>
+#include <time.h>//#include "sigmoidTrainGPUHelper.h"
 
 SvmModel::~SvmModel() {
     checkCudaErrors(cudaFree(devCoef));
@@ -551,3 +551,157 @@ bool SvmModel::saveLibModel(string filename,const SvmProblem &problem){
 	return ret;
 }
 
+void SvmModel::loadLibModel(SvmModel & model){
+	SVMParam param;
+	int nr_class=0;
+	unsigned int cnr2=0;
+	const char*sType[]={"c_svc", "nu_svc", "one_class", "epsilon_svr", "nu_svr","NULL" };  /* svm_type */
+	const char*kType[]={"linear", "polynomial", "rbf", "sigmoid", "precomputed","NULL" };
+	
+	ifstream ifs;
+	ifs.open("dataset/a6a.model");
+	if(!ifs.is_open())
+		cout<<"can't open file"<<endl;
+	string feature;
+	while(ifs>>feature){
+	    //cout<<feature<<endl;
+	    if(feature=="svm_type"){
+	  		string value;
+			ifs>>value;
+			for(int i=0;i<6;i++){
+				if(value==sType[i])
+					param.svm_type=i;
+			}
+    	}
+	 	else if(feature=="kernel_type"){
+			string value;
+			ifs>>value;
+			for(int i=0;i<6;i++){
+				if(feature==kType[i])
+					param.kernel_type=i;
+			}
+			}
+		 else if(feature=="degree"){
+			ifs>>param.degree;
+		 }
+		 else if(feature=="coef0"){
+			ifs>>param.coef0;
+		 }
+		 else if(feature=="gamma")
+		 {
+			ifs>>param.gamma;
+			
+		 }
+		 else if(feature=="nr_class"){
+			ifs>>model.nrClass;
+			nr_class=model.nrClass;
+			model.cnr2=nr_class*(nr_class-1)/2;
+			cnr2=model.cnr2;
+		 }
+		else if(feature=="total_sv"){
+			ifs>>model.numOfSVs;
+		 }
+		else  if(feature=="rho"){
+			vector<float_point> frho(cnr2,0);
+			for(int i=0;i<cnr2;i++)
+				ifs>>frho[i];
+			model.rho=frho;
+		}
+		else if(feature=="label"){
+			vector<int> ilabel(nr_class,0);
+			for(int i=0;i<nr_class;i++)
+				ifs>>ilabel[i];
+			model.label=ilabel;
+		}
+		else if(feature=="probA"){
+			vector<float_point> fprobA(cnr2,0);
+			for(int i=0;i<cnr2;i++)
+				ifs>>fprobA[i];
+			model.probA=fprobA;
+		}
+		else if(feature=="probB"){
+			vector<float_point> fprobB(cnr2,0);
+			for(int i=0;i<cnr2;i++)
+				ifs>>fprobB[i];
+			model.probB=fprobB;
+		}
+		else if(feature=="nr_sv"){
+			vector<int> fnSV(nr_class,0);
+			for(int i=0;i<nr_class;i++)
+				ifs>>fnSV[i];
+			model.nSV=fnSV;
+		}
+		else if (feature=="SV"){		
+			string value;
+			stringstream sstr;
+			float_point ftemp=0;
+			vector<vector<float_point> > v_allcoef(cnr2);
+			vector<vector<KeyValue> > v_svMap(numOfSVs);
+			//while(!ifs.eof()){
+			int count=0;
+			//clock_t startt,endt;
+			for(int k=0;k<nr_class;k++){
+				for(int m=0;m<model.nSV[k];m++){
+					for(int j=0;j<nr_class;j++){
+						if(k<j){
+							ifs>>ftemp;
+							v_allcoef[getK(k,j)].push_back(ftemp);
+						}
+						if(k>j){
+							ifs>>ftemp;
+							v_allcoef[getK(j,k)].push_back(ftemp);
+						}
+					}
+					getline(ifs,value);
+					KeyValue kv;
+					//startt=clock();
+				/*
+				    int ind=value.find_first_of(" ");
+					string tempstr=value.substr(ind+1,value.size());
+					stringstream stemp;
+				   while((ind=tempstr.find_first_of(" "))!=-1){
+			//	cout<<"ind "<<ind<<endl;
+				string subtempstr=tempstr.substr(0,ind);
+					    tempstr=tempstr.substr(ind+1,tempstr.size());
+			  //          cout<<"tmpstr "<<subtempstr<<endl;
+			int subind=subtempstr.find_first_of(":");
+					stemp<<subtempstr.substr(0,subind);
+						stemp>>kv.id;
+						stemp.clear();
+						stemp<<subtempstr.substr(subind+1,value.size());
+						stemp>>kv.featureValue;
+						v_svMap[count].push_back(kv);
+					  // cout<<":"<<endl;
+					  // cout<<subtempstr.substr(subind+1,subtempstr.size())<<endl;
+					}
+					count++;
+				*/
+				
+	      			sstr<<value;
+					string temp;
+					stringstream stemp;
+					while(sstr>>temp){
+						int ind=temp.find_first_of(":");
+						stemp<<temp.substr(0,ind);
+						stemp>>kv.id;
+						stemp.clear();
+						stemp<<temp.substr(ind+1,value.size());
+						stemp>>kv.featureValue;
+					    //cout<<kv.id<<":"<<kv.featureValue<<endl;
+						stemp.clear();
+						v_svMap[count].push_back(kv);
+				}
+			count++;
+				}
+			}
+			//}
+            //endt=clock();
+			//cout<<"elapsed time "<<(endt-startt)<<endl;
+			model.allcoef=v_allcoef;
+			model.svMap=v_svMap;
+
+		}//end else if
+			
+	}//end while	
+	model.param=param;
+}

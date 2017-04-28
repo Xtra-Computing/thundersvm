@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <cstdio>
+#include <sstream>
 #include <driver_types.h>
 #include <helper_cuda.h>
 #include <cuda.h>
@@ -83,6 +84,7 @@ public:
 	void updateAllCoef(int l, int indOffset, int nr_class, int &count, int k, const vector<int> & svIndex, const vector<float_point> &coef,vector<int> &prob_start);
     bool isProbability() const;
 	bool saveLibModel(string filename, const SvmProblem &problem);
+	void loadLibModel(SvmModel &loadModel);
 };
 
 #endif //MASCOT_SVM_SVMMODEL_H
