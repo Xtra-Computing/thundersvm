@@ -551,7 +551,7 @@ bool SvmModel::saveLibModel(string filename,const SvmProblem &problem){
 	return ret;
 }
 
-void SvmModel::loadLibModel(SvmModel & model){
+void SvmModel::loadLibModel(string filename, SvmModel & model){
 	SVMParam param;
 	int nr_class=0;
 	unsigned int cnr2=0;
@@ -559,12 +559,13 @@ void SvmModel::loadLibModel(SvmModel & model){
 	const char*kType[]={"linear", "polynomial", "rbf", "sigmoid", "precomputed","NULL" };
 	
 	ifstream ifs;
-	ifs.open("dataset/a6a.model");
+	filename=filename+".model";
+	ifs.open(filename.c_str());//"dataset/a6a.model");
 	if(!ifs.is_open())
-		cout<<"can't open file"<<endl;
+	   	cout<<"can't open file"<<endl;
 	string feature;
 	while(ifs>>feature){
-	    //cout<<feature<<endl;
+	   // cout<<feature<<endl;
 	    if(feature=="svm_type"){
 	  		string value;
 			ifs>>value;
