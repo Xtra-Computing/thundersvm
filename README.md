@@ -1,6 +1,6 @@
-GPU-SVM
+MASCOT
 ======
-GPU-SVM has modules for multi-class SVM training and classification, and also supports probabilistic output. We are currently upgrading GPU-SVM to support SVM regression.
+MASCOT is fast SVM cross-validation using GPUs and SSDs.
 
 The associated paper of this source code is: <i>Wen, Zeyi, et al. "MASCOT: fast and highly scalable SVM cross-validation using GPUs and SSDs." 2014 IEEE International Conference on Data Mining</i>.
 
@@ -24,9 +24,6 @@ FAQ:
 4. Do I have to install an SSD if I want to use GPU-SVM?<br>
 <b>A</b>: No. GPU-SVM works fine with HDDs, although SSDs would help improve the efficiency.
 
-5. What are the meanings of the options?<br>
-<b>A</b>: -b is for SVM with/without probability output; -o is for setting the task type (e.g. training or cross-validation); -g is for setting the gamma value; -c is setting C for regularisation; -e is for setting the test dataset name; -f is to let GPU-SVM know the data dimensionality (this argument is optional).
-
-6. I got "error while loading shared libraries: libcudart.so.6.0: wrong ELF class: ELFCLASS32", when I run the executable file "mascot".<br>
+5. I got "error while loading shared libraries: libcudart.so.6.0: wrong ELF class: ELFCLASS32", when I run the executable file "mascot".<br>
 <b>A</b>: Running the command ''sudo ldconfig /usr/local/cuda/lib64'' should resolve the problem..
 
