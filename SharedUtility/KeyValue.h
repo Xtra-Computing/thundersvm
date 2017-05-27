@@ -18,14 +18,14 @@ using std::vector;
 class KeyValue
 {
 public:
-	float_point featureValue;
+	real featureValue;
 	int id;//This id may be used as feature id or instance id
 
 public:
 	static void SortFeaValue(int nNumofDim, vector<vector<KeyValue> > &vvInsSparse, vector<vector<KeyValue> > &vvFeaInxPair);
-	static void VecToArray(vector<vector<KeyValue> > &vvFeaInxPair, int *pInsId, float_point *pdValue, int *pNumofKeyValue, long long *plStartPos);
+	static void VecToArray(vector<vector<KeyValue> > &vvFeaInxPair, int *pInsId, real *pdValue, int *pNumofKeyValue, long long *plStartPos);
 
-	static void TestVecToArray(vector<vector<KeyValue> > &vvFeaInxPair, int *pInsId, float_point *pdValue, int *pNumofKeyValue);
+	static void TestVecToArray(vector<vector<KeyValue> > &vvFeaInxPair, int *pInsId, real *pdValue, int *pNumofKeyValue);
 };
 
 

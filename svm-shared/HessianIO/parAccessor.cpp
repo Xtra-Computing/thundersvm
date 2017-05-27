@@ -20,7 +20,7 @@ int ParAccessor::m_nNumofThread = 0;		//the number of threads to read a row
 FILE **ParAccessor::m_pFileReadIn = NULL;
 ThreadParameter *ParAccessor::m_pThreadArg = NULL;
 bool ParAccessor::m_isFirst = false;
-float_point* ParAccessor::pfHessianFullRow = NULL;
+real* ParAccessor::pfHessianFullRow = NULL;
 
 using std::ios;
 /*
@@ -45,7 +45,7 @@ ParAccessor::ParAccessor()
 	m_nPageCapacity = m_nPageSize;
 	m_nPagesForARow = (m_nTotalNumofInstance + m_nPageCapacity - 1)/ m_nPageCapacity;
 
-	pfHessianFullRow = new float_point[m_nTotalNumofInstance];
+	pfHessianFullRow = new real[m_nTotalNumofInstance];
 }
 
 /*
@@ -53,7 +53,7 @@ ParAccessor::ParAccessor()
  * @param: writeOut: file stream to write to
  * @param: pfHessianRows: hessian rows to be written
  */
-bool ParAccessor::WriteHessianRows(FILE *&writeOut, float_point *pfHessianRows, SubMatrix &subMatrix)
+bool ParAccessor::WriteHessianRows(FILE *&writeOut, real *pfHessianRows, SubMatrix &subMatrix)
 {
 	if(writeOut == NULL || pfHessianRows == NULL || subMatrix.isValid() == false)
 	{
@@ -89,7 +89,7 @@ bool ParAccessor::WriteHessianRows(FILE *&writeOut, float_point *pfHessianRows, 
 			assert(ftell(writeOut) != -1);
 
 			long long nMemPos = (long long)i * nNumofCol + (long long)j * m_nPageSize;
-			float_point *pStartPos = pfHessianRows + nMemPos;
+			real *pStartPos = pfHessianRows + nMemPos;
 			int nNumofRemainingValue = nNumofCol - (j * m_nPageSize);
 			if(nNumofRemainingValue >= m_nPageSize)
 			{
@@ -136,7 +136,7 @@ bool ParAccessor::WriteHessianRows(FILE *&writeOut, float_point *pfHessianRows, 
  * @brief: read a sub row of Hessian matrix. This function is used during training & prediction
  * @param: pfHessianRow: a sub row of Hessian Matrix (output of this function)
  */
-bool ParAccessor::ReadHessianRow(FILE *&readIn, const int &nRowIdInSSD, float_point *pfHessianRow)
+bool ParAccessor::ReadHessianRow(FILE *&readIn, const int &nRowIdInSSD, real *pfHessianRow)
 {
 	timespec time1, time2;
 	clock_gettime(CLOCK_REALTIME, &time1);
@@ -172,13 +172,13 @@ bool ParAccessor::ReadHessianRow(FILE *&readIn, const int &nRowIdInSSD, float_po
 		//construct a subrow
 		int nSizeofFirstPart = m_nRowEndPos1 - m_nRowStartPos1 + 1;
 		if(m_nRowStartPos1 != -1)
-			memcpy(pfHessianRow, pfHessianFullRow, nSizeofFirstPart * sizeof(float_point));
+			memcpy(pfHessianRow, pfHessianFullRow, nSizeofFirstPart * sizeof(real));
 		else
 			nSizeofFirstPart = 0;
 
 		int nSizeofSecondPart = m_nRowEndPos2 - m_nRowStartPos2 + 1;
 		if(m_nRowStartPos2 != -1)
-			memcpy(pfHessianRow + nSizeofFirstPart, pfHessianFullRow + m_nRowStartPos2, nSizeofSecondPart * sizeof(float_point));
+			memcpy(pfHessianRow + nSizeofFirstPart, pfHessianFullRow + m_nRowStartPos2, nSizeofSecondPart * sizeof(real));
 
 		//////
 		/*for(int i = 0; i < m_nPagesForARow; i++)
@@ -244,7 +244,7 @@ void *ParAccessor::ReadRow(void *pThreadParameter)
 	ThreadParameter *pTemp = (ThreadParameter*)pThreadParameter;
 
 	int nRowIndexInFile = pTemp->nRowId;
-	float_point *pfHessianRow = pTemp->pfHessianRow;
+	real *pfHessianRow = pTemp->pfHessianRow;
 	int nTid = pTemp->nThreadId;
 
 
@@ -255,7 +255,7 @@ void *ParAccessor::ReadRow(void *pThreadParameter)
 	{
 		//long long nRowPos = ((nStartBlockId + i) * (long long)m_nBlockSize + nPageId) * (long long)m_nPageSize;
 		long long nRowPos = (nStartBlockId + i) * ((long long)m_nBlockSize * m_nPageSize + m_nOffset) + nPageId * (long long)m_nPageSize;
-		float_point *pfStartPos = pfHessianRow + i * m_nPageSize;
+		real *pfStartPos = pfHessianRow + i * m_nPageSize;
 
 		int nNumofRemainingValue = nNumofValueFirstPart - i * m_nPageSize;
 		if(nNumofRemainingValue >= m_nPageSize)

@@ -109,7 +109,7 @@ bool CLRUCache::GetDataFromCache(const int &nIndex, int &nLocationInCache, bool 
 /*
  * @brief: replace expired sample
  */
-void CLRUCache::ReplaceExpired(int nIndex, int &nLocationInCache, float_point *pExtraInfo)
+void CLRUCache::ReplaceExpired(int nIndex, int &nLocationInCache, real *pExtraInfo)
 {
 	vector<LRUEntry>::iterator itCheckEntry = v_LRUContainer.begin() + nIndex;
 	if(itCheckEntry->m_nStatus == NEVER)

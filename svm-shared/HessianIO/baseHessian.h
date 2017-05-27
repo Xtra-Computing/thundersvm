@@ -23,12 +23,12 @@ class BaseHessian
 public:
 	static int m_nTotalNumofInstance;
 	static int m_nNumofDim;
-	static float_point *m_pfHessianRowsInHostMem;
+	static real *m_pfHessianRowsInHostMem;
 	static int m_nNumofCachedHessianRow;
-	static float_point *m_pfHessianDiag;
+	static real *m_pfHessianDiag;
 
 	static int m_nNumofHessianRowsToWrite;	//batch write. Group a few rows of hessian matrix to write at one time
-	static float_point *m_pfHessianRows;
+	static real *m_pfHessianRows;
 
 	//for Hessian operation in n-fold-cross-validation
 	static int m_nRowStartPos1;	//index of the fisrt part of samples
@@ -65,26 +65,26 @@ public:
 
 	virtual bool ReleaseBuffer();
 
-	void SaveRows(float_point *pfSubMatrix, const SubMatrix &subMatrix);
+	void SaveRows(real *pfSubMatrix, const SubMatrix &subMatrix);
 
-    virtual void ReadRow(int nPosofRowAtHessian, float_point *pfHessianRow);
+    virtual void ReadRow(int nPosofRowAtHessian, real *pfHessianRow);
 
-	void PrecomputeKernelMatrix(vector<vector<float_point> > &v_vDocVector, BaseHessian *hessianIOOps);
-	virtual bool PrecomputeHessian(const string &strHessianMatrixFileName, const string &strDiagHessianFileName, vector<vector<float_point> > &v_v_DocVector) = 0;
-    virtual bool GetHessianDiag(const string &strFileName, const int &nNumofTraingSamples, float_point *pfHessianDiag) {
+	void PrecomputeKernelMatrix(vector<vector<real> > &v_vDocVector, BaseHessian *hessianIOOps);
+	virtual bool PrecomputeHessian(const string &strHessianMatrixFileName, const string &strDiagHessianFileName, vector<vector<real> > &v_v_DocVector) = 0;
+    virtual bool GetHessianDiag(const string &strFileName, const int &nNumofTraingSamples, real *pfHessianDiag) {
 		return false;
 	}
 
 private:
 	//read a full row of Hessian Matrix. Getting sub row may need to get the full row of Hessian Matrix
-	bool ReadHessianFullRow(FILE *&readIn, const int &nIndexofRow,  int nNumofRowsToRead, float_point *pfFullHessianRow);
+	bool ReadHessianFullRow(FILE *&readIn, const int &nIndexofRow,  int nNumofRowsToRead, real *pfFullHessianRow);
 	//read a sub row of Hessian Matrix. This function is used during prediction stage, as prediction sub row is consisted of one continous part.
 	bool ReadHessianSubRow(FILE *&readIn, const int &nIndexofRow,
 						   const int &nStartPos, const int &nEndPos,
-						   float_point *pfHessianSubRow);
+						   real *pfHessianSubRow);
 	//read a few sub rows at once. This function is for initialization of cache
 	bool ReadHessianRows(FILE *&readIn, const int &nStartRow, const int &nEndRow, const int &nNumofInvolveElements,
-						 float_point *pfHessianRow, int nNumOfElementEachRowInCache);
+						 real *pfHessianRow, int nNumOfElementEachRowInCache);
 
 public:
 	static void PrintHessianInfo();

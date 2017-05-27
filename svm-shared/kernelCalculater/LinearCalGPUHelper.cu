@@ -15,17 +15,17 @@
  * @param: nNumofDim: the number of dimensions for samples
  * @param: nStartRow: the Hessian row to be computed
  */
-__device__ void LinearOneRow(float_point *pfDevSamples, float_point *pfDevTransSamples,
-						  float_point *pfDevHessianRows, int nNumofSamples, int nNumofDim,
+__device__ void LinearOneRow(real *pfDevSamples, real *pfDevTransSamples,
+						  real *pfDevHessianRows, int nNumofSamples, int nNumofDim,
 						  int nStartRow)
 {
 	int nThreadId = threadIdx.x;
 	int nBlockSize = blockDim.x;
 	int nGlobalIndex = (blockIdx.y * gridDim.x + blockIdx.x) * blockDim.x + threadIdx.x;//global index for thread
-	extern __shared__ float_point fSampleValue[];
+	extern __shared__ real fSampleValue[];
 
 	int nTempPos = 0;
-	float_point fKernelValue = 0;
+	real fKernelValue = 0;
 	int nRemainDim = nNumofDim;
 
 	if(nThreadId >= nBlockSize)
@@ -50,7 +50,7 @@ __device__ void LinearOneRow(float_point *pfDevSamples, float_point *pfDevTransS
 		/* start compute kernel value */
 		if(nGlobalIndex < nNumofSamples)
 		{
-			float_point fTempSampleValue;
+			real fTempSampleValue;
 			//when the block size is larger than remaining dim, k is bounded by nRemainDim
 			//when the nRemainDim is larger than block size, k is bounded by nBlockSize
 			for(int k = 0; (k < nBlockSize) && (k < nRemainDim); k++)
@@ -77,10 +77,10 @@ __device__ void LinearOneRow(float_point *pfDevSamples, float_point *pfDevTransS
 //a few blocks compute one row of the Hessian matrix. The # of threads invovled in a row is equal to the # of samples
 //one thread an element of the row
 //the # of thread is equal to the # of dimensions or the available size of shared memory
-__global__ void LinearKernel(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows,
+__global__ void LinearKernel(real *pfDevSamples, real *pfDevTransSamples, real *pfDevHessianRows,
 						  int nNumofSamples, int nNumofDim, int nStartRow)
 {
-	float_point *pfDevTempHessianRow;
+	real *pfDevTempHessianRow;
 	//pointer to a hessian row
 	pfDevTempHessianRow = pfDevHessianRows + blockIdx.z * nNumofSamples;
 	LinearOneRow(pfDevSamples, pfDevTransSamples, pfDevTempHessianRow,

@@ -5,13 +5,13 @@
 
 #include "classifierEvaluater.h"
 
-vector<float_point> ClassifierEvaluater::trainingError;
-vector<float_point> ClassifierEvaluater::testingError;
+vector<real> ClassifierEvaluater::trainingError;
+vector<real> ClassifierEvaluater::testingError;
 
 /**
  * @brief: evaluate sub-classifiers for multi-class classification
  */
-void ClassifierEvaluater::evaluateSubClassifier(const vector<vector<int> > &missLabellingMatrix, vector<float_point> &vErrorRate){
+void ClassifierEvaluater::evaluateSubClassifier(const vector<vector<int> > &missLabellingMatrix, vector<real> &vErrorRate){
 	vErrorRate.clear();
 
 	int row = missLabellingMatrix.size();
@@ -34,8 +34,8 @@ void ClassifierEvaluater::evaluateSubClassifier(const vector<vector<int> > &miss
 /*
  * @brief: update C to better fit the problem.
  */
-vector<float_point> ClassifierEvaluater::updateC(const vector<float_point> &vOldC){
-	vector<float_point> vNewC;
+vector<real> ClassifierEvaluater::updateC(const vector<real> &vOldC){
+	vector<real> vNewC;
 	for(uint i = 0; i < trainingError.size(); i++){
 		if(trainingError[i] < testingError[i]){
 			vNewC.push_back(vOldC[i] * 0.5);//reduce C

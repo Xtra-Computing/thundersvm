@@ -12,14 +12,14 @@
 #include <cuda_runtime_api.h>
 #include "../SharedUtility/DataType.h"
 
-__global__ void rbfKernel(const float_point *sampleSelfDot, int numOfSamples,
-                          const float_point *svMapSelfDot, int svMapSize,
-                          float_point *kernelValues, float_point gamma);
+__global__ void rbfKernel(const real *sampleSelfDot, int numOfSamples,
+                          const real *svMapSelfDot, int svMapSize,
+                          real *kernelValues, real gamma);
 
-__global__ void sumKernelValues(const float_point *kernelValues, int numOfSamples, int svMapSize, int cnr2,
-                                const int *svIndex, const float_point *coef,
+__global__ void sumKernelValues(const real *kernelValues, int numOfSamples, int svMapSize, int cnr2,
+                                const int *svIndex, const real *coef,
                                 const int *start, const int *count,
-                                const float_point *bias, float_point *decValues);
+                                const real *bias, real *decValues);
 
 
 #endif /* MASCOT_PREDICTIONGPUHELPER_H_ */

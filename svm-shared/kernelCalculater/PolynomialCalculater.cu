@@ -18,7 +18,7 @@
  * @param: nNumofSamples: indicates the length of pfDevTransSamples
  * @param: nNumofRows: indicates the length of pfDevSamples
  */
-bool CPolynomialKernel::ComputeHessianRows(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows,
+bool CPolynomialKernel::ComputeHessianRows(real *pfDevSamples, real *pfDevTransSamples, real *pfDevHessianRows,
 									const int &nNumofSamples, const int &nNumofDim,
 									const int &nNumofRows, const int &nStartRow)
 {
@@ -28,7 +28,7 @@ bool CPolynomialKernel::ComputeHessianRows(float_point *pfDevSamples, float_poin
 	dim3 dimGrid;
 	GetGPUSpec(dimGrid, nBlockSize, nNumofSamples, nNumofRows);
 	assert(nBlockSize >= 0);
-	PolynomialKernel<<<dimGrid, nBlockSize, nBlockSize * sizeof(float_point)>>>(pfDevSamples,
+	PolynomialKernel<<<dimGrid, nBlockSize, nBlockSize * sizeof(real)>>>(pfDevSamples,
 			pfDevTransSamples, pfDevHessianRows, nNumofSamples, nNumofDim, nStartRow, m_fDegree);
 
 	cudaDeviceSynchronize();

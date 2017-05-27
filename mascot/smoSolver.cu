@@ -26,9 +26,9 @@ bool CSMOSolver::InitCache(const int &nCacheSize, const int &nNumofInstance)
 	//allocate memory for Hessian rows caching in GPU with memory alignment
 	cout << "Allocate GPU cache memory: number of ins is " << nNumofInstance << " and cache size is " << nCacheSize << endl;
 	size_t sizeOfEachRowInCache;
-	checkCudaErrors(cudaMallocPitch((void**)&m_pfDevHessianMatrixCache, &sizeOfEachRowInCache, nNumofInstance * sizeof(float_point), nCacheSize));
+	checkCudaErrors(cudaMallocPitch((void**)&m_pfDevHessianMatrixCache, &sizeOfEachRowInCache, nNumofInstance * sizeof(real), nCacheSize));
 	//temp memory for reading result to cache
-	m_lNumofElementEachRowInCache = sizeOfEachRowInCache / sizeof(float_point);
+	m_lNumofElementEachRowInCache = sizeOfEachRowInCache / sizeof(real);
 	if(m_lNumofElementEachRowInCache != nNumofInstance)
 	{
 		cout << "cache memory aligned to: " << m_lNumofElementEachRowInCache
@@ -36,20 +36,20 @@ bool CSMOSolver::InitCache(const int &nCacheSize, const int &nNumofInstance)
 	}
 
 	long long nSpaceForCache = (long long)nCacheSize * m_lNumofElementEachRowInCache;
-	checkCudaErrors(cudaMemset(m_pfDevHessianMatrixCache, 0, sizeof(float_point) * nSpaceForCache));
+	checkCudaErrors(cudaMemset(m_pfDevHessianMatrixCache, 0, sizeof(real) * nSpaceForCache));
 
 	//initialize cache
 	m_pGPUCache->SetCacheSize(nCacheSize);
 	m_pGPUCache->InitializeCache(nCacheSize, nNumofInstance);
 
 	//read Hessian diagonal
-	m_pfGValue = new float_point[nNumofInstance];
+	m_pfGValue = new real[nNumofInstance];
 
 	string strHessianDiagFile = HESSIAN_DIAG_FILE;
 	bool bReadDiag = m_pHessianReader->GetHessianDiag(strHessianDiagFile, nNumofInstance, hessianDiag);
 
 	//copy Hessian diagonal from CPU to GPU
-	checkCudaErrors(cudaMemcpy(devHessianDiag, hessianDiag, sizeof(float_point) * nNumofInstance, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(devHessianDiag, hessianDiag, sizeof(real) * nNumofInstance, cudaMemcpyHostToDevice));
 	assert(cudaGetLastError() == cudaSuccess);
 
 	return bReturn;
@@ -58,7 +58,7 @@ bool CSMOSolver::InitCache(const int &nCacheSize, const int &nNumofInstance)
 /*
  * @brief: this is a function which contains all the four steps
  */
-int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int *pnDevLabel, const int &nNumofTrainingSamples)
+int CSMOSolver::Iterate(real *pfDevYiFValue, real *pfDevAlpha, int *pnDevLabel, const int &nNumofTrainingSamples)
 {
 	//variables used in search
 	devYiGValue = pfDevYiFValue;
@@ -74,8 +74,8 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 	IdofInstanceTwo = int(hostBuffer[0]);
 
 	//get kernel value K(Sample1, Sample2)
-	float_point fKernelValue = 0;
-	float_point fMinLowValue;
+	real fKernelValue = 0;
+	real fMinLowValue;
 	fMinLowValue = hostBuffer[1];
 	fKernelValue = hostBuffer[2];
 
@@ -90,7 +90,7 @@ int CSMOSolver::Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int
 		return 1;
 	}
 
-	float_point fY1AlphaDiff, fY2AlphaDiff;
+	real fY1AlphaDiff, fY2AlphaDiff;
 	UpdateTwoWeight(fMinLowValue, -upValue, IdofInstanceOne, IdofInstanceTwo, fKernelValue,
 					fY1AlphaDiff, fY2AlphaDiff, m_pnLabel, gfPCost);
 

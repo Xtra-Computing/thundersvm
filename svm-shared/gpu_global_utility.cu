@@ -12,7 +12,7 @@
 using std::cout;
 using std::endl;
 
-float_point gfPCost = 4;	//cost for positive samples in training SVM model (i.e., error tolerance)
-float_point gfNCost = 4;	//cost for negative samples in training SVM model
-float_point gfGamma = 1;
+real gfPCost = 4;	//cost for positive samples in training SVM model (i.e., error tolerance)
+real gfNCost = 4;	//cost for negative samples in training SVM model
+real gfGamma = 1;
 int gNTest = 0;

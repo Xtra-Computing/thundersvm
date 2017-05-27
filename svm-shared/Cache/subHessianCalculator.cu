@@ -14,8 +14,8 @@
 #include "../../SharedUtility/KeyValue.h"
 #include "../../SharedUtility/Timer.h"
 
-__global__ void RBFKernel(const float_point *selfDot0, const float_point *selfDot1,
-                          float_point *dotProduct, int n, int m,
+__global__ void RBFKernel(const real *selfDot0, const real *selfDot1,
+                          real *dotProduct, int n, int m,
                           float gamma) {
     const int idx = blockDim.x * blockIdx.x + threadIdx.x;
     int i = idx / m;
@@ -49,25 +49,25 @@ void SubHessianCalculator::releaseCSRContext(cusparseHandle_t &handle, cusparseM
  */
 void SubHessianCalculator::computeSubHessianMatrix(cusparseHandle_t handle, cusparseMatDescr_t descr,
 									   CSRMatrix &csrMatrix0, int n, CSRMatrix &csrMatrix1, int m, int k,
-									   float_point *devC, const SVMParam &param){
-	float_point *devVal0;
+									   real *devC, const SVMParam &param){
+	real *devVal0;
 	int *devRowPtr0, *devColInd0;
 	csrMatrix0.copy2Dev(devVal0, devRowPtr0, devColInd0);
-	float_point *devSelfDot0;
+	real *devSelfDot0;
 	int nnz0 = csrMatrix0.getNnz();
-	checkCudaErrors(cudaMalloc((void **) &devSelfDot0, sizeof(float_point) * n));
-	checkCudaErrors(cudaMemcpy(devSelfDot0, csrMatrix0.getCSRValSelfDot(), sizeof(float_point) * n, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMalloc((void **) &devSelfDot0, sizeof(real) * n));
+	checkCudaErrors(cudaMemcpy(devSelfDot0, csrMatrix0.getCSRValSelfDot(), sizeof(real) * n, cudaMemcpyHostToDevice));
 
 	//initialize parameters of matrix1
 	int nnz1 = nnz0;
-	float_point *devVal1 = devVal0;
+	real *devVal1 = devVal0;
 	int *devRowPtr1 = devRowPtr0, *devColInd1 = devColInd0;
-	float_point *devSelfDot1 = devSelfDot0;
+	real *devSelfDot1 = devSelfDot0;
 	if(&csrMatrix1 != &csrMatrix0){//compare two addresses
 		csrMatrix1.copy2Dev(devVal1, devRowPtr1, devColInd1);
 		nnz1 = csrMatrix1.getNnz();
-		checkCudaErrors(cudaMalloc((void **) &devSelfDot1, sizeof(float_point) * m));
-		checkCudaErrors(cudaMemcpy(devSelfDot1, csrMatrix1.getCSRValSelfDot(), sizeof(float_point) * m, cudaMemcpyHostToDevice));
+		checkCudaErrors(cudaMalloc((void **) &devSelfDot1, sizeof(real) * m));
+		checkCudaErrors(cudaMemcpy(devSelfDot1, csrMatrix1.getCSRValSelfDot(), sizeof(real) * m, cudaMemcpyHostToDevice));
 	}
 	CSRMatrix::CSRmm2Dense(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE, n, m, k, descr,
 	                       nnz0, devVal0, devRowPtr0, devColInd0, descr, nnz1, devVal1, devRowPtr1, devColInd1, devC);
@@ -81,7 +81,7 @@ void SubHessianCalculator::computeSubHessianMatrix(cusparseHandle_t handle, cusp
     }
 }
 
-void SubHessianCalculator::preComputeSharedCache(vector<float_point*> &hostSharedCache, const SvmProblem &problem,
+void SubHessianCalculator::preComputeSharedCache(vector<real*> &hostSharedCache, const SvmProblem &problem,
                                                  const SVMParam &param) {
     cusparseHandle_t handle;
     cusparseMatDescr_t descr;
@@ -93,11 +93,11 @@ void SubHessianCalculator::preComputeSharedCache(vector<float_point*> &hostShare
         int n = oneClass.size();
         int k = problem.getNumOfFeatures();
         CSRMatrix csrMatrix(oneClass, k);
-        float_point *devC;
-        checkCudaErrors(cudaMalloc((void **) &devC, sizeof(float_point) * n * n));//this can be moved out of for-loop by reusing the memory.
+        real *devC;
+        checkCudaErrors(cudaMalloc((void **) &devC, sizeof(real) * n * n));//this can be moved out of for-loop by reusing the memory.
         computeSubHessianMatrix(handle, descr, csrMatrix, n, csrMatrix, n, k, devC, param);
 
-        checkCudaErrors(cudaMemcpy(hostSharedCache[i], devC, sizeof(float_point) * n * n, cudaMemcpyDeviceToHost));
+        checkCudaErrors(cudaMemcpy(hostSharedCache[i], devC, sizeof(real) * n * n, cudaMemcpyDeviceToHost));
         checkCudaErrors(cudaFree(devC));
     }
 
@@ -105,7 +105,7 @@ void SubHessianCalculator::preComputeSharedCache(vector<float_point*> &hostShare
 }
 
 void SubHessianCalculator::preComputeUniqueCache(int i, int j, const SvmProblem &subProblem,
-		    	vector<float_point*> &devUniqueCache, vector<size_t> &sizeOfEachRowInUniqueCache,
+		    	vector<real*> &devUniqueCache, vector<size_t> &sizeOfEachRowInUniqueCache,
 				vector<int> &numOfElementEachRowInUniqueCache, const SVMParam &param) {
     printf("pre-compute unique cache....");
     cusparseHandle_t handle;
@@ -119,12 +119,12 @@ void SubHessianCalculator::preComputeUniqueCache(int i, int j, const SvmProblem 
     vector<vector<KeyValue> > samples1(subProblem.v_vSamples.begin() + n, subProblem.v_vSamples.begin() + n + m);
     CSRMatrix csrMatrix0(samples0, k);
     CSRMatrix csrMatrix1(samples1, k);
-    float_point *devC;
-    checkCudaErrors(cudaMalloc((void **) &devC, sizeof(float_point) * n * m));
+    real *devC;
+    checkCudaErrors(cudaMalloc((void **) &devC, sizeof(real) * n * m));
     computeSubHessianMatrix(handle, descr, csrMatrix0, n, csrMatrix1, m, k, devC, param);
 
     checkCudaErrors(cudaMemcpy2D(devUniqueCache[0], sizeOfEachRowInUniqueCache[0], devC,
-                                 m * sizeof(float_point), m * sizeof(float_point), n, cudaMemcpyDeviceToDevice));
+                                 m * sizeof(real), m * sizeof(real), n, cudaMemcpyDeviceToDevice));
 
     //compute another sub kernel matrix by transposition
     float const alpha(1.0);
@@ -140,7 +140,7 @@ void SubHessianCalculator::preComputeUniqueCache(int i, int j, const SvmProblem 
     printf("done\n");
 }
 
-void SubHessianCalculator::preComputeAndStoreInHost(float_point *hostHessianMatrix, const SvmProblem &problem,
+void SubHessianCalculator::preComputeAndStoreInHost(real *hostHessianMatrix, const SvmProblem &problem,
 													bool &preComputeInHost, const SVMParam &param) {
     printf("pre-compute in host\n");
     preComputeInHost = true;
@@ -157,14 +157,14 @@ void SubHessianCalculator::preComputeAndStoreInHost(float_point *hostHessianMatr
     int m = problem.getNumOfSamples();
     int k = problem.getNumOfFeatures();
     int n = m / 100;
-    float_point *devValA, *devValB, *devSelfDot;
+    real *devValA, *devValB, *devSelfDot;
     int *devRowPtrA, *devColIndA, *devRowPtrB, *devColIndB;
-    float_point *devC;
+    real *devC;
     CSRMatrix all(permutedSamples, k);
     int nnzA = all.getNnz();
     all.copy2Dev(devValA, devRowPtrA, devColIndA);
-    checkCudaErrors(cudaMalloc((void **) &devSelfDot, sizeof(float_point) * m));
-    checkCudaErrors(cudaMemcpy(devSelfDot, all.getCSRValSelfDot(), sizeof(float_point) * m, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMalloc((void **) &devSelfDot, sizeof(real) * m));
+    checkCudaErrors(cudaMemcpy(devSelfDot, all.getCSRValSelfDot(), sizeof(real) * m, cudaMemcpyHostToDevice));
     printf("n = %d\n", n);
     float totalTime = 0;
     for (int i = 0; i < m / n + 1; ++i) {
@@ -174,7 +174,7 @@ void SubHessianCalculator::preComputeAndStoreInHost(float_point *hostHessianMatr
         int tn = sub.getNumOfSamples();
         int nnzB = sub.getNnz();
         sub.copy2Dev(devValB, devRowPtrB, devColIndB);
-        checkCudaErrors(cudaMalloc((void **) &devC, sizeof(float_point) * tn * m));
+        checkCudaErrors(cudaMalloc((void **) &devC, sizeof(real) * tn * m));
         CSRMatrix::CSRmm2Dense(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE, tn, m, k,
                                descr, nnzB, devValB, devRowPtrB, devColIndB, descr, nnzA, devValA, devRowPtrA,
                                devColIndA, devC);
@@ -182,7 +182,7 @@ void SubHessianCalculator::preComputeAndStoreInHost(float_point *hostHessianMatr
                                                 (devSelfDot + n * i, devSelfDot, devC, tn, m, param.gamma);
         sub.freeDev(devValB, devRowPtrB, devColIndB);
         checkCudaErrors(
-                cudaMemcpy(hostHessianMatrix + n * m * i, devC, sizeof(float_point) * tn * m, cudaMemcpyDeviceToHost));
+                cudaMemcpy(hostHessianMatrix + n * m * i, devC, sizeof(real) * tn * m, cudaMemcpyDeviceToHost));
         checkCudaErrors(cudaFree(devC));
     }
     checkCudaErrors(cudaFree(devSelfDot));
@@ -191,7 +191,7 @@ void SubHessianCalculator::preComputeAndStoreInHost(float_point *hostHessianMatr
     printf("time elapsed for pre-compute hessian matrix in host: %f\n", timeElapse(start,end));
 }
 
-void SubHessianCalculator::preComputeCache4BinaryProblem(float_point *devC, const SvmProblem &problem,
+void SubHessianCalculator::preComputeCache4BinaryProblem(real *devC, const SvmProblem &problem,
                                                          const SVMParam &param) {
     cusparseHandle_t handle;
     cusparseMatDescr_t descr;

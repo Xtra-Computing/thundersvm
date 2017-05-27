@@ -7,7 +7,7 @@
 #include "DataIO.h"
 #include <assert.h>
 
-bool CReadSlice::ReadFromFile(string strFileName, vector<vector<float_point> > &v_vSampleData, vector<float> &v_fValue,
+bool CReadSlice::ReadFromFile(string strFileName, vector<vector<real> > &v_vSampleData, vector<float> &v_fValue,
 							  int nNumofInstance, int nDim)
 {
 	bool nReturn = true;

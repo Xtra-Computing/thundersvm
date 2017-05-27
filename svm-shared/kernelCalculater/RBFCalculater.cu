@@ -10,7 +10,7 @@
  /*
  * @brief: get Hessian diagonal
  */
-bool CRBFKernel::GetHessianDiag(const string &strFileName, const int &nNumofTrainingSamples, float_point *pfHessianDiag)
+bool CRBFKernel::GetHessianDiag(const string &strFileName, const int &nNumofTrainingSamples, real *pfHessianDiag)
 {
 	bool bReturn = false;
 
@@ -30,8 +30,8 @@ bool CRBFKernel::GetHessianDiag(const string &strFileName, const int &nNumofTrai
  * @param: pfdevHessianRows: a device pointer to a certain # of Hessian Matrix rows to be computed
  * @param: nNumofRows:
  */
-bool CRBFKernel::ComputeHessianRows(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevSelfDot,
-									float_point *pfDevHessianRows, const int &nNumofCols, const int &nNumofDim,
+bool CRBFKernel::ComputeHessianRows(real *pfDevSamples, real *pfDevTransSamples, real *pfDevSelfDot,
+									real *pfDevHessianRows, const int &nNumofCols, const int &nNumofDim,
 									const int &nNumofRows, int nStartRow, int nStartCol)
 {
 	bool bReturn = true;
@@ -49,8 +49,8 @@ bool CRBFKernel::ComputeHessianRows(float_point *pfDevSamples, float_point *pfDe
  * @param: pfdevHessianRows: a device pointer to a certain # of Hessian Matrix rows to be computed
  * @param: nNumofRows:
  */
-bool CRBFKernel::ComputeHessianMatrix(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevSelfDot,
-									  float_point *pfDevHessianRows, const int &nNumofCols, const int &nNumofDim,
+bool CRBFKernel::ComputeHessianMatrix(real *pfDevSamples, real *pfDevTransSamples, real *pfDevSelfDot,
+									  real *pfDevHessianRows, const int &nNumofCols, const int &nNumofDim,
 									  const int &nNumofRows, int nStartRow, int nStartCol)
 {
 	bool bReturn = true;
@@ -107,7 +107,7 @@ bool CRBFKernel::ComputeHessianMatrix(float_point *pfDevSamples, float_point *pf
 /*
  * @brief: compute Hessian rows by CPU. For testing GPU ComputeHessianRows purpose.
  */
-bool CRBFKernel::ComputeHessianRowsByCPU(float_point *pfSamples, float_point *pfHessianRows,
+bool CRBFKernel::ComputeHessianRowsByCPU(real *pfSamples, real *pfHessianRows,
 								 	 	 const int &nNumofSamples, const int &nNumofDim,
 								 	 	 const int &nStartRow)
 {
@@ -119,7 +119,7 @@ bool CRBFKernel::ComputeHessianRowsByCPU(float_point *pfSamples, float_point *pf
 		{
 			for(int j = 0; j < nNumofDim; j++)
 			{
-				float_point fDiff = pfSamples[i * nNumofDim + j] - pfSamples[k * nNumofDim + j];
+				real fDiff = pfSamples[i * nNumofDim + j] - pfSamples[k * nNumofDim + j];
 				pfHessianRows[k * nNumofSamples + i] += fDiff * fDiff;
 			}
 			pfHessianRows[k * nNumofSamples + i] *= m_fGamma;

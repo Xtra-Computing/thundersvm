@@ -31,7 +31,7 @@ using std::endl;
 void gridSearch(Grid &SGrid, string strTrainingFileName){
 	lIO_timer = 0;
 
-	vector<vector<float_point> > v_vDocVector;
+	vector<vector<real> > v_vDocVector;
 	vector<int> v_nLabel;
 
 	int nNumofFeature = 0;
@@ -44,7 +44,7 @@ void gridSearch(Grid &SGrid, string strTrainingFileName){
 	CModelSelector modelSelector;
 
 	timeval t1, t2;
-	float_point elapsedTime;
+	real elapsedTime;
 	gettimeofday(&t1, NULL);
 	modelSelector.GridSearch(SGrid, v_vDocVector, v_nLabel);
 	gettimeofday(&t2, NULL);

@@ -90,15 +90,15 @@ void SvmModel::transferToDevice() {
     //convert svMap to csr matrix then copy it to device
     svMapCSRMat = new CSRMatrix(svMap,numOfFeatures);
     int nnz = svMapCSRMat->getNnz();
-    checkCudaErrors(cudaMalloc((void **) &devSVMapVal, sizeof(float_point) * nnz));
-    checkCudaErrors(cudaMalloc((void **) &devSVMapValSelfDot, sizeof(float_point) * svMapCSRMat->getNumOfSamples()));
+    checkCudaErrors(cudaMalloc((void **) &devSVMapVal, sizeof(real) * nnz));
+    checkCudaErrors(cudaMalloc((void **) &devSVMapValSelfDot, sizeof(real) * svMapCSRMat->getNumOfSamples()));
     checkCudaErrors(cudaMalloc((void **) &devSVMapRowPtr, sizeof(int) * (svMapCSRMat->getNumOfSamples() + 1)));
     checkCudaErrors(cudaMalloc((void **) &devSVMapColInd, sizeof(int) * nnz));
     checkCudaErrors(
-            cudaMemcpy(devSVMapVal, svMapCSRMat->getCSRVal(), sizeof(float_point) * nnz, cudaMemcpyHostToDevice));
+            cudaMemcpy(devSVMapVal, svMapCSRMat->getCSRVal(), sizeof(real) * nnz, cudaMemcpyHostToDevice));
     checkCudaErrors(
             cudaMemcpy(devSVMapValSelfDot, svMapCSRMat->getCSRValSelfDot(),
-                       sizeof(float_point) * svMapCSRMat->getNumOfSamples(), cudaMemcpyHostToDevice));
+                       sizeof(real) * svMapCSRMat->getNumOfSamples(), cudaMemcpyHostToDevice));
     checkCudaErrors(
             cudaMemcpy(devSVMapRowPtr, svMapCSRMat->getCSRRowPtr(), sizeof(int) * (svMapCSRMat->getNumOfSamples() + 1),
                        cudaMemcpyHostToDevice));
@@ -111,21 +111,21 @@ void SvmModel::transferToDevice() {
                                    cudaMemcpyHostToDevice));
     }
 
-    checkCudaErrors(cudaMalloc((void **) &devCoef, sizeof(float_point) * numOfSVs));
-    checkCudaErrors(cudaMalloc((void **) &devStart, sizeof(float_point) * cnr2));
-    checkCudaErrors(cudaMalloc((void **) &devCount, sizeof(float_point) * cnr2));
-    checkCudaErrors(cudaMalloc((void **) &devProbA, sizeof(float_point) * cnr2));
-    checkCudaErrors(cudaMalloc((void **) &devProbB, sizeof(float_point) * cnr2));
-    checkCudaErrors(cudaMalloc((void **) &devRho, sizeof(float_point) * cnr2));
+    checkCudaErrors(cudaMalloc((void **) &devCoef, sizeof(real) * numOfSVs));
+    checkCudaErrors(cudaMalloc((void **) &devStart, sizeof(real) * cnr2));
+    checkCudaErrors(cudaMalloc((void **) &devCount, sizeof(real) * cnr2));
+    checkCudaErrors(cudaMalloc((void **) &devProbA, sizeof(real) * cnr2));
+    checkCudaErrors(cudaMalloc((void **) &devProbB, sizeof(real) * cnr2));
+    checkCudaErrors(cudaMalloc((void **) &devRho, sizeof(real) * cnr2));
     for (int i = 0; i < cnr2; ++i) {
-        checkCudaErrors(cudaMemcpy(devCoef + start[i], coef[i].data(), sizeof(float_point) * count[i],
+        checkCudaErrors(cudaMemcpy(devCoef + start[i], coef[i].data(), sizeof(real) * count[i],
                                    cudaMemcpyHostToDevice));
     }
-    checkCudaErrors(cudaMemcpy(devProbA, probA.data(), sizeof(float_point) * cnr2, cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(devProbB, probB.data(), sizeof(float_point) * cnr2, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(devProbA, probA.data(), sizeof(real) * cnr2, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(devProbB, probB.data(), sizeof(real) * cnr2, cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(devStart, start.data(), sizeof(int) * cnr2, cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(devCount, count.data(), sizeof(int) * cnr2, cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(devRho, rho.data(), sizeof(float_point) * cnr2, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(devRho, rho.data(), sizeof(real) * cnr2, cudaMemcpyHostToDevice));
 }
 
 //void SvmModel::gpu_sigmoid_train(
@@ -308,8 +308,8 @@ void SvmModel::transferToDevice() {
 //}
 
 
-void SvmModel::sigmoidTrain(const float_point *decValues, const int l, const vector<int> &labels, float_point &A,
-                            float_point &B) {
+void SvmModel::sigmoidTrain(const real *decValues, const int l, const vector<int> &labels, real &A,
+                            real &B) {
     double prior1 = 0, prior0 = 0;
     int i;
 
@@ -420,8 +420,8 @@ void SvmModel::sigmoidTrain(const float_point *decValues, const int l, const vec
 /**
   *@brief: add a binary svm model to the multi-class svm model.
 **/
-void SvmModel::addBinaryModel(const SvmProblem &problem, const vector<int> &svLocalIndex, const vector<float_point> &coef,
-                              float_point rho, int i, int j) {
+void SvmModel::addBinaryModel(const SvmProblem &problem, const vector<int> &svLocalIndex, const vector<real> &coef,
+                              real rho, int i, int j) {
     static map<int, int> indexMap;
     int k = getK(i, j);
     this->coef[k] = coef;
@@ -438,7 +438,7 @@ void SvmModel::addBinaryModel(const SvmProblem &problem, const vector<int> &svLo
     this->rho[k] = rho;
     numOfSVs += svLocalIndex.size();
 }
-void SvmModel::updateAllCoef(int l, int indOffset, int nr_class, int &count, int k, const vector<int> &svIndex, const vector<float_point> &coef,vector<int> &prob_start){
+void SvmModel::updateAllCoef(int l, int indOffset, int nr_class, int &count, int k, const vector<int> &svIndex, const vector<real> &coef,vector<int> &prob_start){
 	
 	for(int i=0;i<l;i++){
 	if(i+indOffset==svIndex[count]){
@@ -453,7 +453,7 @@ void SvmModel::updateAllCoef(int l, int indOffset, int nr_class, int &count, int
 																				}
 }
 
-void SvmModel::getModelParam(const SvmProblem &subProblem, const vector<int> &svIndex,const vector<float_point> &coef, 
+void SvmModel::getModelParam(const SvmProblem &subProblem, const vector<int> &svIndex,const vector<real> &coef, 
                     vector<int> &prob_start, int ci,int i, int j){
 	const unsigned int trainingSize = subProblem.getNumOfSamples();
 	int k=getK(i,j);
@@ -491,7 +491,7 @@ bool SvmModel::saveLibModel(string filename,const SvmProblem &problem){
 	unsigned int total_sv=this->numOfSVs;
 	libmod<<"nr_class "<<nr_class<<endl;
 	libmod<<"total_sv "<<total_sv<<endl;
-	vector<float_point> frho=rho;
+	vector<real> frho=rho;
 	libmod<<"rho";
 	for(int i=0;i<nr_class*(nr_class-1)/2;i++){
 		libmod<<" "<<frho[i];
@@ -603,7 +603,7 @@ void SvmModel::loadLibModel(string filename, SvmModel & model){
 			ifs>>model.numOfSVs;
 		 }
 		else  if(feature=="rho"){
-			vector<float_point> frho(cnr2,0);
+			vector<real> frho(cnr2,0);
 			for(int i=0;i<cnr2;i++)
 				ifs>>frho[i];
 			model.rho=frho;
@@ -615,13 +615,13 @@ void SvmModel::loadLibModel(string filename, SvmModel & model){
 			model.label=ilabel;
 		}
 		else if(feature=="probA"){
-			vector<float_point> fprobA(cnr2,0);
+			vector<real> fprobA(cnr2,0);
 			for(int i=0;i<cnr2;i++)
 				ifs>>fprobA[i];
 			model.probA=fprobA;
 		}
 		else if(feature=="probB"){
-			vector<float_point> fprobB(cnr2,0);
+			vector<real> fprobB(cnr2,0);
 			for(int i=0;i<cnr2;i++)
 				ifs>>fprobB[i];
 			model.probB=fprobB;
@@ -635,8 +635,8 @@ void SvmModel::loadLibModel(string filename, SvmModel & model){
 		else if (feature=="SV"){		
 			string value;
 			stringstream sstr;
-			float_point ftemp=0;
-			vector<vector<float_point> > v_allcoef(cnr2);
+			real ftemp=0;
+			vector<vector<real> > v_allcoef(cnr2);
 			vector<vector<KeyValue> > v_svMap(numOfSVs);
 			//while(!ifs.eof()){
 			int count=0;

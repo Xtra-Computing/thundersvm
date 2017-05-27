@@ -16,8 +16,8 @@ public:
 	SeqAccessor(){}
 	virtual ~SeqAccessor(){}
 
-	virtual bool WriteHessianRows(FILE *&writeOut, float_point *pfHessianRows, SubMatrix &subMatrix);
-	virtual bool ReadHessianRow(FILE *&readIn, const int &nIndexofRow, float_point *pfHessianRow);
+	virtual bool WriteHessianRows(FILE *&writeOut, real *pfHessianRows, SubMatrix &subMatrix);
+	virtual bool ReadHessianRow(FILE *&readIn, const int &nIndexofRow, real *pfHessianRow);
 };
 
 

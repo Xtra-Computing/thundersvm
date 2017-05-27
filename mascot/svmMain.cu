@@ -52,7 +52,7 @@ int main(int argc, char **argv)
     }else if(parser.task_type == 4){
     	//perform selecting best C
     	cout << "perform C selection" << endl;
-    	vector<float_point> vC;
+    	vector<real> vC;
     	for(int i = 0; i < 3; i++){
 			SvmModel model;
 			model.vC = vC;

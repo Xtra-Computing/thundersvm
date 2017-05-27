@@ -19,15 +19,15 @@
 
 using namespace std;
 
-__device__ void GetMinValueOriginal(float_point*, int*, int);
-__device__ void GetMinValueOriginal(float_point*, int);
+__device__ void GetMinValueOriginal(real*, int*, int);
+__device__ void GetMinValueOriginal(real*, int);
 
-__device__ void GetMinValue(float_point*, int*, int);
-__device__ void GetMinValue(float_point*, int);
+__device__ void GetMinValue(real*, int*, int);
+__device__ void GetMinValue(real*, int);
 
 
-__device__ void GetBigMinValue(float_point*, int*);
-__device__ void GetBigMinValue(float_point*);
+__device__ void GetBigMinValue(real*, int*);
+__device__ void GetBigMinValue(real*);
 
 __device__  int getBlockMin(const float *values, int *index);
 

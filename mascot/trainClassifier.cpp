@@ -63,7 +63,7 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNum
  * @brief: evaluate the svm model, given some labeled instances.
  */
 void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<int> &v_nLabel,
-			  vector<float_point> &classificationError){
+			  vector<real> &classificationError){
     int batchSize = 10000;
 
     //create a miss labeling matrix for measuring the sub-classifier errors.

@@ -121,7 +121,7 @@ bool CLATCache::GetDataFromCache(const int &nIndex, int &nLocationInCache, bool 
 /*
  * @brief: replace expired sample
  */
-void CLATCache::ReplaceExpired(int nIndex, int &nLocationInCache, float_point *pGradient)
+void CLATCache::ReplaceExpired(int nIndex, int &nLocationInCache, real *pGradient)
 {
 	m_nMissCount++;
 	vector<GSEntry>::iterator itCheckEntry = m_GSContainer.begin() + nIndex; //check if the entry is cached in the container
@@ -165,7 +165,7 @@ void CLATCache::ReplaceExpired(int nIndex, int &nLocationInCache, float_point *p
  * @param: pGradient is the gradient values of training samples
  * @param: nIndex is the index of sample which enters cache
  */
-int CLATCache::GetExpiredSample(float_point *pGradient, int nIndex)
+int CLATCache::GetExpiredSample(real *pGradient, int nIndex)
 {
 	//remove the row with the smallest id
 	return *m_setGS.begin();
@@ -174,7 +174,7 @@ int CLATCache::GetExpiredSample(float_point *pGradient, int nIndex)
 /*
  * @brief: update group
  */
-bool CLATCache::UpdateGroup(float_point fAlpha, int nLabel, float_point fCost, int nIndexofSample)
+bool CLATCache::UpdateGroup(real fAlpha, int nLabel, real fCost, int nIndexofSample)
 {
 	if((fAlpha < fCost && nLabel > 0) || (fAlpha > 0 && nLabel < 0))
 	{

@@ -25,8 +25,8 @@
  * @param: pfBlockMin: the min value of this block (function result)
  * @param: pnBlockMinGlobalKey: the index of the min value of this block
  */
-__global__ void GetBlockMinYiGValue(float_point *pfYiFValue, float_point *pfAlpha, int *pnLabel, float_point fPCost,
-									int nNumofTraingSamples, float_point *pfBlockMin, int *pnBlockMinGlobalKey);
+__global__ void GetBlockMinYiGValue(real *pfYiFValue, real *pfAlpha, int *pnLabel, real fPCost,
+									int nNumofTraingSamples, real *pfBlockMin, int *pnBlockMinGlobalKey);
 /*
  * @brief: for selecting the second sample to optimize
  * @param: pfYiFValue: the gradient of data samples
@@ -40,10 +40,10 @@ __global__ void GetBlockMinYiGValue(float_point *pfYiFValue, float_point *pfAlph
  * @param: pnBlockMinGlobalKey: the key of each block minimum value (the output of this kernel)
  * @param: pfBlockMinYiFValue: the block minimum gradient (the output of this kernel. for convergence check)
  */
-__global__ void GetBlockMinLowValue(float_point *pfYiFValue, float_point *pfAlpha, int *pnLabel, float_point fNCost,
-									int nNumofTrainingSamples, float_point *pfDiagHessian, float_point *pfHessianRow,
-									float_point fMinusYiUpValue, float_point fUpValueKernel, float_point *pfBlockMin,
-									int *pnBlockMinGlobalKey, float_point *pfBlockMinYiFValue);
+__global__ void GetBlockMinLowValue(real *pfYiFValue, real *pfAlpha, int *pnLabel, real fNCost,
+									int nNumofTrainingSamples, real *pfDiagHessian, real *pfHessianRow,
+									real fMinusYiUpValue, real fUpValueKernel, real *pfBlockMin,
+									int *pnBlockMinGlobalKey, real *pfBlockMinYiFValue);
 
 /*
  * @brief: kernel function for getting the minimum value in a set of block min values
@@ -53,9 +53,9 @@ __global__ void GetBlockMinLowValue(float_point *pfYiFValue, float_point *pfAlph
  * @param: pfMinValue:	  a pointer to global min value (the result of this function)
  * @param: pnMinKey:	  a pointer to the index of the global min value (the result of this function)
  */
-__global__ void GetGlobalMin(float_point *pfBlockMin, int *pnBlockMinKey, int nNumofBlock,
-							 float_point *pfYiFValue, float_point *pfHessianRow, float_point *pfTempKeyValue);
-__global__ void GetGlobalMin(float_point *pfBlockMin, int nNumofBlock, float_point *pfTempKeyValue);
+__global__ void GetGlobalMin(real *pfBlockMin, int *pnBlockMinKey, int nNumofBlock,
+							 real *pfYiFValue, real *pfHessianRow, real *pfTempKeyValue);
+__global__ void GetGlobalMin(real *pfBlockMin, int nNumofBlock, real *pfTempKeyValue);
 /*
  * @brief: update gradient values for all samples
  * @param: pfYiFValue: the gradient of samples (input and output of this kernel)
@@ -64,9 +64,9 @@ __global__ void GetGlobalMin(float_point *pfBlockMin, int nNumofBlock, float_poi
  * @param: fY1AlphaDiff: the difference of old and new alpha of sample one
  * @param: fY2AlphaDiff: the difference of old and new alpha of sample two
  */
-__global__ void UpdateYiFValueKernel(float_point *pfAlpha, float_point *pDevBuffer, float_point *pfYiFValue,
-									 float_point *pfHessianRow1, float_point *pfHessianRow2,
-							    	 float_point fY1AlphaDiff, float_point fY2AlphaDiff, int nNumofTrainingSamples);
+__global__ void UpdateYiFValueKernel(real *pfAlpha, real *pDevBuffer, real *pfYiFValue,
+									 real *pfHessianRow1, real *pfHessianRow2,
+							    	 real fY1AlphaDiff, real fY2AlphaDiff, int nNumofTrainingSamples);
 
 
 /*
@@ -78,8 +78,8 @@ __global__ void UpdateYiFValueKernel(float_point *pfAlpha, float_point *pDevBuff
  * @param: pfBlockMin: the min value of this block (function result)
  * @param: pnBlockMinGlobalKey: the index of the min value of this block
  */
-__global__ void GetBigBlockMinYiGValue(float_point *pfYiFValue, float_point *pfAlpha, int *pnLabel, float_point fPCost,
-									int nNumofTraingSamples, float_point *pfBlockMin, int *pnBlockMinGlobalKey);
+__global__ void GetBigBlockMinYiGValue(real *pfYiFValue, real *pfAlpha, int *pnLabel, real fPCost,
+									int nNumofTraingSamples, real *pfBlockMin, int *pnBlockMinGlobalKey);
 
 /*
  * @brief: for selecting the second sample to optimize
@@ -94,8 +94,8 @@ __global__ void GetBigBlockMinYiGValue(float_point *pfYiFValue, float_point *pfA
  * @param: pnBlockMinGlobalKey: the key of each block minimum value (the output of this kernel)
  * @param: pfBlockMinYiFValue: the block minimum gradient (the output of this kernel. for convergence check)
  */
-extern __device__ float_point devDiff;//fUp - fLow
-extern __device__ float_point devRho;//bias
+extern __device__ real devDiff;//fUp - fLow
+extern __device__ real devRho;//bias
 /**
  * local SMO in one block
  * @param label: label for all instances in training set
@@ -108,12 +108,12 @@ extern __device__ float_point devRho;//bias
  * @param hessianMatrixCache: |working set| * |training set| kernel matrix, row major
  * @param ld: number of instances each row in hessianMatrixCache
  */
-__global__ void GetBigBlockMinLowValue(float_point *pfYiFValue, float_point *pfAlpha, int *pnLabel, float_point fNCost,
-									int nNumofTrainingSamples, int nNumofInstance, float_point *pfDiagHessian, float_point *pfHessianRow,
-									float_point fMinusYiUpValue, float_point fUpValueKernel, float_point *pfBlockMin,
-									int *pnBlockMinGlobalKey, float_point *pfBlockMinYiFValue);
+__global__ void GetBigBlockMinLowValue(real *pfYiFValue, real *pfAlpha, int *pnLabel, real fNCost,
+									int nNumofTrainingSamples, int nNumofInstance, real *pfDiagHessian, real *pfHessianRow,
+									real fMinusYiUpValue, real fUpValueKernel, real *pfBlockMin,
+									int *pnBlockMinGlobalKey, real *pfBlockMinYiFValue);
 
-__global__ void localSMO(const int *label, float_point *FValues, float_point *alpha, float_point *alphaDiff,
+__global__ void localSMO(const int *label, real *FValues, real *alpha, real *alphaDiff,
 						 const int *workingSet, int wsSize, float C, const float *hessianMatrixCache, int ld);
 /**
  * update f values using alpha diff
@@ -125,10 +125,10 @@ __global__ void localSMO(const int *label, float_point *FValues, float_point *al
  * @param hessianMatrixCache: |working set| * |training set| kernel matrix, row major
  * @param numOfSamples
  */
-__global__ void updateF(float_point *FValues, const int *label, const int *workingSet, int wsSize, const float_point *alphaDiff,
-		const float_point *hessianMatrixCache, int numOfSamples);
-__global__ void getFUpValues(const float_point *FValues, const float_point *alpha, const int *labels,
-							 int numOfSamples, int C, float_point *FValue4Sort, int *Idx4Sort);
-__global__ void getFLowValues(const float_point *FValues, const float_point *alpha, const int *labels,
-							  int numOfSamples, int C, float_point *FValue4Sort, int *Idx4Sort);
+__global__ void updateF(real *FValues, const int *label, const int *workingSet, int wsSize, const real *alphaDiff,
+		const real *hessianMatrixCache, int numOfSamples);
+__global__ void getFUpValues(const real *FValues, const real *alpha, const int *labels,
+							 int numOfSamples, int C, real *FValue4Sort, int *Idx4Sort);
+__global__ void getFLowValues(const real *FValues, const real *alpha, const int *labels,
+							  int numOfSamples, int C, real *FValue4Sort, int *Idx4Sort);
 #endif /* WORKINGSETGPUHELPER_H_ */

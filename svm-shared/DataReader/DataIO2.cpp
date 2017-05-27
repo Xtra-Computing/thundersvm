@@ -15,13 +15,13 @@ using std::istringstream;
 using std::cout;
 using std::endl;
 
-void CDataIOOps::ReadLibSVMDataFormat(vector<vector<float_point> > &v_vInstance, vector<float_point> &v_fValue,
+void CDataIOOps::ReadLibSVMDataFormat(vector<vector<real> > &v_vInstance, vector<real> &v_fValue,
 									  string strFileName, int nNumofFeatures, int nNumofSamples)
 {
 	ifstream readIn;
 	readIn.open(strFileName.c_str());
 	assert(readIn.is_open());
-	vector<float_point> vSample;
+	vector<real> vSample;
 
 	//for storing character from file
 	int j = 0;
@@ -43,7 +43,7 @@ void CDataIOOps::ReadLibSVMDataFormat(vector<vector<float_point> > &v_vInstance,
 
 		//get features of a sample
 		int nFeature;
-		float_point x;
+		real x;
 		while (in >> nFeature >> cColon >> x)
 		{
 			i++;

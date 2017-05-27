@@ -108,14 +108,14 @@ public:
 		return;
 	}
 	//replace an expired sample
-	virtual void ReplaceExpired(int nIndex, int &nLocationInCache, float_point *pExtraInfo) = 0;
+	virtual void ReplaceExpired(int nIndex, int &nLocationInCache, real *pExtraInfo) = 0;
 	//check if extra information is required
 	virtual bool isExtraInfoRequired()
 	{
 		return false;
 	}
 	//update group info
-	virtual bool UpdateGroup(float_point fAlpha, int nLabel, float_point fCost, int nIndexofSample) = 0;
+	virtual bool UpdateGroup(real fAlpha, int nLabel, real fCost, int nIndexofSample) = 0;
 };
 
 /*
@@ -133,7 +133,7 @@ public:
 	virtual void InitializeCache(const int &nCacheSize, const int &nNumofSamples);
 	virtual void CleanCache();
 	virtual bool GetDataFromCache(const int &nIndex, int &nLocationInCache, bool &bIsIn);
-	virtual void ReplaceExpired(int nIndex, int &nLocationInCache, float_point *pExtraInfo);
+	virtual void ReplaceExpired(int nIndex, int &nLocationInCache, real *pExtraInfo);
 	virtual bool isExtraInfoRequired()
 	{
 		return CCache::isExtraInfoRequired();
@@ -142,7 +142,7 @@ public:
 	virtual void PrintCache();
 	virtual string GetStrategy(){return "LRU";}
 	virtual void PrintCachingStatistics();
-	virtual bool UpdateGroup(float_point fAlpha1, int nLabel1, float_point fCost1, int nIndexofSample1)
+	virtual bool UpdateGroup(real fAlpha1, int nLabel1, real fCost1, int nIndexofSample1)
 	{//LRU doesn't need to update group info, as it doesn't use the it
 		return true;
 	}
@@ -203,7 +203,7 @@ public:
 
 	//virtual bool GetDataFromCache(const int &nIndex, int &nLocationInCache, bool &bIsIn);
 	virtual string GetStrategy(){return "MLRU";}
-	virtual void ReplaceExpired(int nIndex, int &nLocationInCache, float_point *pExtraInfo);
+	virtual void ReplaceExpired(int nIndex, int &nLocationInCache, real *pExtraInfo);
 	int GetExpiredSample();
 	virtual void LockCacheEntry(int);
 	virtual void UnlockCacheEntry(int);
@@ -228,7 +228,7 @@ public:
 	virtual void InitializeCache(const int &nCacheSize, const int &nNumofSamples);
 	virtual void CleanCache();
 	virtual bool GetDataFromCache(const int &nIndex, int &nLocationInCache, bool &bIsIn);
-	virtual void ReplaceExpired(int nIndex, int &nLocationInCache, float_point *pExtraInfo) ;
+	virtual void ReplaceExpired(int nIndex, int &nLocationInCache, real *pExtraInfo) ;
 	virtual bool isExtraInfoRequired()
 	{
 		return false;
@@ -239,13 +239,13 @@ public:
 
 	virtual string GetStrategy(){return "LAT";}
 	virtual void PrintCache();
-	virtual bool UpdateGroup(float_point fAlpha1, int nLabel1, float_point fCost1, int nIndexofSample1/*,
+	virtual bool UpdateGroup(real fAlpha1, int nLabel1, real fCost1, int nIndexofSample1/*,
 							 float_point fAlpha2, int nLabel2, float_point fCost2, int nIndexofSample2*/);
 
 	void InitMap(const int &nNumofSamples);
-	int GetExpiredSample(float_point *pGradient, int nIndex);
-	int GetExpiredSample2(float_point *pGradient, int nIndex);
-	int GetExpiredSample3(float_point *pGradient, int nIndex);
+	int GetExpiredSample(real *pGradient, int nIndex);
+	int GetExpiredSample2(real *pGradient, int nIndex);
+	int GetExpiredSample3(real *pGradient, int nIndex);
 
 	//candidate1 is the latest used sample
 	int GetLatestUsedCandidate()

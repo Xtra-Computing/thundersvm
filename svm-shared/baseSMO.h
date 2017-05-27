@@ -21,40 +21,40 @@ public:
 	void InitSolver(int nNumofTrainingIns);
 	void DeInitSolver();
 
-	void SelectFirst(int numTrainingInstance, float_point CforPositive);
-	void SelectSecond(int numTrainingInstance, float_point CforNegative);
-	void UpdateTwoWeight(float_point fMinLowValue, float_point fMinValue, int nHessianRowOneInMatrix,
-	                                     int nHessianRowTwoInMatrix, float_point fKernelValue, float_point &fY1AlphaDiff,
-	                                     float_point &fY2AlphaDiff, const int *label, float_point C);
-	void UpdateYiGValue(int numTrainingInstance, float_point fY1AlphaDiff, float_point fY2AlphaDiff);
+	void SelectFirst(int numTrainingInstance, real CforPositive);
+	void SelectSecond(int numTrainingInstance, real CforNegative);
+	void UpdateTwoWeight(real fMinLowValue, real fMinValue, int nHessianRowOneInMatrix,
+	                                     int nHessianRowTwoInMatrix, real fKernelValue, real &fY1AlphaDiff,
+	                                     real &fY2AlphaDiff, const int *label, real C);
+	void UpdateYiGValue(int numTrainingInstance, real fY1AlphaDiff, real fY2AlphaDiff);
 
 protected:
-	virtual float_point *ObtainRow(int numTrainingInstance) = 0;
+	virtual real *ObtainRow(int numTrainingInstance) = 0;
 
 public:
-    float_point upValue;
-	vector<float_point> alpha;
+    real upValue;
+	vector<real> alpha;
 protected:
-    float_point lowValue;
-    float_point *devBuffer;
-    float_point *hostBuffer;
+    real lowValue;
+    real *devBuffer;
+    real *hostBuffer;
     int IdofInstanceOne;
     int IdofInstanceTwo;
 
-    float_point *devHessianDiag;
-    float_point *hessianDiag;			//diagonal of the hessian matrix
-    float_point *devHessianInstanceRow1;//kernel values of the first instance
-    float_point *devHessianInstanceRow2;	//kernel values of the second instance
+    real *devHessianDiag;
+    real *hessianDiag;			//diagonal of the hessian matrix
+    real *devHessianInstanceRow1;//kernel values of the first instance
+    real *devHessianInstanceRow2;	//kernel values of the second instance
 
-    float_point *devAlpha;
-    float_point *devYiGValue;
+    real *devAlpha;
+    real *devYiGValue;
     int *devLabel;
 
-    float_point *devBlockMin;			//for reduction in min/max search
+    real *devBlockMin;			//for reduction in min/max search
     int *devBlockMinGlobalKey;			//for reduction in min/max search
-    float_point *devBlockMinYiGValue;
+    real *devBlockMinYiGValue;
 
-	float_point *devMinValue;			//store the min/max value
+	real *devMinValue;			//store the min/max value
 	int *devMinKey;						//store the min/max key
 
     int numOfBlock;

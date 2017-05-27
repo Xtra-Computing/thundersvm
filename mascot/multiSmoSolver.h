@@ -32,23 +32,23 @@ private:
 
     void selectWorkingSetAndPreCompute(const SvmProblem &subProblem, uint numOfSelectPairs);
 
-    void extractModel(const SvmProblem &subProblem, vector<int> &svIndex, vector<float_point> &coef, float_point &rho) const;
+    void extractModel(const SvmProblem &subProblem, vector<int> &svIndex, vector<real> &coef, real &rho) const;
     void deinit4Training();
 
-    virtual float_point *ObtainRow(int numTrainingInstance)
+    virtual real *ObtainRow(int numTrainingInstance)
     {
     	return devHessianInstanceRow1;
     }
 
-    float_point *devAlphaDiff;
+    real *devAlphaDiff;
     int *devWorkingSet;
-    float_point *devHessianMatrixCache;
+    real *devHessianMatrixCache;
     int nnz;
-    float_point *devVal;
+    real *devVal;
     int *devColInd;
     int *devRowPtr;
-    float_point *devSelfDot;
-    float_point *devFValue4Sort;
+    real *devSelfDot;
+    real *devFValue4Sort;
     int *devIdx4Sort;
     int workingSetSize;
     int q;

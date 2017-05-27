@@ -19,32 +19,32 @@
 
 class DeviceHessianOnFly : public BaseHessian {
 public:
-    DeviceHessianOnFly(const SvmProblem &subProblem, float_point gamma);
+    DeviceHessianOnFly(const SvmProblem &subProblem, real gamma);
 
     ~DeviceHessianOnFly();
 
-    void ReadRow(int nPosofRowAtHessian, float_point *devHessianRow, int start, int end);
+    void ReadRow(int nPosofRowAtHessian, real *devHessianRow, int start, int end);
 
     virtual bool PrecomputeHessian(const string &strHessianMatrixFileName, const string &strDiagHessianFileName,
-                                   vector<vector<float_point> > &v_v_DocVector) override;
+                                   vector<vector<real> > &v_v_DocVector) override;
 
     virtual bool
-    GetHessianDiag(const string &strFileName, const int &nNumofTraingSamples, float_point *pfHessianDiag) override;
+    GetHessianDiag(const string &strFileName, const int &nNumofTraingSamples, real *pfHessianDiag) override;
 
 private:
     CSRMatrix csrMat;
-    const float_point gamma;
+    const real gamma;
     cusparseHandle_t handle;
     cusparseMatDescr_t descr;
-    float_point *devVal;
-    float_point *devValSelfDot;
-    float_point *devDenseVector;
+    real *devVal;
+    real *devValSelfDot;
+    real *devDenseVector;
     vector<int> csrRowPtrSplit;
     int *devRowPtr;
     int *devRowPtrSplit;
     int *devColInd;
-    float_point one;
-    float_point zero;
+    real one;
+    real zero;
 
 };
 

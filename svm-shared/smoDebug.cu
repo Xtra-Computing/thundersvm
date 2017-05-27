@@ -9,19 +9,19 @@
 #include <cuda_profiler_api.h>
 #include <helper_cuda.h>
 
-void CSMOSolver::StoreRow(float_point *pfDevRow, int nLen)
+void CSMOSolver::StoreRow(real *pfDevRow, int nLen)
 {
-	checkCudaErrors(cudaMalloc((void**)&m_pfRow40, sizeof(float_point) * nLen));
-	checkCudaErrors(cudaMemcpy(m_pfRow40, pfDevRow, sizeof(float_point) * nLen, cudaMemcpyDeviceToDevice));
+	checkCudaErrors(cudaMalloc((void**)&m_pfRow40, sizeof(real) * nLen));
+	checkCudaErrors(cudaMemcpy(m_pfRow40, pfDevRow, sizeof(real) * nLen, cudaMemcpyDeviceToDevice));
 }
 
 /**
  * @brief: this function is for testing; print out the content of a row
  */
-void CSMOSolver::PrintTenGPUHessianRow(float_point *pfDevRow, int nLen)
+void CSMOSolver::PrintTenGPUHessianRow(real *pfDevRow, int nLen)
 {
-	float_point *pfTemp = new float_point[nLen];
-	checkCudaErrors(cudaMemcpy(pfTemp, pfDevRow, sizeof(float_point) * nLen, cudaMemcpyDeviceToHost));
+	real *pfTemp = new real[nLen];
+	checkCudaErrors(cudaMemcpy(pfTemp, pfDevRow, sizeof(real) * nLen, cudaMemcpyDeviceToHost));
 
 	int nTotal = 10;
 	for(int i = 0; i < nTotal; i++)
@@ -39,10 +39,10 @@ void CSMOSolver::PrintTenGPUHessianRow(float_point *pfDevRow, int nLen)
 /**
  * @brief: this function is for testing; print out the content of a row
  */
-void CSMOSolver::PrintGPUHessianRow(float_point *pfDevRow, int nLen)
+void CSMOSolver::PrintGPUHessianRow(real *pfDevRow, int nLen)
 {
-	float_point *pfTemp = new float_point[nLen];
-	checkCudaErrors(cudaMemcpy(pfTemp, pfDevRow, sizeof(float_point) * nLen, cudaMemcpyDeviceToHost));
+	real *pfTemp = new real[nLen];
+	checkCudaErrors(cudaMemcpy(pfTemp, pfDevRow, sizeof(real) * nLen, cudaMemcpyDeviceToHost));
 
 	for(int i = 0; i < nLen; i++)
 	{
@@ -60,12 +60,12 @@ void CSMOSolver::PrintGPUHessianRow(float_point *pfDevRow, int nLen)
 }
 
 
-int CSMOSolver::CompareTwoGPURow(float_point *pfDevRow1, float_point *pfDevRow2, int nLen)
+int CSMOSolver::CompareTwoGPURow(real *pfDevRow1, real *pfDevRow2, int nLen)
 {
-	float_point *pfRow1 = new float_point[nLen];
-	checkCudaErrors(cudaMemcpy(pfRow1, pfDevRow1, sizeof(float_point) * nLen, cudaMemcpyDeviceToHost));
-	float_point *pfRow2 = new float_point[nLen];
-	checkCudaErrors(cudaMemcpy(pfRow2, pfDevRow2, sizeof(float_point) * nLen, cudaMemcpyDeviceToHost));
+	real *pfRow1 = new real[nLen];
+	checkCudaErrors(cudaMemcpy(pfRow1, pfDevRow1, sizeof(real) * nLen, cudaMemcpyDeviceToHost));
+	real *pfRow2 = new real[nLen];
+	checkCudaErrors(cudaMemcpy(pfRow2, pfDevRow2, sizeof(real) * nLen, cudaMemcpyDeviceToHost));
 
 	int counter = 0;
 	for(int i = 0; i < nLen; i++)

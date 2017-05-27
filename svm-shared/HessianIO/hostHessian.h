@@ -28,7 +28,7 @@ public:
 	virtual ~HostHessian(){}
 
 	virtual bool PrecomputeHessian(const string &strHessianMatrixFileName, const string &strDiagHessianFileName,
-							  	   vector<vector<float_point> > &v_v_DocVector);
+							  	   vector<vector<real> > &v_v_DocVector);
 };
 
 

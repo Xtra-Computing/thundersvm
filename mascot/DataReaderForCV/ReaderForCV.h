@@ -17,16 +17,16 @@ using std::vector;
 
 class CReadForCrossValidation {
 public:
-    static bool OrganizeSamples(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
-                         vector<vector<float_point> > &v_vAllSample, vector<int> &v_nLabel);
-    static void Randomize(vector<vector<float_point> > &v_vPos, vector<vector<float_point> > &v_vNeg);
+    static bool OrganizeSamples(vector<vector<real> > &v_vPosSample, vector<vector<real> > &v_vNegSample,
+                         vector<vector<real> > &v_vAllSample, vector<int> &v_nLabel);
+    static void Randomize(vector<vector<real> > &v_vPos, vector<vector<real> > &v_vNeg);
 
     static void
-    ReadLibSVMDataFormat(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
+    ReadLibSVMDataFormat(vector<vector<real> > &v_vPosSample, vector<vector<real> > &v_vNegSample,
                          string strFileName, int nNumofFeatures, int nNumofSamples = -1);
 
     static void
-    ReadMultiClassData(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
+    ReadMultiClassData(vector<vector<real> > &v_vPosSample, vector<vector<real> > &v_vNegSample,
                        string strFileName, int nNumofFeatures, int nNumofSamples);
 
 };

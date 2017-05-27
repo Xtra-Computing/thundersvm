@@ -24,20 +24,20 @@
  * @param: nNumofDim: the number of dimensions for samples
  * @param: nStartRow: the Hessian row to be computed
  */
-__device__ void RBFOneRow(float_point *pfDevSamples, float_point *pfDevTransSamples,
-						  float_point *pfDevHessianRows, int nNumofSamples, int nNumofDim,
-						  int nStartRow, float_point fGamma);
+__device__ void RBFOneRow(real *pfDevSamples, real *pfDevTransSamples,
+						  real *pfDevHessianRows, int nNumofSamples, int nNumofDim,
+						  int nStartRow, real fGamma);
 
 
 //a few blocks compute one row of the Hessian matrix. The # of threads invovled in a row is equal to the # of samples
 //one thread an element of the row
 //the # of thread is equal to the # of dimensions or the available size of shared memory
-__global__ void RBFKernel(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows,
-						  int nNumofSamples, int nNumofDim, int nNumofRows, int nStartRow, float_point fGamma);
+__global__ void RBFKernel(real *pfDevSamples, real *pfDevTransSamples, real *pfDevHessianRows,
+						  int nNumofSamples, int nNumofDim, int nNumofRows, int nStartRow, real fGamma);
 
-__global__ void ObtainRBFKernel(float_point *pfDevHessianRows,float_point *selfDot, int nNumofSamples,
-								int nNumofRows, float_point fGamma, int nStartRow, int nStartCol);
-__global__ void UpdateDiag(float_point *pfDevHessianRows, int nNumofSamples, int nNumofRows);
+__global__ void ObtainRBFKernel(real *pfDevHessianRows,real *selfDot, int nNumofSamples,
+								int nNumofRows, real fGamma, int nStartRow, int nStartCol);
+__global__ void UpdateDiag(real *pfDevHessianRows, int nNumofSamples, int nNumofRows);
 
 /****************** Linear Kernel ********************************/
 /*
@@ -49,15 +49,15 @@ __global__ void UpdateDiag(float_point *pfDevHessianRows, int nNumofSamples, int
  * @param: nNumofDim: the number of dimensions for samples
  * @param: nStartRow: the Hessian row to be computed
  */
-__device__ void LinearOneRow(float_point *pfDevSamples, float_point *pfDevTransSamples,
-						  float_point *pfDevHessianRows, int nNumofSamples, int nNumofDim,
+__device__ void LinearOneRow(real *pfDevSamples, real *pfDevTransSamples,
+						  real *pfDevHessianRows, int nNumofSamples, int nNumofDim,
 						  int nStartRow);
 
 
 //a few blocks compute one row of the Hessian matrix. The # of threads invovled in a row is equal to the # of samples
 //one thread an element of the row
 //the # of thread is equal to the # of dimensions or the available size of shared memory
-__global__ void LinearKernel(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows,
+__global__ void LinearKernel(real *pfDevSamples, real *pfDevTransSamples, real *pfDevHessianRows,
 						  int nNumofSamples, int nNumofDim, int nStartRow);
 
 /***************** Polynomial Kernel ******************************/
@@ -70,16 +70,16 @@ __global__ void LinearKernel(float_point *pfDevSamples, float_point *pfDevTransS
  * @param: nNumofDim: the number of dimensions for samples
  * @param: nStartRow: the Hessian row to be computed
  */
-__device__ void PolynomialOneRow(float_point *pfDevSamples, float_point *pfDevTransSamples,
-						  float_point *pfDevHessianRows, int nNumofSamples, int nNumofDim,
-						  int nStartRow, float_point fR, float_point fDegreee);
+__device__ void PolynomialOneRow(real *pfDevSamples, real *pfDevTransSamples,
+						  real *pfDevHessianRows, int nNumofSamples, int nNumofDim,
+						  int nStartRow, real fR, real fDegreee);
 
 
 //a few blocks compute one row of the Hessian matrix. The # of threads invovled in a row is equal to the # of samples
 //one thread an element of the row
 //the # of thread is equal to the # of dimensions or the available size of shared memory
-__global__ void PolynomialKernel(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows,
-						  int nNumofSamples, int nNumofDim, int nStartRow, float_point fDegree);
+__global__ void PolynomialKernel(real *pfDevSamples, real *pfDevTransSamples, real *pfDevHessianRows,
+						  int nNumofSamples, int nNumofDim, int nStartRow, real fDegree);
 
 /********************* Sigmoid Kernel ******************************/
 /*
@@ -91,15 +91,15 @@ __global__ void PolynomialKernel(float_point *pfDevSamples, float_point *pfDevTr
  * @param: nNumofDim: the number of dimensions for samples
  * @param: nStartRow: the Hessian row to be computed
  */
-__device__ void SigmoidOneRow(float_point *pfDevSamples, float_point *pfDevTransSamples,
-						  float_point *pfDevHessianRows, int nNumofSamples, int nNumofDim,
-						  int nStartRow, float_point fR, float_point fDegreee);
+__device__ void SigmoidOneRow(real *pfDevSamples, real *pfDevTransSamples,
+						  real *pfDevHessianRows, int nNumofSamples, int nNumofDim,
+						  int nStartRow, real fR, real fDegreee);
 
 
 //a few blocks compute one row of the Hessian matrix. The # of threads invovled in a row is equal to the # of samples
 //one thread an element of the row
 //the # of thread is equal to the # of dimensions or the available size of shared memory
-__global__ void SigmoidKernel(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows,
-						  int nNumofSamples, int nNumofDim, int nStartRow, float_point fDegree);
+__global__ void SigmoidKernel(real *pfDevSamples, real *pfDevTransSamples, real *pfDevHessianRows,
+						  int nNumofSamples, int nNumofDim, int nStartRow, real fDegree);
 
 #endif /* KERNELCALGPUHELPER_H_ */

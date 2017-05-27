@@ -15,12 +15,12 @@
 /*
  * @brief: read kernel values based on support vectors
  */
-void CSVMPredictor::ReadKVbasedOnSV(float_point *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs, int nNumofTestSamples)
+void CSVMPredictor::ReadKVbasedOnSV(real *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs, int nNumofTestSamples)
 {
 	FILE *pFile = fopen(HESSIAN_FILE, "rb");
-	float_point *pfSVHessianSubRow = new float_point[nNumofTestSamples];
-	float_point *pfHessianFullRow = new float_point[m_pHessianReader->m_nTotalNumofInstance];
-	memset(pfSVHessianSubRow, 0, sizeof(float_point) * nNumofTestSamples);
+	real *pfSVHessianSubRow = new real[nNumofTestSamples];
+	real *pfHessianFullRow = new real[m_pHessianReader->m_nTotalNumofInstance];
+	memset(pfSVHessianSubRow, 0, sizeof(real) * nNumofTestSamples);
 
 	for(int i = 0; i < nNumofSVs; i++)
 	{
@@ -43,7 +43,7 @@ void CSVMPredictor::ReadKVbasedOnSV(float_point *pfSVsKernelValues, int *pnSVSam
 			}
 			//copy the memory
 			memcpy(pfSVHessianSubRow, m_pHessianReader->m_pfHessianRowsInHostMem + nIndexofFirstElement,
-					nNumofTestSamples * sizeof(float_point));
+					nNumofTestSamples * sizeof(real));
 		}
 		else//the hessian row is in SSD
 		{
@@ -80,13 +80,13 @@ void CSVMPredictor::ReadKVbasedOnSV(float_point *pfSVsKernelValues, int *pnSVSam
 /*
  * @brief: read kernel values based on testing examples
  */
-void CSVMPredictor::ReadKVbasedOnTest(float_point *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs, int nNumofTestSamples)
+void CSVMPredictor::ReadKVbasedOnTest(real *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs, int nNumofTestSamples)
 {
 	FILE *pFile = fopen(HESSIAN_FILE, "rb");
-	float_point *pfSVHessianSubRow = new float_point[nNumofSVs];
-	memset(pfSVHessianSubRow, 0, sizeof(float_point) * nNumofSVs);
+	real *pfSVHessianSubRow = new real[nNumofSVs];
+	memset(pfSVHessianSubRow, 0, sizeof(real) * nNumofSVs);
 
-	float_point *pfHessianRow = new float_point[m_pHessianReader->m_nTotalNumofInstance];
+	real *pfHessianRow = new real[m_pHessianReader->m_nTotalNumofInstance];
 
 	int nTestStartId = m_nTestStart;
 	assert(nTestStartId >= 0);
@@ -127,7 +127,7 @@ void CSVMPredictor::ReadKVbasedOnTest(float_point *pfSVsKernelValues, int *pnSVS
 /**
  * @brief: read kernel values from precomputed results
  */
-void CSVMPredictor::ReadFromHessian(float_point *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs,
+void CSVMPredictor::ReadFromHessian(real *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs,
 									int *pnTestSampleId, int nNumofTestSamples)
 {
 	//get Hessian rows of support vectors
@@ -148,11 +148,11 @@ void CSVMPredictor::ReadFromHessian(float_point *pfSVsKernelValues, int *pnSVSam
 /**
  * @brief: allocate memory for kernel values involved in the prediction
  */
-float_point *CSVMPredictor::AllocateKVMem(int nNumofSVs, const int &nNumofTestSamples)
+real *CSVMPredictor::AllocateKVMem(int nNumofSVs, const int &nNumofTestSamples)
 {
 	//store sub Hessian Matrix
-	float_point *pfSVsKernelValues = new float_point[nNumofTestSamples * nNumofSVs];
-	memset(pfSVsKernelValues, 0, sizeof(float_point) * nNumofTestSamples * nNumofSVs);
+	real *pfSVsKernelValues = new real[nNumofTestSamples * nNumofSVs];
+	memset(pfSVsKernelValues, 0, sizeof(real) * nNumofTestSamples * nNumofSVs);
 	return pfSVsKernelValues;
 }
 
@@ -167,21 +167,21 @@ int CSVMPredictor::GetNumSV(svm_model *pModel)
 /**
  * @brief: predict the label helper function
  */
-float_point* CSVMPredictor::PredictLabel(svm_model *pModel, int nNumofTestSamples, float_point *pfSVsKernelValues)
+real* CSVMPredictor::PredictLabel(svm_model *pModel, int nNumofTestSamples, real *pfSVsKernelValues)
 {
 	//get infomation from SVM model
 	int nNumofSVs = GetNumSV(pModel);
-	float_point fBias = *(pModel->rho);
-	float_point **pyfSVsYiAlpha = pModel->sv_coef;
-	float_point *pfSVsYiAlpha = pyfSVsYiAlpha[0];
+	real fBias = *(pModel->rho);
+	real **pyfSVsYiAlpha = pModel->sv_coef;
+	real *pfSVsYiAlpha = pyfSVsYiAlpha[0];
 	int *pnSVsLabel = pModel->label;
-	float_point *pfYiAlphaofSVs;
+	real *pfYiAlphaofSVs;
 
 	/*compute y_i*alpha_i*K(i, z) by GPU, where i is id of support vector.
 	 * pfDevSVYiAlphaHessian stores in the order of T1 sv1 sv2 ... T2 sv1 sv2 ... T3 sv1 sv2 ...
 	 */
-	float_point *pfDevSVYiAlphaHessian;
-	float_point *pfDevSVsYiAlpha;
+	real *pfDevSVYiAlphaHessian;
+	real *pfDevSVsYiAlpha;
 	int *pnDevSVsLabel;
 
 	//if the memory is not enough for the storage when classifying all testing samples at once, divide it into multiple parts
@@ -194,7 +194,7 @@ float_point* CSVMPredictor::PredictLabel(svm_model *pModel, int nNumofTestSample
 //	cout << "perform classification in " << nNumofPart << " time(s)" << endl;
 
 	//allocate memory for storing classification result
-	float_point *pfClassificaitonResult = new float_point[nNumofTestSamples];
+	real *pfClassificaitonResult = new real[nNumofTestSamples];
 	//initialise the size of each part
 	int *pSizeofPart = new int[nNumofPart];
 	int nAverageSize = nNumofTestSamples / nNumofPart;
@@ -213,17 +213,17 @@ float_point* CSVMPredictor::PredictLabel(svm_model *pModel, int nNumofTestSample
 	//perform classification for each part
 	for(int i = 0; i < nNumofPart; i++)
 	{
-        checkCudaErrors(cudaMalloc((void**)&pfDevSVYiAlphaHessian, sizeof(float_point) * nNumofSVs * pSizeofPart[i]));
-        checkCudaErrors(cudaMalloc((void**)&pfDevSVsYiAlpha, sizeof(float_point) * nNumofSVs));
+        checkCudaErrors(cudaMalloc((void**)&pfDevSVYiAlphaHessian, sizeof(real) * nNumofSVs * pSizeofPart[i]));
+        checkCudaErrors(cudaMalloc((void**)&pfDevSVsYiAlpha, sizeof(real) * nNumofSVs));
         checkCudaErrors(cudaMalloc((void**)&pnDevSVsLabel, sizeof(int) * nNumofSVs));
 
-        checkCudaErrors(cudaMemset(pfDevSVYiAlphaHessian, 0, sizeof(float_point) * nNumofSVs * pSizeofPart[i]));
-        checkCudaErrors(cudaMemset(pfDevSVsYiAlpha, 0, sizeof(float_point) * nNumofSVs));
+        checkCudaErrors(cudaMemset(pfDevSVYiAlphaHessian, 0, sizeof(real) * nNumofSVs * pSizeofPart[i]));
+        checkCudaErrors(cudaMemset(pfDevSVsYiAlpha, 0, sizeof(real) * nNumofSVs));
         checkCudaErrors(cudaMemset(pnDevSVsLabel, 0, sizeof(int) * nNumofSVs));
 
         checkCudaErrors(cudaMemcpy(pfDevSVYiAlphaHessian, pfSVsKernelValues + i * nAverageSize * nNumofSVs,
-                                   sizeof(float_point) * nNumofSVs * pSizeofPart[i], cudaMemcpyHostToDevice));
-        checkCudaErrors(cudaMemcpy(pfDevSVsYiAlpha, pfSVsYiAlpha, sizeof(float_point) * nNumofSVs, cudaMemcpyHostToDevice));
+                                   sizeof(real) * nNumofSVs * pSizeofPart[i], cudaMemcpyHostToDevice));
+        checkCudaErrors(cudaMemcpy(pfDevSVsYiAlpha, pfSVsYiAlpha, sizeof(real) * nNumofSVs, cudaMemcpyHostToDevice));
         checkCudaErrors(cudaMemcpy(pnDevSVsLabel, pnSVsLabel, sizeof(int) * nNumofSVs, cudaMemcpyHostToDevice));
 
         //compute y_i*alpha_i*K(i, z)
@@ -256,9 +256,9 @@ float_point* CSVMPredictor::PredictLabel(svm_model *pModel, int nNumofTestSample
 /*
  * @brief: predict class labels using precomputed kernel valules
  */
-float_point* CSVMPredictor::Predict(svm_model *pModel, int *pnTestSampleId, const int &nNumofTestSamples)
+real* CSVMPredictor::Predict(svm_model *pModel, int *pnTestSampleId, const int &nNumofTestSamples)
 {
-	float_point *pfReturn = NULL;
+	real *pfReturn = NULL;
 	if(pModel == NULL)
 	{
 		cerr << "error in Predict function: invalid input params" << endl;
@@ -270,7 +270,7 @@ float_point* CSVMPredictor::Predict(svm_model *pModel, int *pnTestSampleId, cons
 	int *pnSVSampleId = pModel->pnIndexofSV;
 
 	//store sub Hessian Matrix
-	float_point *pfSVsKernelValues = AllocateKVMem(nNumofSVs, nNumofTestSamples);
+	real *pfSVsKernelValues = AllocateKVMem(nNumofSVs, nNumofTestSamples);
 
 	//get Hessian rows of support vectors
 	ReadFromHessian(pfSVsKernelValues, pnSVSampleId, nNumofSVs, pnTestSampleId, nNumofTestSamples);
@@ -338,7 +338,7 @@ double k_function(const svm_node *x, const svm_node *y,
 /**
  * @brief: compute kernel values on-the-fly
  */
-void CSVMPredictor::ComputeOnTheFly(float_point *pfSVsKernelValues, svm_model *model, svm_node **pInstance, int numInstance)
+void CSVMPredictor::ComputeOnTheFly(real *pfSVsKernelValues, svm_model *model, svm_node **pInstance, int numInstance)
 {
 	int nr_class = model->nr_class;
 	int l = model->l;
@@ -356,9 +356,9 @@ void CSVMPredictor::ComputeOnTheFly(float_point *pfSVsKernelValues, svm_model *m
 /**
  * @brief: predict labels with computing kernel values on-the-fly
  */
-float_point* CSVMPredictor::Predict(svm_model *pModel, svm_node **pInstance, int numInstance)
+real* CSVMPredictor::Predict(svm_model *pModel, svm_node **pInstance, int numInstance)
 {
-	float_point *pfReturn = NULL;
+	real *pfReturn = NULL;
 	if(pModel == NULL)
 	{
 		cerr << "error in Predict function: invalid input params" << endl;
@@ -369,7 +369,7 @@ float_point* CSVMPredictor::Predict(svm_model *pModel, svm_node **pInstance, int
 	int nNumofSVs = GetNumSV(pModel);
 
 	//store sub Hessian Matrix
-	float_point *pfSVsKernelValues = AllocateKVMem(nNumofSVs, numInstance);
+	real *pfSVsKernelValues = AllocateKVMem(nNumofSVs, numInstance);
 
 	//get Hessian rows of support vectors
 	ComputeOnTheFly(pfSVsKernelValues, pModel, pInstance, numInstance);
@@ -386,11 +386,11 @@ float_point* CSVMPredictor::Predict(svm_model *pModel, svm_node **pInstance, int
  * @brief: compute/predict the labels of testing samples
  * @output: a set of class labels, associated to testing samples
  */
-float_point* CSVMPredictor::ComputeClassLabel(int nNumofTestSamples,
-									  float_point *pfDevSVYiAlphaHessian, const int &nNumofSVs,
-									  float_point fBias, float_point *pfFinalResult)
+real* CSVMPredictor::ComputeClassLabel(int nNumofTestSamples,
+									  real *pfDevSVYiAlphaHessian, const int &nNumofSVs,
+									  real fBias, real *pfFinalResult)
 {
-	float_point *pfReturn = NULL;
+	real *pfReturn = NULL;
 	if(nNumofTestSamples <= 0 ||
 	   pfDevSVYiAlphaHessian == NULL ||
 	   nNumofSVs <= 0)
@@ -402,7 +402,7 @@ float_point* CSVMPredictor::ComputeClassLabel(int nNumofTestSamples,
 	//compute the size of current processing testing samples
     long long lMega = 1024 * 1024;
     long long cacheSizeInByte = (CACHE_SIZE * lMega * 4);
-	long long nMaxSizeofProcessingSample = (cacheSizeInByte / (sizeof(float_point) * nNumofSVs));
+	long long nMaxSizeofProcessingSample = (cacheSizeInByte / (sizeof(real) * nNumofSVs));
 
 	//reduce by half
 	nMaxSizeofProcessingSample = nMaxSizeofProcessingSample / 2;
@@ -425,15 +425,15 @@ float_point* CSVMPredictor::ComputeClassLabel(int nNumofTestSamples,
 	dim3 dimGlobalSumBlock(nPartialGridDimX);
 
 	//memory for computing partial sum by GPU
-	float_point* pfDevPartialSum;
+	real* pfDevPartialSum;
 //	cout << "dimx=" << nPartialGridDimX << "; dimy=" << nPartialGridDimY << endl;
-	checkCudaErrors(cudaMalloc((void**)&pfDevPartialSum, sizeof(float_point) * nPartialGridDimX * nPartialGridDimY));
-	checkCudaErrors(cudaMemset(pfDevPartialSum, 0, sizeof(float_point) * nPartialGridDimX * nPartialGridDimY));
+	checkCudaErrors(cudaMalloc((void**)&pfDevPartialSum, sizeof(real) * nPartialGridDimX * nPartialGridDimY));
+	checkCudaErrors(cudaMemset(pfDevPartialSum, 0, sizeof(real) * nPartialGridDimX * nPartialGridDimY));
 
 	//memory for computing global sum by GPU
-	float_point *pfDevClassificationResult;
-	checkCudaErrors(cudaMalloc((void**)&pfDevClassificationResult, sizeof(float_point) * nGlobalGridDimY));
-	checkCudaErrors(cudaMemset(pfDevClassificationResult, 0, sizeof(float_point) * nGlobalGridDimY));
+	real *pfDevClassificationResult;
+	checkCudaErrors(cudaMalloc((void**)&pfDevClassificationResult, sizeof(real) * nGlobalGridDimY));
+	checkCudaErrors(cudaMemset(pfDevClassificationResult, 0, sizeof(real) * nGlobalGridDimY));
 
 	//reduce step size of partial sum, and global sum
 	int nPartialReduceStepSize = 0;
@@ -453,15 +453,15 @@ float_point* CSVMPredictor::ComputeClassLabel(int nNumofTestSamples,
 			dimGlobalSumGrid = dim3(nGlobalGridDimX, nGlobalGridDimY);
 
 			checkCudaErrors(cudaFree(pfDevPartialSum));
-			checkCudaErrors(cudaMalloc((void**)&pfDevPartialSum, sizeof(float_point) * nPartialGridDimX * nPartialGridDimY));
-			checkCudaErrors(cudaMemset(pfDevPartialSum, 0, sizeof(float_point) * nPartialGridDimX * nPartialGridDimY));
+			checkCudaErrors(cudaMalloc((void**)&pfDevPartialSum, sizeof(real) * nPartialGridDimX * nPartialGridDimY));
+			checkCudaErrors(cudaMemset(pfDevPartialSum, 0, sizeof(real) * nPartialGridDimX * nPartialGridDimY));
 
 			checkCudaErrors(cudaFree(pfDevClassificationResult));
-			checkCudaErrors(cudaMalloc((void**)&pfDevClassificationResult, sizeof(float_point) * nGlobalGridDimY));
-			checkCudaErrors(cudaMemset(pfDevClassificationResult, 0, sizeof(float_point) * nGlobalGridDimY));
+			checkCudaErrors(cudaMalloc((void**)&pfDevClassificationResult, sizeof(real) * nGlobalGridDimY));
+			checkCudaErrors(cudaMemset(pfDevClassificationResult, 0, sizeof(real) * nGlobalGridDimY));
 		}
 		/********* compute partial sum **********/
-		ComputeKernelPartialSum<<<dimPartialSumGrid, dimPartialSumBlock, BLOCK_SIZE * sizeof(float_point)>>>
+		ComputeKernelPartialSum<<<dimPartialSumGrid, dimPartialSumBlock, BLOCK_SIZE * sizeof(real)>>>
 							   (pfDevSVYiAlphaHessian, nNumofSVs, pfDevPartialSum,
 								nPartialReduceStepSize);
 
@@ -475,7 +475,7 @@ float_point* CSVMPredictor::ComputeClassLabel(int nNumofTestSamples,
 
 		/********** compute global sum and class label *********/
 		//compute global sum
-		ComputeKernelGlobalSum<<<dimGlobalSumGrid, dimGlobalSumBlock, nPartialGridDimX * sizeof(float_point)>>>
+		ComputeKernelGlobalSum<<<dimGlobalSumGrid, dimGlobalSumBlock, nPartialGridDimX * sizeof(real)>>>
 							  (pfDevClassificationResult, fBias,
 							   pfDevPartialSum, nGlobalReduceStepSize);
 		cudaDeviceSynchronize();
@@ -489,7 +489,7 @@ float_point* CSVMPredictor::ComputeClassLabel(int nNumofTestSamples,
 
 		//copy classification result back
 		checkCudaErrors(cudaMemcpy(pfFinalResult + nStartPosofTestSample, pfDevClassificationResult,
-								 nMaxSizeofProcessingSample * sizeof(float_point), cudaMemcpyDeviceToHost));
+								 nMaxSizeofProcessingSample * sizeof(real), cudaMemcpyDeviceToHost));
 	}
 
 	checkCudaErrors(cudaFree(pfDevPartialSum));

@@ -14,7 +14,7 @@ using std::istringstream;
 using std::cout;
 using std::endl;
 
-bool CReadCT::ReadFromFile(string strFileName, vector<vector<float_point> > &v_vSampleData, vector<float> &v_fValue,
+bool CReadCT::ReadFromFile(string strFileName, vector<vector<real> > &v_vSampleData, vector<float> &v_fValue,
 							  int nNumofInstance, int nDim)
 {
 	bool nReturn = true;
@@ -23,7 +23,7 @@ bool CReadCT::ReadFromFile(string strFileName, vector<vector<float_point> > &v_v
 	ifstream readIn;
 	readIn.open(strFileName.c_str());
 	assert(readIn.is_open());
-	vector<float_point> vSample;
+	vector<real> vSample;
 
 	//for storing character from file
 	int j = 0;
@@ -42,7 +42,7 @@ bool CReadCT::ReadFromFile(string strFileName, vector<vector<float_point> > &v_v
 		in >> Id >> cColon;//ignore
 
 		//get features of a sample
-		float_point x;
+		real x;
 		while (in >> x)
 		{
 			i++;

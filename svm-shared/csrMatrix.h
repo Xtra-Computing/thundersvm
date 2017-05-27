@@ -15,8 +15,8 @@ using std::vector;
 class CSRMatrix {
 public:
     const vector<vector<KeyValue> > &samples;
-    vector<float_point> csrVal;
-    vector<float_point> csrValSelfDot;
+    vector<real> csrVal;
+    vector<real> csrValSelfDot;
     vector<int> csrRowPtr;
     vector<int> csrColInd;
     int numOfFeatures;
@@ -26,9 +26,9 @@ public:
     CSRMatrix(const vector<vector<KeyValue> >&samples, int numOfFeatures);
     int getNnz() const;
 
-    const float_point *getCSRVal() const;
+    const real *getCSRVal() const;
 
-    const float_point *getCSRValSelfDot() const;
+    const real *getCSRValSelfDot() const;
 
     const int *getCSRRowPtr() const;
 
@@ -42,12 +42,12 @@ public:
                             const cusparseMatDescr_t descrB,
                             const int nnzB, const float *valB, const int *rowPtrB, const int *colIndB,
                             float *matrixC);
-    void copy2Dev(float_point *&devVal, int *&devRowPtr, int *&devColInd);
-    void freeDev(float_point *&devVal, int *&devRowPtr, int *&devColInd);
+    void copy2Dev(real *&devVal, int *&devRowPtr, int *&devColInd);
+    void freeDev(real *&devVal, int *&devRowPtr, int *&devColInd);
 
-    void copy2Dev(float_point *&devVal, int *&devRowPtr, int *&devColInd, float_point *&devSelfDot);
+    void copy2Dev(real *&devVal, int *&devRowPtr, int *&devColInd, real *&devSelfDot);
 
-    void freeDev(float_point *&devVal, int *&devRowPtr, int *&devColInd, float_point *&devSelfDot);
+    void freeDev(real *&devVal, int *&devRowPtr, int *&devColInd, real *&devSelfDot);
 };
 
 #endif //MASCOT_SVM_CSRMATRIX_H

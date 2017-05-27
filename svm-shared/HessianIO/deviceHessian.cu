@@ -23,7 +23,7 @@ CKernelCalculater *DeviceHessian::m_pKernelCalculater = NULL;
 /*
  * @brief: read Hessian diagonal from file (for RBF kernel, we assign 1.0 directly)
  */
-bool DeviceHessian::GetHessianDiag(const string &strFileName, const int &nNumofInstance, float_point *pfHessianDiag)
+bool DeviceHessian::GetHessianDiag(const string &strFileName, const int &nNumofInstance, real *pfHessianDiag)
 {
 	bool bReturn = true;
 
@@ -76,7 +76,7 @@ int DeviceHessian::GetNumofBatchWriteRows()
 		StorageManager *manager = StorageManager::getManager();
 		long long nMaxNumofFloatPoint = manager->GetFreeGPUMem();
 
-		nReturn = (nMaxNumofFloatPoint / (m_nTotalNumofInstance * sizeof(float_point)));
+		nReturn = (nMaxNumofFloatPoint / (m_nTotalNumofInstance * sizeof(real)));
 	}
 	if(nReturn > m_nTotalNumofInstance)
 	{
@@ -89,8 +89,8 @@ int DeviceHessian::GetNumofBatchWriteRows()
 /*
  * @brief: compute hessian sub matrix
  */
-bool DeviceHessian::ComputeSubHessianMatrix(float_point *pfDevTotalSamples, float_point *pfDevTransSamples,float_point *pfDevSelfDot,
-											float_point *pfDevNumofHessianRows, int nSubMatrixCol, int nSubMatrixRow,
+bool DeviceHessian::ComputeSubHessianMatrix(real *pfDevTotalSamples, real *pfDevTransSamples,real *pfDevSelfDot,
+											real *pfDevNumofHessianRows, int nSubMatrixCol, int nSubMatrixRow,
 											int nStartRow, int nStartCol)
 {
 	bool bReturn = true;
@@ -101,11 +101,11 @@ bool DeviceHessian::ComputeSubHessianMatrix(float_point *pfDevTotalSamples, floa
 
 	//compute a few rows of Hessian matrix
 	long long nHessianRowsSpace = nSubMatrixRow * (long long)nSubMatrixCol;
-	long long nHessianRowSpaceInByte = sizeof(float_point) * nHessianRowsSpace;
+	long long nHessianRowSpaceInByte = sizeof(real) * nHessianRowsSpace;
 	checkCudaErrors(cudaMemset(pfDevNumofHessianRows, 0, nHessianRowSpaceInByte));
 
 	timeval t1, t2;
-	float_point elapsedTime;
+	real elapsedTime;
 	gettimeofday(&t1, NULL);
 //	cout << "computing " << nSubMatrixRow << " sub Hessian rows which have " << nSubMatrixCol << " column each" << endl;
 	if(cudaGetLastError() != cudaSuccess)
@@ -130,30 +130,30 @@ bool DeviceHessian::ComputeSubHessianMatrix(float_point *pfDevTotalSamples, floa
 /**
  * @brief: compute the whole hessian matrix at once
  */
-void DeviceHessian::ComputeHessianAtOnce(float_point *pfTotalSamples, float_point *pfTransSamples, float_point *pfSelfDot)
+void DeviceHessian::ComputeHessianAtOnce(real *pfTotalSamples, real *pfTransSamples, real *pfSelfDot)
 {
 	//compute a few rows of Hessian matrix
-	float_point *pfDevTransSamples;
-	float_point *pfDevNumofHessianRows;
-	float_point *pfDevTotalSamples;
-	float_point *pfDevSelfDot;
+	real *pfDevTransSamples;
+	real *pfDevNumofHessianRows;
+	real *pfDevTotalSamples;
+	real *pfDevSelfDot;
 	long lSpace = (long)m_nNumofDim * m_nTotalNumofInstance;
 	long lResult = (long)m_nTotalNumofInstance * m_nTotalNumofInstance;
-	checkCudaErrors(cudaMalloc((void**)&pfDevTransSamples, sizeof(float_point) * lSpace));
-	checkCudaErrors(cudaMalloc((void**)&pfDevTotalSamples, sizeof(float_point) * lSpace));
-	checkCudaErrors(cudaMalloc((void**)&pfDevNumofHessianRows, sizeof(float_point) * lResult));
-	checkCudaErrors(cudaMalloc((void**)&pfDevSelfDot, sizeof(float_point) * m_nTotalNumofInstance));
-	checkCudaErrors(cudaMemcpy(pfDevSelfDot, pfSelfDot, sizeof(float_point) * m_nTotalNumofInstance, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMalloc((void**)&pfDevTransSamples, sizeof(real) * lSpace));
+	checkCudaErrors(cudaMalloc((void**)&pfDevTotalSamples, sizeof(real) * lSpace));
+	checkCudaErrors(cudaMalloc((void**)&pfDevNumofHessianRows, sizeof(real) * lResult));
+	checkCudaErrors(cudaMalloc((void**)&pfDevSelfDot, sizeof(real) * m_nTotalNumofInstance));
+	checkCudaErrors(cudaMemcpy(pfDevSelfDot, pfSelfDot, sizeof(real) * m_nTotalNumofInstance, cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMemcpy(pfDevTotalSamples, pfTotalSamples,
-					sizeof(float_point) * lSpace, cudaMemcpyHostToDevice));
+					sizeof(real) * lSpace, cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMemcpy(pfDevTransSamples, pfTransSamples,
-					sizeof(float_point) * lSpace, cudaMemcpyHostToDevice));
+					sizeof(real) * lSpace, cudaMemcpyHostToDevice));
 
 	ComputeSubHessianMatrix(pfDevTotalSamples, pfDevTransSamples, pfDevSelfDot,
 							pfDevNumofHessianRows, m_nTotalNumofInstance, m_nTotalNumofInstance, 0, 0);
 
 	checkCudaErrors(cudaMemcpy(m_pfHessianRowsInHostMem, pfDevNumofHessianRows,
-							  sizeof(float_point) * lResult, cudaMemcpyDeviceToHost));
+							  sizeof(real) * lResult, cudaMemcpyDeviceToHost));
 	checkCudaErrors(cudaFree(pfDevTotalSamples));
 	checkCudaErrors(cudaFree(pfDevTransSamples));
 	checkCudaErrors(cudaFree(pfDevNumofHessianRows));
@@ -170,7 +170,7 @@ void DeviceHessian::ComputeHessianAtOnce(float_point *pfTotalSamples, float_poin
 
 bool DeviceHessian::PrecomputeHessian(const string &strHessianMatrixFileName,
 								 const string &strDiagHessianFileName,
-								 vector<vector<float_point> > &v_v_DocVector)
+								 vector<vector<real> > &v_v_DocVector)
 {
 	bool bReturn = true;
 
@@ -181,8 +181,8 @@ bool DeviceHessian::PrecomputeHessian(const string &strHessianMatrixFileName,
 
 	//linear array for training samples
 	long long nSpaceForSamples = (long long)m_nTotalNumofInstance * m_nNumofDim;
-	float_point *pfTotalSamples = new float_point[nSpaceForSamples];
-	memset(pfTotalSamples, 0, sizeof(float_point) * nSpaceForSamples);
+	real *pfTotalSamples = new real[nSpaceForSamples];
+	memset(pfTotalSamples, 0, sizeof(real) * nSpaceForSamples);
 	//copy samples to a linear array
 	for(int i = 0; i < m_nTotalNumofInstance; i++)
 	{
@@ -196,8 +196,8 @@ bool DeviceHessian::PrecomputeHessian(const string &strHessianMatrixFileName,
 	}
 
 //	v_v_DocVector.clear();
-	float_point *pfTransSamples = new float_point[nSpaceForSamples];
-	memset(pfTransSamples, 0, sizeof(float_point) * nSpaceForSamples);
+	real *pfTransSamples = new real[nSpaceForSamples];
+	memset(pfTransSamples, 0, sizeof(real) * nSpaceForSamples);
 	//copy samples to a linear array
 	for(int i = 0; i < m_nTotalNumofInstance; i++)
 	{
@@ -211,12 +211,12 @@ bool DeviceHessian::PrecomputeHessian(const string &strHessianMatrixFileName,
 	}
 
 	//self dot product
-	float_point *pfSelfDot = new float_point[m_nTotalNumofInstance];
+	real *pfSelfDot = new real[m_nTotalNumofInstance];
 	//copy samples to a linear array
 	for(int i = 0; i < m_nTotalNumofInstance; i++)
 	{
 		//assign document vector to svm node
-		float_point fTemp = 0;;
+		real fTemp = 0;;
 		for(int j = 0; j < m_nNumofDim; j++)
 		{
 			long long nIndex = (long long)i * m_nNumofDim + j;
@@ -284,23 +284,23 @@ bool DeviceHessian::PrecomputeHessian(const string &strHessianMatrixFileName,
 	long long lMaxSubMatrixSize = (long long)nAveLenofSubCol * nAveLenofSubRow;
 	long long nMaxTransSamplesInCol = (long long)m_nNumofDim * nAveLenofSubRow;
 	long long nMaxSamplesInRow = (long long)m_nNumofDim * nAveLenofSubCol;
-	float_point *pfSubMatrix = new float_point[lMaxSubMatrixSize];
+	real *pfSubMatrix = new real[lMaxSubMatrixSize];
 	//float_point *pfSubMatrixRowMajor = new float_point[lMaxSubMatrixSize];
-	float_point *pfTransSamplesForAColInSubMatrix;
-	pfTransSamplesForAColInSubMatrix = new float_point[nMaxTransSamplesInCol];
-	float_point *pfSamplesForARowInSubMatrix;
+	real *pfTransSamplesForAColInSubMatrix;
+	pfTransSamplesForAColInSubMatrix = new real[nMaxTransSamplesInCol];
+	real *pfSamplesForARowInSubMatrix;
 //	pfSamplesForARowInSubMatrix = new float_point[nMaxSamplesInRow];
 
 	//compute a few rows of Hessian matrix
-	float_point *pfDevTransSamples;
-	float_point *pfDevNumofHessianRows;
-	float_point *pfDevTotalSamples;
-	float_point *pfDevSelfDot;
-	checkCudaErrors(cudaMalloc((void**)&pfDevTransSamples, sizeof(float_point) * nMaxTransSamplesInCol));
-	checkCudaErrors(cudaMalloc((void**)&pfDevTotalSamples, sizeof(float_point) * nMaxSamplesInRow));
-	checkCudaErrors(cudaMalloc((void**)&pfDevNumofHessianRows, sizeof(float_point) * lMaxSubMatrixSize));
-	checkCudaErrors(cudaMalloc((void**)&pfDevSelfDot, sizeof(float_point) * m_nTotalNumofInstance));
-	checkCudaErrors(cudaMemcpy(pfDevSelfDot, pfSelfDot, sizeof(float_point) * m_nTotalNumofInstance, cudaMemcpyHostToDevice));
+	real *pfDevTransSamples;
+	real *pfDevNumofHessianRows;
+	real *pfDevTotalSamples;
+	real *pfDevSelfDot;
+	checkCudaErrors(cudaMalloc((void**)&pfDevTransSamples, sizeof(real) * nMaxTransSamplesInCol));
+	checkCudaErrors(cudaMalloc((void**)&pfDevTotalSamples, sizeof(real) * nMaxSamplesInRow));
+	checkCudaErrors(cudaMalloc((void**)&pfDevNumofHessianRows, sizeof(real) * lMaxSubMatrixSize));
+	checkCudaErrors(cudaMalloc((void**)&pfDevSelfDot, sizeof(real) * m_nTotalNumofInstance));
+	checkCudaErrors(cudaMemcpy(pfDevSelfDot, pfSelfDot, sizeof(real) * m_nTotalNumofInstance, cudaMemcpyHostToDevice));
 
 	//compuate sub matrix
 	for(int iPartofCol = 0; iPartofCol < nNumofPartForACol; iPartofCol++)
@@ -326,7 +326,7 @@ bool DeviceHessian::PrecomputeHessian(const string &strHessianMatrixFileName,
 //			cout.flush();
 			//allocate memory for this sub matrix
 			long long nHessianSubMatrixSpace = nSubMatrixRow * nSubMatrixCol;
-			memset(pfSubMatrix, 0, sizeof(float_point) * nHessianSubMatrixSpace);
+			memset(pfSubMatrix, 0, sizeof(real) * nHessianSubMatrixSpace);
 
 
 			//get the copies of sample data for computing sub matrix
@@ -350,16 +350,16 @@ bool DeviceHessian::PrecomputeHessian(const string &strHessianMatrixFileName,
 				long long nSampleIndex = (long long)jPartofRow * nAveLenofSubRow + (long long)d * m_nTotalNumofInstance;
 				long long nIndexForSub = (long long)d * nSubMatrixCol;
 					memcpy(pfTransSamplesForAColInSubMatrix + nIndexForSub,
-						   pfTransSamples + nSampleIndex, sizeof(float_point) * nSubMatrixCol);
+						   pfTransSamples + nSampleIndex, sizeof(real) * nSubMatrixCol);
 				//}
 			}
 
 			long long nSpaceForSamplesInRow = (long long)m_nNumofDim * nSubMatrixRow;
 			long long nSpaceForSamplesInCol = (long long)m_nNumofDim * nSubMatrixCol;
 			checkCudaErrors(cudaMemcpy(pfDevTotalSamples, pfSamplesForARowInSubMatrix,
-							sizeof(float_point) * nSpaceForSamplesInRow, cudaMemcpyHostToDevice));
+							sizeof(real) * nSpaceForSamplesInRow, cudaMemcpyHostToDevice));
 			checkCudaErrors(cudaMemcpy(pfDevTransSamples, pfTransSamplesForAColInSubMatrix,
-							sizeof(float_point) * nSpaceForSamplesInCol, cudaMemcpyHostToDevice));
+							sizeof(real) * nSpaceForSamplesInCol, cudaMemcpyHostToDevice));
 //
 			//compute the value of the sub matrix
 			int nStartRow = iPartofCol * nAveLenofSubCol;
@@ -370,7 +370,7 @@ bool DeviceHessian::PrecomputeHessian(const string &strHessianMatrixFileName,
 
 			int nHessianRowsSpace = nSubMatrixRow * nSubMatrixCol;
 			checkCudaErrors(cudaMemcpy(pfSubMatrix, pfDevNumofHessianRows,
-							sizeof(float_point) * nHessianRowsSpace, cudaMemcpyDeviceToHost));
+							sizeof(real) * nHessianRowsSpace, cudaMemcpyDeviceToHost));
 
 			//store the sub matrix
 			//hessian sub matrix info

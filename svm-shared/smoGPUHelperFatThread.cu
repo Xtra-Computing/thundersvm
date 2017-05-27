@@ -19,19 +19,19 @@
  * @param: pfBlockMin: the min value of this block (function result)
  * @param: pnBlockMinGlobalKey: the index of the min value of this block
  */
-__global__ void GetBigBlockMinYiGValue(float_point *pfYiFValue, float_point *pfAlpha, int *pnLabel, float_point fPCost,
-									int nNumofTraingSamples, float_point *pfBlockMin, int *pnBlockMinGlobalKey)
+__global__ void GetBigBlockMinYiGValue(real *pfYiFValue, real *pfAlpha, int *pnLabel, real fPCost,
+									int nNumofTraingSamples, real *pfBlockMin, int *pnBlockMinGlobalKey)
 {
 	//__shared__ float_point fTempLocalYiFValue[BLOCK_SIZE * TASK_OF_THREAD];
 	//__shared__ int nTempLocalKeys[BLOCK_SIZE * TASK_OF_THREAD];
-	__shared__ float_point fTempLocalYiFValue[BLOCK_SIZE];
+	__shared__ real fTempLocalYiFValue[BLOCK_SIZE];
 	__shared__ int nTempLocalKeys[BLOCK_SIZE];
 
 	int nThreadId = threadIdx.x;
 	fTempLocalYiFValue[nThreadId] = FLT_MAX;
 	int nBlockId = blockIdx.y * gridDim.x + blockIdx.x;
 
-	float_point fAlpha;
+	real fAlpha;
 	//float_point test= FLT_MAX;
 	int nLabel;
 	int nArrayIndex;
@@ -48,7 +48,7 @@ __global__ void GetBigBlockMinYiGValue(float_point *pfYiFValue, float_point *pfA
 			//fill yi*GValue in a block
 			if((nLabel > 0 && fAlpha < fPCost) || (nLabel < 0 && fAlpha > 0))
 			{
-				float_point fTemp = pfYiFValue[nArrayIndex];
+				real fTemp = pfYiFValue[nArrayIndex];
 				if(fTempLocalYiFValue[nThreadId] > fTemp)
 				{
 					fTempLocalYiFValue[nThreadId] = fTemp;
@@ -84,17 +84,17 @@ __global__ void GetBigBlockMinYiGValue(float_point *pfYiFValue, float_point *pfA
  * @param: pnBlockMinGlobalKey: the key of each block minimum value (the output of this kernel)
  * @param: pfBlockMinYiFValue: the block minimum gradient (the output of this kernel. for convergence check)
  */
-__global__ void GetBigBlockMinLowValue(float_point *pfYiFValue, float_point *pfAlpha, int *pnLabel, float_point fNCost,
-									int nNumofTrainingSamples, int nNumofInstance, float_point *pfDiagHessian, float_point *pfHessianRow,
-									float_point fMinusYiUpValue, float_point fUpValueKernel, float_point *pfBlockMin,
-									int *pnBlockMinGlobalKey, float_point *pfBlockMinYiFValue)
+__global__ void GetBigBlockMinLowValue(real *pfYiFValue, real *pfAlpha, int *pnLabel, real fNCost,
+									int nNumofTrainingSamples, int nNumofInstance, real *pfDiagHessian, real *pfHessianRow,
+									real fMinusYiUpValue, real fUpValueKernel, real *pfBlockMin,
+									int *pnBlockMinGlobalKey, real *pfBlockMinYiFValue)
 {
 	//__shared__ int nTempKey[BLOCK_SIZE * TASK_OF_THREAD];
 	//__shared__ float_point fTempMinValues[BLOCK_SIZE * TASK_OF_THREAD];
 	//__shared__ float_point fTempObjValues[BLOCK_SIZE * TASK_OF_THREAD];
 	__shared__ int nTempKey[BLOCK_SIZE];
-	__shared__ float_point fTempMinValues[BLOCK_SIZE];
-	__shared__ float_point fTempObjValues[BLOCK_SIZE];
+	__shared__ real fTempMinValues[BLOCK_SIZE];
+	__shared__ real fTempObjValues[BLOCK_SIZE];
 
 	int nThreadId = threadIdx.x;
 
@@ -103,17 +103,17 @@ __global__ void GetBigBlockMinLowValue(float_point *pfYiFValue, float_point *pfA
 	int nBlockId = blockIdx.y * gridDim.x + blockIdx.x;
 
 	//fill data (-b_ij * b_ij/a_ij) into a block
-	float_point fYiGValue;
-	float_point fBeta;
+	real fYiGValue;
+	real fBeta;
 
-	float_point fAlpha;
+	real fAlpha;
 	int nLabel;
 	int nArrayIndex;
 
 	//#pragma unroll TASK_OF_THREAD
-	float_point fUpValue;
-	float_point fBUp_j;
-	float_point fAUp_j;
+	real fUpValue;
+	real fBUp_j;
+	real fAUp_j;
 	for(int i = 0; i < TASK_OF_THREAD_UP; i++)
 	{
 		nArrayIndex = (nBlockId * BLOCK_SIZE * TASK_OF_THREAD_UP)  + i * BLOCK_SIZE + nThreadId;
@@ -194,7 +194,7 @@ __global__ void GetBigBlockMinLowValue(float_point *pfYiFValue, float_point *pfA
  * @param: pfValues: a pointer to a set of data
  * @param: pnKey:	 a pointer to the index of the set of data. It's for getting the location of min.
  */
-__device__ void GetBigMinValue(float_point *pfValues, int *pnKey)
+__device__ void GetBigMinValue(real *pfValues, int *pnKey)
 {
 	/*if(1024 < BLOCK_SIZE)
 	{
@@ -204,7 +204,7 @@ __device__ void GetBigMinValue(float_point *pfValues, int *pnKey)
 	//Reduce by a factor of 2, and minimize step size
 	int nTid = threadIdx.x;
 	int compOffset;
-	float_point fValue1, fValue2;
+	real fValue1, fValue2;
 	fValue1 = pfValues[nTid];
 	int nNumofBlock = BLOCK_SIZE * TASK_OF_THREAD;
 
@@ -251,11 +251,11 @@ __device__ void GetBigMinValue(float_point *pfValues, int *pnKey)
 
 }
 
-__device__ void GetBigMinValue(float_point *pfValues)
+__device__ void GetBigMinValue(real *pfValues)
 {
 	int nTid = threadIdx.x;
 	int compOffset;
-	float_point fValue1, fValue2;
+	real fValue1, fValue2;
 	fValue1 = pfValues[nTid];
 	int nNumofBlock = BLOCK_SIZE * TASK_OF_THREAD;
 

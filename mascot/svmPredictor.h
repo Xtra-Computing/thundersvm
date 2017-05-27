@@ -29,26 +29,26 @@ public:
 	~CSVMPredictor(){}
 
 	void SetCalculater(CKernelCalculater *p){m_pKernelCalculater = p;}
-	bool ComputeYiAlphaKValue(float_point **pyfSVHessian, float_point *pfAlphaofSVs,
-							  float_point *pfYiofSVs, float_point **pyfSVYiAlhpaHessian);
+	bool ComputeYiAlphaKValue(real **pyfSVHessian, real *pfAlphaofSVs,
+							  real *pfYiofSVs, real **pyfSVYiAlhpaHessian);
 
 	bool SetInvolvePredictionData(int nStart1, int nEnd1);
-	float_point* Predict(svm_model*, int *pnTestSampleId, const int&);
-	float_point* Predict(svm_model*, svm_node **pInstance, int numInstance);
-	float_point* ComputeClassLabel(int nNumofTestingSamples,
-						   float_point *pfSVYiAlhpaHessian, const int &nNumofSVs,
-						   float_point fBias, float_point *pfFinalResult);
+	real* Predict(svm_model*, int *pnTestSampleId, const int&);
+	real* Predict(svm_model*, svm_node **pInstance, int numInstance);
+	real* ComputeClassLabel(int nNumofTestingSamples,
+						   real *pfSVYiAlhpaHessian, const int &nNumofSVs,
+						   real fBias, real *pfFinalResult);
 
-	void ReadKVbasedOnSV(float_point *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs, int nNumofTestSamples);
-	void ReadKVbasedOnTest(float_point *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs, int nNumofTestSamples);
+	void ReadKVbasedOnSV(real *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs, int nNumofTestSamples);
+	void ReadKVbasedOnTest(real *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs, int nNumofTestSamples);
 private:
 	int GetNumSV(svm_model *pModel);
-	float_point* AllocateKVMem(int nNumofSVs, const int &nNumofTestSamples);
-	float_point* PredictLabel(svm_model *pModel, int nNumofTestSamples, float_point *pfSVsKernelValues);
+	real* AllocateKVMem(int nNumofSVs, const int &nNumofTestSamples);
+	real* PredictLabel(svm_model *pModel, int nNumofTestSamples, real *pfSVsKernelValues);
 
-	void ReadFromHessian(float_point *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs,
+	void ReadFromHessian(real *pfSVsKernelValues, int *pnSVSampleId, int nNumofSVs,
 						 int *pnTestSampleId, int nNumofTestSamples);
-	void ComputeOnTheFly(float_point *pfSVsKernelValues, svm_model *pModel, svm_node **pInstance, int numInstance);
+	void ComputeOnTheFly(real *pfSVsKernelValues, svm_model *pModel, svm_node **pInstance, int numInstance);
 };
 
 #endif /* SVMPREDICTOR_H_ */

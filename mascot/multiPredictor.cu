@@ -15,7 +15,7 @@
 #include "predictionGPUHelper.h"
 #include "../svm-shared/constant.h"
 
-float_point MultiPredictor::sigmoidPredict(float_point decValue, float_point A, float_point B) const {
+real MultiPredictor::sigmoidPredict(real decValue, real A, real B) const {
     double fApB = decValue * A + B;
     // 1-p used later; avoid catastrophic cancellation
     if (fApB >= 0)
@@ -24,7 +24,7 @@ float_point MultiPredictor::sigmoidPredict(float_point decValue, float_point A, 
         return 1.0 / (1 + exp(fApB));
 }
 
-void MultiPredictor::multiClassProbability(const vector<vector<float_point> > &r, vector<float_point> &p) const {
+void MultiPredictor::multiClassProbability(const vector<vector<real> > &r, vector<real> &p) const {
 	int nrClass = model.nrClass;
     int t, j;
     int iter = 0, max_iter = max(100, nrClass);
@@ -82,13 +82,13 @@ void MultiPredictor::multiClassProbability(const vector<vector<float_point> > &r
     free(Qp);
 }
 
-vector<vector<float_point> > MultiPredictor::predictProbability(const vector<vector<KeyValue> > &v_vSamples) const {
+vector<vector<real> > MultiPredictor::predictProbability(const vector<vector<KeyValue> > &v_vSamples) const {
 	int nrClass = model.nrClass;
-    vector<vector<float_point> > result;
-    vector<vector<float_point> > decValues;
+    vector<vector<real> > result;
+    vector<vector<real> > decValues;
     computeDecisionValues(v_vSamples, decValues);
     for (int l = 0; l < v_vSamples.size(); ++l) {
-        vector<vector<float_point> > r(nrClass, vector<float_point>(nrClass));
+        vector<vector<real> > r(nrClass, vector<real>(nrClass));
         double min_prob = 1e-7;
         int k = 0;
         for (int i = 0; i < nrClass; i++)
@@ -98,7 +98,7 @@ vector<vector<float_point> > MultiPredictor::predictProbability(const vector<vec
                 r[j][i] = 1 - r[i][j];
                 k++;
             }
-        vector<float_point> p(nrClass);
+        vector<real> p(nrClass);
         multiClassProbability(r, p);
         result.push_back(p);
     }
@@ -109,22 +109,22 @@ vector<vector<float_point> > MultiPredictor::predictProbability(const vector<vec
  * @brief: compute the decision value
  */
 void MultiPredictor::computeDecisionValues(const vector<vector<KeyValue> > &v_vSamples,
-                        		   vector<vector<float_point> > &decisionValues) const {
+                        		   vector<vector<real> > &decisionValues) const {
     //copy samples to device
     CSRMatrix sampleCSRMat(v_vSamples, model.numOfFeatures);
-    float_point *devSampleVal;
-    float_point *devSampleValSelfDot;
+    real *devSampleVal;
+    real *devSampleValSelfDot;
     int *devSampleRowPtr;
     int *devSampleColInd;
     int sampleNnz = sampleCSRMat.getNnz();
-    checkCudaErrors(cudaMalloc((void **) &devSampleVal, sizeof(float_point) * sampleNnz));
-    checkCudaErrors(cudaMalloc((void **) &devSampleValSelfDot, sizeof(float_point) * sampleCSRMat.getNumOfSamples()));
+    checkCudaErrors(cudaMalloc((void **) &devSampleVal, sizeof(real) * sampleNnz));
+    checkCudaErrors(cudaMalloc((void **) &devSampleValSelfDot, sizeof(real) * sampleCSRMat.getNumOfSamples()));
     checkCudaErrors(cudaMalloc((void **) &devSampleRowPtr, sizeof(int) * (sampleCSRMat.getNumOfSamples() + 1)));
     checkCudaErrors(cudaMalloc((void **) &devSampleColInd, sizeof(int) * sampleNnz));
-    checkCudaErrors(cudaMemcpy(devSampleVal, sampleCSRMat.getCSRVal(), sizeof(float_point) * sampleNnz,
+    checkCudaErrors(cudaMemcpy(devSampleVal, sampleCSRMat.getCSRVal(), sizeof(real) * sampleNnz,
                                cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(devSampleValSelfDot, sampleCSRMat.getCSRValSelfDot(),
-                               sizeof(float_point) * sampleCSRMat.getNumOfSamples(), cudaMemcpyHostToDevice));
+                               sizeof(real) * sampleCSRMat.getNumOfSamples(), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(devSampleRowPtr, sampleCSRMat.getCSRRowPtr(),
     						   sizeof(int) * (sampleCSRMat.getNumOfSamples() + 1), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(devSampleColInd, sampleCSRMat.getCSRColInd(), sizeof(int) * sampleNnz,
@@ -136,9 +136,9 @@ void MultiPredictor::computeDecisionValues(const vector<vector<KeyValue> > &v_vS
     cusparseCreateMatDescr(&descr);
     cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);
     cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
-    float_point *devKernelValues;
+    real *devKernelValues;
     checkCudaErrors(cudaMalloc((void **) &devKernelValues,
-    						   sizeof(float_point) * v_vSamples.size() * model.svMap.size()));
+    						   sizeof(real) * v_vSamples.size() * model.svMap.size()));
 
     //dot product between sv and sample
     CSRMatrix::CSRmm2Dense(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
@@ -157,17 +157,17 @@ void MultiPredictor::computeDecisionValues(const vector<vector<KeyValue> > &v_vS
     //sum kernel values of each model then obtain decision values
     int cnr2 = model.cnr2;
     numOfBlock = Ceil(v_vSamples.size() * cnr2, BLOCK_SIZE);
-    float_point *devDecisionValues;
-    checkCudaErrors(cudaMalloc((void **) &devDecisionValues, sizeof(float_point) * v_vSamples.size() * cnr2));
+    real *devDecisionValues;
+    checkCudaErrors(cudaMalloc((void **) &devDecisionValues, sizeof(real) * v_vSamples.size() * cnr2));
     sumKernelValues<<<numOfBlock, BLOCK_SIZE>>>(devKernelValues, v_vSamples.size(),
     				model.svMapCSRMat->getNumOfSamples(), cnr2, model.devSVIndex,
 					model.devCoef, model.devStart, model.devCount, model.devRho, devDecisionValues);
-    float_point *tempDecValues = new float_point[v_vSamples.size() * cnr2];
+    real *tempDecValues = new real[v_vSamples.size() * cnr2];
     checkCudaErrors(cudaMemcpy(tempDecValues, devDecisionValues,
-                               sizeof(float_point) * v_vSamples.size() * cnr2, cudaMemcpyDeviceToHost));
-    decisionValues = vector<vector<float_point> >(v_vSamples.size(), vector<float_point>(cnr2));
+                               sizeof(real) * v_vSamples.size() * cnr2, cudaMemcpyDeviceToHost));
+    decisionValues = vector<vector<real> >(v_vSamples.size(), vector<real>(cnr2));
     for (int i = 0; i < decisionValues.size(); ++i) {
-        memcpy(decisionValues[i].data(), tempDecValues + i * cnr2, sizeof(float_point) * cnr2);
+        memcpy(decisionValues[i].data(), tempDecValues + i * cnr2, sizeof(real) * cnr2);
     }
     delete[] tempDecValues;
     checkCudaErrors(cudaFree(devDecisionValues));
@@ -189,7 +189,7 @@ vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples,
 	bool probability = model.isProbability();
     vector<int> labels;
     if (!probability) {
-        vector<vector<float_point> > decisionValues;
+        vector<vector<real> > decisionValues;
         computeDecisionValues(v_vSamples, decisionValues);
         for (int l = 0; l < v_vSamples.size(); ++l) {
         	if(!vnOriginalLabel.empty())//want to measure sub-classifier error
@@ -237,7 +237,7 @@ vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples,
     } else {
         printf("predict with probability\n");
         assert(model.probability);
-        vector<vector<float_point> > prob = predictProbability(v_vSamples);
+        vector<vector<real> > prob = predictProbability(v_vSamples);
         // todo select max using GPU
         for (int i = 0; i < v_vSamples.size(); ++i) {
             int maxProbClass = 0;

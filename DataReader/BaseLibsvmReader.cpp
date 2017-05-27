@@ -37,12 +37,12 @@ void BaseLibSVMReader::GetDataInfo(string strFileName, int &nNumofFeatures, int 
 
 		istringstream in(str);
 
-		float_point fValue = 0;//label
+		real fValue = 0;//label
 		in >> fValue;
 
 		//get features of a sample
 		int nFeature;
-		float_point x = -1;
+		real x = -1;
 		while (in >> nFeature >> cColon >> x)
 		{
 			assert(cColon == ':');

@@ -15,9 +15,9 @@
  * @param: pfBlockMin: the min value of this block (function result)
  * @param: pnBlockMinGlobalKey: the index of the min value of this block
  */
-__global__ void GetBlockMinYiGValue(float_point *pfYiFValue, float_point *pfAlpha, int *pnLabel, float_point fPCost,
-                                    int nNumofTrainingSamples, float_point *pfBlockMin, int *pnBlockMinGlobalKey) {
-    __shared__ float_point fTempLocalYiFValue[BLOCK_SIZE];
+__global__ void GetBlockMinYiGValue(real *pfYiFValue, real *pfAlpha, int *pnLabel, real fPCost,
+                                    int nNumofTrainingSamples, real *pfBlockMin, int *pnBlockMinGlobalKey) {
+    __shared__ real fTempLocalYiFValue[BLOCK_SIZE];
     __shared__ int nTempLocalKeys[BLOCK_SIZE];
 
     int nGlobalIndex;
@@ -27,7 +27,7 @@ __global__ void GetBlockMinYiGValue(float_point *pfYiFValue, float_point *pfAlph
 
     fTempLocalYiFValue[nThreadId] = FLT_MAX;
     if (nGlobalIndex < nNumofTrainingSamples) {
-        float_point fAlpha;
+        real fAlpha;
         int nLabel;
         fAlpha = pfAlpha[nGlobalIndex];
         nLabel = pnLabel[nGlobalIndex];
@@ -63,12 +63,12 @@ __global__ void GetBlockMinYiGValue(float_point *pfYiFValue, float_point *pfAlph
  * @param: pnBlockMinGlobalKey: the key of each block minimum value (the output of this kernel)
  * @param: pfBlockMinYiFValue: the block minimum gradient (the output of this kernel. for convergence check)
  */
-__global__ void GetBlockMinLowValue(float_point *pfYiFValue, float_point *pfAlpha, int *pnLabel, float_point fNCost,
-                                    int nNumofTrainingSamples, float_point *pfDiagHessian, float_point *pfHessianRow,
-                                    float_point fMinusYiUpValue, float_point fUpValueKernel, float_point *pfBlockMin,
-                                    int *pnBlockMinGlobalKey, float_point *pfBlockMinYiFValue) {
+__global__ void GetBlockMinLowValue(real *pfYiFValue, real *pfAlpha, int *pnLabel, real fNCost,
+                                    int nNumofTrainingSamples, real *pfDiagHessian, real *pfHessianRow,
+                                    real fMinusYiUpValue, real fUpValueKernel, real *pfBlockMin,
+                                    int *pnBlockMinGlobalKey, real *pfBlockMinYiFValue) {
     __shared__ int nTempKey[BLOCK_SIZE];
-    __shared__ float_point fTempMinValues[BLOCK_SIZE];
+    __shared__ real fTempMinValues[BLOCK_SIZE];
 
     int nThreadId = threadIdx.x;
     int nGlobalIndex = (blockIdx.y * gridDim.x + blockIdx.x) * blockDim.x + threadIdx.x;//global index for thread
@@ -77,16 +77,16 @@ __global__ void GetBlockMinLowValue(float_point *pfYiFValue, float_point *pfAlph
     //fTempMinYiFValue[nThreadId] = FLT_MAX;
 
     //fill data (-b_ij * b_ij/a_ij) into a block
-    float_point fYiGValue;
-    float_point fBeta;
+    real fYiGValue;
+    real fBeta;
     int nReduce = NOREDUCE;
-    float_point fAUp_j;
-    float_point fBUp_j;
+    real fAUp_j;
+    real fBUp_j;
 
     if (nGlobalIndex < nNumofTrainingSamples) {
-        float_point fUpValue = fMinusYiUpValue;
+        real fUpValue = fMinusYiUpValue;
         fYiGValue = pfYiFValue[nGlobalIndex];
-        float_point fAlpha = pfAlpha[nGlobalIndex];
+        real fAlpha = pfAlpha[nGlobalIndex];
 
         nTempKey[nThreadId] = nGlobalIndex;
 
@@ -149,10 +149,10 @@ __global__ void GetBlockMinLowValue(float_point *pfYiFValue, float_point *pfAlph
  * @param: pfMinValue:	  a pointer to global min value (the result of this function)
  * @param: pnMinKey:	  a pointer to the index of the global min value (the result of this function)
  */
-__global__ void GetGlobalMin(float_point *pfBlockMin, int *pnBlockMinKey, int nNumofBlock,
-                             float_point *pfYiFValue, float_point *pfHessianRow, float_point *pfTempKeyValue) {
+__global__ void GetGlobalMin(real *pfBlockMin, int *pnBlockMinKey, int nNumofBlock,
+                             real *pfYiFValue, real *pfHessianRow, real *pfTempKeyValue) {
     __shared__ int nTempKey[BLOCK_SIZE];
-    __shared__ float_point pfTempMin[BLOCK_SIZE];
+    __shared__ real pfTempMin[BLOCK_SIZE];
     int nThreadId = threadIdx.x;
 
     if (nThreadId < nNumofBlock) {
@@ -165,10 +165,10 @@ __global__ void GetGlobalMin(float_point *pfBlockMin, int *pnBlockMinKey, int nN
 
     //if the size of block is larger than the BLOCK_SIZE, we make the size to be not larger than BLOCK_SIZE
     if (nNumofBlock > BLOCK_SIZE) {
-        float_point fTempMin = pfTempMin[nThreadId];
+        real fTempMin = pfTempMin[nThreadId];
         int nTempMinKey = nTempKey[nThreadId];
         for (int i = nThreadId + BLOCK_SIZE; i < nNumofBlock; i += blockDim.x) {
-            float_point fTempBlockMin = pfBlockMin[i];
+            real fTempBlockMin = pfBlockMin[i];
             if (fTempBlockMin < fTempMin) {
                 //store the minimum value and the corresponding key
                 fTempMin = fTempBlockMin;
@@ -183,7 +183,7 @@ __global__ void GetGlobalMin(float_point *pfBlockMin, int *pnBlockMinKey, int nN
     GetMinValueOriginal(pfTempMin, nTempKey, nNumofBlock);
 
     if (nThreadId == 0) {
-        *(pfTempKeyValue) = (float_point) nTempKey[0];
+        *(pfTempKeyValue) = (real) nTempKey[0];
         if (pfYiFValue != NULL) {
             *(pfTempKeyValue + 1) = pfYiFValue[nTempKey[0]];//pfTempMin[0];
         } else {
@@ -204,17 +204,17 @@ __global__ void GetGlobalMin(float_point *pfBlockMin, int *pnBlockMinKey, int nN
  * @param: pfMinValue:	  a pointer to global min value (the result of this function)
  * @param: pnMinKey:	  a pointer to the index of the global min value (the result of this function)
  */
-__global__ void GetGlobalMin(float_point *pfBlockMin, int nNumofBlock, float_point *pfTempKeyValue) {
-    __shared__ float_point pfTempMin[BLOCK_SIZE];
+__global__ void GetGlobalMin(real *pfBlockMin, int nNumofBlock, real *pfTempKeyValue) {
+    __shared__ real pfTempMin[BLOCK_SIZE];
     int nThreadId = threadIdx.x;
 
     pfTempMin[nThreadId] = ((nThreadId < nNumofBlock) ? pfBlockMin[nThreadId] : FLT_MAX);
 
     //if the size of block is larger than the BLOCK_SIZE, we make the size to be not larger than BLOCK_SIZE
     if (nNumofBlock > BLOCK_SIZE) {
-        float_point fTempMin = pfTempMin[nThreadId];
+        real fTempMin = pfTempMin[nThreadId];
         for (int i = nThreadId + BLOCK_SIZE; i < nNumofBlock; i += blockDim.x) {
-            float_point fTempBlockMin = pfBlockMin[i];
+            real fTempBlockMin = pfBlockMin[i];
             fTempMin = (fTempBlockMin < fTempMin) ? fTempBlockMin : fTempMin;
         }
         pfTempMin[nThreadId] = fTempMin;
@@ -238,9 +238,9 @@ __global__ void GetGlobalMin(float_point *pfBlockMin, int nNumofBlock, float_poi
  * @param: fY2AlphaDiff: the difference of old and new alpha of sample two
  */
 __global__ void
-UpdateYiFValueKernel(float_point *pfAlpha, float_point *pDevBuffer, float_point *pfYiFValue, float_point *pfHessianRow1,
-                     float_point *pfHessianRow2,
-                     float_point fY1AlphaDiff, float_point fY2AlphaDiff, int nNumofTrainingSamples) {
+UpdateYiFValueKernel(real *pfAlpha, real *pDevBuffer, real *pfYiFValue, real *pfHessianRow1,
+                     real *pfHessianRow2,
+                     real fY1AlphaDiff, real fY2AlphaDiff, int nNumofTrainingSamples) {
     if (threadIdx.x < 2) {
         int nTemp = int(pDevBuffer[threadIdx.x * 2]);
         pfAlpha[nTemp] = pDevBuffer[threadIdx.x * 2 + 1];
@@ -248,9 +248,9 @@ UpdateYiFValueKernel(float_point *pfAlpha, float_point *pDevBuffer, float_point 
         //pfAlpha[nTemp] = pDevBuffer[3];
     }
     __syncthreads();
-    float_point fsY1AlphaDiff;
+    real fsY1AlphaDiff;
     fsY1AlphaDiff = fY1AlphaDiff;
-    float_point fsY2AlphaDiff;
+    real fsY2AlphaDiff;
     fsY2AlphaDiff = fY2AlphaDiff;
 
     int nGlobalIndex = (blockIdx.y * gridDim.x + blockIdx.x) * blockDim.x + threadIdx.x;//global index for thread
@@ -275,7 +275,7 @@ UpdateYiFValueKernel(float_point *pfAlpha, float_point *pDevBuffer, float_point 
  * @param hessianMatrixCache: |working set| * |training set| kernel matrix, row major
  * @param ld: number of instances each row in hessianMatrixCache
  */
-__global__ void localSMO(const int *label, float_point *FValues, float_point *alpha, float_point *alphaDiff,
+__global__ void localSMO(const int *label, real *FValues, real *alpha, real *alphaDiff,
                          const int *workingSet, int wsSize, float C, const float *hessianMatrixCache, int ld) {
 
     //allocate shared memory
@@ -370,25 +370,25 @@ __global__ void localSMO(const int *label, float_point *FValues, float_point *al
  * @param numOfSamples
  */
 __global__ void
-updateF(float_point *FValues, const int *label, const int *workingSet, int wsSize, const float_point *alphaDiff,
-        const float_point *hessianMatrixCache, int numOfSamples) {
+updateF(real *FValues, const int *label, const int *workingSet, int wsSize, const real *alphaDiff,
+        const real *hessianMatrixCache, int numOfSamples) {
     int nGlobalIndex = (blockIdx.y * gridDim.x + blockIdx.x) * blockDim.x + threadIdx.x;//global index for thread
     if (nGlobalIndex < numOfSamples) {
-        float_point sumDiff = 0;
+        real sumDiff = 0;
         for (int i = 0; i < wsSize; ++i) {
-            float_point d = alphaDiff[i];
+            real d = alphaDiff[i];
             if (d != 0)
                 sumDiff += d * hessianMatrixCache[i * numOfSamples + nGlobalIndex];
         }
         FValues[nGlobalIndex] -= sumDiff;
     }
 }
-__global__ void getFUpValues(const float_point *FValues, const float_point *alpha, const int *labels,
-                             int numOfSamples, int C, float_point *FValue4Sort, int *Idx4Sort) {
+__global__ void getFUpValues(const real *FValues, const real *alpha, const int *labels,
+                             int numOfSamples, int C, real *FValue4Sort, int *Idx4Sort) {
     int nGlobalIndex = (blockIdx.y * gridDim.x + blockIdx.x) * blockDim.x + threadIdx.x;//global index for thread
     if (nGlobalIndex < numOfSamples) {
-        float_point y = labels[nGlobalIndex];
-        float_point a = alpha[nGlobalIndex];
+        real y = labels[nGlobalIndex];
+        real a = alpha[nGlobalIndex];
         if (y > 0 && a < C || y < 0 && a > 0)
             FValue4Sort[nGlobalIndex] = -FValues[nGlobalIndex];
         else
@@ -397,12 +397,12 @@ __global__ void getFUpValues(const float_point *FValues, const float_point *alph
     }
 }
 
-__global__ void getFLowValues(const float_point *FValues, const float_point *alpha, const int *labels,
-                              int numOfSamples, int C, float_point *FValue4Sort, int *Idx4Sort) {
+__global__ void getFLowValues(const real *FValues, const real *alpha, const int *labels,
+                              int numOfSamples, int C, real *FValue4Sort, int *Idx4Sort) {
     int nGlobalIndex = (blockIdx.y * gridDim.x + blockIdx.x) * blockDim.x + threadIdx.x;//global index for thread
     if (nGlobalIndex < numOfSamples) {
-        float_point y = labels[nGlobalIndex];
-        float_point a = alpha[nGlobalIndex];
+        real y = labels[nGlobalIndex];
+        real a = alpha[nGlobalIndex];
         if (y > 0 && a > 0 || y < 0 && a < C)
             FValue4Sort[nGlobalIndex] = FValues[nGlobalIndex];
         else
@@ -410,5 +410,5 @@ __global__ void getFLowValues(const float_point *FValues, const float_point *alp
         Idx4Sort[nGlobalIndex] = nGlobalIndex;
     }
 }
-__device__ float_point devDiff;//fUp - fLow
-__device__ float_point devRho;//bias
+__device__ real devDiff;//fUp - fLow
+__device__ real devRho;//bias
