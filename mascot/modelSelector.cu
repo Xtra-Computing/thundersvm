@@ -102,6 +102,7 @@ bool CModelSelector::CrossValidation(const int &nFold, vector<int> &vnLabel, int
 		if(vnLabel[l] != 1 && vnLabel[l] != -1)
 		{
 			cerr << "error label (valid label is -1 or 1): " << vnLabel[l] << endl;
+			cerr << "multi-class problems are not supported" << endl;
 			exit(0);
 		}
 		pnLabelAll[l] = vnLabel[l];
@@ -186,7 +187,6 @@ bool CModelSelector::CrossValidation(const int &nFold, vector<int> &vnLabel, int
 		if(i == 0 || (i == nFold - 1))
 		{
 			checkCudaErrors(cudaMalloc((void**)&pfDevAlphaSubset, sizeof(real) * nNumofTrainingSamples));
-//checkCudaErrors(cudaMallocHost((void**)&pfDevYiGValueSubset, sizeof(float_point) * nNumofTrainingSamples));
 			checkCudaErrors(cudaMalloc((void**)&pfDevYiGValueSubset, sizeof(real) * nNumofTrainingSamples));
 			checkCudaErrors(cudaMalloc((void**)&pnDevLabelSubset, sizeof(int) * nNumofTrainingSamples));
 		}
@@ -234,17 +234,12 @@ bool CModelSelector::CrossValidation(const int &nFold, vector<int> &vnLabel, int
 			nSampleStart2 = -1;
 			nSampleEnd2 = -1;
 		}
-		//set data involved in training
-		timeval tTraining1, tTraining2;
-		real trainingElapsedTime;
-		gettimeofday(&tTraining1, NULL);
-		timespec timeTrainS, timeTrainE;
-		clock_gettime(CLOCK_REALTIME, &timeTrainS);
 
 		cout << "training the " << i + 1 << "th classifier";
 		cout.flush();
 
 		svm_model model;
+		//set data involved in training
 		m_pTrainer->SetInvolveTrainingData(nSampleStart1, nSampleEnd1, nSampleStart2, nSampleEnd2);
 		bool bTrain = m_pTrainer->TrainModel(model, pfDevYiGValueSubset, pfDevAlphaSubset, pnDevLabelSubset, nNumofTrainingSamples, NULL);
 		if(bTrain == false)
@@ -253,10 +248,6 @@ bool CModelSelector::CrossValidation(const int &nFold, vector<int> &vnLabel, int
 			bReturn = false;
 			break;
 		}
-
-		gettimeofday(&tTraining2, NULL);
-		clock_gettime(CLOCK_REALTIME, &timeTrainE);
-		long lTrainingTime = ((timeTrainE.tv_sec - timeTrainS.tv_sec) * 1e9 + (timeTrainE.tv_nsec - timeTrainS.tv_nsec));
 
 		/******************** prediction *******************/
 		//get the size of a fold for testing
@@ -305,8 +296,6 @@ bool CModelSelector::CrossValidation(const int &nFold, vector<int> &vnLabel, int
 				nCorrect++;
 		}
 		cout << "accuracy in this fold: " << (float)nCorrect/nNumofTestingSample << endl;
-		long lClassificationTime = ((timeClassificationE.tv_sec - timeClassificationS.tv_sec) * 1e9 +
-									(timeClassificationE.tv_nsec - timeClassificationS.tv_nsec));
 
 		delete[] pfPartialPredictionResult; //as memory is allocated during prediction
 		//release memory, in the first (nFold - 2) iterations, the space of pnTestSampleId can be reused
@@ -333,7 +322,6 @@ bool CModelSelector::CrossValidation(const int &nFold, vector<int> &vnLabel, int
 	checkCudaErrors(cudaFree(pfDevAlphaSubset));
 	checkCudaErrors(cudaFree(pnDevLabelSubset));
 	checkCudaErrors(cudaFree(pfDevYiGValueSubset));
-//checkCudaErrors(cudaFreeHost(pfDevYiGValueSubset));
 
 	delete[] pfAlphaAll;
 	delete[] pfYiGValueAll;

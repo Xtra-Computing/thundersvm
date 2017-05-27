@@ -23,10 +23,8 @@ long nTimeOfPrep = 0;
  * @param: pfDevYiFValueSubset: gradient of sub set of samples (training samples are sub set of the whole samples)
  */
 int nInterater = 0;
-bool CSVMTrainer::TrainModel(svm_model &model, real *pfDevYiFValueSubset,
-							 real *pfDevAlphaSubset, int *pnDevLabelSubset,
-							 int nNumofInstance, real *pfP)
-{
+bool CSVMTrainer::TrainModel(svm_model &model, real *pfDevYiFValueSubset, real *pfDevAlphaSubset,
+							 int *pnDevLabelSubset, int nNumofInstance, real *pfP){
 	bool bReturn = true;
 
 	assert(nNumofInstance > 0  && pfDevAlphaSubset != NULL &&
