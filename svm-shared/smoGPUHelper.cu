@@ -41,7 +41,7 @@ __global__ void GetBlockMinYiGValue(real *pfYiFValue, real *pfAlpha, int *pnLabe
     }
     __syncthreads();    //synchronize threads within a block, and start to do reduce
 
-    GetMinValueOriginal(fTempLocalYiFValue, nTempLocalKeys, blockDim.x);
+    GetMinValueOriginal(fTempLocalYiFValue, nTempLocalKeys);
 
     if (nThreadId == 0) {
         int nBlockId = blockIdx.y * gridDim.x + blockIdx.x;
@@ -132,7 +132,7 @@ __global__ void GetBlockMinLowValue(real *pfYiFValue, real *pfAlpha, int *pnLabe
 
     //block level reduce
     __syncthreads();
-    GetMinValueOriginal(fTempMinValues, nTempKey, blockDim.x);
+    GetMinValueOriginal(fTempMinValues, nTempKey);
     __syncthreads();
 
     if (nThreadId == 0) {
@@ -180,7 +180,7 @@ __global__ void GetGlobalMin(real *pfBlockMin, int *pnBlockMinKey, int nNumofBlo
     }
     __syncthreads();    //wait until the thread within the block
 
-    GetMinValueOriginal(pfTempMin, nTempKey, nNumofBlock);
+    GetMinValueOriginal(pfTempMin, nTempKey);
 
     if (nThreadId == 0) {
         *(pfTempKeyValue) = (real) nTempKey[0];

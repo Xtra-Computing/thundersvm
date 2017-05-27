@@ -19,7 +19,7 @@
 
 using namespace std;
 
-__device__ void GetMinValueOriginal(real*, int*, int);
+__device__ void GetMinValueOriginal(real*, int*);
 __device__ void GetMinValueOriginal(real*, int);
 
 __device__ void GetMinValue(real*, int*, int);

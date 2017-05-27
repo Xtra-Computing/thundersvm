@@ -59,7 +59,7 @@ __global__ void GetBigBlockMinYiGValue(real *pfYiFValue, real *pfAlpha, int *pnL
 	}
 
 	__syncthreads();	//synchronize threads within a block, and start to do reduce
-	GetMinValueOriginal(fTempLocalYiFValue, nTempLocalKeys, BLOCK_SIZE);
+	GetMinValueOriginal(fTempLocalYiFValue, nTempLocalKeys);
 
 	if(nThreadId == 0)
 	{
@@ -178,7 +178,7 @@ __global__ void GetBigBlockMinLowValue(real *pfYiFValue, real *pfAlpha, int *pnL
 
 	//block level reduce
 	__syncthreads();
-	GetMinValueOriginal(fTempObjValues, nTempKey, BLOCK_SIZE);
+	GetMinValueOriginal(fTempObjValues, nTempKey);
 
 
 	if(nThreadId == 0)
