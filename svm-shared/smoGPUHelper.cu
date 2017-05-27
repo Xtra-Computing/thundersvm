@@ -121,7 +121,7 @@ __global__ void GetBlockMinLowValue(real *pfYiFValue, real *pfAlpha, int *pnLabe
         fTempMinValues[threadIdx.x] = -fYiGValue;
     }
     __syncthreads();
-    GetMinValueOriginal(fTempMinValues, blockDim.x);
+    GetMinValueOriginal(fTempMinValues);
     int nBlockId;
     if (nThreadId == 0) {
         nBlockId = blockIdx.y * gridDim.x + blockIdx.x;
@@ -221,7 +221,7 @@ __global__ void GetGlobalMin(real *pfBlockMin, int nNumofBlock, real *pfTempKeyV
     }
     __syncthreads();    //wait until the thread within the block
 
-    GetMinValueOriginal(pfTempMin, nNumofBlock);
+    GetMinValueOriginal(pfTempMin);
     __syncthreads();
 
     if (nThreadId == 0) {

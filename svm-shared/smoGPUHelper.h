@@ -68,19 +68,6 @@ __global__ void UpdateYiFValueKernel(real *pfAlpha, real *pDevBuffer, real *pfYi
 									 real *pfHessianRow1, real *pfHessianRow2,
 							    	 real fY1AlphaDiff, real fY2AlphaDiff, int nNumofTrainingSamples);
 
-
-/*
- * @brief: kernel funciton for getting minimum value within a block
- * @param: pfYiFValue: a set of value = y_i * gradient of subjective function
- * @param: pfAlpha:	   a set of alpha related to training samples
- * @param: pnLabel:	   a set of labels related to training samples
- * @param: nNumofTrainingSamples: the number of training samples
- * @param: pfBlockMin: the min value of this block (function result)
- * @param: pnBlockMinGlobalKey: the index of the min value of this block
- */
-__global__ void GetBigBlockMinYiGValue(real *pfYiFValue, real *pfAlpha, int *pnLabel, real fPCost,
-									int nNumofTraingSamples, real *pfBlockMin, int *pnBlockMinGlobalKey);
-
 /*
  * @brief: for selecting the second sample to optimize
  * @param: pfYiFValue: the gradient of data samples
@@ -108,10 +95,6 @@ extern __device__ real devRho;//bias
  * @param hessianMatrixCache: |working set| * |training set| kernel matrix, row major
  * @param ld: number of instances each row in hessianMatrixCache
  */
-__global__ void GetBigBlockMinLowValue(real *pfYiFValue, real *pfAlpha, int *pnLabel, real fNCost,
-									int nNumofTrainingSamples, int nNumofInstance, real *pfDiagHessian, real *pfHessianRow,
-									real fMinusYiUpValue, real fUpValueKernel, real *pfBlockMin,
-									int *pnBlockMinGlobalKey, real *pfBlockMinYiFValue);
 
 __global__ void localSMO(const int *label, real *FValues, real *alpha, real *alphaDiff,
 						 const int *workingSet, int wsSize, float C, const float *hessianMatrixCache, int ld);

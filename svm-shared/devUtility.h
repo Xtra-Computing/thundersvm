@@ -20,14 +20,7 @@
 using namespace std;
 
 __device__ void GetMinValueOriginal(real*, int*);
-__device__ void GetMinValueOriginal(real*, int);
-
-__device__ void GetMinValue(real*, int*, int);
-__device__ void GetMinValue(real*, int);
-
-
-__device__ void GetBigMinValue(real*, int*);
-__device__ void GetBigMinValue(real*);
+__device__ void GetMinValueOriginal(real*);
 
 __device__  int getBlockMin(const float *values, int *index);
 
