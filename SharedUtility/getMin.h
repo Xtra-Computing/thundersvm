@@ -6,8 +6,8 @@
  * Copyright @DBGroup University of Melbourne
  **/
 
-#ifndef SVM_DEVUTILITY_H_
-#define SVM_DEVUTILITY_H_
+#ifndef GETMIN_H_
+#define GETMIN_H_
 #include <cuda_runtime.h>
 #include "DataType.h"
 
@@ -16,4 +16,4 @@ __device__ void GetMinValueOriginal(real*);
 
 __device__  int getBlockMin(const float *values, int *index);
 
-#endif /* SVM_DEVUTILITY_H_ */
+#endif /* GETMIN_H_ */
