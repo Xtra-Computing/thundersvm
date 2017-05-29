@@ -1,4 +1,4 @@
-#include "devUtility.h"
+#include "getMin.h"
 
 
 __device__ int getBlockMin(const float *values, int *index) {

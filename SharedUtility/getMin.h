@@ -8,16 +8,8 @@
 
 #ifndef SVM_DEVUTILITY_H_
 #define SVM_DEVUTILITY_H_
-//include files from the gpu sdk
 #include <cuda_runtime.h>
-
-//include files from the current project
-#include "gpu_global_utility.h"
-#include <iostream>
-#include <cstdio>
-#include "constant.h"
-
-using namespace std;
+#include "DataType.h"
 
 __device__ void GetMinValueOriginal(real*, int*);
 __device__ void GetMinValueOriginal(real*);

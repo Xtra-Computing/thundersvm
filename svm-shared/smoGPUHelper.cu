@@ -1,7 +1,7 @@
 
 #include "smoGPUHelper.h"
 #include "gpu_global_utility.h"
-#include "devUtility.h"
+#include "../SharedUtility/getMin.h"
 
 #include <float.h>
 
