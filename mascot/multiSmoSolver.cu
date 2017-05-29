@@ -2,11 +2,13 @@
 // Created by ss on 16-12-14.
 //
 
-#include <thrust/device_ptr.h>
-#include <thrust/sort.h>
-#include <sys/time.h>
-#include <cuda_runtime.h>
 #include <cfloat>
+#include <sys/time.h>
+#include <thrust/sort.h>
+#include <cuda_runtime.h>
+#include <thrust/device_ptr.h>
+#include "multiSmoSolver.h"
+#include "trainClassifier.h"
 #include "../svm-shared/constant.h"
 #include "../svm-shared/smoGPUHelper.h"
 #include "../svm-shared/HessianIO/deviceHessianOnFly.h"
@@ -14,8 +16,7 @@
 #include "../SharedUtility/getMin.h"
 #include "../SharedUtility/Timer.h"
 #include "../SharedUtility/powerOfTwo.h"
-#include "trainClassifier.h"
-#include "multiSmoSolver.h"
+#include "../SharedUtility/CudaMacro.h"
 
 void MultiSmoSolver::solve() {
     int nrClass = problem.getNumOfClasses();

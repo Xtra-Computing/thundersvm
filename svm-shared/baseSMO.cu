@@ -10,6 +10,7 @@
 #include <helper_cuda.h>
 #include "smoGPUHelper.h"
 #include "../SharedUtility/Timer.h"
+#include "../SharedUtility/CudaMacro.h"
 
 /**
  * @brief: initialise some variables of smo solver

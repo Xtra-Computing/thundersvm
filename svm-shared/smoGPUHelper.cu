@@ -2,6 +2,7 @@
 #include "smoGPUHelper.h"
 #include "gpu_global_utility.h"
 #include "../SharedUtility/getMin.h"
+#include "../SharedUtility/CudaMacro.h"
 
 #include <float.h>
 

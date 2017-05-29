@@ -5,6 +5,7 @@
 #include <sys/time.h>
 #include "deviceHessianOnFly.h"
 #include "../constant.h"
+#include "../../SharedUtility/CudaMacro.h"
 
 __global__ void RBFKernel(const real *aSelfDot, real bSelfDot, real *dotProduct, int numOfSamples,
                           float gamma) {

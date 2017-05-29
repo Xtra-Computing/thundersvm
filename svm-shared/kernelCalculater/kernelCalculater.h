@@ -12,6 +12,7 @@
 #include "../gpu_global_utility.h"
 #include "kernelCalGPUHelper.h"
 #include "../constant.h"
+#include "../../SharedUtility/CudaMacro.h"
 
 #include <iostream>
 using namespace std;

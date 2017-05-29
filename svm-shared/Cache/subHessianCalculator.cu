@@ -11,8 +11,9 @@
 #include <sys/time.h>
 #include "subHessianCalculator.h"
 #include "../constant.h"
-#include "../../SharedUtility/KeyValue.h"
 #include "../../SharedUtility/Timer.h"
+#include "../../SharedUtility/KeyValue.h"
+#include "../../SharedUtility/CudaMacro.h"
 
 __global__ void RBFKernel(const real *selfDot0, const real *selfDot1,
                           real *dotProduct, int n, int m,

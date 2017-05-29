@@ -14,6 +14,7 @@
 #include "multiPredictor.h"
 #include "predictionGPUHelper.h"
 #include "../svm-shared/constant.h"
+#include "../SharedUtility/CudaMacro.h"
 
 real MultiPredictor::sigmoidPredict(real decValue, real A, real B) const {
     double fApB = decValue * A + B;
