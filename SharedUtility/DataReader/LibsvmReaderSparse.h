@@ -16,8 +16,8 @@
 #include <vector>
 #include <limits>
 #include "BaseLibsvmReader.h"
-#include "../SharedUtility/DataType.h"
-#include "../SharedUtility/KeyValue.h"
+#include "../DataType.h"
+#include "../KeyValue.h"
 
 using std::string;
 using std::vector;
@@ -78,7 +78,7 @@ void LibSVMDataReader::ReadLibSVMAsDense(vector<vector<real> > &v_vInstance, vec
 		nNumofExamples = std::numeric_limits<int>::max();
 	}
 	vector<vector<KeyValue> > v_vInstanceKeyValue;
-    cout << "readign libsvm data as dense format..." << endl;
+    cout << "reading libsvm data as dense format..." << endl;
 	ReaderHelper(v_vInstanceKeyValue, v_targetValue, strFileName, nNumofFeatures, nNumofExamples, true);
 
 	//convert key values to values only.
@@ -112,6 +112,7 @@ void LibSVMDataReader::ReaderHelper(vector<vector<KeyValue> > &v_vInstance, vect
 
 	//get a sample
 	char cColon;
+	uint numFeaValue = 0;
 	do {
 		j++;
 		getline(readIn, str);
@@ -128,6 +129,7 @@ void LibSVMDataReader::ReaderHelper(vector<vector<KeyValue> > &v_vInstance, vect
 		real x;
 		while (in >> nFeature >> cColon >> x)
 		{
+			numFeaValue++;
 			//assert(x > 0 && x <= 1);
 			//cout << nFeature << " " << cColon << endl;
 			assert(cColon == ':');
@@ -172,7 +174,7 @@ void LibSVMDataReader::ReaderHelper(vector<vector<KeyValue> > &v_vInstance, vect
 	{
 		readIn.clear();
 	}
-    printf("# of instances: %d; # of features: %d\n", v_vInstance.size(), nNumofFeatures);
+    printf("# of instances: %d; # of features: %d; # of fvalue: %d\n", v_vInstance.size(), nNumofFeatures, numFeaValue);
 }
 
 

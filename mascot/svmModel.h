@@ -11,11 +11,13 @@
 #include <driver_types.h>
 #include <helper_cuda.h>
 #include <cuda.h>
+
 #include"pthread.h"
 #include "svmProblem.h"
 #include "../svm-shared/csrMatrix.h"
 #include "../SharedUtility/KeyValue.h"
 using std::vector;
+using std::string;
 
 class SvmModel {
 public:

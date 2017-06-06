@@ -12,14 +12,16 @@
 #include "BaseLibsvmReader.h"
 
 using std::istringstream;
+
 /**
  * @brief: get the number of features and the number of instances of a dataset
  */
-void BaseLibSVMReader::GetDataInfo(string strFileName, int &nNumofFeatures, int &nNumofInstance, long long &nNumofValue)
+void BaseLibSVMReader::GetDataInfo(string strFileName, int &nNumofFeatures, int &nNumofInstance, uint &nNumofValue)
 {
 	nNumofInstance = 0;
 	nNumofFeatures = 0;
 	nNumofValue = 0;
+
 	ifstream readIn;
 	readIn.open(strFileName.c_str());
 	if(readIn.is_open() == false){
@@ -34,7 +36,7 @@ void BaseLibSVMReader::GetDataInfo(string strFileName, int &nNumofFeatures, int 
 	char cColon;
 	while (readIn.eof() != true){
 		getline(readIn, str);
-
+		if (str == "") break;
 		istringstream in(str);
 
 		real fValue = 0;//label

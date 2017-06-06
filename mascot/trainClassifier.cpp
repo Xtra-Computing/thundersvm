@@ -6,11 +6,11 @@
  */
 
 #include <sys/time.h>
-#include "../DataReader/LibsvmReaderSparse.h"
 #include "../svm-shared/Cache/cache.h"
 #include "../svm-shared/HessianIO/deviceHessianOnFly.h"
 #include "../SharedUtility/Timer.h"
 #include "../SharedUtility/KeyValue.h"
+#include "../SharedUtility/DataReader/LibsvmReaderSparse.h"
 #include "trainClassifier.h"
 #include "multiPredictor.h"
 #include "classifierEvaluater.h"
@@ -20,7 +20,7 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
     vector<int> v_nLabel;
 
     int nNumofInstance = 0;     //not used
-    long long nNumofValue = 0;  //not used
+    uint nNumofValue = 0;  //not used
     BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
 	LibSVMDataReader drHelper;
 	drHelper.ReadLibSVMAsSparse(v_v_Instance, v_nLabel, strTrainingFileName, nNumofFeature);
@@ -50,7 +50,7 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNum
     vector<int> v_nLabel;
 
     int nNumofInstance = 0;     //not used
-    long long nNumofValue = 0;  //not used
+    uint nNumofValue = 0;  //not used
     BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
 	LibSVMDataReader drHelper;
 	drHelper.ReadLibSVMAsSparse(v_v_Instance, v_nLabel, strTrainingFileName, nNumofFeature);

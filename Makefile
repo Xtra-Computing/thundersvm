@@ -34,13 +34,12 @@ debug: LASTFLAG += -G -g
 debug: $(OBJ)
 	$(NVCC) $(LASTFLAG) $(LDFLAGS) $(DISABLEW) -o $(debug_bin)/mascot $^
 
-#compile data reader
-%.o: DataReader/%.c* DataReader/*.h
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -c $<
-
 #compile shared utility
 %.o: SharedUtility/%.c* SharedUtility/*.h
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -dc $<
+%.o: SharedUtility/*/%.c* SharedUtility/*/*.h
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) -o $@ -dc $<
+
 
 #compile files of svm-shared 
 %.o: svm-shared/%.c* svm-shared/*.h
