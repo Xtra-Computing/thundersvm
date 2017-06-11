@@ -16,7 +16,7 @@ struct ThreadParameter
 {
 	int nRowId;
 	int nThreadId;
-	float_point *pfHessianRow;
+	real *pfHessianRow;
 };
 
 class ParAccessor: public HessianAccessor
@@ -35,14 +35,14 @@ public:
 	static bool m_isFirst;
 	static long long m_nOffset;
 
-	static float_point *pfHessianFullRow;
+	static real *pfHessianFullRow;
 
 public:
 	ParAccessor();
 	virtual ~ParAccessor(){}
 
-	virtual bool WriteHessianRows(FILE *&writeOut, float_point *pfHessianRows, SubMatrix &subMatrix);
-	virtual bool ReadHessianRow(FILE *&readIn, const int &nIndexofRow, float_point *pfHessianRow);
+	virtual bool WriteHessianRows(FILE *&writeOut, real *pfHessianRows, SubMatrix &subMatrix);
+	virtual bool ReadHessianRow(FILE *&readIn, const int &nIndexofRow, real *pfHessianRow);
 
 private:
 	static void *ReadRow(void *pThreadParameter);

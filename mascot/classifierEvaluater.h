@@ -16,12 +16,12 @@ using std::vector;
 
 class ClassifierEvaluater{
 public:
-	static vector<float_point> trainingError;
-	static vector<float_point> testingError;
+	static vector<real> trainingError;
+	static vector<real> testingError;
 public:
 
-	static void evaluateSubClassifier(const vector<vector<int> > &missLabellingMatrix, vector<float_point> &vErrorRate);
-	static vector<float_point> updateC(const vector<float_point> &vOldC);
+	static void evaluateSubClassifier(const vector<vector<int> > &missLabellingMatrix, vector<real> &vErrorRate);
+	static vector<real> updateC(const vector<real> &vOldC);
 };
 
 

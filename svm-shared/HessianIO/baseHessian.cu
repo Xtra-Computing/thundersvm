@@ -19,12 +19,12 @@ using std::endl;
 //initialize the static variables for Hessian Operator
 int BaseHessian::m_nTotalNumofInstance = 0;
 int BaseHessian::m_nNumofDim = 0;
-float_point* BaseHessian::m_pfHessianRowsInHostMem = NULL;
-float_point* BaseHessian::m_pfHessianDiag = NULL;
+real* BaseHessian::m_pfHessianRowsInHostMem = NULL;
+real* BaseHessian::m_pfHessianDiag = NULL;
 int BaseHessian::m_nNumofCachedHessianRow = 0;
 
 int BaseHessian::m_nNumofHessianRowsToWrite = -1;	//batch write. Group a few rows of hessian matrix to write at one time
-float_point *BaseHessian::m_pfHessianRows = NULL;
+real *BaseHessian::m_pfHessianRows = NULL;
 
 int BaseHessian::m_nRowStartPos1 = -1;
 int BaseHessian::m_nRowEndPos1 = -1;
@@ -71,7 +71,7 @@ bool BaseHessian::AllocateBuffer(int nNumofRows)
 		return bReturn;
 	}
 	bReturn = true;
-	m_pfHessianRows = new float_point[m_nTotalNumofInstance * nNumofRows];
+	m_pfHessianRows = new real[m_nTotalNumofInstance * nNumofRows];
 
 	return bReturn;
 }
@@ -93,7 +93,7 @@ bool BaseHessian::ReleaseBuffer()
 
 void BaseHessian::ReadDiagFromHessianMatrix()
 {
-	float_point *hessianRow = new float_point[m_nTotalNumofInstance];
+	real *hessianRow = new real[m_nTotalNumofInstance];
 
 	FILE *readIn = fopen(HESSIAN_FILE, "rb");
 	if(readIn == NULL)
@@ -172,7 +172,7 @@ bool BaseHessian::MapIndexToHessian(int &nIndex)
  * @brief: read one full Hessian row from file
  * @return: true if read the row successfully
  */
-bool BaseHessian::ReadHessianFullRow(FILE *&readIn, const int &nIndexofRow, int nNumofRowsToRead, float_point *pfFullHessianRow)
+bool BaseHessian::ReadHessianFullRow(FILE *&readIn, const int &nIndexofRow, int nNumofRowsToRead, real *pfFullHessianRow)
 {
 	bool bReturn = false;
 	assert(readIn != NULL && nIndexofRow >= 0 && nIndexofRow < m_nTotalNumofInstance);
@@ -190,7 +190,7 @@ bool BaseHessian::ReadHessianFullRow(FILE *&readIn, const int &nIndexofRow, int 
  */
 bool BaseHessian::ReadHessianSubRow(FILE *&readIn, const int &nIndexofRow,
 		   	   	   	   	   	   	   	  const int &nStartPos, const int &nEndPos,
-		   	   	   	   	   	   	   	  float_point *pfHessianSubRow)
+		   	   	   	   	   	   	   	  real *pfHessianSubRow)
 {
 	bool bReturn = false;
 	if(readIn == NULL || nIndexofRow < 0 || nIndexofRow > m_nTotalNumofInstance ||
@@ -204,7 +204,7 @@ bool BaseHessian::ReadHessianSubRow(FILE *&readIn, const int &nIndexofRow,
 	int nNumofHessianElements = nEndPos - nStartPos + 1;//the number of elements to read
 
 	//read the whole Hessian row
-	float_point *pfTempFullHessianRow = new float_point[m_nTotalNumofInstance];
+	real *pfTempFullHessianRow = new real[m_nTotalNumofInstance];
 	bool bReadRow =	ReadHessianFullRow(readIn, nIndexofRow, 1, pfTempFullHessianRow); //1 means that read one Hessian row
 	if(bReadRow == false)
 	{
@@ -214,7 +214,7 @@ bool BaseHessian::ReadHessianSubRow(FILE *&readIn, const int &nIndexofRow,
 	}
 
 	//get sub row from a full Hessian row
-	memcpy(pfHessianSubRow, pfTempFullHessianRow + nStartPos, sizeof(float_point) * nNumofHessianElements);
+	memcpy(pfHessianSubRow, pfTempFullHessianRow + nStartPos, sizeof(real) * nNumofHessianElements);
 
 	delete[] pfTempFullHessianRow;
 
@@ -230,7 +230,7 @@ bool BaseHessian::ReadHessianSubRow(FILE *&readIn, const int &nIndexofRow,
  * 		   Because of the memory alignment issue, this param is usually bigger than nNumofInvolveElements
  */
 bool BaseHessian::ReadHessianRows(FILE *&readIn, const int &nStartRow, const int &nEndRow,
-									const int &nNumofInvolveElements, float_point * pfHessianRow, int nNumOfElementEachRowInCache)
+									const int &nNumofInvolveElements, real * pfHessianRow, int nNumOfElementEachRowInCache)
 {
 	bool bReturn = false;
 	//check input parameters
@@ -270,7 +270,7 @@ bool BaseHessian::ReadHessianRows(FILE *&readIn, const int &nStartRow, const int
 	bReturn = true;
 	//read a full Hessian row
 	int nHessianEndPos;
-	float_point *pfTempFullHessianRow;// = new float_point[m_nTotalNumofSamples];
+	real *pfTempFullHessianRow;// = new float_point[m_nTotalNumofSamples];
 	for(int i = nStartRow; i <= nEndRow; i++)
 	{
 		pfTempFullHessianRow = m_pfHessianRows + (i - nStartRow) * m_nTotalNumofInstance;
@@ -280,13 +280,13 @@ bool BaseHessian::ReadHessianRows(FILE *&readIn, const int &nStartRow, const int
 		{
 			//first part is added to the end of current Hessian space in main memory
 			nHessianEndPos = (i - nStartRow) * nNumOfElementEachRowInCache;//use number of elements each row instead of number of involve elements due to memory alignment
-			memcpy(pfHessianRow + nHessianEndPos, pfTempFullHessianRow + m_nRowStartPos1, sizeof(float_point) * nSizeofFirstPart);
+			memcpy(pfHessianRow + nHessianEndPos, pfTempFullHessianRow + m_nRowStartPos1, sizeof(real) * nSizeofFirstPart);
 		}
 		//read the second continuous part
 		if(m_nRowStartPos2 != -1)
 		{
 			nHessianEndPos = (i - nStartRow) * nNumOfElementEachRowInCache + nSizeofFirstPart;
-			memcpy(pfHessianRow + nHessianEndPos, pfTempFullHessianRow + m_nRowStartPos2, sizeof(float_point) * nSizeofSecondPart);
+			memcpy(pfHessianRow + nHessianEndPos, pfTempFullHessianRow + m_nRowStartPos2, sizeof(real) * nSizeofSecondPart);
 		}
 	}
 	//delete[] pfTempHessianRows;
@@ -298,7 +298,7 @@ bool BaseHessian::ReadHessianRows(FILE *&readIn, const int &nStartRow, const int
  * @pfSubMatrix: kernel values to be saved
  * @subMatrix: information about the sub-matrix
  */
-void BaseHessian::SaveRows(float_point *pfSubMatrix, const SubMatrix &subMatrix)
+void BaseHessian::SaveRows(real *pfSubMatrix, const SubMatrix &subMatrix)
 {
 	//store the sub matrix
 	long lColStartPos = subMatrix.nColIndex;
@@ -315,7 +315,7 @@ void BaseHessian::SaveRows(float_point *pfSubMatrix, const SubMatrix &subMatrix)
 		{
 			long long lPosInHessian =  (long long)(nRowId + k) * m_nTotalNumofInstance + lColStartPos;
 			long lPosInSubMatrix = k * nSubMatrixCol;
-			memcpy(m_pfHessianRowsInHostMem + lPosInHessian, pfSubMatrix + lPosInSubMatrix, sizeof(float_point) * nSubMatrixCol);
+			memcpy(m_pfHessianRowsInHostMem + lPosInHessian, pfSubMatrix + lPosInSubMatrix, sizeof(real) * nSubMatrixCol);
 		}
 	}
 	else
@@ -330,7 +330,7 @@ void BaseHessian::SaveRows(float_point *pfSubMatrix, const SubMatrix &subMatrix)
 			{
 				long long lPosInHessian =  (long long)(nRowId + k) * m_nTotalNumofInstance + lColStartPos;
 				long lPosInSubMatrix = k * nSubMatrixCol;
-				memcpy(m_pfHessianRowsInHostMem + lPosInHessian, pfSubMatrix + lPosInSubMatrix, sizeof(float_point) * nSubMatrixCol);
+				memcpy(m_pfHessianRowsInHostMem + lPosInHessian, pfSubMatrix + lPosInSubMatrix, sizeof(real) * nSubMatrixCol);
 			}
 		}
 
@@ -362,9 +362,9 @@ void BaseHessian::SaveRows(float_point *pfSubMatrix, const SubMatrix &subMatrix)
 /**
  * @brief: read a row from the precomputed kernel matrix
  */
-void BaseHessian::ReadRow(int nPosofRowAtHessian, float_point *pfHessianRow)
+void BaseHessian::ReadRow(int nPosofRowAtHessian, real *pfHessianRow)
 {
-	memset(pfHessianRow, 0, sizeof(float_point) * m_nTotalNumofInstance);
+	memset(pfHessianRow, 0, sizeof(real) * m_nTotalNumofInstance);
 	//if the hessian row is in host memory
 	if(m_nNumofCachedHessianRow > nPosofRowAtHessian)
 	{
@@ -373,14 +373,14 @@ void BaseHessian::ReadRow(int nPosofRowAtHessian, float_point *pfHessianRow)
 		{
 			nSizeofFirstPart = m_nRowEndPos1 - m_nRowStartPos1 + 1;//the size of first part (include the last element of the part)
 			long long nIndexofFirstElement = (long long)nPosofRowAtHessian * (m_nTotalNumofInstance) + m_nRowStartPos1;
-			memcpy(pfHessianRow, m_pfHessianRowsInHostMem + nIndexofFirstElement, nSizeofFirstPart * sizeof(float_point));
+			memcpy(pfHessianRow, m_pfHessianRowsInHostMem + nIndexofFirstElement, nSizeofFirstPart * sizeof(real));
 		}
 		if(m_nRowStartPos2 != -1)
 		{
 			int nSizeofSecondPart = m_nRowEndPos2 - m_nRowStartPos2 + 1;
 			long long nIndexofFirstElement = (long long)nPosofRowAtHessian * (m_nTotalNumofInstance) + m_nRowStartPos2;
 			memcpy(pfHessianRow + nSizeofFirstPart, m_pfHessianRowsInHostMem + nIndexofFirstElement,
-				   nSizeofSecondPart * sizeof(float_point));
+				   nSizeofSecondPart * sizeof(real));
 		}
 	}
 	else//the hessian row is in SSD
@@ -406,7 +406,7 @@ void BaseHessian::PrintHessianInfo()
 /**
  * @brief: kernel matrix precomputation
  */
-void BaseHessian::PrecomputeKernelMatrix(vector<vector<float_point> > &v_vDocVector, BaseHessian *hessianIOOps)
+void BaseHessian::PrecomputeKernelMatrix(vector<vector<real> > &v_vDocVector, BaseHessian *hessianIOOps)
 {
 	//compute Hessian Matrix
 	string strHessianMatrixFileName = HESSIAN_FILE;
@@ -426,7 +426,7 @@ void BaseHessian::PrecomputeKernelMatrix(vector<vector<float_point> > &v_vDocVec
 	int nNumofHessianRow = manager->RowInRAM(BaseHessian::m_nNumofDim, BaseHessian::m_nTotalNumofInstance, nNumofSample);
 
 	cout << nNumofHessianRow << " rows cached in RAM" << endl;
-	long long lSizeofCachedHessian = sizeof(float_point) * (long long)nNumofHessianRow * nNumofSample;
+	long long lSizeofCachedHessian = sizeof(real) * (long long)nNumofHessianRow * nNumofSample;
 
 
 	cout << "numRow " << nNumofHessianRow << "; numIns " << nNumofSample << "; numBytes " << lSizeofCachedHessian << endl;
@@ -440,7 +440,7 @@ void BaseHessian::PrecomputeKernelMatrix(vector<vector<float_point> > &v_vDocVec
 
 	memset(BaseHessian::m_pfHessianRowsInHostMem, 0, lSizeofCachedHessian);
 	BaseHessian::m_nNumofCachedHessianRow = nNumofHessianRow;
-	BaseHessian::m_pfHessianDiag = new float_point[hessianIOOps->m_nTotalNumofInstance];
+	BaseHessian::m_pfHessianDiag = new real[hessianIOOps->m_nTotalNumofInstance];
 	//hessianIOOps->m_pfHessianDiagTest = new float_point[hessianIOOps->m_nTotalNumofInstance];
 
 	//pre-compute Hessian Matrix and store the result into a file
@@ -448,7 +448,7 @@ void BaseHessian::PrecomputeKernelMatrix(vector<vector<float_point> > &v_vDocVec
 	cout.flush();
 
 	timeval t1, t2;
-	float_point elapsedTime;
+	real elapsedTime;
 	gettimeofday(&t1, NULL);
 	bool bWriteHessian = hessianIOOps->PrecomputeHessian(strHessianMatrixFileName, strDiagHessianFileName, v_vDocVector);
 	hessianIOOps->ReadDiagFromHessianMatrix();

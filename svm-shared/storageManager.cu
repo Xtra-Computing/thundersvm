@@ -33,7 +33,7 @@ long long StorageManager::GetFreeGPUMem()
 	if(nTotalMem > 0)
 		cout << 100.0 * (double)nFreeMem/nTotalMem << "% of the total memory" << endl;
 //	long long nMaxNumofFloatPoint = 0.9 * nFreeMem / sizeof(float_point);
-	long long nMaxNumofFloatPoint = nTotalMem / sizeof(float_point);
+	long long nMaxNumofFloatPoint = nTotalMem / sizeof(real);
 	return nMaxNumofFloatPoint;
 }
 
@@ -134,7 +134,7 @@ int StorageManager::RowInGPUCache(int nNumofTrainingExample, int nNumofInstance)
 
 
 	cout << " cache size is: " << nSizeofCache << " max: " << nMaxCacheSize << "; percentage of cached samples: "
-		 << ((float_point)100 * nSizeofCache) / nNumofInstance << "%" << endl;
+		 << ((real)100 * nSizeofCache) / nNumofInstance << "%" << endl;
 
 	return nSizeofCache;
 }

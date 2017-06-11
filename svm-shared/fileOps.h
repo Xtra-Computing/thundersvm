@@ -29,10 +29,10 @@ using std::setprecision;
 class CFileOps
 {
 public:
-	static bool WriteToFile(ofstream &writeOut, float_point *pContent, int nNumofRows, int nNumofColumns);
-	static int WriteToFile(ofstream &writeOut, float_point *pContent, int nSizeofContent);
+	static bool WriteToFile(ofstream &writeOut, real *pContent, int nNumofRows, int nNumofColumns);
+	static int WriteToFile(ofstream &writeOut, real *pContent, int nSizeofContent);
 
-	static bool ReadRowsFromFile(FILE *&readIn, float_point *&pContent, const int &nNumofElementsPerRow,
+	static bool ReadRowsFromFile(FILE *&readIn, real *&pContent, const int &nNumofElementsPerRow,
 						  int nNumofRowsToRead, const int &nIndexofRow);
 	//static bool ReadPartOfRowFromFile(boost::interprocess::mapped_region*, float_point *pContent, int nFullRowSize, int nNumofElementsToRead, long long nIndexof1stElement);
 
@@ -43,7 +43,7 @@ public:
 	 * @param: nNumofElementsToRead: the number of elements read by this function
 	 * @param: nIndexof1stElement: the start point of this reading procedure.
 	 */
-	static void ReadPartOfRowFromFile(FILE *&readIn, float_point *pContent, int nNumofElementsToRead, long long nIndexof1stElement)
+	static void ReadPartOfRowFromFile(FILE *&readIn, real *pContent, int nNumofElementsToRead, long long nIndexof1stElement)
 	{
 		//bool bReturn = false;
 
@@ -52,12 +52,12 @@ public:
 		fseek(readIn, 0, SEEK_END);
 		assert(ftell(readIn) != 0);
 
-		long long nSeekPos = sizeof(float_point) * nIndexof1stElement;
+		long long nSeekPos = sizeof(real) * nIndexof1stElement;
 		fseek(readIn, nSeekPos, SEEK_SET);
 //		cout << ftell(readIn) << endl;
 		assert(ftell(readIn) != -1);
 
-		fread(pContent, sizeof(float_point), nNumofElementsToRead, readIn);
+		fread(pContent, sizeof(real), nNumofElementsToRead, readIn);
 
 //		cout << ftell(readIn) << endl;
 //		assert(nNumofRead > 0);

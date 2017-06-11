@@ -28,12 +28,12 @@ public:
 
     vector<int> predict(const vector<vector<KeyValue> > &v_vSamples, const vector<int> &vnOriginalLabel = vector<int>()) const;
 private:
-    vector<vector<float_point> > predictProbability(const vector<vector<KeyValue> > &) const;
-    void computeDecisionValues(const vector<vector<KeyValue> > &, vector<vector<float_point> > &) const;
+    vector<vector<real> > predictProbability(const vector<vector<KeyValue> > &) const;
+    void computeDecisionValues(const vector<vector<KeyValue> > &, vector<vector<real> > &) const;
 
-    float_point sigmoidPredict(float_point decValue, float_point A, float_point B) const;
+    real sigmoidPredict(real decValue, real A, real B) const;
 
-    void multiClassProbability(const vector<vector<float_point> > &, vector<float_point> &) const;
+    void multiClassProbability(const vector<vector<real> > &, vector<real> &) const;
 };
 
 

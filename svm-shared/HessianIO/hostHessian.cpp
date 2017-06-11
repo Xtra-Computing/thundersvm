@@ -23,7 +23,7 @@ KernelFunction *HostHessian::m_pKernelFunction = NULL;
 
 bool HostHessian::PrecomputeHessian(const string &strHessianMatrixFileName,
 								 	const string &strDiagHessianFileName,
-								 	vector<vector<float_point> > &v_v_DocVector)
+								 	vector<vector<real> > &v_v_DocVector)
 {
 	bool bReturn = true;
 
@@ -50,7 +50,7 @@ bool HostHessian::PrecomputeHessian(const string &strHessianMatrixFileName,
 	gettimeofday(&t1, NULL);
 
 	assert(m_pKernelFunction != NULL);
-	float_point *pRow = new float_point[m_nTotalNumofInstance * nBatchRow];
+	real *pRow = new real[m_nTotalNumofInstance * nBatchRow];
 	for(int i = 0; i < m_nTotalNumofInstance; i += nBatchRow)
 	{
 

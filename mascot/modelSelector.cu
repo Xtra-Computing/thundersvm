@@ -11,12 +11,12 @@
 /**
  * @brief: search the best pair of parameters
  */
-bool CModelSelector::GridSearch(const Grid &SGrid, vector<vector<float_point> > &v_vDocVector, vector<int> &vnLabel)
+bool CModelSelector::GridSearch(const Grid &SGrid, vector<vector<real> > &v_vDocVector, vector<int> &vnLabel)
 {
 	bool bReturn = false;
 
-	const vector<float_point> &vfGamma = SGrid.vfGamma;
-	const vector<float_point> &vfC = SGrid.vfC;
+	const vector<real> &vfGamma = SGrid.vfGamma;
+	const vector<real> &vfC = SGrid.vfC;
 
 	int nNumofSample = v_vDocVector.size();
 	int *pnPredictedLabel = new int[nNumofSample];
@@ -102,6 +102,7 @@ bool CModelSelector::CrossValidation(const int &nFold, vector<int> &vnLabel, int
 		if(vnLabel[l] != 1 && vnLabel[l] != -1)
 		{
 			cerr << "error label (valid label is -1 or 1): " << vnLabel[l] << endl;
+			cerr << "multi-class problems are not supported" << endl;
 			exit(0);
 		}
 		pnLabelAll[l] = vnLabel[l];
@@ -136,10 +137,10 @@ bool CModelSelector::CrossValidation(const int &nFold, vector<int> &vnLabel, int
 
 	/* allocate GPU device memory */
 	//set default value at
-	float_point *pfAlphaAll;
-	float_point *pfYiGValueAll;
-	pfAlphaAll = new float_point[nTotalNumofSamples];
-	pfYiGValueAll = new float_point[nTotalNumofSamples];
+	real *pfAlphaAll;
+	real *pfYiGValueAll;
+	pfAlphaAll = new real[nTotalNumofSamples];
+	pfYiGValueAll = new real[nTotalNumofSamples];
 	for(int i = 0; i < nTotalNumofSamples; i++)
 	{
 		//initially, the values of alphas are 0s
@@ -150,11 +151,11 @@ bool CModelSelector::CrossValidation(const int &nFold, vector<int> &vnLabel, int
 
 	/* start n-fold-cross-validation */
 	//allocate GPU memory for part of samples that are used to perform training.
-	float_point *pfDevAlphaSubset;
-	float_point *pfDevYiGValueSubset;
+	real *pfDevAlphaSubset;
+	real *pfDevYiGValueSubset;
 	int *pnDevLabelSubset;
 
-	float_point *pfPredictionResult = new float_point[nTotalNumofSamples];
+	real *pfPredictionResult = new real[nTotalNumofSamples];
 	for(int i = 0; i < nFold; i++)
 	{
 		/**************** training *******************/
@@ -185,29 +186,28 @@ bool CModelSelector::CrossValidation(const int &nFold, vector<int> &vnLabel, int
 		//in n-fold-cross validation, the first (n -1) parts have the same size, so we can reuse memory
 		if(i == 0 || (i == nFold - 1))
 		{
-			checkCudaErrors(cudaMalloc((void**)&pfDevAlphaSubset, sizeof(float_point) * nNumofTrainingSamples));
-//checkCudaErrors(cudaMallocHost((void**)&pfDevYiGValueSubset, sizeof(float_point) * nNumofTrainingSamples));
-			checkCudaErrors(cudaMalloc((void**)&pfDevYiGValueSubset, sizeof(float_point) * nNumofTrainingSamples));
+			checkCudaErrors(cudaMalloc((void**)&pfDevAlphaSubset, sizeof(real) * nNumofTrainingSamples));
+			checkCudaErrors(cudaMalloc((void**)&pfDevYiGValueSubset, sizeof(real) * nNumofTrainingSamples));
 			checkCudaErrors(cudaMalloc((void**)&pnDevLabelSubset, sizeof(int) * nNumofTrainingSamples));
 		}
 		//set GPU memory
-		checkCudaErrors(cudaMemset(pfDevAlphaSubset, 0, sizeof(float_point) * nNumofTrainingSamples));
-		checkCudaErrors(cudaMemset(pfDevYiGValueSubset, -1, sizeof(float_point) * nNumofTrainingSamples));
+		checkCudaErrors(cudaMemset(pfDevAlphaSubset, 0, sizeof(real) * nNumofTrainingSamples));
+		checkCudaErrors(cudaMemset(pfDevYiGValueSubset, -1, sizeof(real) * nNumofTrainingSamples));
 		checkCudaErrors(cudaMemset(pnDevLabelSubset, 0, sizeof(int) * nNumofTrainingSamples));
 		//copy training information to GPU for current training
 		checkCudaErrors(cudaMemcpy(pfDevAlphaSubset, pfAlphaAll,
-								   sizeof(float_point) * pnSizeofParts[0], cudaMemcpyHostToDevice));
+								   sizeof(real) * pnSizeofParts[0], cudaMemcpyHostToDevice));
 		checkCudaErrors(cudaMemcpy(pfDevYiGValueSubset, pfYiGValueAll,
-								   sizeof(float_point) * pnSizeofParts[0], cudaMemcpyHostToDevice));
+								   sizeof(real) * pnSizeofParts[0], cudaMemcpyHostToDevice));
 		checkCudaErrors(cudaMemcpy(pnDevLabelSubset, pnLabelAll,
 								   sizeof(int) * pnSizeofParts[0], cudaMemcpyHostToDevice));
 		//part two
 		if(pnSizeofParts[1] != 0)
 		{
 			checkCudaErrors(cudaMemcpy(pfDevAlphaSubset + pnSizeofParts[0], pfAlphaAll + pnFoldStart[i + 1],
-									   sizeof(float_point) * pnSizeofParts[1], cudaMemcpyHostToDevice));
+									   sizeof(real) * pnSizeofParts[1], cudaMemcpyHostToDevice));
 			checkCudaErrors(cudaMemcpy(pfDevYiGValueSubset + pnSizeofParts[0], pfYiGValueAll + pnFoldStart[i + 1],
-									   sizeof(float_point) * pnSizeofParts[1], cudaMemcpyHostToDevice));
+									   sizeof(real) * pnSizeofParts[1], cudaMemcpyHostToDevice));
 			checkCudaErrors(cudaMemcpy(pnDevLabelSubset + pnSizeofParts[0], pnLabelAll + pnFoldStart[i + 1],
 									   sizeof(int) * pnSizeofParts[1], cudaMemcpyHostToDevice));
 		}
@@ -234,17 +234,12 @@ bool CModelSelector::CrossValidation(const int &nFold, vector<int> &vnLabel, int
 			nSampleStart2 = -1;
 			nSampleEnd2 = -1;
 		}
-		//set data involved in training
-		timeval tTraining1, tTraining2;
-		float_point trainingElapsedTime;
-		gettimeofday(&tTraining1, NULL);
-		timespec timeTrainS, timeTrainE;
-		clock_gettime(CLOCK_REALTIME, &timeTrainS);
 
 		cout << "training the " << i + 1 << "th classifier";
 		cout.flush();
 
 		svm_model model;
+		//set data involved in training
 		m_pTrainer->SetInvolveTrainingData(nSampleStart1, nSampleEnd1, nSampleStart2, nSampleEnd2);
 		bool bTrain = m_pTrainer->TrainModel(model, pfDevYiGValueSubset, pfDevAlphaSubset, pnDevLabelSubset, nNumofTrainingSamples, NULL);
 		if(bTrain == false)
@@ -253,10 +248,6 @@ bool CModelSelector::CrossValidation(const int &nFold, vector<int> &vnLabel, int
 			bReturn = false;
 			break;
 		}
-
-		gettimeofday(&tTraining2, NULL);
-		clock_gettime(CLOCK_REALTIME, &timeTrainE);
-		long lTrainingTime = ((timeTrainE.tv_sec - timeTrainS.tv_sec) * 1e9 + (timeTrainE.tv_nsec - timeTrainS.tv_nsec));
 
 		/******************** prediction *******************/
 		//get the size of a fold for testing
@@ -284,7 +275,7 @@ bool CModelSelector::CrossValidation(const int &nFold, vector<int> &vnLabel, int
 		//set data involve in prediction
 		m_pPredictor->SetInvolvePredictionData(pnTestSampleId[0], pnTestSampleId[nNumofTestingSample - 1]);
 		//perform prediction
-		float_point *pfPartialPredictionResult;
+		real *pfPartialPredictionResult;
 		pfPartialPredictionResult = m_pPredictor->Predict(&model, pnTestSampleId, nNumofTestingSample);
 		cout << " Done"<< endl;
 		clock_gettime(CLOCK_REALTIME, &timeClassificationE);
@@ -305,8 +296,6 @@ bool CModelSelector::CrossValidation(const int &nFold, vector<int> &vnLabel, int
 				nCorrect++;
 		}
 		cout << "accuracy in this fold: " << (float)nCorrect/nNumofTestingSample << endl;
-		long lClassificationTime = ((timeClassificationE.tv_sec - timeClassificationS.tv_sec) * 1e9 +
-									(timeClassificationE.tv_nsec - timeClassificationS.tv_nsec));
 
 		delete[] pfPartialPredictionResult; //as memory is allocated during prediction
 		//release memory, in the first (nFold - 2) iterations, the space of pnTestSampleId can be reused
@@ -333,7 +322,6 @@ bool CModelSelector::CrossValidation(const int &nFold, vector<int> &vnLabel, int
 	checkCudaErrors(cudaFree(pfDevAlphaSubset));
 	checkCudaErrors(cudaFree(pnDevLabelSubset));
 	checkCudaErrors(cudaFree(pfDevYiGValueSubset));
-//checkCudaErrors(cudaFreeHost(pfDevYiGValueSubset));
 
 	delete[] pfAlphaAll;
 	delete[] pfYiGValueAll;

@@ -12,7 +12,7 @@
  * @param: writeOut: file stream to write to
  * @param: pfHessianRows: hessian rows to be written
  */
-bool SeqAccessor::WriteHessianRows(FILE *&writeOut, float_point *pfHessianRows, SubMatrix &subMatrix)
+bool SeqAccessor::WriteHessianRows(FILE *&writeOut, real *pfHessianRows, SubMatrix &subMatrix)
 {
 	if(writeOut == NULL || pfHessianRows == NULL || subMatrix.isValid() == false)
 	{
@@ -40,7 +40,7 @@ bool SeqAccessor::WriteHessianRows(FILE *&writeOut, float_point *pfHessianRows, 
 			cout << endl;exit(0);
 		}*/
 		long long nPosInHessian = nRowPos + subMatrix.nColIndex;
-		nPosInHessian *= sizeof(float_point);
+		nPosInHessian *= sizeof(real);
 		if(nRowPos < 0 || nPosInHessian < 0)
 		{
 			cerr << "Position to write is negative!" << endl;
@@ -53,7 +53,7 @@ bool SeqAccessor::WriteHessianRows(FILE *&writeOut, float_point *pfHessianRows, 
 		assert(ftell(writeOut) != -1);
 
 		//writeOut.write((char*)(pfHessianRows + i * nNumofCol), sizeof(float_point) * nNumofCol);
-		fwrite((char*)(pfHessianRows + (long long)i * nNumofCol), sizeof(char), sizeof(float_point) * nNumofCol, writeOut);
+		fwrite((char*)(pfHessianRows + (long long)i * nNumofCol), sizeof(char), sizeof(real) * nNumofCol, writeOut);
 	}
 
 
@@ -66,7 +66,7 @@ bool SeqAccessor::WriteHessianRows(FILE *&writeOut, float_point *pfHessianRows, 
  *  not always all elements are involved in training
  * @param: pfHessianRow: a sub row of Hessian Matrix (output of this function)
  */
-bool SeqAccessor::ReadHessianRow(FILE *&readIn, const int &nRowIdInSSD, float_point *pfHessianRow)
+bool SeqAccessor::ReadHessianRow(FILE *&readIn, const int &nRowIdInSSD, real *pfHessianRow)
 {
 //	timespec time1, time2;
 //	clock_gettime(CLOCK_REALTIME, &time1);

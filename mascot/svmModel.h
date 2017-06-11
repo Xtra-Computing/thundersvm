@@ -11,11 +11,13 @@
 #include <driver_types.h>
 #include <helper_cuda.h>
 #include <cuda.h>
+
 #include"pthread.h"
 #include "svmProblem.h"
 #include "../svm-shared/csrMatrix.h"
 #include "../SharedUtility/KeyValue.h"
 using std::vector;
+using std::string;
 
 class SvmModel {
 public:
@@ -25,34 +27,34 @@ public:
     vector<vector<int> > svIndex;   //indices of SVs in each training subset
     vector<vector<KeyValue> > svMap;
     CSRMatrix *svMapCSRMat = NULL;
-    vector<vector<float_point> > coef;
-    vector<vector<float_point> > allcoef;
-    vector<float_point> probA;
-    vector<float_point> probB;
-    float_point *devSVMapVal;
-    float_point *devSVMapValSelfDot;
+    vector<vector<real> > coef;
+    vector<vector<real> > allcoef;
+    vector<real> probA;
+    vector<real> probB;
+    real *devSVMapVal;
+    real *devSVMapValSelfDot;
     int *devSVMapRowPtr;
     int *devSVMapColInd;
-    float_point *devCoef = NULL;
+    real *devCoef = NULL;
     int *devStart = NULL;
     int *devCount = NULL;
-    float_point *devRho = NULL;
-    float_point *devProbA = NULL;
-    float_point *devProbB = NULL;
+    real *devRho = NULL;
+    real *devProbA = NULL;
+    real *devProbB = NULL;
     SVMParam param;
     uint cnr2;							//total number of svm models to train
     int *devSVIndex;
     bool probability;
 
     vector<vector<int> > missLabellingMatrix;	//for measuring classification error for each sub-classifier
-    vector<float_point> vC;							//keep improving C
+    vector<real> vC;							//keep improving C
     vector<int> nSV;
     vector<bool> nonzero;//chen add
 private:
     int numOfSVs;
     vector<int> start;					//for multiclass, start position for each class of instances
     vector<int> count;					//support vectors of the i-th class
-    vector<float_point> rho;
+    vector<real> rho;
 
     //device pointers
 //    svm_node **devSVs = NULL;
@@ -63,7 +65,7 @@ private:
 //	float_point& A, float_point& B);
 
     void
-    sigmoidTrain(const float_point *decValues, const int, const vector<int> &labels, float_point &A, float_point &B);
+    sigmoidTrain(const real *decValues, const int, const vector<int> &labels, real &A, real &B);
 
     void transferToDevice();
 
@@ -78,10 +80,10 @@ public:
 
     void fit(const SvmProblem &problem, const SVMParam &param);
     void addBinaryModel(const SvmProblem &subProblem, const vector<int> &svLocalIndex,
-    					const vector<float_point> &coef, float_point rho, int i, int j);
-	void getModelParam(const SvmProblem &subProblem, const vector<int> &svIndex,const vector<float_point> &coef, 
+    					const vector<real> &coef, real rho, int i, int j);
+	void getModelParam(const SvmProblem &subProblem, const vector<int> &svIndex,const vector<real> &coef, 
 	                            vector<int> &prob_start, int ci,int i, int j);
-	void updateAllCoef(int l, int indOffset, int nr_class, int &count, int k, const vector<int> & svIndex, const vector<float_point> &coef,vector<int> &prob_start);
+	void updateAllCoef(int l, int indOffset, int nr_class, int &count, int k, const vector<int> & svIndex, const vector<real> &coef,vector<int> &prob_start);
     bool isProbability() const;
 	bool saveLibModel(string filename, const SvmProblem &problem);
 	void loadLibModel(string filename, SvmModel &loadModel);

@@ -61,7 +61,7 @@
 /*
  * @brief: replace expired sample
  */
-void CMLRUCache::ReplaceExpired(int nIndex, int &nLocationInCache, float_point *pExtraInfo)
+void CMLRUCache::ReplaceExpired(int nIndex, int &nLocationInCache, real *pExtraInfo)
 {
 
 	vector<LRUEntry>::iterator itCheckEntry = v_LRUContainer.begin() + nIndex;

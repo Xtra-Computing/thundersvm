@@ -20,7 +20,7 @@ bool CSMOSolver::SMOSolverPreparation(const int &nNumofTrainingSamples)
 
 	//allocate memory in CPU
 	//m_pfHessianRow = new float_point[nNumofTrainingSamples];//for reading hessian row from file
-	cudaMallocHost(&m_pfHessianRow, sizeof(float_point) * nNumofTrainingSamples);
+	cudaMallocHost(&m_pfHessianRow, sizeof(real) * nNumofTrainingSamples);
 	m_pnLabel = new int[nNumofTrainingSamples];
 
 	return bReturn;
@@ -143,7 +143,7 @@ long lGetHessianRowCounter = 0;
 long cacheMissCount = 0;
 long lRamHitCount = 0;
 long lSSDHitCount = 0;
-float_point* CSMOSolver::GetHessianRow(const int &nNumofInstance, const int &nPosofRow)
+real* CSMOSolver::GetHessianRow(const int &nNumofInstance, const int &nPosofRow)
 {
 	timespec time1, time2, time3, time4, time5;
 	clock_gettime(CLOCK_REALTIME, &time1);
@@ -151,7 +151,7 @@ float_point* CSMOSolver::GetHessianRow(const int &nNumofInstance, const int &nPo
     /*printf("get row %d label %d\n",problem->originalIndex[nPosofRow], problem->originalLabel[nPosofRow]);*/
 //	assert(nNumofInstance >= nPosofRow);
 
-	float_point *pfDevHessianRow = NULL;
+	real *pfDevHessianRow = NULL;
 	//get 1st row
 	int nCacheLocation = -1;
 	bool bIsCacheFull = false;
@@ -178,7 +178,7 @@ float_point* CSMOSolver::GetHessianRow(const int &nNumofInstance, const int &nPo
 		lCachePosStart = (long long)nCacheLocation * m_lNumofElementEachRowInCache;
 		//checkCudaErrors(cudaMemcpyAsync(m_pfDevHessianMatrixCache + lCachePosStart, m_pfHessianRow,
 		//					  	  		sizeof(float_point) * nNumofInstance, cudaMemcpyHostToDevice, m_stream1_Hessian_row));
-		checkCudaErrors(cudaMemcpy((m_pfDevHessianMatrixCache + lCachePosStart), m_pfHessianRow, sizeof(float_point) * nNumofInstance, cudaMemcpyHostToDevice));
+		checkCudaErrors(cudaMemcpy((m_pfDevHessianMatrixCache + lCachePosStart), m_pfHessianRow, sizeof(real) * nNumofInstance, cudaMemcpyHostToDevice));
 
 		cacheMissCount++;
 		clock_gettime(CLOCK_REALTIME, &time5);

@@ -33,13 +33,13 @@ public:
 	void SetKernelCalculater(CKernelCalculater *pCalculater){m_pKernelCalculater = pCalculater;}
 
 	virtual bool PrecomputeHessian(const string &strHessianMatrixFileName, const string &strDiagHessianFileName,
-							  	   vector<vector<float_point> > &v_v_DocVector);
-	bool GetHessianDiag(const string &strFileName, const int &nNumofTraingSamples, float_point *pfHessianDiag);
+							  	   vector<vector<real> > &v_v_DocVector);
+	bool GetHessianDiag(const string &strFileName, const int &nNumofTraingSamples, real *pfHessianDiag);
 
 protected:
-	bool ComputeSubHessianMatrix(float_point*, float_point*, float_point*selfDot, float_point*, int, int, int nStartRow, int nStartCol);
+	bool ComputeSubHessianMatrix(real*, real*, real*selfDot, real*, int, int, int nStartRow, int nStartCol);
 	int GetNumofBatchWriteRows();
-	void ComputeHessianAtOnce(float_point *pfTotalSamples, float_point *pfTransSamples, float_point *pfSelfDot);
+	void ComputeHessianAtOnce(real *pfTotalSamples, real *pfTransSamples, real *pfSelfDot);
 };
 
 #endif /* HESSIANIO_H_ */

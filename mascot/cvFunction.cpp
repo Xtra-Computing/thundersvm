@@ -21,8 +21,8 @@
 #include "../svm-shared/smoSolver.h"
 #include "../svm-shared/Cache/cache.h"
 #include "../svm-shared/fileOps.h"
-#include "../DataReader/BaseLibsvmReader.h"
-#include "../DataReader/LibsvmReaderSparse.h"
+#include "../SharedUtility/DataReader/BaseLibsvmReader.h"
+#include "../SharedUtility/DataReader/LibsvmReaderSparse.h"
 
 using std::cout;
 using std::endl;
@@ -31,12 +31,12 @@ using std::endl;
 void gridSearch(Grid &SGrid, string strTrainingFileName){
 	lIO_timer = 0;
 
-	vector<vector<float_point> > v_vDocVector;
+	vector<vector<real> > v_vDocVector;
 	vector<int> v_nLabel;
 
 	int nNumofFeature = 0;
 	int nNumofInstance = 0;
-	long long nNumofValue = 0;
+	uint nNumofValue = 0;
 	BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
 	LibSVMDataReader drHelper;
 	drHelper.ReadLibSVMAsDense(v_vDocVector, v_nLabel, strTrainingFileName, nNumofFeature);
@@ -44,7 +44,7 @@ void gridSearch(Grid &SGrid, string strTrainingFileName){
 	CModelSelector modelSelector;
 
 	timeval t1, t2;
-	float_point elapsedTime;
+	real elapsedTime;
 	gettimeofday(&t1, NULL);
 	modelSelector.GridSearch(SGrid, v_vDocVector, v_nLabel);
 	gettimeofday(&t2, NULL);

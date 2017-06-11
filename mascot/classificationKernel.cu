@@ -7,10 +7,10 @@
  * @param: pfLocalPartialSum: a block level sum of yi*alpha*k(sv,x)
  * @param: nReduceStepSize: the step size for each pair of sum
  */
-__global__ void ComputeKernelPartialSum(float_point* pfSVYiAlhpaHessian, int nNumofSVs,
-										float_point* pfLocalPartialSum, int nReduceStepSize)
+__global__ void ComputeKernelPartialSum(real* pfSVYiAlhpaHessian, int nNumofSVs,
+										real* pfLocalPartialSum, int nReduceStepSize)
 {
-	extern __shared__ float_point fLocalValue[];
+	extern __shared__ real fLocalValue[];
 	int nThreadId = threadIdx.x;
 	//each support vector is associated with a thread
 	int nSVGlobalId = blockDim.x * blockIdx.x + nThreadId;
@@ -50,11 +50,11 @@ __global__ void ComputeKernelPartialSum(float_point* pfSVYiAlhpaHessian, int nNu
  * @param: fBias: the bias term of SVM
  * @param: pfPartialSum: the partial sum of block level
  */
-__global__ void ComputeKernelGlobalSum(float_point *pfClassificationResult,
-									   float_point fBias, float_point *pfPartialSum,
+__global__ void ComputeKernelGlobalSum(real *pfClassificationResult,
+									   real fBias, real *pfPartialSum,
 									   int nReduceStepSize)
 {
-	extern __shared__ float_point fLocalValue[];
+	extern __shared__ real fLocalValue[];
 
 	int nThreadId = threadIdx.x;
 	fLocalValue[nThreadId] = pfPartialSum[blockDim.x * blockIdx.y + nThreadId];
@@ -73,7 +73,7 @@ __global__ void ComputeKernelGlobalSum(float_point *pfClassificationResult,
 		__syncthreads();
 	}
 
-	float_point fGlobalSum = fLocalValue[0];
+	real fGlobalSum = fLocalValue[0];
 	if(nThreadId == 0)
 	{
 		fGlobalSum -= fBias;
@@ -87,7 +87,7 @@ __global__ void ComputeKernelGlobalSum(float_point *pfClassificationResult,
  * @brief: compute multiplication of two vectors
  * @output: result stores in pfVector1
  */
-__global__ void VectorMul(float_point *pfVector1, int *pnVector2, int nNumofDim)
+__global__ void VectorMul(real *pfVector1, int *pnVector2, int nNumofDim)
 {
 	int nThreadId = threadIdx.x;
 	int nGlobalId = (blockIdx.y * gridDim.x + blockIdx.x) * blockDim.x + nThreadId;
@@ -102,7 +102,7 @@ __global__ void VectorMul(float_point *pfVector1, int *pnVector2, int nNumofDim)
 /*
  * @brief: compute a vector is multiplied by a matrix. This function does part of vector-matrix multiplication
  */
-__global__ void VectorMatrixMul(float_point *pfVector, float_point *pfMatrix, int nNumofRow, int nNumofCol)
+__global__ void VectorMatrixMul(real *pfVector, real *pfMatrix, int nNumofRow, int nNumofCol)
 {
 	int nThreadId = threadIdx.x;
 	//a few blocks compute a row of the matrix

@@ -12,6 +12,7 @@
 #include "../gpu_global_utility.h"
 #include "kernelCalGPUHelper.h"
 #include "../constant.h"
+#include "../../SharedUtility/CudaMacro.h"
 
 #include <iostream>
 using namespace std;
@@ -28,9 +29,9 @@ public:
 	CKernelCalculater(){}
 	virtual ~CKernelCalculater(){}
 
-	virtual bool GetHessianDiag(const string &strFileName, const int &nNumofTrainingSamples, float_point *pfHessianDiag) = 0;
+	virtual bool GetHessianDiag(const string &strFileName, const int &nNumofTrainingSamples, real *pfHessianDiag) = 0;
 
-	virtual bool ComputeHessianRows(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows, float_point *pfDevSelfDot,
+	virtual bool ComputeHessianRows(real *pfDevSamples, real *pfDevTransSamples, real *pfDevHessianRows, real *pfDevSelfDot,
 									const int &nNumofSamples, const int &nNumofDim,
 									const int &nNumofRows, int nStartRow, int nStartCol) = 0;
 
@@ -80,23 +81,23 @@ public:
 class CRBFKernel: public CKernelCalculater
 {
 public:
-	float_point m_fGamma;
+	real m_fGamma;
 public:
-	CRBFKernel(float_point fGamma){m_fGamma = fGamma; cout << "gamma is: " << fGamma << endl;}
+	CRBFKernel(real fGamma){m_fGamma = fGamma; cout << "gamma is: " << fGamma << endl;}
 	~CRBFKernel(){}
-	void SetGamma(float_point fGamma){m_fGamma = fGamma;}
+	void SetGamma(real fGamma){m_fGamma = fGamma;}
 
 	virtual string GetType(){return RBFKERNEL;}
 
-	virtual bool GetHessianDiag(const string &strFileName, const int &nNumofTrainingSamples, float_point *pfHessianDiag);
+	virtual bool GetHessianDiag(const string &strFileName, const int &nNumofTrainingSamples, real *pfHessianDiag);
 
-	virtual bool ComputeHessianRows(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows,
-									float_point *pfDevSelfDot, const int &nNumofCols, const int &nNumofDim,
+	virtual bool ComputeHessianRows(real *pfDevSamples, real *pfDevTransSamples, real *pfDevHessianRows,
+									real *pfDevSelfDot, const int &nNumofCols, const int &nNumofDim,
 									const int &nNumofRows, int nStartRow, int nStartCol);
-	bool ComputeHessianMatrix(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevSelfDot,
-							  float_point *pfDevHessianRows, const int &nNumofSamples,const int &nDim,
+	bool ComputeHessianMatrix(real *pfDevSamples, real *pfDevTransSamples, real *pfDevSelfDot,
+							  real *pfDevHessianRows, const int &nNumofSamples,const int &nDim,
 							  const int &nNumofRows, int nStartRow, int nStartCol);
-	bool ComputeHessianRowsByCPU(float_point *pfSamples, float_point *pfHessianRows,
+	bool ComputeHessianRowsByCPU(real *pfSamples, real *pfHessianRows,
 								 const int &nNumofSamples, const int &nNumofDim,
 								 const int &nStartRow);
 };
@@ -108,14 +109,14 @@ class CLinearKernel: public CKernelCalculater
 {
 public:
 	CLinearKernel(){}
-	CLinearKernel(float_point){}
+	CLinearKernel(real){}
 	~CLinearKernel(){}
 	virtual string GetType(){return SVMLINEAR;}
-	virtual bool GetHessianDiag(const string &strFileName, const int &nNumofTrainingSamples, float_point *pfHessianDiag)
+	virtual bool GetHessianDiag(const string &strFileName, const int &nNumofTrainingSamples, real *pfHessianDiag)
 	{
 		return true;
 	}
-	virtual bool ComputeHessianRows(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows,
+	virtual bool ComputeHessianRows(real *pfDevSamples, real *pfDevTransSamples, real *pfDevHessianRows,
 									const int &nNumofSamples, const int &nNumofDim,
 									const int &nNumofRows, const int &nStartRow);
 private:
@@ -128,17 +129,17 @@ private:
 class CPolynomialKernel: public CKernelCalculater
 {
 public:
-	float_point m_r;
-	float_point m_fDegree;
+	real m_r;
+	real m_fDegree;
 	CPolynomialKernel(){}
-	CPolynomialKernel(float_point d){m_fDegree = d;}
+	CPolynomialKernel(real d){m_fDegree = d;}
 	~CPolynomialKernel(){}
 	virtual string GetType(){return SVMPOLYNOMIAL;}
-	virtual bool GetHessianDiag(const string &strFileName, const int &nNumofTrainingSamples, float_point *pfHessianDiag)
+	virtual bool GetHessianDiag(const string &strFileName, const int &nNumofTrainingSamples, real *pfHessianDiag)
 	{
 		return true;
 	}
-	virtual bool ComputeHessianRows(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows,
+	virtual bool ComputeHessianRows(real *pfDevSamples, real *pfDevTransSamples, real *pfDevHessianRows,
 										const int &nNumofSamples, const int &nNumofDim,
 										const int &nNumofRows, const int &nStartRow);
 private:
@@ -151,16 +152,16 @@ private:
 class CSigmoidKernel: public CKernelCalculater
 {
 public:
-	float_point m_fCoef;
+	real m_fCoef;
 	CSigmoidKernel(){}
-	CSigmoidKernel(float_point r){m_fCoef = r;}
+	CSigmoidKernel(real r){m_fCoef = r;}
 	~CSigmoidKernel(){}
 	virtual string GetType(){return SVMSIGMOID;}
-	virtual bool GetHessianDiag(const string &strFileName, const int &nNumofTrainingSamples, float_point *pfHessianDiag)
+	virtual bool GetHessianDiag(const string &strFileName, const int &nNumofTrainingSamples, real *pfHessianDiag)
 	{
 		return true;
 	}
-	virtual bool ComputeHessianRows(float_point *pfDevSamples, float_point *pfDevTransSamples, float_point *pfDevHessianRows,
+	virtual bool ComputeHessianRows(real *pfDevSamples, real *pfDevTransSamples, real *pfDevHessianRows,
 											const int &nNumofSamples, const int &nNumofDim,
 											const int &nNumofRows, const int &nStartRow);
 private:

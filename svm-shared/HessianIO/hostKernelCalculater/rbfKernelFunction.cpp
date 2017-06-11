@@ -44,8 +44,8 @@ void RBFKernelFunction::ComputeSparseRow(vector<vector<svm_node> > &v_v_DocVecto
         for (int j = 0; j < v_v_DocVector.size(); ++j) {
             vector<svm_node> x = v_v_DocVector[rowId + i];
             vector<svm_node> y = v_v_DocVector[j];
-            float_point xDot = 0;
-            float_point yDot = 0;
+            real xDot = 0;
+            real yDot = 0;
             for (int k = 0; k < x.size() - 1; ++k) {
                 xDot += x[k].value * x[k].value;
             }

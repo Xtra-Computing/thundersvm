@@ -45,21 +45,21 @@ public:
 	~CSVMTrainer(){}
 
 	//train SVM model
-	bool TrainModel(svm_model&, float_point *pfDevYiFValueSubset,
-					float_point *pfDevAlphaSubset, int *pnDevLabelSubset, int, float_point*);
+	bool TrainModel(svm_model&, real *pfDevYiFValueSubset,
+					real *pfDevAlphaSubset, int *pnDevLabelSubset, int, real*);
 
 	void TrainStarting(int nNumofInstance, int nNumofTrainingExample,
-					   float_point *pfDevYiFValueSubset, float_point *pfDevAlphaSubset, int *pnDevLabelSubset);
+					   real *pfDevYiFValueSubset, real *pfDevAlphaSubset, int *pnDevLabelSubset);
 	void TrainEnding(int nIter, int nNumofTrainingExample, int nNumofInstance, svm_model &model,
-			  	  	 int *pnDevLabelSubset, float_point *pfDevAlphaSubset, float_point *pfDevYiFValueSubset,
-			  	  	 float_point *pfP);
+			  	  	 int *pnDevLabelSubset, real *pfDevAlphaSubset, real *pfDevYiFValueSubset,
+			  	  	 real *pfP);
 
 	//set size of data participate in training
 	bool SetInvolveTrainingData(int nStart1, int nEnd1, int nStart2, int nEnd2);
 	/**** haven't implemented functions **********/
 
 	//for future prediction purpose
-	bool SaveModel(string strFileName, svm_model *model, vector<vector<float_point> >&);
+	bool SaveModel(string strFileName, svm_model *model, vector<vector<real> >&);
 
 };
 

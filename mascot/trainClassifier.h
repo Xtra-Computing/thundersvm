@@ -19,6 +19,6 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
 
 void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNumofFeature);
 
-void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<int> &v_nLabel, vector<float_point> &classificationError);
+void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<int> &v_nLabel, vector<real> &classificationError);
 
 #endif /* TESTTRAINER_H_ */

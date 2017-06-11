@@ -30,20 +30,20 @@ class CSMOSolver: public BaseSMO
 {
 public:
     SvmProblem *problem;
-	float_point m_fLowValue;
+	real m_fLowValue;
 
 	CCache *m_pGPUCache;
 	BaseHessian *m_pHessianReader;
 
 	int m_nStart1, m_nEnd1, m_nStart2, m_nEnd2;
 	//members for cpu, gpu communication
-	float_point *m_pfHessianRow;//this member is for re-using memory (avoid allocating memory)
+	real *m_pfHessianRow;//this member is for re-using memory (avoid allocating memory)
 	long long m_lNumofElementEachRowInCache;
-	float_point *m_pfGValue;
+	real *m_pfGValue;
 	int *m_pnLabel;
 
 	//for Hessian Matrix
-	float_point *m_pfDevHessianMatrixCache;
+	real *m_pfDevHessianMatrixCache;
 
 public:
 	CSMOSolver(BaseHessian *pHessianOps, CCache *pCache)
@@ -84,7 +84,7 @@ public:
 	}
 	~CSMOSolver(){}
 
-    virtual float_point *ObtainRow(int numTrainingInstance)
+    virtual real *ObtainRow(int numTrainingInstance)
     {
     	return GetHessianRow(numTrainingInstance, IdofInstanceOne);
     }
@@ -97,31 +97,31 @@ public:
 	bool SMOSolverEnd();
 
 	bool InitCache(const int &nCacheSize, const int &nNumofTrainingSamples);
-	bool ReadToCache(const int &nStartRow, const int &nEndRow, const int &nNumofTrainingSamples, float_point *pfDevHessianCacheEndPos);
+	bool ReadToCache(const int &nStartRow, const int &nEndRow, const int &nNumofTrainingSamples, real *pfDevHessianCacheEndPos);
 	bool CleanCache();
 
 	//set involve data in Hessian matrix
 	bool SetInvolveData(int nStart1, int nEnd1, int nStart2, int nEnd2);
 
 	bool MapIndexToHessian(int &nIndex);
-	float_point *GetHessianRow(const int &nNumofInstance, const int &nPosofRow);
+	real *GetHessianRow(const int &nNumofInstance, const int &nPosofRow);
 
-	float_point Get_C(int nLabel)
+	real Get_C(int nLabel)
 	{
 		return (nLabel > 0)? gfPCost : gfNCost;
 	}
 
-	int Iterate(float_point *pfDevYiFValue, float_point *pfDevAlpha, int *npDevLabel, const int &nNumofTrainingSamples);
-	int IterateAdv(float_point*, int*, const int &nNumofTrainingSamples);
+	int Iterate(real *pfDevYiFValue, real *pfDevAlpha, int *npDevLabel, const int &nNumofTrainingSamples);
+	int IterateAdv(real*, int*, const int &nNumofTrainingSamples);
 
 	/***************** functions for testing purposes *************************/
 private:
-	float_point *m_pfRow40;
+	real *m_pfRow40;
 	int m_nCcounter;
-	void StoreRow(float_point *pfDevRow, int nLen);
-	void PrintTenGPUHessianRow(float_point *pfDevRow, int nLen);
-	void PrintGPUHessianRow(float_point *pfDevRow, int nLen);
-	int CompareTwoGPURow(float_point *pfDevRow1, float_point *pfDevRow2, int nLen);
+	void StoreRow(real *pfDevRow, int nLen);
+	void PrintTenGPUHessianRow(real *pfDevRow, int nLen);
+	void PrintGPUHessianRow(real *pfDevRow, int nLen);
+	int CompareTwoGPURow(real *pfDevRow1, real *pfDevRow2, int nLen);
 };
 
 #endif /* WORKINGSETSELECTOR_H_ */

@@ -16,7 +16,7 @@ CSRMatrix::CSRMatrix(const vector<vector<KeyValue> > &samples, int numOfFeatures
         csrRowPtr.push_back(start);
         int size = samples[i].size();//get the number of features with nonzero value
         start += size;
-        float_point sum = 0;
+        real sum = 0;
         for (int j = 0; j < size; ++j) {
             csrVal.push_back(samples[i][j].featureValue);
             sum += samples[i][j].featureValue * samples[i][j].featureValue;
@@ -34,11 +34,11 @@ int CSRMatrix::getNnz() const {
     return csrVal.size();
 }
 
-const float_point *CSRMatrix::getCSRVal() const {
+const real *CSRMatrix::getCSRVal() const {
     return csrVal.data();
 }
 
-const float_point *CSRMatrix::getCSRValSelfDot() const {
+const real *CSRMatrix::getCSRValSelfDot() const {
     return csrValSelfDot.data();
 }
 
@@ -76,8 +76,8 @@ void CSRMatrix::CSRmm2Dense(cusparseHandle_t handle, cusparseOperation_t transA,
     if (transB == CUSPARSE_OPERATION_NON_TRANSPOSE)
         transB = CUSPARSE_OPERATION_TRANSPOSE;
     else transB = CUSPARSE_OPERATION_NON_TRANSPOSE;
-    float_point *devA;
-    checkCudaErrors(cudaMalloc((void**)&devA,sizeof(float_point)*m*k));
+    real *devA;
+    checkCudaErrors(cudaMalloc((void**)&devA,sizeof(real)*m*k));
     cusparseScsr2dense(handle,m,k,descrA,valA,rowPtrA,colIndA,devA,m);
     float one(1);
     float zero(0);
@@ -121,18 +121,18 @@ void CSRMatrix::CSRmm2Dense(cusparseHandle_t handle, cusparseOperation_t transA,
 /**
  * @brief: copy the CSR matrix to device memory.
  */
-void CSRMatrix::copy2Dev(float_point *&devVal, int *&devRowPtr, int *&devColInd) {
+void CSRMatrix::copy2Dev(real *&devVal, int *&devRowPtr, int *&devColInd) {
 
     int nnz = this->getNnz();
-    checkCudaErrors(cudaMalloc((void **) &devVal, sizeof(float_point) * nnz));
+    checkCudaErrors(cudaMalloc((void **) &devVal, sizeof(real) * nnz));
     checkCudaErrors(cudaMalloc((void **) &devRowPtr, sizeof(int) * (this->getNumOfSamples() + 1)));
     checkCudaErrors(cudaMalloc((void **) &devColInd, sizeof(int) * nnz));
-    checkCudaErrors(cudaMemcpy(devVal, this->getCSRVal(), sizeof(float_point) * nnz, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(devVal, this->getCSRVal(), sizeof(real) * nnz, cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(devRowPtr, this->getCSRRowPtr(), sizeof(int) * (this->getNumOfSamples() + 1),
                                cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(devColInd, this->getCSRColInd(), sizeof(int) * nnz, cudaMemcpyHostToDevice));
 }
-void CSRMatrix::copy2Dev(float_point *&devVal, int *&devRowPtr, int *&devColInd, float_point *&devSelfDot) {
+void CSRMatrix::copy2Dev(real *&devVal, int *&devRowPtr, int *&devColInd, real *&devSelfDot) {
     this->copy2Dev(devVal, devRowPtr, devColInd);
     checkCudaErrors(cudaMalloc((void **) &devSelfDot, sizeof(int) * getNumOfSamples()));
     checkCudaErrors(cudaMemcpy(devSelfDot, this->getCSRValSelfDot(), sizeof(int) * getNumOfSamples(), cudaMemcpyHostToDevice));
@@ -140,13 +140,13 @@ void CSRMatrix::copy2Dev(float_point *&devVal, int *&devRowPtr, int *&devColInd,
 /**
  * @brief: release the device CSR matrix
  */
-void CSRMatrix::freeDev(float_point *&devVal, int *&devRowPtr, int *&devColInd) {
+void CSRMatrix::freeDev(real *&devVal, int *&devRowPtr, int *&devColInd) {
     checkCudaErrors(cudaFree(devVal));
     checkCudaErrors(cudaFree(devRowPtr));
     checkCudaErrors(cudaFree(devColInd));
 }
 
-void CSRMatrix::freeDev(float_point *&devVal, int *&devRowPtr, int *&devColInd, float_point *&devSelfDot) {
+void CSRMatrix::freeDev(real *&devVal, int *&devRowPtr, int *&devColInd, real *&devSelfDot) {
     checkCudaErrors(cudaFree(devVal));
     checkCudaErrors(cudaFree(devRowPtr));
     checkCudaErrors(cudaFree(devColInd));

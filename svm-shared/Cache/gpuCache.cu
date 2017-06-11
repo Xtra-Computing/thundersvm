@@ -14,14 +14,14 @@ void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
         //for binary case, use 1 shared cache to store the whole rows of hessian matrix
         checkCudaErrors(cudaMallocPitch((void **) &devSharedCache[0],
                                         &sizeOfEachRowInCache[0],
-                                        problem.getNumOfSamples() * sizeof(float_point),
+                                        problem.getNumOfSamples() * sizeof(real),
                                         cacheSize[0]));
-        numOfElementEachRowInCache[0] = sizeOfEachRowInCache[0] / sizeof(float_point);
+        numOfElementEachRowInCache[0] = sizeOfEachRowInCache[0] / sizeof(real);
         if (canPreComputeSharedCache) {
             printf("cache is large enough, pre-computing\n");
-            float_point *devC;
+            real *devC;
             checkCudaErrors(cudaMalloc((void **) &devC,
-                                       sizeof(float_point) * problem.getNumOfSamples() * problem.getNumOfSamples()));
+                                       sizeof(real) * problem.getNumOfSamples() * problem.getNumOfSamples()));
             //sub-problem is the same as problem but permuted
             ACCUMULATE_TIME(preComputeTimer,
                             SubHessianCalculator::preComputeCache4BinaryProblem(devC, subProblem, param);
@@ -29,8 +29,8 @@ void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
             checkCudaErrors(cudaMemcpy2D(devSharedCache[0],
                                          sizeOfEachRowInCache[0],
                                          devC,
-                                         sizeof(float_point) * problem.getNumOfSamples(),
-                                         sizeof(float_point) * problem.getNumOfSamples(),
+                                         sizeof(real) * problem.getNumOfSamples(),
+                                         sizeof(real) * problem.getNumOfSamples(),
                                          cacheSize[0],
                                          cudaMemcpyDeviceToDevice));
             checkCudaErrors(cudaFree(devC));
@@ -44,13 +44,13 @@ void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
 
         //allocate memory for two shared caches
         checkCudaErrors(cudaMallocPitch((void **) &(devSharedCache[i]),
-                                        &sizeOfEachRowInCache[i], problem.count[i] * sizeof(float_point),
+                                        &sizeOfEachRowInCache[i], problem.count[i] * sizeof(real),
                                         cacheSize[i]));
         checkCudaErrors(cudaMallocPitch((void **) &(devSharedCache[j]),
-                                        &sizeOfEachRowInCache[j], problem.count[j] * sizeof(float_point),
+                                        &sizeOfEachRowInCache[j], problem.count[j] * sizeof(real),
                                         cacheSize[j]));
-        numOfElementEachRowInCache[i] = sizeOfEachRowInCache[i] / sizeof(float_point);
-        numOfElementEachRowInCache[j] = sizeOfEachRowInCache[j] / sizeof(float_point);
+        numOfElementEachRowInCache[i] = sizeOfEachRowInCache[i] / sizeof(real);
+        numOfElementEachRowInCache[j] = sizeOfEachRowInCache[j] / sizeof(real);
 
         //allocate memory for the first unique cache
         int uniqueCacheRowLength = problem.count[j];
@@ -60,9 +60,9 @@ void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
 
         checkCudaErrors(cudaMallocPitch((void **) &devUniqueCache[0],
                                         &sizeOfEachRowInUniqueCache[0],
-                                        uniqueCacheRowLength * sizeof(float_point),
+                                        uniqueCacheRowLength * sizeof(real),
                                         uniqueCacheSize));
-        numOfElementEachRowInUniqueCache[0] = sizeOfEachRowInUniqueCache[0] / sizeof(float_point);
+        numOfElementEachRowInUniqueCache[0] = sizeOfEachRowInUniqueCache[0] / sizeof(real);
         uniqueCacheStrategy[0] = new CLATCache(problem.count[i]);
         uniqueCacheStrategy[0]->SetCacheSize(uniqueCacheSize);
         uniqueCacheStrategy[0]->InitializeCache(uniqueCacheSize, problem.count[i]);
@@ -73,9 +73,9 @@ void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
         if (cacheSize[j] < problem.count[j]) canPreComputeUniqueCache = false;
         checkCudaErrors(cudaMallocPitch((void **) &devUniqueCache[1],
                                         &sizeOfEachRowInUniqueCache[1],
-                                        uniqueCacheRowLength * sizeof(float_point),
+                                        uniqueCacheRowLength * sizeof(real),
                                         uniqueCacheSize));
-        numOfElementEachRowInUniqueCache[1] = sizeOfEachRowInUniqueCache[1] / sizeof(float_point);
+        numOfElementEachRowInUniqueCache[1] = sizeOfEachRowInUniqueCache[1] / sizeof(real);
         uniqueCacheStrategy[1] = new CLATCache(problem.count[j]);
         uniqueCacheStrategy[1]->SetCacheSize(uniqueCacheSize);
         uniqueCacheStrategy[1]->InitializeCache(uniqueCacheSize, problem.count[j]);
@@ -83,12 +83,12 @@ void GpuCache::enable(int i, int j, const SvmProblem &subProblem) {
         //fill the two shared caches
         checkCudaErrors(cudaMemcpy2D(
                 devSharedCache[i], sizeOfEachRowInCache[i],
-                hostSharedCache[i], problem.count[i] * sizeof(float_point),
-                problem.count[i] * sizeof(float_point), cacheSize[i], cudaMemcpyHostToDevice));
+                hostSharedCache[i], problem.count[i] * sizeof(real),
+                problem.count[i] * sizeof(real), cacheSize[i], cudaMemcpyHostToDevice));
         checkCudaErrors(cudaMemcpy2D(
                 devSharedCache[j], sizeOfEachRowInCache[j],
-                hostSharedCache[j], problem.count[j] * sizeof(float_point),
-                problem.count[j] * sizeof(float_point), cacheSize[j], cudaMemcpyHostToDevice));
+                hostSharedCache[j], problem.count[j] * sizeof(real),
+                problem.count[j] * sizeof(real), cacheSize[j], cudaMemcpyHostToDevice));
 
         //fill the two unique caches, or decide to compute them on-the-fly
         ACCUMULATE_TIME(preComputeTimer,
@@ -117,13 +117,13 @@ void GpuCache::disable(int i, int j) {
         delete uniqueCacheStrategy[1];
         //copy the two precomputed shared caches back to host
         checkCudaErrors(cudaMemcpy2D(
-                hostSharedCache[i], problem.count[i] * sizeof(float_point),
+                hostSharedCache[i], problem.count[i] * sizeof(real),
                 devSharedCache[i], sizeOfEachRowInCache[i],
-                problem.count[i] * sizeof(float_point), cacheSize[i], cudaMemcpyDeviceToHost));
+                problem.count[i] * sizeof(real), cacheSize[i], cudaMemcpyDeviceToHost));
         checkCudaErrors(cudaMemcpy2D(
-                hostSharedCache[j], problem.count[j] * sizeof(float_point),
+                hostSharedCache[j], problem.count[j] * sizeof(real),
                 devSharedCache[j], sizeOfEachRowInCache[j],
-                problem.count[j] * sizeof(float_point), cacheSize[j], cudaMemcpyDeviceToHost));
+                problem.count[j] * sizeof(real), cacheSize[j], cudaMemcpyDeviceToHost));
         checkCudaErrors(cudaFree(devSharedCache[i]));
         checkCudaErrors(cudaFree(devSharedCache[j]));
         checkCudaErrors(cudaFree(devUniqueCache[0]));
@@ -161,7 +161,7 @@ GpuCache::GpuCache(const SvmProblem &problem, const SVMParam &param, bool binary
             if (cacheSize[i] < problem.count[i]) canPreComputeSharedCache = false;
             sharedCacheStrategy[i]->SetCacheSize(cacheSize[i]);
             sharedCacheStrategy[i]->InitializeCache(cacheSize[i], rowLength);
-            hostSharedCache.push_back(new float_point[cacheSize[i] * rowLength]);
+            hostSharedCache.push_back(new real[cacheSize[i] * rowLength]);
         }
         if (canPreComputeSharedCache) {
             printf("cache is large enough, pre-computing shared cache\n");
@@ -192,7 +192,7 @@ GpuCache::~GpuCache() {
 //    checkCudaErrors(cudaFreeHost(hostHessianMatrix));
 }
 
-void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
+void GpuCache::getHessianRow(int rowIndex, real *devHessianRow) {
 //    printf("get row %d\n",rowIndex);
     TIMER_START(calculateKernelTimer)
     int cacheLocation;
@@ -209,7 +209,7 @@ void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
                 if (preComputeInHost) {
                     checkCudaErrors(cudaMemcpy(devSharedCache[0] + cacheLocation * numOfElementEachRowInCache[0],
                                                hostHessianMatrix + rowIndex * problem.getNumOfSamples(),
-                                               sizeof(float_point) * problem.getNumOfSamples(),
+                                               sizeof(real) * problem.getNumOfSamples(),
                                                cudaMemcpyHostToDevice));
                 }
                 hessianCalculator->ReadRow(rowIndex,
@@ -219,7 +219,7 @@ void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
         }
         checkCudaErrors(cudaMemcpy(devHessianRow,
                                    devSharedCache[0] + cacheLocation * numOfElementEachRowInCache[0],
-                                   sizeof(float_point) * problem.getNumOfSamples(),
+                                   sizeof(real) * problem.getNumOfSamples(),
                                    cudaMemcpyDeviceToDevice));
     } else {
         int originalLabel = subProblem->originalLabel[rowIndex]; //label in 0,1,2,3,4,...
@@ -244,7 +244,7 @@ void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
                     uniqueCacheStrategy[label]->ReplaceExpired(rowIndex + offset, cacheLocation, NULL);
 
                 //unique cache position for this row
-                float_point *tempUniqueCachePos = devUniqueCache[label] +
+                real *tempUniqueCachePos = devUniqueCache[label] +
                                                   cacheLocation * numOfElementEachRowInUniqueCache[label];
                 if (preComputeInHost)
                     checkCudaErrors(cudaMemcpy(tempUniqueCachePos,
@@ -252,7 +252,7 @@ void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
                                                + problem.getNumOfSamples() *
                                                  (problem.start[originalLabel] + rowIndex + offset)
                                                + problem.start[theOtherLabel],
-                                               uniqueCacheCount * sizeof(float_point),
+                                               uniqueCacheCount * sizeof(real),
                                                cudaMemcpyHostToDevice));
                 else
                     hessianCalculator->ReadRow(rowIndex, tempUniqueCachePos, uniqueCacheStart,
@@ -262,7 +262,7 @@ void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
         checkCudaErrors(cudaMemcpy(
                 devHessianRow + uniqueCacheStart,
                 devUniqueCache[label] + cacheLocation * numOfElementEachRowInUniqueCache[label],
-                sizeof(float_point) * uniqueCacheCount,
+                sizeof(real) * uniqueCacheCount,
                 cudaMemcpyDeviceToDevice));
 
         //query shared cache
@@ -276,7 +276,7 @@ void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
                     sharedCacheStrategy[originalLabel]->ReplaceExpired(rowIndex + offset, cacheLocation,
                                                                        NULL);
                 //shared cache position
-                float_point *tempSharedCachePos = devSharedCache[originalLabel] +
+                real *tempSharedCachePos = devSharedCache[originalLabel] +
                                                   cacheLocation * numOfElementEachRowInCache[originalLabel];
                 if (preComputeInHost)
                     checkCudaErrors(cudaMemcpy(tempSharedCachePos,
@@ -284,7 +284,7 @@ void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
                                                + problem.getNumOfSamples() *
                                                  (problem.start[originalLabel] + rowIndex + offset)
                                                + problem.start[originalLabel],
-                                               sharedCacheCount * sizeof(float_point),
+                                               sharedCacheCount * sizeof(real),
                                                cudaMemcpyHostToDevice));
                 else
                     hessianCalculator->ReadRow(rowIndex, tempSharedCachePos, sharedCacheStart,
@@ -294,7 +294,7 @@ void GpuCache::getHessianRow(int rowIndex, float_point *devHessianRow) {
         checkCudaErrors(cudaMemcpy(
                 devHessianRow + sharedCacheStart,
                 devSharedCache[originalLabel] + cacheLocation * numOfElementEachRowInCache[originalLabel],
-                sizeof(float_point) * sharedCacheCount,
+                sizeof(real) * sharedCacheCount,
                 cudaMemcpyDeviceToDevice));
     }
     TIMER_STOP(calculateKernelTimer)

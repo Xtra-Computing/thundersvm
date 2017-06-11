@@ -10,7 +10,7 @@
 #define BASELIBSVMREADER_H_
 
 #include <fstream>
-#include "../SharedUtility/DataType.h"
+#include "../../SharedUtility/DataType.h"
 
 using std::string;
 using std::ifstream;
@@ -18,7 +18,7 @@ using std::ifstream;
 class BaseLibSVMReader
 {
 public:
-	static void GetDataInfo(string strFileName, int &nNumofFeatures, int &nNumofInstance, long long &nNumofValue);
+	static void GetDataInfo(string strFileName, int &nNumofFeatures, int &nNumofInstance, uint &nNumofValue);
 };
 
 

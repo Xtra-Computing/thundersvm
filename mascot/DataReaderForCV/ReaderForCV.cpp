@@ -21,8 +21,8 @@ using std::cout;
 /*
  * @brief: uniformly distribute positive and negative samples
  */
-bool CReadForCrossValidation::OrganizeSamples(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
-                                 vector<vector<float_point> > &v_vAllSample, vector<int> &v_nLabel) {
+bool CReadForCrossValidation::OrganizeSamples(vector<vector<real> > &v_vPosSample, vector<vector<real> > &v_vNegSample,
+                                 vector<vector<real> > &v_vAllSample, vector<int> &v_nLabel) {
     //merge two sets of samples into one
     int nSizeofPSample = v_vPosSample.size();
     int nSizeofNSample = v_vNegSample.size();
@@ -39,8 +39,8 @@ bool CReadForCrossValidation::OrganizeSamples(vector<vector<float_point> > &v_vP
         nNumofNegInEachPart = 1;
     }
 
-    vector<vector<float_point> >::iterator itPositive = v_vPosSample.begin();
-    vector<vector<float_point> >::iterator itNegative = v_vNegSample.begin();
+    vector<vector<real> >::iterator itPositive = v_vPosSample.begin();
+    vector<vector<real> >::iterator itNegative = v_vNegSample.begin();
     int nCounter = 0;
     while (itPositive != v_vPosSample.end() || itNegative != v_vNegSample.end()) {
         for (int i = 0; i < nNumofPosInEachPart && itPositive != v_vPosSample.end(); i++) {
@@ -65,17 +65,17 @@ bool CReadForCrossValidation::OrganizeSamples(vector<vector<float_point> > &v_vP
 /*
  * @brief: randomise
  */
-void CReadForCrossValidation::Randomize(vector<vector<float_point> > &v_vPos, vector<vector<float_point> > &v_vNeg)
+void CReadForCrossValidation::Randomize(vector<vector<real> > &v_vPos, vector<vector<real> > &v_vNeg)
 {
-    vector<vector<float_point> > v_vTempPos;
-    vector<vector<float_point> > v_vTempNeg;
+    vector<vector<real> > v_vTempPos;
+    vector<vector<real> > v_vTempNeg;
 
     srand(1000);
     while(!v_vPos.empty())
     {
         int nIndex = rand() % v_vPos.size();
         v_vTempPos.push_back(v_vPos[nIndex]);
-        vector<vector<float_point> >::iterator it = v_vPos.begin();
+        vector<vector<real> >::iterator it = v_vPos.begin();
         v_vPos.erase(it + nIndex);
     }
 
@@ -83,7 +83,7 @@ void CReadForCrossValidation::Randomize(vector<vector<float_point> > &v_vPos, ve
     {
         int nIndex = rand() % v_vNeg.size();
         v_vTempNeg.push_back(v_vNeg[nIndex]);
-        vector<vector<float_point> >::iterator it = v_vNeg.begin();
+        vector<vector<real> >::iterator it = v_vNeg.begin();
         v_vNeg.erase(it + nIndex);
     }
     assert(v_vPos.empty() && v_vPos.empty());
@@ -94,7 +94,7 @@ void CReadForCrossValidation::Randomize(vector<vector<float_point> > &v_vPos, ve
 /**
  * @brief: read libsvm format 2-class data and store in dense format. For reading the whole set or a subset.
  */
-void CReadForCrossValidation::ReadLibSVMDataFormat(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
+void CReadForCrossValidation::ReadLibSVMDataFormat(vector<vector<real> > &v_vPosSample, vector<vector<real> > &v_vNegSample,
         							   string strFileName, int nNumofFeatures, int nNumofSamples)
 {
 	if(nNumofSamples == -1){//read the whole dataset
@@ -109,7 +109,7 @@ void CReadForCrossValidation::ReadLibSVMDataFormat(vector<vector<float_point> > 
         exit(0);
     }
 
-    vector<float_point> vSample;
+    vector<real> vSample;
 
     //for storing character from file
     int j = 0;
@@ -131,7 +131,7 @@ void CReadForCrossValidation::ReadLibSVMDataFormat(vector<vector<float_point> > 
 
         //get features of a sample
         int nFeature;
-        float_point x;
+        real x;
         while (in >> nFeature >> cColon >> x) {
             i++;
             assert(x > 0 && x <= 1);
@@ -178,13 +178,13 @@ void CReadForCrossValidation::ReadLibSVMDataFormat(vector<vector<float_point> > 
 /**
  * @brief: read multiclass data and convert to 2-class data by even and odd.
  */
-void CReadForCrossValidation::ReadMultiClassData(vector<vector<float_point> > &v_vPosSample, vector<vector<float_point> > &v_vNegSample,
+void CReadForCrossValidation::ReadMultiClassData(vector<vector<real> > &v_vPosSample, vector<vector<real> > &v_vNegSample,
         string strFileName, int nNumofFeatures, int nNumofSamples)
 {
     ifstream readIn;
     readIn.open(strFileName.c_str());
     assert(readIn.is_open());
-    vector<float_point> vSample;
+    vector<real> vSample;
 
     //for storing character from file
     int j = 0;
@@ -206,7 +206,7 @@ void CReadForCrossValidation::ReadMultiClassData(vector<vector<float_point> > &v
 
         //get features of a sample
         int nFeature;
-        float_point x;
+        real x;
         while (in >> nFeature >> cColon >> x) {
             i++;
             assert(x >= -1 && x <= 1);

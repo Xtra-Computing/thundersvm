@@ -8,7 +8,7 @@
  * @brief: write a few Hessian rows to file at one time
  * @return: a set of starting positions for Hessian rows in file
  */
-bool CFileOps::WriteToFile(ofstream &writeOut, float_point *pContent, int nNumofRows, int nNumofColumns)
+bool CFileOps::WriteToFile(ofstream &writeOut, real *pContent, int nNumofRows, int nNumofColumns)
 {
 	bool bReturn = false;
 	if(!writeOut.is_open() || pContent == NULL || nNumofRows <= 0 || nNumofColumns <= 0)
@@ -47,7 +47,7 @@ bool CFileOps::WriteToFile(ofstream &writeOut, float_point *pContent, int nNumof
  * @brief: write one Hessian row to file
  * @return: the starting position of this Hessian row
  */
-int CFileOps::WriteToFile(ofstream &writeOut, float_point *pContent, int nSizeofContent)
+int CFileOps::WriteToFile(ofstream &writeOut, real *pContent, int nSizeofContent)
 {
 	int nReturn = -1;
 	if(!writeOut.is_open() || pContent == NULL || nSizeofContent <= 0)
@@ -60,7 +60,7 @@ int CFileOps::WriteToFile(ofstream &writeOut, float_point *pContent, int nSizeof
 	nReturn = writeOut.tellp();
 	//for(int i = 0; i < nSizeofContent; i++)
 	//{
-		writeOut.write((char*)pContent, sizeof(float_point) * nSizeofContent);
+		writeOut.write((char*)pContent, sizeof(real) * nSizeofContent);
 		//writeOut /*<< setprecision(16)*/ << (float_point)*pContent;
 		//if(i != nSizeofContent - 1)
 		//	writeOut << " : ";
@@ -77,20 +77,20 @@ int CFileOps::WriteToFile(ofstream &writeOut, float_point *pContent, int nSizeof
  * @param: nNumofElementsPerRow: the # of elements of a Hessian row
  * @return: true if success
  */
-bool CFileOps::ReadRowsFromFile(FILE *&readIn, float_point *&pContent, const int &nNumofElementsPerRow, int nNumofRowsToRead,
+bool CFileOps::ReadRowsFromFile(FILE *&readIn, real *&pContent, const int &nNumofElementsPerRow, int nNumofRowsToRead,
 							const int &nIndexofRow)
 {
 	bool bReturn = false;
 	assert(readIn != NULL && pContent != NULL && nNumofElementsPerRow > 0 && nIndexofRow >= 0);
 	//find the position of this Hessian row
-	long long nSeekPos = sizeof(float_point) * nIndexofRow * (long long)nNumofElementsPerRow;
+	long long nSeekPos = sizeof(real) * nIndexofRow * (long long)nNumofElementsPerRow;
 
 	//cout << nIndexofRow << " v.s. " << nSeekPos << " v.s " << sizeof(pContent)<< endl;
 	fseek(readIn, nSeekPos, SEEK_SET);
 	assert(ftell(readIn) != -1);
 
 	//cout << nNumofElementsPerRow << " v.s " << nNumofRowsToRead << endl;
-	long nNumofRead = fread(pContent, sizeof(float_point), nNumofElementsPerRow * nNumofRowsToRead, readIn);
+	long nNumofRead = fread(pContent, sizeof(real), nNumofElementsPerRow * nNumofRowsToRead, readIn);
 	assert(nNumofRead > 0);
 
 	//clean eof bit, when pointer reaches end of file

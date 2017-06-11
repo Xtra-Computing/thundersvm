@@ -11,25 +11,25 @@
 #include <vector>
 #include "host_constant.h"
 #include "svmParam.h"
-#include "../DataReader/BaseLibsvmReader.h"
+#include "../SharedUtility/DataType.h"
 
 using std::vector;
 
-extern float_point gfPCost;    //cost for positive samples in training SVM model (i.e., error tolerance)
-extern float_point gfNCost;    //cost for negative samples in training SVM model
-extern float_point gfGamma;
+extern real gfPCost;    //cost for positive samples in training SVM model (i.e., error tolerance)
+extern real gfNCost;    //cost for negative samples in training SVM model
+extern real gfGamma;
 
 extern int gNTest;
 
 /* a set of parameters which looks like a grid*/
 struct Grid {
-    vector<float_point> vfGamma;
-    vector<float_point> vfC;
+    vector<real> vfGamma;
+    vector<real> vfC;
 };
 
 /* */
 struct data_info {
-    float_point *pfSampleData;        //a pointer to sample data (or index for pre-computed Hessian)
+    real *pfSampleData;        //a pointer to sample data (or index for pre-computed Hessian)
     float *pnLabel;                    //labels for each training sample
     int nNumofExample;                //the number of training samples
     int nNumofDim;                    //the number of dimensions
@@ -42,9 +42,9 @@ enum {
 //for sparse data
 struct svm_node {
     int index;
-    float_point value;
+    real value;
     svm_node(){};
-    svm_node(int index, float_point value):
+    svm_node(int index, real value):
             index(index),value(value){};
 };
 
@@ -54,10 +54,10 @@ public:
     int nr_class;        /* number of classes, = 2 in regression/one class svm */
     int l;            /* total #SV */
     struct svm_node **SV;        /* SVs (SV[l]) */
-    float_point **sv_coef;    /* coefficients for SVs in decision functions (sv_coef[k-1][l]) */
-    float_point *rho;        /* constants in decision functions (rho[k*(k-1)/2]) */
-    float_point *probA;        /* pariwise probability information */
-    float_point *probB;
+    real **sv_coef;    /* coefficients for SVs in decision functions (sv_coef[k-1][l]) */
+    real *rho;        /* constants in decision functions (rho[k*(k-1)/2]) */
+    real *probA;        /* pariwise probability information */
+    real *probB;
 
     /* for classification only */
 

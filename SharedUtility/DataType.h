@@ -9,7 +9,7 @@
 #ifndef DEFINE_H_
 #define DEFINE_H_
 
-typedef float float_point;
+typedef float real;
 typedef unsigned int uint;
 
 

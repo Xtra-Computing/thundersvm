@@ -20,7 +20,7 @@ using std::cerr;
 using std::endl;
 using std::cout;
 
-typedef float float_point;
+typedef float real;
 
 class CDataIOOps
 {
@@ -28,9 +28,9 @@ public:
 	CDataIOOps(){}
 	virtual ~CDataIOOps(){}
 
-	virtual bool ReadFromFile(string strFileName, vector<vector<float_point> > &v_vData, vector<float_point> &v_fValue, int, int) = 0;
+	virtual bool ReadFromFile(string strFileName, vector<vector<real> > &v_vData, vector<real> &v_fValue, int, int) = 0;
 protected:
-	void ReadLibSVMDataFormat(vector<vector<float_point> > &v_vSample, vector<float_point> &v_fValue,
+	void ReadLibSVMDataFormat(vector<vector<real> > &v_vSample, vector<real> &v_fValue,
 										  string strFileName, int nNumofFeatures, int nNumofSamples);
 };
 
@@ -40,37 +40,37 @@ protected:
 class CReadE2006: public CDataIOOps
 {
 public:
-	virtual bool ReadFromFile(string strFileName, vector<vector<float_point> > &v_vSampleData, vector<float_point> &v_fValue, int, int);
+	virtual bool ReadFromFile(string strFileName, vector<vector<real> > &v_vSampleData, vector<real> &v_fValue, int, int);
 };
 
 class CReadCT: public CDataIOOps
 {
 public:
-	virtual bool ReadFromFile(string strFileName, vector<vector<float_point> > &v_vSampleData, vector<float_point> &v_fValue, int, int);
+	virtual bool ReadFromFile(string strFileName, vector<vector<real> > &v_vSampleData, vector<real> &v_fValue, int, int);
 };
 
 class CReadAMZ: public CDataIOOps
 {
 public:
-	virtual bool ReadFromFile(string strFileName, vector<vector<float_point> > &v_vSampleData, vector<float_point> &v_fValue, int, int);
+	virtual bool ReadFromFile(string strFileName, vector<vector<real> > &v_vSampleData, vector<real> &v_fValue, int, int);
 };
 
 class CReadAbalone: public CDataIOOps
 {
 public:
-	virtual bool ReadFromFile(string strFileName, vector<vector<float_point> > &v_vSampleData, vector<float_point> &v_fValue, int, int);
+	virtual bool ReadFromFile(string strFileName, vector<vector<real> > &v_vSampleData, vector<real> &v_fValue, int, int);
 };
 
 class CReadSlice: public CDataIOOps
 {
 public:
-	virtual bool ReadFromFile(string strFileName, vector<vector<float_point> > &v_vSampleData, vector<float_point> &v_fValue, int, int);
+	virtual bool ReadFromFile(string strFileName, vector<vector<real> > &v_vSampleData, vector<real> &v_fValue, int, int);
 };
 
 class CReadKDD: public CDataIOOps
 {
 public:
-	virtual bool ReadFromFile(string strFileName, vector<vector<float_point> > &v_vSampleData, vector<float_point> &v_fValue, int, int);
+	virtual bool ReadFromFile(string strFileName, vector<vector<real> > &v_vSampleData, vector<real> &v_fValue, int, int);
 };
 
 
