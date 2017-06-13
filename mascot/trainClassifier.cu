@@ -72,7 +72,7 @@ void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<i
 
     //create a miss labeling matrix for measuring the sub-classifier errors.
     model.missLabellingMatrix = vector<vector<int> >(model.nrClass, vector<int>(model.nrClass, 0));
-    bool bEvaluateSubClass = false; //choose whether to evaluate sub-classifiers
+    bool bEvaluateSubClass = true; //choose whether to evaluate sub-classifiers
     if(model.nrClass == 2)  //absolutely not necessary to evaluate sub-classifers
         bEvaluateSubClass = false;
 

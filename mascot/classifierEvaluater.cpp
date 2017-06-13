@@ -17,18 +17,19 @@ void ClassifierEvaluater::evaluateSubClassifier(const vector<vector<int> > &miss
 	int row = missLabellingMatrix.size();
 	int col = missLabellingMatrix[0].size();
 	int totalIns = 0, totalMiss = 0;
+	int k = 0;
 	for(int r = 0; r < row; r++){
 		totalIns += missLabellingMatrix[r][r];
 		for(int c = r + 1; c < col; c++){
 			int totalRC = missLabellingMatrix[r][r] + missLabellingMatrix[c][c];
 			int rcMissLabelling = missLabellingMatrix[r][c] + missLabellingMatrix[c][r];
 			totalMiss += rcMissLabelling;
-			//printf("%d and %d accuracy is %f\n", r, c, (float)rcMissLabelling / totalRC);
+			printf("%d v.s %d acc: %.2f%;\t", r, c, (float)(totalRC - rcMissLabelling) / totalRC * 100);
+			k++;
+			if(k % 5 == 0)printf("\n");
 			vErrorRate.push_back((float)rcMissLabelling / totalRC);
 		}
 	}
-    printf("classifier incorrect rate = %.2f%%(%d/%d)\n", totalMiss / (float) totalIns * 100,
-    		totalMiss, totalIns);
 }
 
 /*
