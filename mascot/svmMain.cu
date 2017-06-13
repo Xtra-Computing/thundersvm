@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 		//perform svm training
 		cout << "performing training" << endl;
 		SvmModel model;
-		trainSVM(parser.param, fileName, parser.nNumofFeature, model, parser.compute_training_error);
+		trainSVM(parser.param, fileName, parser.numFeature, model, parser.compute_training_error);
     }else if(parser.task_type == 1){
 		//perform cross validation*/
 		cout << "performing cross-validation" << endl;
@@ -46,9 +46,9 @@ int main(int argc, char **argv)
 		cout << "performing evaluation" << endl;
 		SvmModel model;
         cout << "start training..." << endl;
-		trainSVM(parser.param, fileName, parser.nNumofFeature, model, parser.compute_training_error);
+		trainSVM(parser.param, fileName, parser.numFeature, model, parser.compute_training_error);
         cout << "start evaluation..." << endl;
-        evaluateSVMClassifier(model, parser.testSetName, parser.nNumofFeature);
+        evaluateSVMClassifier(model, parser.testSetName, parser.numFeature);
     }else if(parser.task_type == 4){
     	//perform selecting best C
     	cout << "perform C selection" << endl;
@@ -57,9 +57,9 @@ int main(int argc, char **argv)
 			SvmModel model;
 			model.vC = vC;
 			cout << "start training..." << endl;
-			trainSVM(parser.param, fileName, parser.nNumofFeature, model, parser.compute_training_error);
+			trainSVM(parser.param, fileName, parser.numFeature, model, parser.compute_training_error);
 			cout << "start evaluation..." << endl;
-			evaluateSVMClassifier(model, strcat(fileName, ".t"), parser.nNumofFeature);
+			evaluateSVMClassifier(model, strcat(fileName, ".t"), parser.numFeature);
 			vC = ClassifierEvaluater::updateC(model.vC);
     	}
     }

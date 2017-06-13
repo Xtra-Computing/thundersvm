@@ -16,7 +16,7 @@
 int Parser::task_type = 1;
 bool Parser::compute_training_error = false;
 int Parser::nr_fold = 0;
-int Parser::nNumofFeature = 0;
+int Parser::numFeature = 0;
 string Parser::testSetName = "";
 SVMParam Parser::param;
 
@@ -64,12 +64,9 @@ void Parser::ParseLine(int argc, char **argv, char *pcFileName, char *pcSavedFil
 			case 'b':
 				param.probability = atoi(argv[i]);
 				break;
-			case 'f':
-				nNumofFeature = atoi(argv[i]);
-				if(nNumofFeature < 1)
-				{
-					HelpInfo();
-				}
+			case 'f'://number of features
+				numFeature = atoi(argv[i]);
+				if(numFeature < 1)HelpInfo();
 				break;
             case 'o':
                 task_type = atoi(argv[i]);

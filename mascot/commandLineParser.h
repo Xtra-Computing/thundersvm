@@ -19,7 +19,7 @@ public:
 	static int task_type;
 	static bool compute_training_error;
 	static int nr_fold;
-	static int nNumofFeature;
+	static int numFeature;
 	static SVMParam param;
 	static string testSetName;
 public:

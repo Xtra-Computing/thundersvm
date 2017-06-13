@@ -43,13 +43,13 @@ void MultiSmoSolver::solve() {
             TIMER_START(trainingTimer)
             for (int l = 0;; ++l) {
                 if (l == 0) {
-                    selectWorkingSetAndPreCompute(subProblem, workingSetSize / 2);
+                    selectWorkingSetAndPreCompute(subProblem, workingSetSize / 2, model.vC[k]);
                 } else {
-                    selectWorkingSetAndPreCompute(subProblem, q / 2);
+                    selectWorkingSetAndPreCompute(subProblem, q / 2, model.vC[k]);
                 }
                 TIMER_START(iterationTimer)
                 localSMO << < 1, workingSetSize, workingSetSize * sizeof(float) * 3 + 2 * sizeof(float) >> >
-                                                 (devLabel, devYiGValue, devAlpha, devAlphaDiff, devWorkingSet, workingSetSize, param.C, devHessianMatrixCache, subProblem.getNumOfSamples());
+                                                 (devLabel, devYiGValue, devAlpha, devAlphaDiff, devWorkingSet, workingSetSize, model.vC[k], devHessianMatrixCache, subProblem.getNumOfSamples());
                 TIMER_STOP(iterationTimer)
                 TIMER_START(updateGTimer)
                 updateF << < gridSize, BLOCK_SIZE >> >
@@ -165,7 +165,7 @@ MultiSmoSolver::~MultiSmoSolver() {
     checkCudaErrors(cudaFree(devWorkingSet));
 }
 
-void MultiSmoSolver::selectWorkingSetAndPreCompute(const SvmProblem &subProblem, uint numOfSelectPairs) {
+void MultiSmoSolver::selectWorkingSetAndPreCompute(const SvmProblem &subProblem, uint numOfSelectPairs, double penaltyC) {
     uint numOfSamples = subProblem.getNumOfSamples();
     uint oldSize = workingSetSize / 2 - numOfSelectPairs;
     TIMER_START(selectTimer)
@@ -175,12 +175,12 @@ void MultiSmoSolver::selectWorkingSetAndPreCompute(const SvmProblem &subProblem,
 
     //get q most violation pairs
     getFUpValues << < gridSize, BLOCK_SIZE >> >
-                                (devYiGValue, devAlpha, devLabel, numOfSamples, param.C, devFValue4Sort, devIdx4Sort);
+                                (devYiGValue, devAlpha, devLabel, numOfSamples, penaltyC, devFValue4Sort, devIdx4Sort);
     thrust::sort_by_key(valuePointer, valuePointer + numOfSamples, indexPointer, thrust::greater<float>());
     checkCudaErrors(cudaMemcpy(workingSet.data() + oldSize * 2, devIdx4Sort, sizeof(int) * numOfSelectPairs,
                                cudaMemcpyDeviceToHost));
     getFLowValues << < gridSize, BLOCK_SIZE >> >
-                                 (devYiGValue, devAlpha, devLabel, numOfSamples, param.C, devFValue4Sort, devIdx4Sort);
+                                 (devYiGValue, devAlpha, devLabel, numOfSamples, penaltyC, devFValue4Sort, devIdx4Sort);
     thrust::sort_by_key(valuePointer, valuePointer + numOfSamples, indexPointer, thrust::greater<float>());
     checkCudaErrors(
             cudaMemcpy(workingSet.data() + oldSize * 2 + numOfSelectPairs, devIdx4Sort, sizeof(int) * numOfSelectPairs,

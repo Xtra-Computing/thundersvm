@@ -6,25 +6,30 @@
  */
 
 #include <sys/time.h>
+#include "multiPredictor.h"
+#include "trainClassifier.h"
+#include "commandLineParser.h"
+#include "classifierEvaluater.h"
 #include "../svm-shared/Cache/cache.h"
 #include "../svm-shared/HessianIO/deviceHessianOnFly.h"
 #include "../SharedUtility/Timer.h"
 #include "../SharedUtility/KeyValue.h"
 #include "../SharedUtility/DataReader/LibsvmReaderSparse.h"
-#include "trainClassifier.h"
-#include "multiPredictor.h"
-#include "classifierEvaluater.h"
 
-void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, SvmModel &model, bool evaluteTrainingError) {
+void trainSVM(SVMParam &param, string strTrainingFileName, int numFeature, SvmModel &model, bool evaluteTrainingError) {
     vector<vector<KeyValue> > v_v_Instance;
     vector<int> v_nLabel;
 
-    int nNumofInstance = 0;     //not used
+    int numInstance = 0;     //not used
     uint nNumofValue = 0;  //not used
-    BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
+    if(Parser::numFeature > 0){
+    	numFeature = Parser::numFeature;
+    }
+    else
+    	BaseLibSVMReader::GetDataInfo(strTrainingFileName, numFeature, numInstance, nNumofValue);
 	LibSVMDataReader drHelper;
-	drHelper.ReadLibSVMAsSparse(v_v_Instance, v_nLabel, strTrainingFileName, nNumofFeature);
-    SvmProblem problem(v_v_Instance, nNumofFeature, v_nLabel);
+	drHelper.ReadLibSVMAsSparse(v_v_Instance, v_nLabel, strTrainingFileName, numFeature);
+    SvmProblem problem(v_v_Instance, numFeature, v_nLabel);
 //    problem = problem.getSubProblem(0,1);
     model.fit(problem, param);
     PRINT_TIME("training", trainingTimer)
@@ -45,15 +50,15 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int nNumofFeature, Sv
 	}
 }
 
-void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int nNumofFeature) {
+void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int numFeature) {
     vector<vector<KeyValue> > v_v_Instance;
     vector<int> v_nLabel;
 
-    int nNumofInstance = 0;     //not used
+    int numInstance = 0;     //not used
     uint nNumofValue = 0;  //not used
-    BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
+    BaseLibSVMReader::GetDataInfo(strTrainingFileName, numFeature, numInstance, nNumofValue);
 	LibSVMDataReader drHelper;
-	drHelper.ReadLibSVMAsSparse(v_v_Instance, v_nLabel, strTrainingFileName, nNumofFeature);
+	drHelper.ReadLibSVMAsSparse(v_v_Instance, v_nLabel, strTrainingFileName, numFeature);
 
     //evaluate testing error
     evaluate(model, v_v_Instance, v_nLabel, ClassifierEvaluater::testingError);
