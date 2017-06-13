@@ -10,6 +10,8 @@
 #define DEFINE_H_
 
 typedef float real;
+#define LARGE_REAL_NUM 0xffffffff
+
 typedef unsigned int uint;
 
 

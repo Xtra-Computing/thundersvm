@@ -46,7 +46,6 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int numFeature, SvmMo
     if (evaluteTrainingError == true) {
         printf("Computing training accuracy...\n");
         evaluate(model, v_v_Instance, v_nLabel, ClassifierEvaluater::trainingError);
-    
 	}
 }
 
