@@ -12,7 +12,7 @@
 #include "cvFunction.h"
 #include "svmPredictor.h"
 #include "modelSelector.h"
-#include "commandLineParser.h"
+#include "SVMCmdLineParser.h"
 #include "../svm-shared/fileOps.h"
 #include "../svm-shared/smoSolver.h"
 #include "../svm-shared/svmTrainer.h"
@@ -36,8 +36,8 @@ void gridSearch(Grid &SGrid, string strTrainingFileName){
 	int numFeature = 0;
 	int numInstance = 0;
 	uint nNumofValue = 0;
-    if(Parser::numFeature > 0){
-    	numFeature = Parser::numFeature;
+    if(SVMCmdLineParser::numFeature > 0){
+    	numFeature = SVMCmdLineParser::numFeature;
     }
     else
     	BaseLibSVMReader::GetDataInfo(strTrainingFileName, numFeature, numInstance, nNumofValue);

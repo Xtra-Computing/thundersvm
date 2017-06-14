@@ -74,7 +74,7 @@ PROB="-b 1" #0 for no probability output; 1 for probability output.
 
 #task type: 0 for training; 1 for cross-validation; 2 for evaluation
 #	    3 for grid search; 4 for selecting better C.
-TASK="-o 2"
+TASK="-o 1"
 
 #test set name ("e" stands for evaluation)
 #In this example test set name, if you use "mnist.scale", the test set name is "mnist.scale.t"

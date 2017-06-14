@@ -8,7 +8,7 @@
 #include <sys/time.h>
 #include "multiPredictor.h"
 #include "trainClassifier.h"
-#include "commandLineParser.h"
+#include "SVMCmdLineParser.h"
 #include "classifierEvaluater.h"
 #include "../svm-shared/Cache/cache.h"
 #include "../svm-shared/HessianIO/deviceHessianOnFly.h"
@@ -22,8 +22,8 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int numFeature, SvmMo
 
     int numInstance = 0;     //not used
     uint nNumofValue = 0;  //not used
-    if(Parser::numFeature > 0){
-    	numFeature = Parser::numFeature;
+    if(SVMCmdLineParser::numFeature > 0){
+    	numFeature = SVMCmdLineParser::numFeature;
     }
     else
     	BaseLibSVMReader::GetDataInfo(strTrainingFileName, numFeature, numInstance, nNumofValue);

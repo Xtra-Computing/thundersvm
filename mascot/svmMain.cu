@@ -12,7 +12,7 @@
 #include <cuda.h>
 
 #include "cvFunction.h"
-#include "commandLineParser.h"
+#include "SVMCmdLineParser.h"
 #include "../SharedUtility/initCuda.h"
 #include "svmModel.h"
 #include "trainClassifier.h"
@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 {
 	char fileName[1024];
 	char savedFileName[1024];
-	Parser parser;
+	SVMCmdLineParser parser;
 	parser.ParseLine(argc, argv, fileName, savedFileName);
 
     CUcontext context;
