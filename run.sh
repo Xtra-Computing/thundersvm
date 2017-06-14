@@ -70,7 +70,7 @@ case $1 in
 esac
 ###options
 #svm with probability output
-PROB="-b 0" #0 for no probability output; 1 for probability output.
+PROB="-b 1" #0 for no probability output; 1 for probability output.
 
 #task type: 0 for training; 1 for cross-validation; 2 for evaluation
 #	    3 for grid search; 4 for selecting better C.

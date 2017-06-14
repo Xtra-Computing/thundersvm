@@ -438,18 +438,18 @@ void SvmModel::addBinaryModel(const SvmProblem &problem, const vector<int> &svLo
     this->rho[k] = rho;
     numOfSVs += svLocalIndex.size();
 }
+
 void SvmModel::updateAllCoef(int l, int indOffset, int nr_class, int &count, int k, const vector<int> &svIndex, const vector<real> &coef,vector<int> &prob_start){
-	
 	for(int i=0;i<l;i++){
 	if(i+indOffset==svIndex[count]){
 		allcoef[k].push_back(coef[count++]);
-		if(!nonzero[prob_start[nr_class]+i]) {                                       	nonzero[prob_start[nr_class]+i]=true;
+		if(!nonzero[prob_start[nr_class]+i]) {
+			nonzero[prob_start[nr_class]+i]=true;
 			nSV[nr_class]++;
 		}
-	}
-		else{
+	}else{
 			allcoef[k].push_back(0);
-		}
+	}
 																				}
 }
 
@@ -484,7 +484,8 @@ bool SvmModel::saveLibModel(string filename,const SvmProblem &problem){
 	libmod<<"kernel_type "<<kType[param.kernel_type]<<endl;;
 	if(param.kernel_type==1)
 		libmod<<"degree "<<param.degree<<endl;
-	if(param.kernel_type == 1|| param.kernel_type == 2|| param.kernel_type ==3)/*1:poly 2:rbf 3:sigmoid*/														libmod<<"gamma "<<param.gamma<<endl;
+	if(param.kernel_type == 1|| param.kernel_type == 2|| param.kernel_type ==3)/*1:poly 2:rbf 3:sigmoid*/
+		libmod<<"gamma "<<param.gamma<<endl;
 	if(param.kernel_type == 1 || param.kernel_type == 3)
 		libmod<<"coef0 "<<param.coef0<<endl;
 	unsigned int nr_class=this->nrClass;
@@ -499,9 +500,8 @@ bool SvmModel::saveLibModel(string filename,const SvmProblem &problem){
 	libmod<<endl;
 	if(param.svm_type==0){
 		libmod<<"label";
-		for(int i=0;i<nr_class;i++){
+		for(int i=0;i<nr_class;i++)
 			libmod<<" "<<label[i];
-																																								}
 		libmod<<endl;
 	}
 	if(this->probability) // regression has probA only
@@ -524,7 +524,7 @@ bool SvmModel::saveLibModel(string filename,const SvmProblem &problem){
 	}
 
 	libmod<<"SV"<<endl;
-																				vector<int> prob_count(problem.count);
+	vector<int> prob_count(problem.count);
 	vector<int> prob_start(problem.start);
 	for(int i=0;i<nr_class;i++){
 		for(int k=0;k<prob_count[i];k++){
