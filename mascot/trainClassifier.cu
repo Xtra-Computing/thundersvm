@@ -88,7 +88,7 @@ void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<i
         vector<vector<KeyValue> > samples(v_v_Instance.begin() + begin,
                                           v_v_Instance.begin() + end);
         vector<int> vLabel(v_nLabel.begin() + begin, v_nLabel.begin() + end);
-        if(bEvaluateSubClass == false || model.isProbability() == true)
+        if(bEvaluateSubClass == false)
         	vLabel.clear();
         //predict labels for the subset of instances
         vector<int> predictLabelPart = predictor.predict(samples, vLabel);

@@ -11,6 +11,7 @@
 #include <vector>
 #include <stdio.h>
 #include "../SharedUtility/DataType.h"
+#include "svmModel.h"
 
 using std::vector;
 
@@ -20,6 +21,7 @@ public:
 	static vector<real> testingError;
 public:
 
+	static void collectSubSVMInfo(SvmModel &model, int insId, int trueLable, int nrClass, const vector<vector<real> > &predictedRes, bool isProbabilistic);
 	static void evaluateSubClassifier(const vector<vector<int> > &missLabellingMatrix, vector<real> &vErrorRate);
 	static vector<real> updateC(const vector<real> &vOldC);
 };
