@@ -236,7 +236,6 @@ vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples,
             labels.push_back(model.label[maxVoteClass]);
         }
     } else {
-        printf("predict with probability\n");
         assert(model.probability);
         vector<vector<real> > prob = predictProbability(v_vSamples);
         // todo select max using GPU

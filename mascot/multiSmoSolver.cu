@@ -17,6 +17,7 @@
 #include "../SharedUtility/Timer.h"
 #include "../SharedUtility/powerOfTwo.h"
 #include "../SharedUtility/CudaMacro.h"
+#include "multiPredictor.h"
 
 void MultiSmoSolver::solve() {
     int nrClass = problem.getNumOfClasses();
@@ -79,6 +80,7 @@ void MultiSmoSolver::solve() {
             deinit4Training();
         }
     }
+
 
 }
 
