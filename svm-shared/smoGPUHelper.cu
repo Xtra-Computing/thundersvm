@@ -5,6 +5,7 @@
 #include "../SharedUtility/CudaMacro.h"
 
 #include <float.h>
+#include <cstdio>
 
 /* *
  /*
@@ -384,32 +385,40 @@ updateF(real *FValues, const int *label, const int *workingSet, int wsSize, cons
         FValues[nGlobalIndex] -= sumDiff;
     }
 }
+
 __global__ void getFUpValues(const real *FValues, const real *alpha, const int *labels,
-                             int numOfSamples, int C, real *FValue4Sort, int *Idx4Sort) {
+                             int numOfSamples, int C, real *FValue4Sort, int *Idx4Sort, const int *wsIndicator) {
     int nGlobalIndex = (blockIdx.y * gridDim.x + blockIdx.x) * blockDim.x + threadIdx.x;//global index for thread
     if (nGlobalIndex < numOfSamples) {
         real y = labels[nGlobalIndex];
         real a = alpha[nGlobalIndex];
-        if (y > 0 && a < C || y < 0 && a > 0)
+//        printf("[%d]%d",nGlobalIndex, wsIndicator[nGlobalIndex]);
+        if (wsIndicator[nGlobalIndex] == 1)
+            FValue4Sort[nGlobalIndex] = -FLT_MAX;
+        else if (y > 0 && a < C || y < 0 && a > 0)
             FValue4Sort[nGlobalIndex] = -FValues[nGlobalIndex];
         else
-            FValue4Sort[nGlobalIndex] = -FLT_MAX;
+            FValue4Sort[nGlobalIndex] = -FLT_MAX + 1;
         Idx4Sort[nGlobalIndex] = nGlobalIndex;
     }
 }
 
 __global__ void getFLowValues(const real *FValues, const real *alpha, const int *labels,
-                              int numOfSamples, int C, real *FValue4Sort, int *Idx4Sort) {
+                              int numOfSamples, int C, real *FValue4Sort, int *Idx4Sort, const int *wsIndicator) {
     int nGlobalIndex = (blockIdx.y * gridDim.x + blockIdx.x) * blockDim.x + threadIdx.x;//global index for thread
     if (nGlobalIndex < numOfSamples) {
         real y = labels[nGlobalIndex];
         real a = alpha[nGlobalIndex];
-        if (y > 0 && a > 0 || y < 0 && a < C)
+//        printf("[%d]%d",nGlobalIndex, wsIndicator[nGlobalIndex]);
+        if (wsIndicator[nGlobalIndex] == 1)
+            FValue4Sort[nGlobalIndex] = -FLT_MAX;
+        else if (y > 0 && a > 0 || y < 0 && a < C)
             FValue4Sort[nGlobalIndex] = FValues[nGlobalIndex];
         else
-            FValue4Sort[nGlobalIndex] = -FLT_MAX;
+            FValue4Sort[nGlobalIndex] = -FLT_MAX + 1;
         Idx4Sort[nGlobalIndex] = nGlobalIndex;
     }
 }
+
 __device__ real devDiff;//fUp - fLow
 __device__ real devRho;//bias

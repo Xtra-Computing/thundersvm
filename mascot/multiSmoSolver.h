@@ -42,6 +42,7 @@ private:
 
     real *devAlphaDiff;
     int *devWorkingSet;
+    int *devWorkingSetIndicator;
     real *devHessianMatrixCache;
     int nnz;
     real *devVal;
@@ -53,7 +54,7 @@ private:
     int workingSetSize;
     int q;
     vector<int> workingSet;
-
+    vector<int> workingSetIndicator;
 };
 
 
