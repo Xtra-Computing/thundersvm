@@ -26,7 +26,6 @@ void MultiSmoSolver::solve() {
         model.vC = vector<real>(nrClass * (nrClass - 1) / 2, param.C);
     }
 
-    printf("q = %d, working set size = %d\n", q, workingSetSize);
     //train nrClass*(nrClass-1)/2 binary models
     int k = 0;
     vector<int> prob_start(problem.start);
@@ -42,6 +41,7 @@ void MultiSmoSolver::solve() {
                 workingSetSize = floorPow2(subProblem.v_vSamples.size());
             }
             q = workingSetSize / 2;
+            printf("q = %d, working set size = %d\n", q, workingSetSize);
 
             //should be called after workingSetSize is initialized
             init4Training(subProblem);
