@@ -84,6 +84,7 @@ void MultiSmoSolver::solve() {
                 }
             }
             TIMER_STOP(trainingTimer)
+            printf("obj = %f\n", getObjValue(subProblem.getNumOfSamples()));
             subProblemMat.freeDev(devVal, devRowPtr, devColInd, devSelfDot);
             vector<int> svIndex;
             vector<real> coef;
@@ -94,6 +95,7 @@ void MultiSmoSolver::solve() {
             model.getModelParam(subProblem, svIndex, coef, prob_start, ci, i, j);
             model.addBinaryModel(subProblem, svIndex, coef, rho, i, j);
             k++;
+
             deinit4Training();
         }
     }
@@ -243,5 +245,23 @@ MultiSmoSolver::selectWorkingSetAndPreCompute(const SvmProblem &subProblem, uint
     SubHessianCalculator::releaseCSRContext(handle, descr);
     workingSetMat.freeDev(devWSVal, devWSRowPtr, devWSColInd, devWSSelfDot);
     TIMER_STOP(preComputeTimer)
+}
+
+real MultiSmoSolver::getObjValue(int numOfSamples) const {
+    //the function should be called before deinit4Training
+    vector<real> f(numOfSamples);
+    vector<real> alpha(numOfSamples);
+    vector<int> y(numOfSamples);
+    cudaMemcpy(f.data(), devYiGValue, sizeof(real) * numOfSamples, cudaMemcpyDeviceToHost);
+    cudaMemcpy(alpha.data(), devAlpha, sizeof(real) * numOfSamples, cudaMemcpyDeviceToHost);
+    cudaMemcpy(y.data(), devLabel, sizeof(int) * numOfSamples, cudaMemcpyDeviceToHost);
+    real obj = 0;
+    for (int i = 0; i < numOfSamples; ++i) {
+        obj -= alpha[i];
+    }
+    for (int i = 0; i < numOfSamples; ++i) {
+            obj += 0.5 * alpha[i] * y[i] * (f[i] + y[i]);
+    }
+    return obj;
 }
 
