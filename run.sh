@@ -19,6 +19,7 @@ GAMMA="-g "
 #penalty
 C="-c "
 #file name (must appear as the last argument)
+
 case $1 in
     iris)
         GAMMA=${GAMMA}"0.5"
@@ -55,6 +56,12 @@ case $1 in
         C=${C}"0.5"
         TrainingSet=${DATASET_DIR}/"real-sim"
         ;;
+	cifar-10)
+		GAMMA=${GAMMA}"0.0025"
+		C=${C}"10"
+		TrainingSet=${DATASET_DIR}/"cifar10.libsvm"
+		F="-f 3072"
+		;;
     *)
         echo "undefined dataset, use GAMMA=0.5, C=10"
         GAMMA=${GAMMA}"0.5"
@@ -67,7 +74,7 @@ PROB="-b 0" #0 for no probability output; 1 for probability output.
 
 #task type: 0 for training; 1 for cross-validation; 2 for evaluation
 #	    3 for grid search; 4 for selecting better C.
-TASK="-o 1"
+TASK="-o 2"
 
 #test set name ("e" stands for evaluation)
 #In this example test set name, if you use "mnist.scale", the test set name is "mnist.scale.t"
@@ -76,11 +83,8 @@ TestSet="-e "${TrainingSet}".t"
 #evaluate training error
 E="-r 1" #0 not evaluate training error; evaluate training error otherwise.
 
-#number of features
-#NUMFEATURE="-f 16"
-
 #print out the command before execution
 set -x
 
 #command
-./bin/release/mascot ${PROB} ${TASK} ${GAMMA} ${C} ${E} ${NUMFEATURE} ${TestSet} ${TrainingSet}
+./bin/release/mascot ${PROB} ${TASK} ${GAMMA} ${C} ${E} ${F} ${TestSet} ${TrainingSet}

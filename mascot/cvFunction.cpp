@@ -10,17 +10,16 @@
 #include <stdio.h>
 
 #include "cvFunction.h"
-
-#include "../svm-shared/HessianIO/seqAccessor.h"
-#include "../svm-shared/HessianIO/parAccessor.h"
-//#include "hessianIO.h"
-#include "../svm-shared/kernelCalculater/kernelCalculater.h"
-#include "../svm-shared/svmTrainer.h"
 #include "svmPredictor.h"
 #include "modelSelector.h"
-#include "../svm-shared/smoSolver.h"
-#include "../svm-shared/Cache/cache.h"
+#include "SVMCmdLineParser.h"
 #include "../svm-shared/fileOps.h"
+#include "../svm-shared/smoSolver.h"
+#include "../svm-shared/svmTrainer.h"
+#include "../svm-shared/Cache/cache.h"
+#include "../svm-shared/HessianIO/seqAccessor.h"
+#include "../svm-shared/HessianIO/parAccessor.h"
+#include "../svm-shared/kernelCalculater/kernelCalculater.h"
 #include "../SharedUtility/DataReader/BaseLibsvmReader.h"
 #include "../SharedUtility/DataReader/LibsvmReaderSparse.h"
 
@@ -34,12 +33,16 @@ void gridSearch(Grid &SGrid, string strTrainingFileName){
 	vector<vector<real> > v_vDocVector;
 	vector<int> v_nLabel;
 
-	int nNumofFeature = 0;
-	int nNumofInstance = 0;
+	int numFeature = 0;
+	int numInstance = 0;
 	uint nNumofValue = 0;
-	BaseLibSVMReader::GetDataInfo(strTrainingFileName, nNumofFeature, nNumofInstance, nNumofValue);
+    if(SVMCmdLineParser::numFeature > 0){
+    	numFeature = SVMCmdLineParser::numFeature;
+    }
+    else
+    	BaseLibSVMReader::GetDataInfo(strTrainingFileName, numFeature, numInstance, nNumofValue);
 	LibSVMDataReader drHelper;
-	drHelper.ReadLibSVMAsDense(v_vDocVector, v_nLabel, strTrainingFileName, nNumofFeature);
+	drHelper.ReadLibSVMAsDense(v_vDocVector, v_nLabel, strTrainingFileName, numFeature);
 
 	CModelSelector modelSelector;
 

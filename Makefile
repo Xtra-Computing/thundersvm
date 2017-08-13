@@ -14,7 +14,7 @@ debug_bin := $(ODIR)/debug
 $(shell mkdir -p $(ODIR)/release)
 $(shell mkdir -p $(ODIR)/debug)
 
-FILES = $(shell find ./mascot ./svm-shared ./DataReader ./SharedUtility  -name '*.cu' -or -name '*.cpp')
+FILES = $(shell find . -name '*.cu' -or -name '*.cpp')
 SOURCE = $(notdir $(FILES))				#remove directory
 OBJS = $(patsubst %.cpp, %.o,$(SOURCE:.cpp=.o)) #replace .cpp to .o
 OBJ = $(patsubst %.cu, %.o,$(OBJS:.cu=.o))		#replace .cu to .o

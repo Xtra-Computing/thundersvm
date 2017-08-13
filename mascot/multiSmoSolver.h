@@ -30,9 +30,10 @@ private:
     void init4Training(const SvmProblem &subProblem);
 
 
-    void selectWorkingSetAndPreCompute(const SvmProblem &subProblem, uint numOfSelectPairs);
+    void selectWorkingSetAndPreCompute(const SvmProblem &subProblem, uint numOfSelectPairs, double penaltyC);
 
     void extractModel(const SvmProblem &subProblem, vector<int> &svIndex, vector<real> &coef, real &rho) const;
+    real getObjValue(int numOfSamples) const;
     void deinit4Training();
 
     virtual real *ObtainRow(int numTrainingInstance)
@@ -42,6 +43,7 @@ private:
 
     real *devAlphaDiff;
     int *devWorkingSet;
+    int *devWorkingSetIndicator;
     real *devHessianMatrixCache;
     int nnz;
     real *devVal;
@@ -53,7 +55,7 @@ private:
     int workingSetSize;
     int q;
     vector<int> workingSet;
-
+    vector<int> workingSetIndicator;
 };
 
 

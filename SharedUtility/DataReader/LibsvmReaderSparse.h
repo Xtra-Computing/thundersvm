@@ -108,7 +108,6 @@ void LibSVMDataReader::ReaderHelper(vector<vector<KeyValue> > &v_vInstance, vect
 	//for storing character from file
 	int j = 0;
 	string str;
-//	int nMissingCount = 0;
 
 	//get a sample
 	char cColon;
@@ -119,7 +118,6 @@ void LibSVMDataReader::ReaderHelper(vector<vector<KeyValue> > &v_vInstance, vect
         if (str == "") break;
 		istringstream in(str);
 		int i = 0;
-//		bool bMiss = false;
 		T fValue = 0;
 		in >> fValue;
 		v_targetValue.push_back(fValue);
@@ -130,8 +128,6 @@ void LibSVMDataReader::ReaderHelper(vector<vector<KeyValue> > &v_vInstance, vect
 		while (in >> nFeature >> cColon >> x)
 		{
 			numFeaValue++;
-			//assert(x > 0 && x <= 1);
-			//cout << nFeature << " " << cColon << endl;
 			assert(cColon == ':');
 			if(bUseDense == true)
 			{
@@ -167,7 +163,7 @@ void LibSVMDataReader::ReaderHelper(vector<vector<KeyValue> > &v_vInstance, vect
 
 		//clear vector
 		vSample.clear();
-	} while (readIn.eof() != true && j < nNumofInstance);//nNumofInstance is to enable reading a subset.
+	}while (readIn.eof() != true && j < nNumofInstance);//nNumofInstance is to enable reading a subset.
 
 	//clean eof bit, when pointer reaches end of file
 	if(readIn.eof())

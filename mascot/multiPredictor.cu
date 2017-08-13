@@ -13,6 +13,7 @@
 #include <assert.h>
 #include "multiPredictor.h"
 #include "predictionGPUHelper.h"
+#include "classifierEvaluater.h"
 #include "../svm-shared/constant.h"
 #include "../SharedUtility/CudaMacro.h"
 
@@ -83,7 +84,7 @@ void MultiPredictor::multiClassProbability(const vector<vector<real> > &r, vecto
     free(Qp);
 }
 
-vector<vector<real> > MultiPredictor::predictProbability(const vector<vector<KeyValue> > &v_vSamples) const {
+vector<vector<real> > MultiPredictor::predictProbability(const vector<vector<KeyValue> > &v_vSamples, const vector<int> &vnOriginalLabel) const {
 	int nrClass = model.nrClass;
     vector<vector<real> > result;
     vector<vector<real> > decValues;
@@ -99,6 +100,8 @@ vector<vector<real> > MultiPredictor::predictProbability(const vector<vector<Key
                 r[j][i] = 1 - r[i][j];
                 k++;
             }
+        if(!vnOriginalLabel.empty())//want to measure sub-classifier error
+        	ClassifierEvaluater::collectSubSVMInfo(model, l, vnOriginalLabel[l], nrClass, r, true);
         vector<real> p(nrClass);
         multiClassProbability(r, p);
         result.push_back(p);
@@ -194,29 +197,7 @@ vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples,
         computeDecisionValues(v_vSamples, decisionValues);
         for (int l = 0; l < v_vSamples.size(); ++l) {
         	if(!vnOriginalLabel.empty())//want to measure sub-classifier error
-        	{
-        		//update model labeling information
-                int rawLabel = vnOriginalLabel[l];
-				int originalLabel = -1;
-                for(int pos = 0; pos < model.label.size(); pos++){
-                    if(model.label[pos] == rawLabel)
-                        originalLabel = pos;
-                }
-				model.missLabellingMatrix[originalLabel][originalLabel]++;//increase the total occurrence of a label.
-				int k = 0;
-	            for (int i = 0; i < nrClass; ++i) {
-	                for (int j = i + 1; j < nrClass; ++j) {
-	                	int labelViaBinary = j;
-	                    if (decisionValues[l][k++] > 0)
-	                    	labelViaBinary = i;
-
-	    				if(i == originalLabel || j == originalLabel){
-	    					if(labelViaBinary != originalLabel)//miss classification
-	    						model.missLabellingMatrix[originalLabel][labelViaBinary]++;
-	    				}
-	                }
-	            }
-        	}
+	            ClassifierEvaluater::collectSubSVMInfo(model, l, vnOriginalLabel[l], nrClass, decisionValues, false);
 
             vector<int> votes(nrClass, 0);
             int k = 0;
@@ -236,9 +217,8 @@ vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples,
             labels.push_back(model.label[maxVoteClass]);
         }
     } else {
-        printf("predict with probability\n");
         assert(model.probability);
-        vector<vector<real> > prob = predictProbability(v_vSamples);
+        vector<vector<real> > prob = predictProbability(v_vSamples, vnOriginalLabel);
         // todo select max using GPU
         for (int i = 0; i < v_vSamples.size(); ++i) {
             int maxProbClass = 0;

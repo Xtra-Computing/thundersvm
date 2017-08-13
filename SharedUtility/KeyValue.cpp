@@ -10,7 +10,7 @@
 #include <iostream>
 
 #include "KeyValue.h"
-#include "MyAssert.h"
+#include "CudaMacro.h"
 
 using std::sort;
 using std::cout;
@@ -111,32 +111,5 @@ void KeyValue::VecToArray(vector<vector<KeyValue> > &vvKeyValuePair, int *pId, r
 
 		plStartPos[i] = totalPreValue;
 		totalPreValue += nNumofPair;
-	}
-}
-
-/**
- * @brief: a function to test VecToArry
- */
-void KeyValue::TestVecToArray(vector<vector<KeyValue> > &vvFeaInxPair, int *pInsId, real *pdValue, int *pNumofKeyValue)
-{
-	PROCESS_ERROR(pInsId != NULL);
-	PROCESS_ERROR(pdValue != NULL);
-	PROCESS_ERROR(pNumofKeyValue != NULL);
-
-	int nCur = 0;//the current processing key-value pair
-	int nFeature = vvFeaInxPair.size();
-	for(int i = 0; i < nFeature; i++)
-	{//for each feature
-		vector<KeyValue> &vKV = vvFeaInxPair[i];
-		int nNumofValue = vKV.size();
-		PROCESS_ERROR(pNumofKeyValue[i] == nNumofValue);
-
-		//for each pair of key-value
-		for(int p = 0; p < nNumofValue; p++)
-		{
-			PROCESS_ERROR(pInsId[nCur] == vKV[p].id);
-			PROCESS_ERROR(pdValue[nCur] == vKV[p].featureValue);
-			nCur++;//move to next key value
-		}
 	}
 }
