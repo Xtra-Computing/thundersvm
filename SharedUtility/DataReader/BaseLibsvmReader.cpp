@@ -9,6 +9,7 @@
 #include <iostream>
 #include <assert.h>
 #include <sstream>
+#include <stdio.h>
 #include "BaseLibsvmReader.h"
 
 using std::istringstream;
@@ -44,7 +45,7 @@ void BaseLibSVMReader::GetDataInfo(string strFileName, int &nNumofFeatures, int 
 
 		//get features of a sample
 		int nFeature;
-		real x = -1;
+		real x = 0xffffffff;
 		while (in >> nFeature >> cColon >> x)
 		{
 			assert(cColon == ':');
@@ -54,7 +55,7 @@ void BaseLibSVMReader::GetDataInfo(string strFileName, int &nNumofFeatures, int 
 		}
 
 		//skip an empty line (usually this case happens in the last line)
-		if(x == -1)
+		if(x == 0xffffffff)
 			continue;
 
 		nNumofInstance++;
@@ -68,4 +69,5 @@ void BaseLibSVMReader::GetDataInfo(string strFileName, int &nNumofFeatures, int 
 	}
 
 	readIn.close();
+	 printf("GetDataInfo. # of instances: %d; # of features: %d; # of fvalue: %d\n", nNumofInstance, nNumofFeatures, nNumofValue);
 }

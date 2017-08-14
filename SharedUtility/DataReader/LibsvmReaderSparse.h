@@ -108,26 +108,32 @@ void LibSVMDataReader::ReaderHelper(vector<vector<KeyValue> > &v_vInstance, vect
 	//for storing character from file
 	int j = 0;
 	string str;
+//	int nMissingCount = 0;
 
 	//get a sample
 	char cColon;
 	uint numFeaValue = 0;
+	uint maxFeaId = 0;
 	do {
 		j++;
 		getline(readIn, str);
         if (str == "") break;
 		istringstream in(str);
 		int i = 0;
+//		bool bMiss = false;
 		T fValue = 0;
 		in >> fValue;
 		v_targetValue.push_back(fValue);
 
 		//get features of a sample
 		int nFeature;
-		real x;
+		real x = 0xffffffff;
 		while (in >> nFeature >> cColon >> x)
 		{
+			if(nFeature > maxFeaId)
+				maxFeaId = nFeature;
 			numFeaValue++;
+			//assert(x > 0 && x <= 1);
 			assert(cColon == ':');
 			if(bUseDense == true)
 			{
@@ -149,6 +155,9 @@ void LibSVMDataReader::ReaderHelper(vector<vector<KeyValue> > &v_vInstance, vect
 			Push(nFeature - 1, x, vSample);
 			i++;
 		}
+		//skip an empty line (usually this case happens in the last line)
+		if(x == 0xffffffff)
+			continue;
 		//fill the value of the rest of the features as 0
 		if(bUseDense == true)
 		{
@@ -163,14 +172,14 @@ void LibSVMDataReader::ReaderHelper(vector<vector<KeyValue> > &v_vInstance, vect
 
 		//clear vector
 		vSample.clear();
-	}while (readIn.eof() != true && j < nNumofInstance);//nNumofInstance is to enable reading a subset.
+	} while (readIn.eof() != true && j < nNumofInstance);//nNumofInstance is to enable reading a subset.
 
 	//clean eof bit, when pointer reaches end of file
 	if(readIn.eof())
 	{
 		readIn.clear();
 	}
-    printf("# of instances: %d; # of features: %d; # of fvalue: %d\n", v_vInstance.size(), nNumofFeatures, numFeaValue);
+    printf("# of instances: %d;  max feature id2: %d; # of fvalue: %d\n", v_vInstance.size(), maxFeaId, numFeaValue);
 }
 
 
