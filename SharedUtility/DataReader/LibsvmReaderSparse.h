@@ -115,7 +115,6 @@ void LibSVMDataReader::ReaderHelper(vector<vector<KeyValue> > &v_vInstance, vect
 	uint numFeaValue = 0;
 	uint maxFeaId = 0;
 	do {
-		j++;
 		getline(readIn, str);
         if (str == "") break;
 		istringstream in(str);
@@ -167,7 +166,7 @@ void LibSVMDataReader::ReaderHelper(vector<vector<KeyValue> > &v_vInstance, vect
 				i++;
 			}
 		}
-
+		j++;
 		v_vInstance.push_back(vSample);
 
 		//clear vector
