@@ -141,6 +141,8 @@ float evaluateOVABinaryClassifier(vector<vector<int> > &combPredictLabels, SvmMo
     }
     finish = clock();
     //combine bianry predictLabels
+	//for(int i=0;i<10;i++)
+    //	cout<<"binarytestlabel********"<<predictLabels[100+i]<<endl;
     combPredictLabels.push_back(predictLabels);
     
     if(bEvaluateSubClass == true){
@@ -174,8 +176,11 @@ void evaluateOVA(vector<vector<KeyValue> > &testInstance, vector<int> &testLabel
     int NoClassIns=0;//#instance that does't belong to any class
     int correctIns=0;
 	int nrClass=originalPositiveLabel.size();
-	for(int i=0;i<originalPositiveLabel.size();i++)
-    	cout<<"testlabel********"<<originalPositiveLabel[i]<<endl;
+	//for(int i=0;i<10;i++)
+    //	cout<<"testlabel********"<<combPredictLabels[0][i]<<endl;
+	//cout<<"*******************"<<endl;
+	//for(int i=0;i<10;i++)
+    //	cout<<"testlabel********"<<combPredictLabels[1][i]<<endl;
 	clock_t start,end;
 	start=clock();
     for( int i=0;i<testInstance.size() ;i++){
@@ -190,13 +195,23 @@ void evaluateOVA(vector<vector<KeyValue> > &testInstance, vector<int> &testLabel
                 maxVote=j;
 			}
         }
-        if(flag==1)
+			
+		if(i<10)
+    		cout<<"flaglabel********"<<flag<<endl;
+        if(flag==1){
             if(originalPositiveLabel[maxVote]==testLabel[i])
                 correctIns++;
-        else if(flag>1)
+			cout<<"flag==1"<<endl;	
+				}
+        else if(flag>1){
             manyClassIns++;
-        else
+			cout<<"many"<<endl;}
+        else{
             NoClassIns++;
+			cout<<"noclass"<<endl;
+			}
+		if(i<10)
+    		cout<<"manyclasslabel********"<<manyClassIns<<endl;
     }
 	end=clock();
 	testingTime+=(float)(end-start)/CLOCKS_PER_SEC;
@@ -227,7 +242,7 @@ void trainOVASVM(SVMParam &param, string strTrainingFileName, int numFeature,  b
     drHelper.ReadLibSVMAsSparse(v_v_Instance, v_nLabel, strTrainingFileName, numFeature);
     //build problem of all classes
     SvmProblem problem(v_v_Instance, numFeature, v_nLabel);
-
+cout<<"test"<<endl;
     int testNumInstance = 0;     //not used
     uint testNumofValue = 0;
     vector<vector<KeyValue> > testInstance;
@@ -283,9 +298,9 @@ void trainOVASVM(SVMParam &param, string strTrainingFileName, int numFeature,  b
 
         cout << "start evaluation..." << endl;
         testingTime+= evaluateOVABinaryClassifier(combPredictLabels, model, testInstance, testLabel, ClassifierEvaluater::testingError);
-        evaluateOVABinaryClassifier(combTrainPredictLabels, model, v_v_Instance, v_nLabel, ClassifierEvaluater::testingError);
+  //      evaluateOVABinaryClassifier(combTrainPredictLabels, model, v_v_Instance, v_nLabel, ClassifierEvaluater::testingError);
    
     }
 	evaluateOVA(testInstance, testLabel, combPredictLabels, originalPositiveLabel, testingTime);
-	evaluateOVA(v_v_Instance, v_nLabel, combTrainPredictLabels, originalPositiveLabel, testingTime);
+//	evaluateOVA(v_v_Instance, v_nLabel, combTrainPredictLabels, originalPositiveLabel, testingTime);
 }
