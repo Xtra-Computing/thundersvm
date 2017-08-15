@@ -69,6 +69,15 @@ int main(int argc, char **argv)
     	paramGrid.vfC.push_back(parser.param.C);
     	paramGrid.vfGamma.push_back(parser.param.gamma);
     	gridSearch(paramGrid, fileName);
+    }}else if(parser.task_type == 5){
+ 		//perform svm evaluation 
+		cout << "performing evaluation" << endl;
+		//vector<SvmModel> combModel;
+		
+        cout << "start training..." << endl;
+		trainOVASVM(parser.param, fileName, parser.numFeature, parser.compute_training_error, parser.testSetName);
+        //cout << "start evaluation..." << endl;
+        //evaluateOVASVMClassifier(combModel, originalPositiveLabel, parser.testSetName, parser.numFeature);
     }else{
     	cout << "unknown task type" << endl;
     }
