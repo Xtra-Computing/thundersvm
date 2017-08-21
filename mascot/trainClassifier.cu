@@ -45,7 +45,7 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int numFeature, SvmMo
     //evaluate training error
     if (evaluteTrainingError == true) {
         printf("Computing training accuracy...\n");
-        evaluate(model, v_v_Instance, v_nLabel, ClassifierEvaluater::trainingError);
+        //evaluate(model, v_v_Instance, v_nLabel, ClassifierEvaluater::trainingError);!!!!!!!!!!!!1not comment
 	}
 }
 
@@ -60,14 +60,14 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int numF
 	drHelper.ReadLibSVMAsSparse(v_v_Instance, v_nLabel, strTrainingFileName, numFeature);
 
     //evaluate testing error
-    evaluate(model, v_v_Instance, v_nLabel, ClassifierEvaluater::testingError);
+    //evaluate(model, v_v_Instance, v_nLabel, ClassifierEvaluater::testingError);!!!!!!!!!!!!!!!!!!!1
 }
 
 /**
  * @brief: evaluate the svm model, given some labeled instances.
  */
 void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<int> &v_nLabel,
-			  vector<real> &classificationError){
+			  vector<real> &classificationError, ofstream &ofs){
     int batchSize = 10000;
 
     //create a miss labeling matrix for measuring the sub-classifier errors.
@@ -103,16 +103,18 @@ void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<i
     }
     printf("classifier accuracy = %.2f%%(%d/%d)\n", numOfCorrect / (float) v_v_Instance.size() * 100,
            numOfCorrect, (int) v_v_Instance.size());
+	ofs<<"binary training accuracy: "<<numOfCorrect/(float) v_v_Instance.size()*100<<" ("<<numOfCorrect<<"/"<<v_v_Instance.size()<<")"<<"\n";
     printf("prediction time elapsed: %.2fs\n", (float) (finish - start) / CLOCKS_PER_SEC);
+
     if(bEvaluateSubClass == true){
     	ClassifierEvaluater::evaluateSubClassifier(model.missLabellingMatrix, classificationError);
     }
 }
 
-float evaluateOVABinaryClassifier(vector<vector<int> > &combPredictLabels, SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<int> &v_nLabel,
+float evaluateOVABinaryClassifier(vector<real>  &combDecValue, vector<vector<int> > &combPredictLabels, SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<int> &v_nLabel,
               vector<real> &classificationError){
     int batchSize = 10000;
-
+    vector<real> decValue;
     //create a miss labeling matrix for measuring the sub-classifier errors.
     model.missLabellingMatrix = vector<vector<int> >(model.nrClass, vector<int>(model.nrClass, 0));
     bool bEvaluateSubClass = true; //choose whether to evaluate sub-classifiers
@@ -134,43 +136,28 @@ float evaluateOVABinaryClassifier(vector<vector<int> > &combPredictLabels, SvmMo
         if(bEvaluateSubClass == false)
             vLabel.clear();
         //predict labels for the subset of instances
-        vector<int> predictLabelPart = predictor.predict(samples, vLabel);
+       /* vector<int> predictLabelPart = predictor.predict(samples, vLabel);
 
-        predictLabels.insert(predictLabels.end(), predictLabelPart.begin(), predictLabelPart.end());
+        predictLabels.insert(predictLabels.end(), predictLabelPart.begin(), predictLabelPart.end());*/
+        predictor.predictDecValue(decValue, samples);
+        
+		combDecValue.insert(combDecValue.end(), decValue.begin(), decValue.end());
+        cout<<"before"<<endl;
+
         begin += batchSize;
     }
     finish = clock();
-    //combine bianry predictLabels
-	//for(int i=0;i<10;i++)
-    //	cout<<"binarytestlabel********"<<predictLabels[100+i]<<endl;
-    combPredictLabels.push_back(predictLabels);
-    
+   /* //combine bianry predictLabels
+    combPredictLabels.push_back(predictLabels);*/
+        
     if(bEvaluateSubClass == true){
         ClassifierEvaluater::evaluateSubClassifier(model.missLabellingMatrix, classificationError);
     }
     return (float) (finish - start) / CLOCKS_PER_SEC;
 }
 
-float evaluateOVASVMClassifier(SvmModel &model, vector<vector<int> > &combPredictLabels, string strTrainingFileName, int numFeature) {
-    vector<vector<KeyValue> > v_v_Instance;
-    vector<int> v_nLabel;
 
-    int numInstance = 0;     //not used
-    uint nNumofValue = 0;  //not used
-    BaseLibSVMReader::GetDataInfo(strTrainingFileName, numFeature, numInstance, nNumofValue);
-    LibSVMDataReader drHelper;
-    drHelper.ReadLibSVMAsSparse(v_v_Instance, v_nLabel, strTrainingFileName, numFeature);
-
-    //evaluate testing error
-	return 0.0;   
-    
-    //for( int i=0;i<combModel.size() ;i++)
-    //return evaluateOVA(combPredictLabels, model, v_v_Instance, v_nLabel, ClassifierEvaluater::testingError);
-    //cout<<"chen test predict********"<<combPredictLabels[combModel.size()][3]<<endl;
-  
-}
-
-void evaluateOVA(vector<vector<KeyValue> > &testInstance, vector<int> &testLabel, vector<vector<int> > &combPredictLabels, vector<int> &originalPositiveLabel, float testingTime){    //read test set
+void evaluateOVAVote(vector<vector<KeyValue> > &testInstance, vector<int> &testLabel, vector<vector<int> > &combPredictLabels, vector<int> &originalPositiveLabel, float testingTime){    //read test set
       //vote for class
     int manyClassIns=0;//#instance that belong to more than one classes
     int NoClassIns=0;//#instance that does't belong to any class
@@ -224,7 +211,75 @@ void evaluateOVA(vector<vector<KeyValue> > &testInstance, vector<int> &testLabel
     
 }
 
-void trainOVASVM(SVMParam &param, string strTrainingFileName, int numFeature,  bool evaluteTrainingError, string strTestingFileName) {
+void evaluateOVADecValue(vector<vector<KeyValue> > &testInstance, vector<int> &testLabel, vector<vector<real> > &combDecValue, vector<int > originalPositiveLabel, float testingTime, ofstream &ofs){    //read test set
+      //vote for class
+    int manyClassIns=0;//#instance that belong to more than one classes
+    int noClassIns=0;//#instance that does't belong to any class
+    int correctIns=0;
+	int nrClass=originalPositiveLabel.size();
+
+    //for(int i=0;i<10;i++)
+    //  cout<<"testlabel********"<<combPredictLabels[0][i]<<endl;
+    //cout<<"*******************"<<endl;
+    //for(int i=0;i<10;i++)
+    //  cout<<"testlabel********"<<combPredictLabels[1][i]<<endl;
+    clock_t start,end;
+    start=clock();
+    for( int i=0;i<testInstance.size() ;i++){
+        //vector<int> vote(nrClass,0);
+        int flag=0;
+        int max=0;
+        for( int j=0;j<nrClass ;j++){
+            if(combDecValue[j][i]>0&&combDecValue[j][i]>=combDecValue[max][i])//if predictLabel=0 then instance belongs to the label 0 in jth bianrySVM
+            {
+                //vote[j]++;
+                flag++;
+                max=j;
+            }
+        }
+            
+      
+        if(flag>0){
+            int manyClassflag=0;
+            for(int j=0;j<nrClass ;j++){
+                if(j!=max){
+                    if(combDecValue[j][i]==combDecValue[max][i]){
+                        manyClassIns++;
+                        manyClassflag++;
+                        break;//???
+                    }
+                }
+                
+            }
+            if(manyClassflag==0){
+                if (originalPositiveLabel[max]==testLabel[i])
+                    correctIns++;
+            }
+        }
+        else
+            noClassIns++;
+       
+        // if(i<10)
+        //     cout<<"manyclasslabel********"<<manyClassIns<<endl;
+    }
+    end=clock();
+    testingTime+=(float)(end-start)/CLOCKS_PER_SEC;
+    printf("test  accuracy = %.2f%%(%d/%d)\n", correctIns / (float) testInstance.size() * 100,
+           correctIns, (int) testInstance.size() );
+    ofs<<"test accuracy: "<<correctIns / (float) testInstance.size()*100<<" ("<<correctIns<<"/"<<testInstance.size()<<")"<<"\n";
+    
+	printf("number of unclaasifiable instances in OVA is %.2f%%(%d/%d)\n", manyClassIns / (float) testInstance.size() * 100, manyClassIns, testInstance.size());
+    ofs<<"test: # of manyClass instance: "<<manyClassIns / (float) testInstance.size()*100<<" ("<<manyClassIns<<"/"<<testInstance.size()<<")"<<"\n";
+    
+	printf("number of NoClass instances in OVA is %.2f%%(%d/%d)\n", noClassIns / (float) testInstance.size() * 100, noClassIns, testInstance.size() );
+    ofs<<"test: #noClass instance:  "<<noClassIns / (float) testInstance.size()*100<<" ("<<noClassIns<<"/"<<testInstance.size()<<")"<<"\n";
+    printf("prediction time elapsed: %.2fs\n",testingTime);
+	ofs<<"testing time: "<<testingTime<<"\n";
+
+    
+}
+
+void trainOVASVM(SVMParam &param, string strTrainingFileName, int numFeature,  bool evaluteTrainingError, string strTestingFileName, ofstream &ofs) {
     //nrclass must >2
     //SvmModel model;//?????????????
 
@@ -253,9 +308,12 @@ cout<<"test"<<endl;
 	int nrClass=problem.getNumOfClasses();
     //vector<SvmModel> combModel(nrClass);
     vector<vector<int> > combPredictLabels;//combine k binary predictLaebl
+    vector<vector<real> > combDecValue(nrClass);
     vector<vector<int> > combTrainPredictLabels;//combine k binary predictLaebl
     vector<int> originalPositiveLabel(nrClass);
     float testingTime=0;
+    float allTrainingTime=0;
+    float avgTrainingTime=0;
     for(int i=0;i<nrClass;i++)
         originalPositiveLabel[i]=v_nLabel[problem.perm[problem.start[i]]];
     
@@ -285,7 +343,8 @@ cout<<"test"<<endl;
         PRINT_TIME("iteration",iterationTimer)
         PRINT_TIME("g value updating",updateGTimer)
         model.saveLibModel(strTrainingFileName,problem);//save model in the same format as LIBSVM's
-        
+		allTrainingTime+=trainingTimer.getTotalTime();
+		avgTrainingTime+=trainingTimer.getAverageTime();
 //    PRINT_TIME("2 instances selection",selectTimer)
 //    PRINT_TIME("kernel calculation",calculateKernelTimer)
 //    PRINT_TIME("alpha updating",updateAlphaTimer)
@@ -293,14 +352,18 @@ cout<<"test"<<endl;
     //evaluate training error
         if (evaluteTrainingError == true) {
             printf("Computing training accuracy...\n");
-            evaluate(model, v_v_Instance, v_nLabel, ClassifierEvaluater::trainingError);
+            evaluate(model, v_v_Instance, v_nLabel, ClassifierEvaluater::trainingError, ofs);
         }
 
         cout << "start evaluation..." << endl;
-        testingTime+= evaluateOVABinaryClassifier(combPredictLabels, model, testInstance, testLabel, ClassifierEvaluater::testingError);
+        testingTime+= evaluateOVABinaryClassifier(combDecValue[i], combPredictLabels, model, testInstance, testLabel, ClassifierEvaluater::testingError);
   //      evaluateOVABinaryClassifier(combTrainPredictLabels, model, v_v_Instance, v_nLabel, ClassifierEvaluater::testingError);
    
     }
-	evaluateOVA(testInstance, testLabel, combPredictLabels, originalPositiveLabel, testingTime);
+    ofs<<"total training time "<<allTrainingTime<<" avg time"<<avgTrainingTime<<"\n";
+	cout<<"all evaluation"<<endl;
+    evaluateOVADecValue(testInstance, testLabel, combDecValue, originalPositiveLabel, testingTime, ofs);    //read test set
+
+	//evaluateOVAVote(testInstance, testLabel, combPredictLabels, originalPositiveLabel, testingTime);
 //	evaluateOVA(v_v_Instance, v_nLabel, combTrainPredictLabels, originalPositiveLabel, testingTime);
 }

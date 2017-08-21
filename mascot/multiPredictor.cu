@@ -190,6 +190,7 @@ void MultiPredictor::computeDecisionValues(const vector<vector<KeyValue> > &v_vS
  */
 vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples, const vector<int> &vnOriginalLabel) const{
 	int nrClass = model.nrClass;
+    int manyClassIns=0;
 	bool probability = model.isProbability();
     vector<int> labels;
     if (!probability) {
@@ -215,7 +216,20 @@ vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples,
                     maxVoteClass = i;
             }
             labels.push_back(model.label[maxVoteClass]);
+
+            //compute #instance that belong to more than one classes
+            int flag=0;
+            for(int i=0;i<nrClass;i++)
+                for(int j=i+1;j<nrClass;j++){
+                    if(votes[i]==votes[j]){
+                        flag++;
+                        break;
+                    }
+                }
+            if(flag>0)
+                manyClassIns++;
         }
+        printf("number of instance belong to manyClass %.2f%%%(%d,%d)\n",manyClassIns/ (float) v_vSamples.size(), manyClassIns,v_vSamples.size());
     } else {
         assert(model.probability);
         vector<vector<real> > prob = predictProbability(v_vSamples, vnOriginalLabel);
@@ -230,4 +244,17 @@ vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples,
         }
     }
     return labels;
+}
+
+void MultiPredictor::predictDecValue(vector<real> &combDecValue, const vector<vector<KeyValue> > &v_vSamples) const{
+    int nrClass = model.nrClass;
+
+        vector<vector<real> > decisionValues;
+        computeDecisionValues(v_vSamples, decisionValues);
+
+        for (int l = 0; l < v_vSamples.size(); ++l) {
+            combDecValue.push_back(decisionValues[l][0]);
+
+        }
+
 }

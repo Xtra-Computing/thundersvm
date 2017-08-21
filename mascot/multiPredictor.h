@@ -27,6 +27,9 @@ public:
 	~MultiPredictor(){}
 
     vector<int> predict(const vector<vector<KeyValue> > &v_vSamples, const vector<int> &vnOriginalLabel = vector<int>()) const;
+	
+	void predictDecValue(vector<real> &combDecValue, const vector<vector<KeyValue> > &v_vSamples) const;
+
 	void computeDecisionValues(const vector<vector<KeyValue> > &, vector<vector<real> > &) const;
 private:
     vector<vector<real> > predictProbability(const vector<vector<KeyValue> > &, const vector<int> &vnOriginalLabel) const;
