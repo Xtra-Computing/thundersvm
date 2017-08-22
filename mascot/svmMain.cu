@@ -78,6 +78,7 @@ int main(int argc, char **argv)
 		string name=fileName;
 		name="./result/"+name;
 		ofstream ofs(name.c_str(),ios::app);
+
 		if(!ofs.is_open()){
 			cout<<"open ./result/ error "<<name<<endl;
 			return 0;

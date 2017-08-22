@@ -229,7 +229,7 @@ vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples,
             if(flag>0)
                 manyClassIns++;
         }
-        printf("number of instance belong to manyClass %.2f%%%(%d,%d)\n",manyClassIns/ (float) v_vSamples.size(), manyClassIns,v_vSamples.size());
+       // printf("number of instance belong to manyClass %.2f%%%(%d,%d)\n",manyClassIns/ (float) v_vSamples.size(), manyClassIns,v_vSamples.size());
     } else {
         assert(model.probability);
         vector<vector<real> > prob = predictProbability(v_vSamples, vnOriginalLabel);
