@@ -16,7 +16,8 @@
 #include "classifierEvaluater.h"
 #include "../svm-shared/constant.h"
 #include "../SharedUtility/CudaMacro.h"
-
+#include <iostream>
+using namespace std;
 real MultiPredictor::sigmoidPredict(real decValue, real A, real B) const {
     double fApB = decValue * A + B;
     // 1-p used later; avoid catastrophic cancellation
@@ -216,7 +217,11 @@ vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples,
                     maxVoteClass = i;
             }
             labels.push_back(model.label[maxVoteClass]);
-
+	    if(l<10){
+	        cout<<"****************predict 10 label"<<endl;
+		cout<<"maxvote "<<maxVoteClass<<endl;
+		cout<<"max label "<<model.label[maxVoteClass]<<endl;
+		}
             //compute #instance that belong to more than one classes
             int flag=0;
             for(int i=0;i<nrClass;i++)

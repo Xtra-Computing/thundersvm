@@ -45,7 +45,7 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int numFeature, SvmMo
     //evaluate training error
     if (evaluteTrainingError == true) {
         printf("Computing training accuracy...\n");
-        //evaluate(model, v_v_Instance, v_nLabel, ClassifierEvaluater::trainingError);!!!!!!!!!!!!1not comment
+    //    evaluate(model, v_v_Instance, v_nLabel, ClassifierEvaluater::trainingError);//uncomment!!!!!!!!!!!!!!1
 	}
 }
 
@@ -58,9 +58,8 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int numF
     BaseLibSVMReader::GetDataInfo(strTrainingFileName, numFeature, numInstance, nNumofValue);
 	LibSVMDataReader drHelper;
 	drHelper.ReadLibSVMAsSparse(v_v_Instance, v_nLabel, strTrainingFileName, numFeature);
-
     //evaluate testing error
-    //evaluate(model, v_v_Instance, v_nLabel, ClassifierEvaluater::testingError);!!!!!!!!!!!!!!!!!!!1
+    //evaluate(model, v_v_Instance, v_nLabel, ClassifierEvaluater::testingError,ofs);//uncomment!!!!!!!!!!111
 }
 
 /**
@@ -91,13 +90,18 @@ void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<i
         if(bEvaluateSubClass == false)
         	vLabel.clear();
         //predict labels for the subset of instances
+	cout<<"in evaluate**************88"<<endl;
         vector<int> predictLabelPart = predictor.predict(samples, vLabel);
         predictLabels.insert(predictLabels.end(), predictLabelPart.begin(), predictLabelPart.end());
         begin += batchSize;
     }
     finish = clock();
     int numOfCorrect = 0;
+    int neg=0;
     for (int i = 0; i < v_v_Instance.size(); ++i) {
+	if(predictLabels[i]==1){
+	neg++;
+	}
         if (predictLabels[i] == v_nLabel[i])
             numOfCorrect++;
     }
@@ -316,7 +320,9 @@ void trainOVASVM(SVMParam &param, string strTrainingFileName, int numFeature,  b
 */
     //train and predict bianry svm
     for(int i=0;i<nrClass;i++){
-        SvmModel model;
+        v_v_Instance=problem.v_vSamples;
+        v_nLabel=problem.v_nLabels;
+	SvmModel model;
         //reassign the 0 and 1 label to instances.
         for(int m=0;m<problem.count[i];m++)
             v_nLabel[problem.perm[problem.start[i] + m]]=0;//0 denotes the positive class
@@ -342,7 +348,10 @@ void trainOVASVM(SVMParam &param, string strTrainingFileName, int numFeature,  b
         v_v_Instance[0]=tempIns;
       
     }
-
+	for(int j=0;j<10;j++){
+	cout<<"******************relabel 10 label"<<endl;
+	cout<<"label "<<j<<":"<<v_nLabel[j];
+}
         //use instance with label 0 and 1 to build the problem
         SvmProblem binaryProblem(v_v_Instance, numFeature, v_nLabel);
         //problem.label=model.label  label[0]=the label of the first instance.
@@ -368,13 +377,15 @@ void trainOVASVM(SVMParam &param, string strTrainingFileName, int numFeature,  b
         }
 
         cout << "start evaluation..." << endl;
-        testingTime+= evaluateOVABinaryClassifier(combDecValue[i], combPredictLabels, model, testInstance, testLabel, ClassifierEvaluater::testingError);
-        //evaluateOVABinaryClassifier(combTrainPredictLabels, model, v_v_Instance, v_nLabel, ClassifierEvaluater::testingError);
+        testingTime+= evaluateOVABinaryClassifier(combDecValue[i], combPredictLabels, model, problem.v_vSamples, problem.v_nLabels, ClassifierEvaluater::testingError);
+        //testingTime+= evaluateOVABinaryClassifier(combDecValue[i], combPredictLabels, model, testInstance, testLabel, ClassifierEvaluater::testingError);
+        //evaluateOVABinaryClassifier(combTrainPredictLabels, model, v_v_Instance, v_nLabel, ClassifierEvaluater::testingError);//evaluate binary svm for vote strategy
    
     }
     ofs<<"total training time "<<allTrainingTime<<" avg time"<<avgTrainingTime<<"\n";
 	ofs<<"all evaluation"<<endl;
-    evaluateOVADecValue(testInstance, testLabel, combDecValue, originalPositiveLabel, testingTime, ofs);    //read test set
+    evaluateOVADecValue(problem.v_vSamples, problem.v_nLabels, combDecValue, originalPositiveLabel, testingTime, ofs);    //read test set
+    //evaluateOVADecValue(testInstance, testLabel, combDecValue, originalPositiveLabel, testingTime, ofs);    //read test set
 
 	//evaluateOVAVote(testInstance, testLabel, combPredictLabels, originalPositiveLabel, testingTime);
 	//evaluateOVA(v_v_Instance, v_nLabel, combTrainPredictLabels, originalPositiveLabel, testingTime);

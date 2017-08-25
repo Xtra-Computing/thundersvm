@@ -47,9 +47,21 @@ int main(int argc, char **argv)
 		cout << "performing evaluation" << endl;
 		SvmModel model;
         cout << "start training..." << endl;
+		string name=fileName;
+		name="./result/"+name;
+		ofstream ofs(name.c_str(),ios::app);
+
+		if(!ofs.is_open()){
+			cout<<"open ./result/ error "<<name<<endl;
+			return 0;
+		}
+		ofs<<"OVA"<<fileName<<"\n";
+		ofs<<"g "<<parser.param.gamma<<"C"<<parser.param.C<<"\n";
 		trainSVM(parser.param, fileName, parser.numFeature, model, parser.compute_training_error);
         cout << "start evaluation..." << endl;
         evaluateSVMClassifier(model, parser.testSetName, parser.numFeature);
+	ofs<<"\n";
+	ofs.close();
     }else if(parser.task_type == 4){
     	//perform selecting best C
     	cout << "perform C selection" << endl;
@@ -60,7 +72,8 @@ int main(int argc, char **argv)
 			cout << "start training..." << endl;
 			trainSVM(parser.param, fileName, parser.numFeature, model, parser.compute_training_error);
 			cout << "start evaluation..." << endl;
-			evaluateSVMClassifier(model, strcat(fileName, ".t"), parser.numFeature);
+			//evaluateSVMClassifier(model, strcat(fileName, ".t"), parser.numFeature);
+			evaluateSVMClassifier(model, fileName, parser.numFeature);
 			vC = ClassifierEvaluater::updateC(model.vC);
     	}
     }
