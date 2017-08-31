@@ -197,6 +197,9 @@ vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples,
     if (!probability) {
         vector<vector<real> > decisionValues;
         computeDecisionValues(v_vSamples, decisionValues);
+			cout<<"sample "<<v_vSamples[0][0].featureValue<<endl;
+			cout<<"sample "<<v_vSamples[0][1].featureValue<<endl;
+			cout<<"sample "<<v_vSamples[0][2].featureValue<<endl;
         for (int l = 0; l < v_vSamples.size(); ++l) {
         	if(!vnOriginalLabel.empty())//want to measure sub-classifier error
 	            ClassifierEvaluater::collectSubSVMInfo(model, l, vnOriginalLabel[l], nrClass, decisionValues, false);
@@ -205,6 +208,9 @@ vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples,
             int k = 0;
             for (int i = 0; i < nrClass; ++i) {
                 for (int j = i + 1; j < nrClass; ++j) {
+		    if(l<1){
+		       cout<<"gpu decisionvalue for 1 instance "<<decisionValues[l][k]<<endl;
+ 		    }
                     if (decisionValues[l][k++] > 0)
                     	votes[i]++;
                     else
@@ -217,10 +223,10 @@ vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples,
                     maxVoteClass = i;
             }
             labels.push_back(model.label[maxVoteClass]);
-	    if(l<10){
+	    if(l<20){
 	        cout<<"****************predict 10 label"<<endl;
-		cout<<"maxvote "<<maxVoteClass<<endl;
-		cout<<"max label "<<model.label[maxVoteClass]<<endl;
+		//cout<<"maxvote "<<maxVoteClass<<endl;
+		//cout<<"max label "<<model.label[maxVoteClass]<<endl;
 		}
             //compute #instance that belong to more than one classes
             int flag=0;

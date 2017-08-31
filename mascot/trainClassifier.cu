@@ -50,6 +50,7 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int numFeature, SvmMo
 }
 
 void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int numFeature) {
+    cout<<" start decision value"<<endl;
     vector<vector<KeyValue> > v_v_Instance;
     vector<int> v_nLabel;
 
@@ -247,6 +248,8 @@ void evaluateOVADecValue(vector<vector<KeyValue> > &testInstance, vector<int> &t
             if(manyClassflag==0){
                 if (originalPositiveLabel[max]==testLabel[i])
                     correctIns++;
+		if(i<10)
+		    cout<<testLabel[i]<<endl;
             }
         }
         else
@@ -332,6 +335,7 @@ void trainOVASVM(SVMParam &param, string strTrainingFileName, int numFeature,  b
                     v_nLabel[problem.perm[problem.start[n] + l]]=1;
             }
         }
+	ofs<<"#i class instance "<<i<<": "<<problem.count[i]<<"\n";
         //for class i=0, in training phase, class i will be +1,
         //for other classes (i!=0), in training phase, class i will be -1
 	//therfore, for class i!=0, swap the start[i] with the first instance in traing dataset, to make the class i to be the positive class in training phase
@@ -373,7 +377,7 @@ void trainOVASVM(SVMParam &param, string strTrainingFileName, int numFeature,  b
         //evaluate training error
         if (evaluteTrainingError == true) {
             printf("Computing training accuracy...\n");
-            evaluate(model, v_v_Instance, v_nLabel, ClassifierEvaluater::trainingError, ofs);
+            evaluate(model, testInstance, testLabel, ClassifierEvaluater::trainingError, ofs);
         }
 
         cout << "start evaluation..." << endl;
