@@ -29,6 +29,7 @@ int main(int argc, char **argv)
 
     CUcontext context;
 	if(!InitCUDA(context, 'G'))
+	
 		return 0;
 	printf("CUDA initialized.\n");
 
@@ -46,9 +47,21 @@ int main(int argc, char **argv)
 		cout << "performing evaluation" << endl;
 		SvmModel model;
         cout << "start training..." << endl;
+		string name=fileName;
+		name="./result/"+name;
+		ofstream ofs(name.c_str(),ios::app);
+
+		if(!ofs.is_open()){
+			cout<<"open ./result/ error "<<name<<endl;
+			return 0;
+		}
+		ofs<<"OVA"<<fileName<<"\n";
+		ofs<<"g "<<parser.param.gamma<<"C"<<parser.param.C<<"\n";
 		trainSVM(parser.param, fileName, parser.numFeature, model, parser.compute_training_error);
         cout << "start evaluation..." << endl;
         evaluateSVMClassifier(model, parser.testSetName, parser.numFeature);
+	ofs<<"\n";
+	ofs.close();
     }else if(parser.task_type == 4){
     	//perform selecting best C
     	cout << "perform C selection" << endl;
@@ -59,7 +72,8 @@ int main(int argc, char **argv)
 			cout << "start training..." << endl;
 			trainSVM(parser.param, fileName, parser.numFeature, model, parser.compute_training_error);
 			cout << "start evaluation..." << endl;
-			evaluateSVMClassifier(model, strcat(fileName, ".t"), parser.numFeature);
+			//evaluateSVMClassifier(model, strcat(fileName, ".t"), parser.numFeature);
+			evaluateSVMClassifier(model, fileName, parser.numFeature);
 			vC = ClassifierEvaluater::updateC(model.vC);
     	}
     }
@@ -69,6 +83,32 @@ int main(int argc, char **argv)
     	paramGrid.vfC.push_back(parser.param.C);
     	paramGrid.vfGamma.push_back(parser.param.gamma);
     	gridSearch(paramGrid, fileName);
+    }else if(parser.task_type == 5){
+ 		//perform svm evaluation 
+		
+		cout << "performing evaluation" << endl;
+        cout << "start training..." << endl;
+		string name=fileName;
+		name="./result/"+name;
+		ofstream ofs(name.c_str(),ios::app);
+
+		if(!ofs.is_open()){
+			cout<<"open ./result/ error "<<name<<endl;
+			return 0;
+		}
+		ofs<<"OVA"<<fileName<<"\n";
+		//double gamma=parser.param.gamma;
+		//double C=parser.param.C;
+    	//for(int grid=1; grid<3;grid*=2){
+//			parser.param.gamma=gamma*grid*2;
+//			for(int grid2=1;grid2<17;grid2*=2){
+//			parser.param.C=C*grid2*2;
+			ofs<<"g "<<parser.param.gamma<<"C"<<parser.param.C<<"\n";
+			trainOVASVM(parser.param, fileName, parser.numFeature, parser.compute_training_error, parser.testSetName, ofs);
+			ofs<<"\n";
+		//}
+//		}
+		ofs.close();
     }else{
     	cout << "unknown task type" << endl;
     }

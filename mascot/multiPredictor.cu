@@ -16,7 +16,8 @@
 #include "classifierEvaluater.h"
 #include "../svm-shared/constant.h"
 #include "../SharedUtility/CudaMacro.h"
-
+#include <iostream>
+using namespace std;
 real MultiPredictor::sigmoidPredict(real decValue, real A, real B) const {
     double fApB = decValue * A + B;
     // 1-p used later; avoid catastrophic cancellation
@@ -190,11 +191,15 @@ void MultiPredictor::computeDecisionValues(const vector<vector<KeyValue> > &v_vS
  */
 vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples, const vector<int> &vnOriginalLabel) const{
 	int nrClass = model.nrClass;
+    int manyClassIns=0;
 	bool probability = model.isProbability();
     vector<int> labels;
     if (!probability) {
         vector<vector<real> > decisionValues;
         computeDecisionValues(v_vSamples, decisionValues);
+			cout<<"sample "<<v_vSamples[0][0].featureValue<<endl;
+			cout<<"sample "<<v_vSamples[0][1].featureValue<<endl;
+			cout<<"sample "<<v_vSamples[0][2].featureValue<<endl;
         for (int l = 0; l < v_vSamples.size(); ++l) {
         	if(!vnOriginalLabel.empty())//want to measure sub-classifier error
 	            ClassifierEvaluater::collectSubSVMInfo(model, l, vnOriginalLabel[l], nrClass, decisionValues, false);
@@ -203,6 +208,9 @@ vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples,
             int k = 0;
             for (int i = 0; i < nrClass; ++i) {
                 for (int j = i + 1; j < nrClass; ++j) {
+		    if(l<1){
+		       cout<<"gpu decisionvalue for 1 instance "<<decisionValues[l][k]<<endl;
+ 		    }
                     if (decisionValues[l][k++] > 0)
                     	votes[i]++;
                     else
@@ -215,7 +223,24 @@ vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples,
                     maxVoteClass = i;
             }
             labels.push_back(model.label[maxVoteClass]);
+	    if(l<20){
+	        cout<<"****************predict 10 label"<<endl;
+		//cout<<"maxvote "<<maxVoteClass<<endl;
+		//cout<<"max label "<<model.label[maxVoteClass]<<endl;
+		}
+            //compute #instance that belong to more than one classes
+            int flag=0;
+            for(int i=0;i<nrClass;i++)
+                for(int j=i+1;j<nrClass;j++){
+                    if(votes[i]==votes[j]){
+                        flag++;
+                        break;
+                    }
+                }
+            if(flag>0)
+                manyClassIns++;
         }
+       // printf("number of instance belong to manyClass %.2f%%%(%d,%d)\n",manyClassIns/ (float) v_vSamples.size(), manyClassIns,v_vSamples.size());
     } else {
         assert(model.probability);
         vector<vector<real> > prob = predictProbability(v_vSamples, vnOriginalLabel);
@@ -230,4 +255,17 @@ vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples,
         }
     }
     return labels;
+}
+
+void MultiPredictor::predictDecValue(vector<real> &combDecValue, const vector<vector<KeyValue> > &v_vSamples) const{
+    int nrClass = model.nrClass;
+
+        vector<vector<real> > decisionValues;
+        computeDecisionValues(v_vSamples, decisionValues);
+
+        for (int l = 0; l < v_vSamples.size(); ++l) {
+            combDecValue.push_back(decisionValues[l][0]);
+
+        }
+
 }
