@@ -30,7 +30,7 @@ private:
     void init4Training(const SvmProblem &subProblem);
 
 
-    void selectWorkingSetAndPreCompute(const SvmProblem &subProblem, uint numOfSelectPairs, double penaltyC);
+    void selectWorkingSetAndPreCompute(const SvmProblem &subProblem, uint numOfSelectPairs, real penaltyC);
 
     void extractModel(const SvmProblem &subProblem, vector<int> &svIndex, vector<real> &coef, real &rho) const;
     real getObjValue(int numOfSamples) const;

@@ -387,7 +387,7 @@ updateF(real *FValues, const int *label, const int *workingSet, int wsSize, cons
 }
 
 __global__ void getFUpValues(const real *FValues, const real *alpha, const int *labels,
-                             int numOfSamples, int C, real *FValue4Sort, int *Idx4Sort, const int *wsIndicator) {
+                             int numOfSamples, real C, real *FValue4Sort, int *Idx4Sort, const int *wsIndicator) {
     int nGlobalIndex = (blockIdx.y * gridDim.x + blockIdx.x) * blockDim.x + threadIdx.x;//global index for thread
     if (nGlobalIndex < numOfSamples) {
         real y = labels[nGlobalIndex];
@@ -404,7 +404,7 @@ __global__ void getFUpValues(const real *FValues, const real *alpha, const int *
 }
 
 __global__ void getFLowValues(const real *FValues, const real *alpha, const int *labels,
-                              int numOfSamples, int C, real *FValue4Sort, int *Idx4Sort, const int *wsIndicator) {
+                              int numOfSamples, real C, real *FValue4Sort, int *Idx4Sort, const int *wsIndicator) {
     int nGlobalIndex = (blockIdx.y * gridDim.x + blockIdx.x) * blockDim.x + threadIdx.x;//global index for thread
     if (nGlobalIndex < numOfSamples) {
         real y = labels[nGlobalIndex];

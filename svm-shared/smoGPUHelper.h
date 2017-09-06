@@ -111,7 +111,7 @@ __global__ void localSMO(const int *label, real *FValues, real *alpha, real *alp
 __global__ void updateF(real *FValues, const int *label, const int *workingSet, int wsSize, const real *alphaDiff,
 		const real *hessianMatrixCache, int numOfSamples);
 __global__ void getFUpValues(const real *FValues, const real *alpha, const int *labels,
-							 int numOfSamples, int C, real *FValue4Sort, int *Idx4Sort, const int*);
+                             int numOfSamples, real C, real *FValue4Sort, int *Idx4Sort, const int *);
 __global__ void getFLowValues(const real *FValues, const real *alpha, const int *labels,
-							  int numOfSamples, int C, real *FValue4Sort, int *Idx4Sort, const int*);
+                              int numOfSamples, real C, real *FValue4Sort, int *Idx4Sort, const int *);
 #endif /* WORKINGSETGPUHELPER_H_ */

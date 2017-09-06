@@ -180,7 +180,7 @@ MultiSmoSolver::~MultiSmoSolver() {
 }
 
 void
-MultiSmoSolver::selectWorkingSetAndPreCompute(const SvmProblem &subProblem, uint numOfSelectPairs, double penaltyC) {
+MultiSmoSolver::selectWorkingSetAndPreCompute(const SvmProblem &subProblem, uint numOfSelectPairs, real penaltyC) {
     uint numOfSamples = subProblem.getNumOfSamples();
     uint oldSize = workingSetSize / 2 - numOfSelectPairs;
     TIMER_START(selectTimer)
