@@ -21,15 +21,15 @@ void BaseSMO::InitSolver(int nNumofTrainingIns)
 
     configureCudaKernel(nNumofTrainingIns);
 	//allocate device memory for min/max search
-	checkCudaErrors(cudaMalloc((void**)&devBlockMin, sizeof(real) * numOfBlock));
-	checkCudaErrors(cudaMalloc((void**)&devBlockMinGlobalKey, sizeof(int) * numOfBlock));
-	//for getting maximum low G value
-	checkCudaErrors(cudaMalloc((void**)&devBlockMinYiGValue, sizeof(real) * numOfBlock));
-	checkCudaErrors(cudaMalloc((void**)&devMinValue, sizeof(real)));
-	checkCudaErrors(cudaMalloc((void**)&devMinKey, sizeof(int)));
-
-	checkCudaErrors(cudaMallocHost((void **) &hostBuffer, sizeof(real) * 5));
-	checkCudaErrors(cudaMalloc((void**)&devBuffer, sizeof(real) * 5));//only need 4 float_points
+//	checkCudaErrors(cudaMalloc((void**)&devBlockMin, sizeof(real) * numOfBlock));
+//	checkCudaErrors(cudaMalloc((void**)&devBlockMinGlobalKey, sizeof(int) * numOfBlock));
+//	//for getting maximum low G value
+//	checkCudaErrors(cudaMalloc((void**)&devBlockMinYiGValue, sizeof(real) * numOfBlock));
+//	checkCudaErrors(cudaMalloc((void**)&devMinValue, sizeof(real)));
+//	checkCudaErrors(cudaMalloc((void**)&devMinKey, sizeof(int)));
+//
+//	checkCudaErrors(cudaMallocHost((void **) &hostBuffer, sizeof(real) * 5));
+//	checkCudaErrors(cudaMalloc((void**)&devBuffer, sizeof(real) * 5));//only need 4 float_points
 
 	//diagonal is frequently used in training.
 	hessianDiag = new real[nNumofTrainingIns];
@@ -41,13 +41,13 @@ void BaseSMO::InitSolver(int nNumofTrainingIns)
  */
 void BaseSMO::DeInitSolver()
 {
-    checkCudaErrors(cudaFree(devBlockMin));
-    checkCudaErrors(cudaFree(devBlockMinGlobalKey));
-    checkCudaErrors(cudaFree(devBlockMinYiGValue));
-    checkCudaErrors(cudaFree(devMinValue));
-    checkCudaErrors(cudaFree(devMinKey));
-    checkCudaErrors(cudaFree(devBuffer));
-    checkCudaErrors(cudaFreeHost(hostBuffer));
+//    checkCudaErrors(cudaFree(devBlockMin));
+//    checkCudaErrors(cudaFree(devBlockMinGlobalKey));
+//    checkCudaErrors(cudaFree(devBlockMinYiGValue));
+//    checkCudaErrors(cudaFree(devMinValue));
+//    checkCudaErrors(cudaFree(devMinKey));
+//    checkCudaErrors(cudaFree(devBuffer));
+//    checkCudaErrors(cudaFreeHost(hostBuffer));
     checkCudaErrors(cudaFree(devHessianDiag));
     delete[] hessianDiag;
 }

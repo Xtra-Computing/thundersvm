@@ -81,8 +81,8 @@ __global__ void UpdateYiFValueKernel(real *pfAlpha, real *pDevBuffer, real *pfYi
  * @param: pnBlockMinGlobalKey: the key of each block minimum value (the output of this kernel)
  * @param: pfBlockMinYiFValue: the block minimum gradient (the output of this kernel. for convergence check)
  */
-extern __device__ real devDiff;//fUp - fLow
-extern __device__ real devRho;//bias
+extern __device__ float devDiff;//fUp - fLow
+extern __device__ float devRho;//bias
 /**
  * local SMO in one block
  * @param label: label for all instances in training set

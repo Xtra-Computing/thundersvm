@@ -1,7 +1,7 @@
 CCFLAGS	  := -Wall
 NVCCFLAGS := -arch=sm_35 -lrt -Wno-deprecated-gpu-targets -rdc=true
 LASTFLAG  := -Wno-deprecated-gpu-targets 
-LDFLAGS   := -I/usr/local/cuda/include -I/usr/local/cuda/samples/common/inc -lcuda -lcudadevrt -lcudart -lcublas -lpthread -lcusparse
+LDFLAGS   := -I/usr/local/cuda/include -I/usr/local/cuda/samples/common/inc -I${MKLROOT}/include -L ${MKLROOT}/lib/intel64 -lmkl_intel_lp64 -lmkl_gnu_thread -lmkl_core -lm -lgomp -Xcompiler -fopenmp -lcuda -lcudadevrt -lcudart -lcublas -lcusparse
 NVCC	  := /usr/local/cuda/bin/nvcc
 DISABLEW  := -Xnvlink -w
 
@@ -14,7 +14,7 @@ debug_bin := $(ODIR)/debug
 $(shell mkdir -p $(ODIR)/release)
 $(shell mkdir -p $(ODIR)/debug)
 
-FILES = $(shell find . -name '*.cu' -or -name '*.cpp')
+FILES = $(shell find mascot SharedUtility svm-shared -name '*.cu' -or -name '*.cpp')
 SOURCE = $(notdir $(FILES))				#remove directory
 OBJS = $(patsubst %.cpp, %.o,$(SOURCE:.cpp=.o)) #replace .cpp to .o
 OBJ = $(patsubst %.cu, %.o,$(OBJS:.cu=.o))		#replace .cu to .o

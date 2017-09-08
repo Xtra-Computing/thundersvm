@@ -36,6 +36,9 @@ private:
     real getObjValue(int numOfSamples) const;
     void deinit4Training();
 
+    void cpu_localSMO(const int *label, real *FValues, real *alpha, real *alphaDiff,
+                      const int *workingSet, int wsSize, float C, const float *hessianMatrixCache, int ld);
+    int getMin(float *values, int *index, int size);
     virtual real *ObtainRow(int numTrainingInstance)
     {
     	return devHessianInstanceRow1;
