@@ -48,7 +48,7 @@ protected:
 
     real *devAlpha;
     real *devYiGValue;
-    int *devLabel;
+    const int *devLabel;
 
     real *devBlockMin;			//for reduction in min/max search
     int *devBlockMinGlobalKey;			//for reduction in min/max search

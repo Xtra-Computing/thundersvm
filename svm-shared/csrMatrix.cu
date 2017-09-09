@@ -124,31 +124,42 @@ void CSRMatrix::CSRmm2Dense(cusparseHandle_t handle, cusparseOperation_t transA,
 void CSRMatrix::copy2Dev(real *&devVal, int *&devRowPtr, int *&devColInd) {
 
     int nnz = this->getNnz();
-    checkCudaErrors(cudaMallocManaged((void **) &devVal, sizeof(real) * nnz));
-    checkCudaErrors(cudaMallocManaged((void **) &devRowPtr, sizeof(int) * (this->getNumOfSamples() + 1)));
-    checkCudaErrors(cudaMallocManaged((void **) &devColInd, sizeof(int) * nnz));
-    checkCudaErrors(cudaMemcpy(devVal, this->getCSRVal(), sizeof(real) * nnz, cudaMemcpyHostToDevice));
+    devVal = new real[nnz];
+    devRowPtr = new int[this->getNumOfSamples() + 1];
+    devColInd= new int[nnz];
+//    checkCudaErrors(cudaMallocManaged((void **) &devVal, sizeof(real) * nnz));
+//    checkCudaErrors(cudaMallocManaged((void **) &devRowPtr, sizeof(int) * (this->getNumOfSamples() + 1)));
+//    checkCudaErrors(cudaMallocManaged((void **) &devColInd, sizeof(int) * nnz));
+    checkCudaErrors(cudaMemcpy(devVal, this->getCSRVal(), sizeof(real) * nnz, cudaMemcpyHostToHost));
     checkCudaErrors(cudaMemcpy(devRowPtr, this->getCSRRowPtr(), sizeof(int) * (this->getNumOfSamples() + 1),
-                               cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(devColInd, this->getCSRColInd(), sizeof(int) * nnz, cudaMemcpyHostToDevice));
+                               cudaMemcpyHostToHost));
+    checkCudaErrors(cudaMemcpy(devColInd, this->getCSRColInd(), sizeof(int) * nnz,cudaMemcpyHostToHost));
 }
 void CSRMatrix::copy2Dev(real *&devVal, int *&devRowPtr, int *&devColInd, real *&devSelfDot) {
     this->copy2Dev(devVal, devRowPtr, devColInd);
-    checkCudaErrors(cudaMallocManaged((void **) &devSelfDot, sizeof(int) * getNumOfSamples()));
-    checkCudaErrors(cudaMemcpy(devSelfDot, this->getCSRValSelfDot(), sizeof(int) * getNumOfSamples(), cudaMemcpyHostToDevice));
+    devSelfDot = new real[getNumOfSamples()];
+//    checkCudaErrors(cudaMallocManaged((void **) &devSelfDot, sizeof(int) * getNumOfSamples()));
+    checkCudaErrors(cudaMemcpy(devSelfDot, this->getCSRValSelfDot(), sizeof(int) * getNumOfSamples(),cudaMemcpyHostToHost));
 }
 /**
  * @brief: release the device CSR matrix
  */
 void CSRMatrix::freeDev(real *&devVal, int *&devRowPtr, int *&devColInd) {
-    checkCudaErrors(cudaFree(devVal));
-    checkCudaErrors(cudaFree(devRowPtr));
-    checkCudaErrors(cudaFree(devColInd));
+    delete[] devVal;
+    delete[] devRowPtr;
+    delete[]devColInd;
+//    checkCudaErrors(cudaFree(devVal));
+//    checkCudaErrors(cudaFree(devRowPtr));
+//    checkCudaErrors(cudaFree(devColInd));
 }
 
 void CSRMatrix::freeDev(real *&devVal, int *&devRowPtr, int *&devColInd, real *&devSelfDot) {
-    checkCudaErrors(cudaFree(devVal));
-    checkCudaErrors(cudaFree(devRowPtr));
-    checkCudaErrors(cudaFree(devColInd));
-    checkCudaErrors(cudaFree(devSelfDot));
+    delete[] devVal;
+    delete[] devRowPtr;
+    delete[] devColInd;
+    delete[] devSelfDot;
+//    checkCudaErrors(cudaFree(devVal));
+//    checkCudaErrors(cudaFree(devRowPtr));
+//    checkCudaErrors(cudaFree(devColInd));
+//    checkCudaErrors(cudaFree(devSelfDot));
 }

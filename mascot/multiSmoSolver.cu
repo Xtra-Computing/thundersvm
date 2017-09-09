@@ -20,6 +20,7 @@
 #include "multiPredictor.h"
 #include <thrust/execution_policy.h>
 #include <mkl.h>
+#include <omp.h>
 
 float hostRho, hostDiff;
 
@@ -145,7 +146,7 @@ void MultiSmoSolver::solve() {
             SvmProblem subProblem = problem.getSubProblem(i, j);
 
             //determine the size of working set
-            workingSetSize = 256;
+            workingSetSize = 1024;
             if (subProblem.v_vSamples.size() < workingSetSize) {
                 workingSetSize = floorPow2(subProblem.v_vSamples.size());
             }
@@ -213,6 +214,7 @@ void MultiSmoSolver::solve() {
             real rho;
 
 
+
             extractModel(subProblem, svIndex, coef, rho);
             model.getModelParam(subProblem, svIndex, coef, prob_start, ci, i, j);
             model.addBinaryModel(subProblem, svIndex, coef, rho, i, j);
@@ -229,52 +231,74 @@ void MultiSmoSolver::init4Training(const SvmProblem &subProblem) {
     unsigned int trainingSize = subProblem.getNumOfSamples();
 
     workingSet = vector<int>(workingSetSize);
-    checkCudaErrors(cudaMallocManaged((void **) &devAlphaDiff, sizeof(real) * workingSetSize));
-    checkCudaErrors(cudaMallocManaged((void **) &devWorkingSet, sizeof(int) * workingSetSize));
+    devAlphaDiff = new real[workingSetSize];
+    devWorkingSet = new int[workingSetSize];
+    devAlpha= new real[trainingSize];
+    devYiGValue= new real[trainingSize];
+//    devLabel= new int[trainingSize];
+//    devWorkingSetIndicator= new int[trainingSize];
+//    checkCudaErrors(cudaMallocManaged((void **) &devAlphaDiff, sizeof(real) * workingSetSize));
+//    checkCudaErrors(cudaMallocManaged((void **) &devWorkingSet, sizeof(int) * workingSetSize));
+//
+//    checkCudaErrors(cudaMallocManaged((void **) &devAlpha, sizeof(real) * trainingSize));
+//    checkCudaErrors(cudaMallocManaged((void **) &devYiGValue, sizeof(real) * trainingSize));
+//    checkCudaErrors(cudaMallocManaged((void **) &devLabel, sizeof(int) * trainingSize));
+//    checkCudaErrors(cudaMallocManaged((void **) &devWorkingSetIndicator, sizeof(int) * trainingSize));
 
-    checkCudaErrors(cudaMallocManaged((void **) &devAlpha, sizeof(real) * trainingSize));
-    checkCudaErrors(cudaMallocManaged((void **) &devYiGValue, sizeof(real) * trainingSize));
-    checkCudaErrors(cudaMallocManaged((void **) &devLabel, sizeof(int) * trainingSize));
-    checkCudaErrors(cudaMallocManaged((void **) &devWorkingSetIndicator, sizeof(int) * trainingSize));
-
-    checkCudaErrors(cudaMemset(devAlpha, 0, sizeof(real) * trainingSize));
+    memset(devAlpha, 0, sizeof(real) * trainingSize);
+//    checkCudaErrors(cudaMemset(devAlpha, 0, sizeof(real) * trainingSize));
     vector<real> negatedLabel(trainingSize);
     for (int i = 0; i < trainingSize; ++i) {
-        negatedLabel[i] = -subProblem.v_nLabels[i];
+//        negatedLabel[i] = -subProblem.v_nLabels[i];
+        devYiGValue[i] = -subProblem.v_nLabels[i];
     }
-    checkCudaErrors(cudaMemcpy(devYiGValue, negatedLabel.data(), sizeof(real) * trainingSize,
-                               cudaMemcpyHostToDevice));
-    checkCudaErrors(
-            cudaMemcpy(devLabel, subProblem.v_nLabels.data(), sizeof(int) * trainingSize, cudaMemcpyHostToDevice));
+//    checkCudaErrors(cudaMemcpy(devYiGValue, negatedLabel.data(), sizeof(real) * trainingSize,
+//                               cudaMemcpyHostToDevice));
+//    checkCudaErrors(
+//            cudaMemcpy(devLabel, subProblem.v_nLabels.data(), sizeof(int) * trainingSize, cudaMemcpyHostToDevice));
+    devLabel = subProblem.v_nLabels.data();
 
     InitSolver(trainingSize);//initialise base solver
 
-    checkCudaErrors(cudaMallocManaged((void **) &devHessianMatrixCache, sizeof(real) * workingSetSize * trainingSize));
+    devHessianMatrixCache = new real[workingSetSize * trainingSize];
+//    checkCudaErrors(cudaMallocManaged((void **) &devHessianMatrixCache, sizeof(real) * workingSetSize * trainingSize));
 
     for (int j = 0; j < trainingSize; ++j) {
-        hessianDiag[j] = 1;//assume using RBF kernel
+//        hessianDiag[j] = 1;//assume using RBF kernel
+        devHessianDiag[j] = 1;//assume using RBF kernel
     }
-    checkCudaErrors(
-            cudaMemcpy(devHessianDiag, hessianDiag, sizeof(real) * trainingSize, cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMallocManaged((void **) &devFValue4Sort, sizeof(real) * trainingSize));
-    checkCudaErrors(cudaMallocManaged((void **) &devIdx4Sort, sizeof(int) * trainingSize));
+//    checkCudaErrors(
+//            cudaMemcpy(devHessianDiag, hessianDiag, sizeof(real) * trainingSize, cudaMemcpyHostToDevice));
+    devFValue4Sort = new real[trainingSize];
+    devIdx4Sort = new int[trainingSize];
+//    checkCudaErrors(cudaMallocManaged((void **) &devFValue4Sort, sizeof(real) * trainingSize));
+//    checkCudaErrors(cudaMallocManaged((void **) &devIdx4Sort, sizeof(int) * trainingSize));
 
 }
 
 void MultiSmoSolver::deinit4Training() {
-    checkCudaErrors(cudaFree(devAlphaDiff));
-    checkCudaErrors(cudaFree(devWorkingSet));
-
-    checkCudaErrors(cudaFree(devAlpha));
-    checkCudaErrors(cudaFree(devYiGValue));
-    checkCudaErrors(cudaFree(devLabel));
-    checkCudaErrors(cudaFree(devWorkingSetIndicator));
+    delete[] devAlphaDiff;
+    delete[] devWorkingSet;
+    delete[]devAlpha;
+    delete[]devYiGValue;
+//    delete[]devLabel;
+//    delete[]devWorkingSetIndicator;
+//    checkCudaErrors(cudaFree(devAlphaDiff));
+//    checkCudaErrors(cudaFree(devWorkingSet));
+//
+//    checkCudaErrors(cudaFree(devAlpha));
+//    checkCudaErrors(cudaFree(devYiGValue));
+//    checkCudaErrors(cudaFree(devLabel));
+//    checkCudaErrors(cudaFree(devWorkingSetIndicator));
 
     DeInitSolver();
 
-    checkCudaErrors(cudaFree(devHessianMatrixCache));
-    checkCudaErrors(cudaFree(devFValue4Sort));
-    checkCudaErrors(cudaFree(devIdx4Sort));
+    delete[] devHessianMatrixCache;
+    delete[] devFValue4Sort;
+    delete[] devIdx4Sort;
+//    checkCudaErrors(cudaFree(devHessianMatrixCache));
+//    checkCudaErrors(cudaFree(devFValue4Sort));
+//    checkCudaErrors(cudaFree(devIdx4Sort));
 }
 
 void MultiSmoSolver::extractModel(const SvmProblem &subProblem, vector<int> &svIndex, vector<real> &coef,
@@ -282,7 +306,7 @@ void MultiSmoSolver::extractModel(const SvmProblem &subProblem, vector<int> &svI
     const unsigned int trainingSize = subProblem.getNumOfSamples();
     vector<real> alpha(trainingSize);
     const vector<int> &label = subProblem.v_nLabels;
-    checkCudaErrors(cudaMemcpy(alpha.data(), devAlpha, sizeof(real) * trainingSize, cudaMemcpyDeviceToHost));
+    checkCudaErrors(cudaMemcpy(alpha.data(), devAlpha, sizeof(real) * trainingSize, cudaMemcpyHostToHost));
     for (int i = 0; i < trainingSize; ++i) {
         if (alpha[i] != 0) {
             coef.push_back(label[i] * alpha[i]);
@@ -309,8 +333,9 @@ MultiSmoSolver::selectWorkingSetAndPreCompute(const SvmProblem &subProblem, uint
     TIMER_START(selectTimer)
     vector<int> oldWorkingSet = workingSet;
 
-    checkCudaErrors(cudaMemcpy(devWorkingSetIndicator, workingSetIndicator.data(), sizeof(int) * numOfSamples,
-                               cudaMemcpyHostToDevice));
+    devWorkingSetIndicator = workingSetIndicator.data();
+//    checkCudaErrors(cudaMemcpy(devWorkingSetIndicator, workingSetIndicator.data(), sizeof(int) * numOfSamples,
+//                               cudaMemcpyHostToDevice));
 
 //#pragma omp parallel for private(i) schedule(guided)
     for (int i = 0; i < numOfSamples; ++i) {
@@ -326,15 +351,15 @@ MultiSmoSolver::selectWorkingSetAndPreCompute(const SvmProblem &subProblem, uint
             devIdx4Sort[i] = i;
         }
     }
-    thrust::sort_by_key(thrust::cuda::par, devFValue4Sort, devFValue4Sort + numOfSamples, devIdx4Sort,
+    thrust::sort_by_key(thrust::host, devFValue4Sort, devFValue4Sort + numOfSamples, devIdx4Sort,
                         thrust::greater<float>());
     checkCudaErrors(cudaMemcpy(workingSet.data() + oldSize * 2, devIdx4Sort, sizeof(int) * numOfSelectPairs,
-                               cudaMemcpyDeviceToHost));
+                               cudaMemcpyHostToHost));
     for (int i = 0; i < numOfSelectPairs; ++i) {
         workingSetIndicator[workingSet[oldSize * 2 + i]] = 1;
     }
     checkCudaErrors(cudaMemcpy(devWorkingSetIndicator, workingSetIndicator.data(), sizeof(int) * numOfSamples,
-                               cudaMemcpyHostToDevice));
+                               cudaMemcpyHostToHost));
 //#pragma omp parallel for private(i) schedule(guided)
     for (int i = 0; i < numOfSamples; ++i) {
         if (i < numOfSamples) {
@@ -353,20 +378,20 @@ MultiSmoSolver::selectWorkingSetAndPreCompute(const SvmProblem &subProblem, uint
                         thrust::greater<float>());
     checkCudaErrors(
             cudaMemcpy(workingSet.data() + oldSize * 2 + numOfSelectPairs, devIdx4Sort, sizeof(int) * numOfSelectPairs,
-                       cudaMemcpyDeviceToHost));
+                       cudaMemcpyHostToHost));
 
     //get pairs from last working set
     for (int i = 0; i < oldSize * 2; ++i) {
         workingSet[i] = oldWorkingSet[numOfSelectPairs * 2 + i];
     }
-    checkCudaErrors(cudaMemcpy(devWorkingSet, workingSet.data(), sizeof(int) * workingSetSize, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(devWorkingSet, workingSet.data(), sizeof(int) * workingSetSize,cudaMemcpyHostToHost));
     TIMER_STOP(selectTimer)
 
     //move old kernel values to get space
     checkCudaErrors(cudaMemcpy(devHessianMatrixCache,
                                devHessianMatrixCache + numOfSamples * numOfSelectPairs * 2,
                                sizeof(real) * numOfSamples * oldSize * 2,
-                               cudaMemcpyDeviceToDevice));
+                               cudaMemcpyHostToHost));
     vector<vector<KeyValue> > computeSamples;
     for (int i = 0; i < numOfSelectPairs * 2; ++i) {
         computeSamples.push_back(subProblem.v_vSamples[workingSet[oldSize * 2 + i]]);
@@ -419,6 +444,9 @@ MultiSmoSolver::selectWorkingSetAndPreCompute(const SvmProblem &subProblem, uint
         }
     }
 
+    delete[] a;
+    delete[] trans_a;
+    delete[] kernel;
     TIMER_STOP(preComputeTimer)
 }
 
@@ -427,9 +455,9 @@ real MultiSmoSolver::getObjValue(int numOfSamples) const {
     vector<real> f(numOfSamples);
     vector<real> alpha(numOfSamples);
     vector<int> y(numOfSamples);
-    cudaMemcpy(f.data(), devYiGValue, sizeof(real) * numOfSamples, cudaMemcpyDeviceToHost);
-    cudaMemcpy(alpha.data(), devAlpha, sizeof(real) * numOfSamples, cudaMemcpyDeviceToHost);
-    cudaMemcpy(y.data(), devLabel, sizeof(int) * numOfSamples, cudaMemcpyDeviceToHost);
+    cudaMemcpy(f.data(), devYiGValue, sizeof(real) * numOfSamples,cudaMemcpyHostToHost);
+    cudaMemcpy(alpha.data(), devAlpha, sizeof(real) * numOfSamples,cudaMemcpyHostToHost);
+    cudaMemcpy(y.data(), devLabel, sizeof(int) * numOfSamples,cudaMemcpyHostToHost);
     real obj = 0;
     for (int i = 0; i < numOfSamples; ++i) {
         obj -= alpha[i];
