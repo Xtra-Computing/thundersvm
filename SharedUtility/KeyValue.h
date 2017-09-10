@@ -1,10 +1,3 @@
-/*
- * keyValue.h
- *
- *  Created on: 9 Mar 2016
- *      Author: Zeyi Wen
- *		@brief: 
- */
 
 #ifndef KEYVALUE_H_
 #define KEYVALUE_H_

@@ -1,9 +1,3 @@
-/*
- * evaluateClassifier.h
- *
- *  Created on: 21 Jan 2017
- *      Author: Zeyi Wen
- */
 
 #ifndef MASCOT_CLASSIFIEREVALUATER_H_
 #define MASCOT_CLASSIFIEREVALUATER_H_

@@ -1,9 +1,3 @@
-/**
- * workingSetSelector.h
- * This file contains kernel functions for working set selection
- * Created on: May 24, 2012
- * Author: Zeyi Wen
- **/
 
 #ifndef WORKINGSETSELECTOR_H_
 #define WORKINGSETSELECTOR_H_

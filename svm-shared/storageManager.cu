@@ -1,9 +1,3 @@
-/*
- * rowRAM.cpp
- *
- *  Created on: 15/10/2015
- *      Author: Zeyi Wen
- */
 
 #include "storageManager.h"
 #include "gpu_global_utility.h"

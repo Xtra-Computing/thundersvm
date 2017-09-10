@@ -1,9 +1,3 @@
-/**
- * classificationKernel.h
- * Created on: Jun 6, 2012
- * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
- **/
 
 #ifndef CLASSIFICATIONKERNEL_H_
 #define CLASSIFICATIONKERNEL_H_

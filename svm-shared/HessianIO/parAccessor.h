@@ -1,9 +1,3 @@
-/*
- * parHessianIO.h
- *
- *  Created on: 26/11/2013
- *      Author: Zeyi Wen
- */
 
 #ifndef PARHESSIANIO_H_
 #define PARHESSIANIO_H_

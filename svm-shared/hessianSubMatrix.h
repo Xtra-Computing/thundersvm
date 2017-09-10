@@ -1,10 +1,3 @@
-/**
- * hessianSubMatrix.h
- * Created on: April 5, 2013
- * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
- * @brief: this file contains hessian sub matrix class
- **/
 
 #ifndef HESSIAN_SUB_MATRIX_H
 #define HESSIAN_SUB_MATRIX_H

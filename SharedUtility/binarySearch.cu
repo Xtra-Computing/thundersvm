@@ -1,9 +1,3 @@
-/*
- * binarySearch.cu
- *
- *  Created on: Jun 12, 2017
- *      Author: zeyi
- */
 
 #include "binarySearch.h"
 

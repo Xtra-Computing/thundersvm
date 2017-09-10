@@ -1,9 +1,3 @@
-/*
- * multiProdictor.h
- *
- *  Created on: 1 Jan 2017
- *      Author: Zeyi Wen
- */
 
 #ifndef MASCOT_MULTIPREDICTOR_H_
 #define MASCOT_MULTIPREDICTOR_H_

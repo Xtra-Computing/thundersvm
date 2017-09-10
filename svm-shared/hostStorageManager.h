@@ -1,9 +1,3 @@
-/*
- * hostStorageManager.h
- *
- *  Created on: 28/10/2015
- *      Author: Zeyi Wen
- */
 
 #ifndef HOSTSTORAGEMANAGER_H_
 #define HOSTSTORAGEMANAGER_H_

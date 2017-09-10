@@ -1,9 +1,3 @@
-/*
- * predictionGPUHelper.cu
- *
- *  Created on: 1 Jan 2017
- *      Author: Zeyi Wen
- */
 
 #include "predictionGPUHelper.h"
 

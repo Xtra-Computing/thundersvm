@@ -1,6 +1,3 @@
-//
-// Created by ss on 16-12-14.
-//
 
 #include <cfloat>
 #include <sys/time.h>

@@ -1,10 +1,3 @@
-/*
- * BaseLibsvmReader.cpp
- *
- *  Created on: 6 May 2016
- *      Author: Zeyi Wen
- *		@brief: definition of some basic functions for reading data in libsvm format
- */
 
 #include <iostream>
 #include <assert.h>

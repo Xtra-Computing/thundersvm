@@ -1,9 +1,3 @@
-/*
- * accessHessian.cpp
- *
- *  Created on: 30/10/2015
- *      Author: Zeyi Wen
- */
 
 #include <assert.h>
 #include "accessHessian.h"

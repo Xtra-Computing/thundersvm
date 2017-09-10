@@ -1,9 +1,3 @@
-/**
- * Utility.h
- * Created on: May 21, 2012
- * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
- **/
 
 #ifndef UTILITY_H_
 #define UTILITY_H_

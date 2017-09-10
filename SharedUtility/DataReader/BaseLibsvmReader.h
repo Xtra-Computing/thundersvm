@@ -1,10 +1,3 @@
-/*
- * BaseLibsvmReader.h
- *
- *  Created on: 6 May 2016
- *      Author: Zeyi Wen
- *		@brief: a class that contains some basic functions for reading data in libsvm format
- */
 
 #ifndef BASELIBSVMREADER_H_
 #define BASELIBSVMREADER_H_

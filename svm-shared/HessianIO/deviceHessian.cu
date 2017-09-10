@@ -1,9 +1,3 @@
-/**
- * hessianIO.cu
- * Created on: May 21, 2012
- * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
- **/
 
 #include "deviceHessian.h"
 #include <helper_cuda.h>

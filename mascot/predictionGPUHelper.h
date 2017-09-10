@@ -1,9 +1,3 @@
-/*
- * predictionGPUHelper.h
- *
- *  Created on: 1 Jan 2017
- *      Author: Zeyi Wen
- */
 
 #ifndef MASCOT_PREDICTIONGPUHELPER_H_
 #define MASCOT_PREDICTIONGPUHELPER_H_

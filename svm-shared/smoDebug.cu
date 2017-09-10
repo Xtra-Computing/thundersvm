@@ -1,8 +1,3 @@
-/***
- * @Author: Zeyi Wen
- * @Date: Oct 15 2015
- * @Brief:  This file has debugging codes for the SMO solver module
- */
 
 #include "smoSolver.h"
 #include <cuda_runtime_api.h>

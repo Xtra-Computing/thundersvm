@@ -1,6 +1,3 @@
-//
-// Created by shijiashuai on 2016/12/16.
-//
 
 #ifndef MASCOT_SVM_GPUCACHE_H
 #define MASCOT_SVM_GPUCACHE_H

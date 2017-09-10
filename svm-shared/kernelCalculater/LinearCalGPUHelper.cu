@@ -1,9 +1,3 @@
-/**
- * LinearCalGPUHelper.cu
- * Created on: May 14, 2013
- * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
- **/
 
 #include "kernelCalGPUHelper.h"
 /*

@@ -1,9 +1,3 @@
-/*
- * kernelType.h
- *
- *  Created on: 09/12/2014
- *      Author: zeyi
- */
 
 #ifndef KERNELTYPE_H_
 #define KERNELTYPE_H_

@@ -1,8 +1,3 @@
-/*
-   * @author: created by ss on 16-11-2.
-   * @brief: multi-class svm training, prediction, svm with probability output
-   *
-*/
 
 #include <map>
 #include <cuda.h>

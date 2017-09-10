@@ -1,6 +1,3 @@
-//
-// Created by shijiashuai on 2016/12/16.
-//
 
 #include <cublas_v2.h>
 #include <sys/time.h>

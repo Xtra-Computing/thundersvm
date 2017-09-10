@@ -1,9 +1,3 @@
-/*
- * rbfKernelFunction.cpp
- *
- *  Created on: 29/10/2015
- *      Author: Zeyi Wen
- */
 
 #include <assert.h>
 #include <math.h>

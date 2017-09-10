@@ -1,9 +1,3 @@
-/**
- * svmTrainer.h
- * Created on: May 21, 2012
- * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
- **/
 
 #ifndef SVMTRAINER_H_
 #define SVMTRAINER_H_

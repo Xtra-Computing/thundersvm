@@ -1,8 +1,3 @@
-/*
- * @brief: this file contains the definition of svm trainer class
- * Created on: May 24, 2012
- * Author: Zeyi Wen
- */
 
 #include "svmTrainer.h"
 #include "storageManager.h"

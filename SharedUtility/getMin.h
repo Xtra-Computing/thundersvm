@@ -1,10 +1,3 @@
-/**
- * devUtility.h
- * @brief: This file contains InitCUDA() function and a reducer class CReducer
- * Created on: May 24, 2012
- * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
- **/
 
 #ifndef GETMIN_H_
 #define GETMIN_H_

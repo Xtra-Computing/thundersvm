@@ -1,9 +1,3 @@
-/*
- * parHessianIO.cpp
- *
- *  Created on: 26/11/2013
- *      Author: Zeyi Wen
- */
 
 #include "parAccessor.h"
 #include "../constant.h"

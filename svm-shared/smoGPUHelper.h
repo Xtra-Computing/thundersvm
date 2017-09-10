@@ -1,9 +1,3 @@
-/**
- * smoGPUHelper.h
- * Created on: May 29, 2012
- * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
- **/
 
 #ifndef WORKINGSETGPUHELPER_H_
 #define WORKINGSETGPUHELPER_H_

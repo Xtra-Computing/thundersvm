@@ -1,10 +1,3 @@
-/*
- * powerOfTwo.h
- *
- *  Created on: 2 Aug 2016
- *      Author: Zeyi Wen
- *		@brief: 
- */
 
 #ifndef POWEROFTWO_H_
 #define POWEROFTWO_H_

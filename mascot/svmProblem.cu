@@ -1,6 +1,3 @@
-//
-// Created by shijiashuai on 2016/11/1.
-//
 
 #include <cuda_runtime.h>
 #include <helper_cuda.h>

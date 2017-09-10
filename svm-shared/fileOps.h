@@ -1,9 +1,3 @@
-/**
- * fileOps.h
- * Created on: May 22, 2012
- * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
- **/
 
 #ifndef FILEOPS_H_
 #define FILEOPS_H_

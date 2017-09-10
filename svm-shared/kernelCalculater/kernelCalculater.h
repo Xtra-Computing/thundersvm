@@ -1,10 +1,3 @@
-/**
- * kernelCalculater.h
- * Created on: May 21, 2012
- * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
- * @brief: this file contains classes for computing different kind of kernels
- **/
 
 #ifndef KERNELCALCULATER_H_
 #define KERNELCALCULATER_H_

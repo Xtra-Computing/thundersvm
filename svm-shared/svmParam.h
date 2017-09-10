@@ -1,9 +1,3 @@
-/*
- * svmParam.h
- *
- *  Created on: 08/12/2014
- *      Author: Zeyi Wen
- */
 
 #ifndef SVMPARAM_H_
 #define SVMPARAM_H_

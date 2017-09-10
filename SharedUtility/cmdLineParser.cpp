@@ -1,9 +1,3 @@
-/*
- * cmdLineParser.cpp
- *
- *  Created on: Jun 14, 2017
- *      Author: zeyi
- */
 
 #include <string.h>
 #include <stdio.h>

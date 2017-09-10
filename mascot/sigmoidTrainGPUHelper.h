@@ -1,6 +1,3 @@
-//@brief:kernel functions to help complete gpu_sigmoid_train();
-//@created on 16/12/6
-//@author:yawen Chen
 
 #ifndef SIGMOIDTRAINGPUHELPER_H_
 #define SIGMOIDTRAINGPUHELPER_H_

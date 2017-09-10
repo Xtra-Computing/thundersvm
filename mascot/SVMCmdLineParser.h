@@ -1,9 +1,3 @@
-/*
- * commandLineParser.h
- *
- *  Created on: 08/12/2014
- *      Author: Zeyi Wen
- */
 
 #ifndef SVMCOMMANDLINEPARSER_H_
 #define SVMCOMMANDLINEPARSER_H_

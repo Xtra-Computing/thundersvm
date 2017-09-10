@@ -1,9 +1,3 @@
-/*
- * svmMain.cu
- *
- *  Created on: May 21, 2012
- *      Author: Zeyi Wen
- */
 
 #include <iostream>
 #include <cassert>

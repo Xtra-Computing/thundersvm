@@ -1,9 +1,3 @@
-/*
- * seqHessianIO.h
- *
- *  Created on: 26/11/2013
- *      Author: Zeyi Wen
- */
 
 #ifndef SEQHESSIANIO_H_
 #define SEQHESSIANIO_H_

@@ -1,10 +1,3 @@
-/*
- * KeyValue.cpp
- *
- *  Created on: 4 May 2016
- *      Author: Zeyi Wen
- *		@brief: 
- */
 
 #include <algorithm>
 #include <iostream>

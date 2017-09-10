@@ -1,9 +1,3 @@
-/*
- * baseSMO.h
- *	@brief: some sharable functions of smo solver
- *  Created on: 24 Dec 2016
- *      Author: Zeyi Wen
- */
 
 #ifndef SVM_SHARED_BASESMO_H_
 #define SVM_SHARED_BASESMO_H_
