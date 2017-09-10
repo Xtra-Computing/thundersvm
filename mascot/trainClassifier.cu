@@ -30,6 +30,7 @@ void trainSVM(SVMParam &param, string strTrainingFileName, int numFeature, SvmMo
 	LibSVMDataReader drHelper;
 	drHelper.ReadLibSVMAsSparse(v_v_Instance, v_nLabel, strTrainingFileName, numFeature);
     SvmProblem problem(v_v_Instance, numFeature, v_nLabel);
+    printf("yes\n");
 //    problem = problem.getSubProblem(0,1);
     model.fit(problem, param);
     PRINT_TIME("training", trainingTimer)
@@ -68,7 +69,7 @@ void evaluateSVMClassifier(SvmModel &model, string strTrainingFileName, int numF
  */
 void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<int> &v_nLabel,
 			  vector<real> &classificationError){
-    int batchSize = 10000;
+    int batchSize = 1000;
 
     //create a miss labeling matrix for measuring the sub-classifier errors.
     model.missLabellingMatrix = vector<vector<int> >(model.nrClass, vector<int>(model.nrClass, 0));

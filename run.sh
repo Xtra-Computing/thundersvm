@@ -78,7 +78,7 @@ TASK="-o 2"
 
 #test set name ("e" stands for evaluation)
 #In this example test set name, if you use "mnist.scale", the test set name is "mnist.scale.t"
-TestSet="-e "${TrainingSet}".t"
+#TestSet="-e "${TrainingSet}".t"
 
 #evaluate training error
 E="-r 1" #0 not evaluate training error; evaluate training error otherwise.
@@ -87,4 +87,4 @@ E="-r 1" #0 not evaluate training error; evaluate training error otherwise.
 set -x
 
 #command
-./bin/release/mascot ${PROB} ${TASK} ${GAMMA} ${C} ${E} ${F} ${TestSet} ${TrainingSet}
+./bin/release/mascot ${PROB} ${TASK} ${GAMMA} ${C} ${E} ${F}  ${TrainingSet}
