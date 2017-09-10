@@ -21,7 +21,8 @@
 #include <thrust/execution_policy.h>
 #include <mkl.h>
 #include <omp.h>
-
+#include <thrust/system/omp/execution_policy.h>
+#include <thrust/system/cpp/execution_policy.h>
 float hostRho, hostDiff;
 
 void MultiSmoSolver::cpu_localSMO(const int *label, real *FValues, real *alpha, real *alphaDiff,
@@ -351,7 +352,7 @@ MultiSmoSolver::selectWorkingSetAndPreCompute(const SvmProblem &subProblem, uint
             devIdx4Sort[i] = i;
         }
     }
-    thrust::sort_by_key(thrust::host, devFValue4Sort, devFValue4Sort + numOfSamples, devIdx4Sort,
+    thrust::sort_by_key(thrust::cpp::par, devFValue4Sort, devFValue4Sort + numOfSamples, devIdx4Sort,
                         thrust::greater<float>());
     checkCudaErrors(cudaMemcpy(workingSet.data() + oldSize * 2, devIdx4Sort, sizeof(int) * numOfSelectPairs,
                                cudaMemcpyHostToHost));
@@ -374,7 +375,7 @@ MultiSmoSolver::selectWorkingSetAndPreCompute(const SvmProblem &subProblem, uint
             devIdx4Sort[i] = i;
         }
     }
-    thrust::sort_by_key(thrust::host, devFValue4Sort, devFValue4Sort + numOfSamples, devIdx4Sort,
+    thrust::sort_by_key(thrust::cpp::par, devFValue4Sort, devFValue4Sort + numOfSamples, devIdx4Sort,
                         thrust::greater<float>());
     checkCudaErrors(
             cudaMemcpy(workingSet.data() + oldSize * 2 + numOfSelectPairs, devIdx4Sort, sizeof(int) * numOfSelectPairs,
