@@ -1,6 +1,3 @@
-/*
- * @author: Created by shijiashuai on 2016/11/1.
- */
 
 #ifndef MASCOT_SVM_SVMPROBLEM_H
 #define MASCOT_SVM_SVMPROBLEM_H

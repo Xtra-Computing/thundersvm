@@ -1,9 +1,3 @@
-/*
- * multiPredictor.cu
- *
- *  Created on: 1 Jan 2017
- *      Author: Zeyi Wen
- */
 
 #include <cuda.h>
 #include <helper_cuda.h>

@@ -1,10 +1,3 @@
-/**
- * cache.h
- * Created on: May 28, 2012
- * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
- * @brief: this file has classes for caching kernel values
- **/
 
 #ifndef CACHE_H_
 #define CACHE_H_

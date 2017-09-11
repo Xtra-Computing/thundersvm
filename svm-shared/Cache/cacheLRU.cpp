@@ -1,10 +1,3 @@
-/**
- * cacheLRU.cpp
- * Created on: May 28, 2012
- * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
- * @brief: this file has implementation of the LRU cache strategy
- **/
 
 #include <stdlib.h>
 #include "cache.h"

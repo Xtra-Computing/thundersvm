@@ -1,9 +1,3 @@
-/*
- * @brief: this file contains the definition of svm predictor class
- * Created on: May 24, 2012
- * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
- */
 
 #include "../svm-shared/gpu_global_utility.h"
 #include "svmPredictor.h"

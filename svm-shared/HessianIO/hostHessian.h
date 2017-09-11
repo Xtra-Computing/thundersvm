@@ -1,9 +1,3 @@
-/*
- * hostHessian.h
- *
- *  Created on: 29/10/2015
- *      Author: Zeyi Wen
- */
 
 #ifndef HOSTHESSIAN_H_
 #define HOSTHESSIAN_H_

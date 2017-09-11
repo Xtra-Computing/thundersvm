@@ -1,10 +1,3 @@
-/*
- * cacheMRU.cpp
- * Created on: 25/04/2013
- * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
- * @brief: this file has implementation of the Most Recent Used cache strategy
- */
 
 #include "cache.h"
 

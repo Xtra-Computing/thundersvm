@@ -1,9 +1,3 @@
-/*
- * @brief: this file contains the definition of svm trainer class
- * Created on: May 24, 2012
- * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
- */
 
 #include "../svm-shared/svmTrainer.h"
 #include "time.h"

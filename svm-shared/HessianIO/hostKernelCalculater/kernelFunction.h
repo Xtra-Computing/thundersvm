@@ -1,9 +1,3 @@
-/*
- * kernelFunction.h
- *
- *  Created on: 29/10/2015
- *      Author: Zeyi Wen
- */
 
 #ifndef KERNELFUNCTION_H_
 #define KERNELFUNCTION_H_

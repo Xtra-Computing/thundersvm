@@ -1,9 +1,3 @@
-/*
- * commandLineParser.h
- *
- *  Created on: Jun 14, 2017
- *      Author: zeyi
- */
 
 #ifndef COMMANDLINEPARSER_H_
 #define COMMANDLINEPARSER_H_

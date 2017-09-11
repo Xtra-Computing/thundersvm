@@ -1,11 +1,3 @@
-/*
- * cacheMLRU.cpp
- *
- *  Created on: 24/04/2013
- *      Author: Zeyi Wen
- *  Copyright @DBGroup University of Melbourne
- * @brief: this file has implementation of the MLRU cache strategy
- */
 
 #include "cache.h"
 #include <stdlib.h>

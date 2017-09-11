@@ -1,6 +1,3 @@
-/*
- * @author: shijiashuai
- */
 
 #ifndef MASCOT_SVM_CSRMATRIX_H
 #define MASCOT_SVM_CSRMATRIX_H

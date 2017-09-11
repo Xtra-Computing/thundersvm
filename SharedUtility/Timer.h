@@ -1,6 +1,3 @@
-//
-// Created by ss on 17-1-18.
-//
 
 #ifndef MASCOT_SVM_TIMER_H
 #define MASCOT_SVM_TIMER_H

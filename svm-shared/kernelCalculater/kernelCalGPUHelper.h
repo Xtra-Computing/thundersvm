@@ -1,9 +1,3 @@
-/**
- * kernelCalGPUHelper.h
- * Created on: May 29, 2012
- * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
- **/
 
 #ifndef KERNELCALGPUHELPER_H_
 #define KERNELCALGPUHELPER_H_

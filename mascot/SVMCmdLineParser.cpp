@@ -1,9 +1,3 @@
-/*
- * commandLineParser.cpp
- *
- *  Created on: 08/12/2014
- *      Author: Zeyi Wen
- */
 
 #include <string.h>
 #include <stdio.h>

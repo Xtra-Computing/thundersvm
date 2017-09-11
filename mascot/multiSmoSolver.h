@@ -1,6 +1,3 @@
-//
-// Created by ss on 16-12-14.
-//
 
 #ifndef MASCOT_SVM_MULTISMOSOLVER_H
 #define MASCOT_SVM_MULTISMOSOLVER_H

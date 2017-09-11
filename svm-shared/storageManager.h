@@ -1,9 +1,3 @@
-/*
- * storageManager.h
- *
- *  Created on: 15/10/2015
- *      Author: Zeyi Wen
- */
 
 #ifndef STORAGEMANAGER_H_
 #define STORAGEMANAGER_H_

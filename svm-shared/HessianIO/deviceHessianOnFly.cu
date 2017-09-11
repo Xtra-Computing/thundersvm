@@ -1,6 +1,3 @@
-//
-// Created by ss on 16-11-15.
-//
 
 #include <sys/time.h>
 #include "deviceHessianOnFly.h"

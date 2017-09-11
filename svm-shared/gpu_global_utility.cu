@@ -1,9 +1,3 @@
-/*
- * utility.cpp
- *
- *  Created on: 16/03/2013
- *      Author: zeyi
- */
 #include "gpu_global_utility.h"
 #include <cuda.h>
 #include <helper_cuda.h>

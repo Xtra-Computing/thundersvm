@@ -1,9 +1,3 @@
-/*
- * host_constant.h
- *
- *  Created on: 31/10/2015
- *      Author: Zeyi Wen
- */
 
 #ifndef HOST_CONSTANT_H_
 #define HOST_CONSTANT_H_

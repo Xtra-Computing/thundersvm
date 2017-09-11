@@ -1,6 +1,3 @@
-//
-// Created by ss on 16-11-2.
-//
 
 #ifndef MASCOT_SVM_SVMMODEL_H
 #define MASCOT_SVM_SVMMODEL_H

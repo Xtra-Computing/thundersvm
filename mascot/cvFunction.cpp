@@ -1,9 +1,3 @@
-/*
- * cvFunction.cpp
- *
- *  Created on: 09/12/2014
- *      Author: Zeyi Wen
- */
 
 #include<iostream>
 #include<cassert>

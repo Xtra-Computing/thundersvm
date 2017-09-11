@@ -1,10 +1,3 @@
-/**
- * cacheGS.cpp
- * Created on: April 13, 2013
- * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
- * @brief: this file has implementation of the gradient value based cache strategy
- **/
 #include "../my_assert.h"
 #include <stdlib.h>
 #include <float.h>

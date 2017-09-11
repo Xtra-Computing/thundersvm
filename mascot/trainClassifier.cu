@@ -1,9 +1,3 @@
-/*
- * testTrainer.cpp
- *
- *  Created on: 31/10/2013
- *      Author: Zeyi Wen
- */
 
 #include <sys/time.h>
 #include "multiPredictor.h"

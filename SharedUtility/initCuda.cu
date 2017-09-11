@@ -1,9 +1,3 @@
-/*
- * initCuda.cpp
- *
- *  Created on: 10/12/2014
- *      Author: Zeyi Wen
- */
 
 #include <helper_cuda.h>
 #include <cuda.h>

@@ -1,6 +1,3 @@
-//
-// Created by ss on 17-1-18.
-//
 #include "Timer.h"
 
 float Timer::diff(timeval t1, timeval t2) {

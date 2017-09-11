@@ -1,9 +1,3 @@
-/*
- * accessHessian.h
- *
- *  Created on: 30/10/2015
- *      Author: Zeyi Wen
- */
 
 #ifndef ACCESSHESSIAN_H_
 #define ACCESSHESSIAN_H_

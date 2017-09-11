@@ -1,9 +1,3 @@
-/*
- * subHessianCalculater.h
- *
- *  Created on: 10 Jan 2017
- *      Author: Zeyi Wen
- */
 
 #ifndef SVM_SHARED_CACHE_SUBHESSIANCALCULATER_H_
 #define SVM_SHARED_CACHE_SUBHESSIANCALCULATER_H_

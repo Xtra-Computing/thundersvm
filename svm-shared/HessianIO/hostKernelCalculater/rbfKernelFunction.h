@@ -1,9 +1,3 @@
-/*
- * rbfKernelFunction.h
- *
- *  Created on: 29/10/2015
- *      Author: Zeyi Wen
- */
 
 #ifndef RBFKERNELFUNCTION_H_
 #define RBFKERNELFUNCTION_H_

@@ -1,9 +1,3 @@
-/*
- * problemInfo.cpp
- *
- *  Created on: 31/10/2015
- *      Author: Zeyi Wen
- */
 
 #include "problemInfo.h"
 

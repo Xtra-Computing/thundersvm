@@ -1,8 +1,3 @@
-/**
- * trainingDataIO.h
- * Created on: May 21, 2012
- * Author: Zeyi Wen
- **/
 
 #ifndef TRAININGDATAIO_H_
 #define TRAININGDATAIO_H_

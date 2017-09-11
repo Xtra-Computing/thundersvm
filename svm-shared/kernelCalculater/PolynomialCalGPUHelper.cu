@@ -1,10 +1,3 @@
-/*
- * PolynomialCalGPUHelper.cu
- *
- * Created on: 28/05/2013
- * Author: Zeyi Wen
- * Copyright @DBGroup University of Melbourne
- **/
 
 #include "kernelCalGPUHelper.h"
 /*

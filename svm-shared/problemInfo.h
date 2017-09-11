@@ -1,9 +1,3 @@
-/*
- * problemInfo.h
- *
- *  Created on: 28/10/2015
- *      Author: Zeyi Wen
- */
 
 #ifndef PROBLEMINFO_H_
 #define PROBLEMINFO_H_

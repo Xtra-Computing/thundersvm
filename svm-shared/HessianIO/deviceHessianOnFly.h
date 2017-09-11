@@ -1,6 +1,3 @@
-//
-// Created by ss on 16-11-15.
-//
 
 #ifndef MASCOT_SVM_HOSTHESSIANONFLY_H
 #define MASCOT_SVM_HOSTHESSIANONFLY_H

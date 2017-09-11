@@ -1,9 +1,3 @@
-/*
- * baseSMO.cu
- *  @brief: definition of some sharable functions of smo solver
- *  Created on: 24 Dec 2016
- *      Author: Zeyi Wen
- */
 
 #include "baseSMO.h"
 #include <cuda_runtime_api.h>

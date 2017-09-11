@@ -1,9 +1,3 @@
-/*
- * binarySearch.h
- *
- *  Created on: Jun 12, 2017
- *      Author: zeyi
- */
 
 #ifndef BINARYSEARCH_H_
 #define BINARYSEARCH_H_

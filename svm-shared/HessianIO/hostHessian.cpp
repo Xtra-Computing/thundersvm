@@ -1,9 +1,3 @@
-/*
- * hostHessian.cpp
- *
- *  Created on: 29/10/2015
- *      Author: Zeyi Wen
- */
 
 #ifndef HOSTHESSIAN_CPP_
 #define HOSTHESSIAN_CPP_
