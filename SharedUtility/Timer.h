@@ -55,6 +55,7 @@ extern Timer updateAlphaTimer;
 extern Timer updateGTimer;
 extern Timer iterationTimer;
 extern Timer initTimer;
+extern Timer predictionTimer;
 #ifdef COUNT_TIME
 #define TIMER_START(timer) cudaDeviceSynchronize();timer.start();
 #define TIMER_STOP(timer) cudaDeviceSynchronize();timer.stop();

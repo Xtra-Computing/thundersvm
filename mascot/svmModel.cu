@@ -21,17 +21,28 @@
 #include <time.h>//#include "sigmoidTrainGPUHelper.h"
 
 SvmModel::~SvmModel() {
-    checkCudaErrors(cudaFree(devCoef));
-    checkCudaErrors(cudaFree(devStart));
-    checkCudaErrors(cudaFree(devCount));
-    checkCudaErrors(cudaFree(devProbA));
-    checkCudaErrors(cudaFree(devProbB));
-    checkCudaErrors(cudaFree(devRho));
-    checkCudaErrors(cudaFree(devSVMapVal));
-    checkCudaErrors(cudaFree(devSVMapValSelfDot));
-    checkCudaErrors(cudaFree(devSVMapRowPtr));
-    checkCudaErrors(cudaFree(devSVMapColInd));
-    checkCudaErrors(cudaFree(devSVIndex));
+    delete[] devCoef;
+    delete[] devStart;
+    delete[]devCount;
+    delete[]devProbA;
+    delete[]devProbB;
+    delete[]devRho;
+    delete[]devSVMapVal;
+    delete[]devSVMapValSelfDot;
+    delete[]devSVMapRowPtr;
+    delete[]devSVMapColInd;
+    delete[]devSVIndex;
+//    checkCudaErrors(cudaFree(devCoef));
+//    checkCudaErrors(cudaFree(devStart));
+//    checkCudaErrors(cudaFree(devCount));
+//    checkCudaErrors(cudaFree(devProbA));
+//    checkCudaErrors(cudaFree(devProbB));
+//    checkCudaErrors(cudaFree(devRho));
+//    checkCudaErrors(cudaFree(devSVMapVal));
+//    checkCudaErrors(cudaFree(devSVMapValSelfDot));
+//    checkCudaErrors(cudaFree(devSVMapRowPtr));
+//    checkCudaErrors(cudaFree(devSVMapColInd));
+//    checkCudaErrors(cudaFree(devSVIndex));
     if (svMapCSRMat) delete svMapCSRMat;
 }
 
@@ -119,42 +130,53 @@ void SvmModel::transferToDevice() {
     //convert svMap to csr matrix then copy it to device
     svMapCSRMat = new CSRMatrix(svMap, numOfFeatures);
     int nnz = svMapCSRMat->getNnz();
-    checkCudaErrors(cudaMalloc((void **) &devSVMapVal, sizeof(real) * nnz));
-    checkCudaErrors(cudaMalloc((void **) &devSVMapValSelfDot, sizeof(real) * svMapCSRMat->getNumOfSamples()));
-    checkCudaErrors(cudaMalloc((void **) &devSVMapRowPtr, sizeof(int) * (svMapCSRMat->getNumOfSamples() + 1)));
-    checkCudaErrors(cudaMalloc((void **) &devSVMapColInd, sizeof(int) * nnz));
+    devSVMapVal = new real[nnz];
+    devSVMapValSelfDot = new real[svMapCSRMat->getNumOfSamples()];
+    devSVMapRowPtr = new int[svMapCSRMat->getNumOfSamples()+1];
+    devSVMapColInd = new int[nnz];
+//    checkCudaErrors(cudaMalloc((void **) &devSVMapVal, sizeof(real) * nnz));
+//    checkCudaErrors(cudaMalloc((void **) &devSVMapValSelfDot, sizeof(real) * svMapCSRMat->getNumOfSamples()));
+//    checkCudaErrors(cudaMalloc((void **) &devSVMapRowPtr, sizeof(int) * (svMapCSRMat->getNumOfSamples() + 1)));
+//    checkCudaErrors(cudaMalloc((void **) &devSVMapColInd, sizeof(int) * nnz));
     checkCudaErrors(
-            cudaMemcpy(devSVMapVal, svMapCSRMat->getCSRVal(), sizeof(real) * nnz, cudaMemcpyHostToDevice));
+            cudaMemcpy(devSVMapVal, svMapCSRMat->getCSRVal(), sizeof(real) * nnz, cudaMemcpyHostToHost));
     checkCudaErrors(
             cudaMemcpy(devSVMapValSelfDot, svMapCSRMat->getCSRValSelfDot(),
-                       sizeof(real) * svMapCSRMat->getNumOfSamples(), cudaMemcpyHostToDevice));
+                       sizeof(real) * svMapCSRMat->getNumOfSamples(),cudaMemcpyHostToHost));
     checkCudaErrors(
             cudaMemcpy(devSVMapRowPtr, svMapCSRMat->getCSRRowPtr(), sizeof(int) * (svMapCSRMat->getNumOfSamples() + 1),
-                       cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(devSVMapColInd, svMapCSRMat->getCSRColInd(), sizeof(int) * nnz, cudaMemcpyHostToDevice));
+                       cudaMemcpyHostToHost));
+    checkCudaErrors(cudaMemcpy(devSVMapColInd, svMapCSRMat->getCSRColInd(), sizeof(int) * nnz,cudaMemcpyHostToHost));
 
     //flat svIndex then copy in to device
-    checkCudaErrors(cudaMalloc((void **) &devSVIndex, sizeof(int) * numOfSVs));
+//    devSVIndex = new int[numOfSVs];
+    checkCudaErrors(cudaMallocManaged((void **) &devSVIndex, sizeof(int) * numOfSVs));
     for (int i = 0; i < cnr2; ++i) {
         checkCudaErrors(cudaMemcpy(devSVIndex + start[i], svIndex[i].data(), sizeof(int) * svIndex[i].size(),
-                                   cudaMemcpyHostToDevice));
+                                   cudaMemcpyHostToHost));
     }
 
-    checkCudaErrors(cudaMalloc((void **) &devCoef, sizeof(real) * numOfSVs));
-    checkCudaErrors(cudaMalloc((void **) &devStart, sizeof(real) * cnr2));
-    checkCudaErrors(cudaMalloc((void **) &devCount, sizeof(real) * cnr2));
-    checkCudaErrors(cudaMalloc((void **) &devProbA, sizeof(real) * cnr2));
-    checkCudaErrors(cudaMalloc((void **) &devProbB, sizeof(real) * cnr2));
-    checkCudaErrors(cudaMalloc((void **) &devRho, sizeof(real) * cnr2));
+//    devCoef = new real[numOfSVs];
+//    devStart = new int[cnr2];
+//    devCount= new int[cnr2];
+//    devProbA= new real[cnr2];
+//    devProbB = new real[cnr2];
+//    devRho= new real[cnr2];
+    checkCudaErrors(cudaMallocManaged((void **) &devCoef, sizeof(real) * numOfSVs));
+    checkCudaErrors(cudaMallocManaged((void **) &devStart, sizeof(real) * cnr2));
+    checkCudaErrors(cudaMallocManaged((void **) &devCount, sizeof(real) * cnr2));
+    checkCudaErrors(cudaMallocManaged((void **) &devProbA, sizeof(real) * cnr2));
+    checkCudaErrors(cudaMallocManaged((void **) &devProbB, sizeof(real) * cnr2));
+    checkCudaErrors(cudaMallocManaged((void **) &devRho, sizeof(real) * cnr2));
     for (int i = 0; i < cnr2; ++i) {
         checkCudaErrors(cudaMemcpy(devCoef + start[i], coef[i].data(), sizeof(real) * count[i],
-                                   cudaMemcpyHostToDevice));
+                                   cudaMemcpyHostToHost));
     }
-    checkCudaErrors(cudaMemcpy(devProbA, probA.data(), sizeof(real) * cnr2, cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(devProbB, probB.data(), sizeof(real) * cnr2, cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(devStart, start.data(), sizeof(int) * cnr2, cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(devCount, count.data(), sizeof(int) * cnr2, cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(devRho, rho.data(), sizeof(real) * cnr2, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(devProbA, probA.data(), sizeof(real) * cnr2,cudaMemcpyHostToHost));
+    checkCudaErrors(cudaMemcpy(devProbB, probB.data(), sizeof(real) * cnr2,cudaMemcpyHostToHost));
+    checkCudaErrors(cudaMemcpy(devStart, start.data(), sizeof(int) * cnr2,cudaMemcpyHostToHost));
+    checkCudaErrors(cudaMemcpy(devCount, count.data(), sizeof(int) * cnr2,cudaMemcpyHostToHost));
+    checkCudaErrors(cudaMemcpy(devRho, rho.data(), sizeof(real) * cnr2,cudaMemcpyHostToHost));
 }
 
 //void SvmModel::gpu_sigmoid_train(

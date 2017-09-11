@@ -420,7 +420,7 @@ MultiSmoSolver::selectWorkingSetAndPreCompute(const SvmProblem &subProblem, uint
     job[4] = m * n;
     job[5] = 1;
     mkl_sdnscsr(job, &m, &n, a, &lda, devWSVal, devWSColInd, devWSRowPtr, info);
-    assert(*info = 0);
+    assert(*info == 0);
     mkl_somatcopy('r', 't', m, n, 1, a, n, trans_a, m);
     MKL_INT k;
     float alpha(1), beta(0);

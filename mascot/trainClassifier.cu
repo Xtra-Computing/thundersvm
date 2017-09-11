@@ -79,10 +79,9 @@ void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<i
 
     MultiPredictor predictor(model, model.param);
 
-	clock_t start, finish;
-    start = clock();
     int begin = 0;
     vector<int> predictLabels;
+    TIMER_START(predictionTimer)
     while (begin < v_v_Instance.size()) {
     	//get a subset of instances
     	int end = min(begin + batchSize, (int) v_v_Instance.size());
@@ -96,15 +95,15 @@ void evaluate(SvmModel &model, vector<vector<KeyValue> > &v_v_Instance, vector<i
         predictLabels.insert(predictLabels.end(), predictLabelPart.begin(), predictLabelPart.end());
         begin += batchSize;
     }
-    finish = clock();
     int numOfCorrect = 0;
     for (int i = 0; i < v_v_Instance.size(); ++i) {
         if (predictLabels[i] == v_nLabel[i])
             numOfCorrect++;
     }
+    TIMER_STOP(predictionTimer)
     printf("classifier accuracy = %.2f%%(%d/%d)\n", numOfCorrect / (float) v_v_Instance.size() * 100,
            numOfCorrect, (int) v_v_Instance.size());
-    printf("prediction time elapsed: %.2fs\n", (float) (finish - start) / CLOCKS_PER_SEC);
+    PRINT_TIME("prediction time elapsed:", predictionTimer)
     if(bEvaluateSubClass == true){
     	ClassifierEvaluater::evaluateSubClassifier(model.missLabellingMatrix, classificationError);
     }

@@ -11,6 +11,7 @@
 #include <cuda_runtime_api.h>
 #include <cuda_profiler_api.h>
 #include <assert.h>
+#include <mkl.h>
 #include "multiPredictor.h"
 #include "predictionGPUHelper.h"
 #include "classifierEvaluater.h"
@@ -27,7 +28,7 @@ real MultiPredictor::sigmoidPredict(real decValue, real A, real B) const {
 }
 
 void MultiPredictor::multiClassProbability(const vector<vector<real> > &r, vector<real> &p) const {
-	int nrClass = model.nrClass;
+    int nrClass = model.nrClass;
     int t, j;
     int iter = 0, max_iter = max(100, nrClass);
     double **Q = (double **) malloc(sizeof(double *) * nrClass);
@@ -84,8 +85,9 @@ void MultiPredictor::multiClassProbability(const vector<vector<real> > &r, vecto
     free(Qp);
 }
 
-vector<vector<real> > MultiPredictor::predictProbability(const vector<vector<KeyValue> > &v_vSamples, const vector<int> &vnOriginalLabel) const {
-	int nrClass = model.nrClass;
+vector<vector<real> > MultiPredictor::predictProbability(const vector<vector<KeyValue> > &v_vSamples,
+                                                         const vector<int> &vnOriginalLabel) const {
+    int nrClass = model.nrClass;
     vector<vector<real> > result;
     vector<vector<real> > decValues;
     computeDecisionValues(v_vSamples, decValues);
@@ -100,8 +102,8 @@ vector<vector<real> > MultiPredictor::predictProbability(const vector<vector<Key
                 r[j][i] = 1 - r[i][j];
                 k++;
             }
-        if(!vnOriginalLabel.empty())//want to measure sub-classifier error
-        	ClassifierEvaluater::collectSubSVMInfo(model, l, vnOriginalLabel[l], nrClass, r, true);
+        if (!vnOriginalLabel.empty())//want to measure sub-classifier error
+            ClassifierEvaluater::collectSubSVMInfo(model, l, vnOriginalLabel[l], nrClass, r, true);
         vector<real> p(nrClass);
         multiClassProbability(r, p);
         result.push_back(p);
@@ -112,8 +114,31 @@ vector<vector<real> > MultiPredictor::predictProbability(const vector<vector<Key
 /**
  * @brief: compute the decision value
  */
+void cpu_sumKernelValues(const real *kernelValues, int numOfSamples, int svMapSize, int cnr2,
+                                const int *svIndex, const real *coef,
+                                const int *start, const int *count,
+                                const real *bias, real *decValues) {
+#pragma omp parallel for schedule(guided)
+        for (int modelId = 0; modelId < cnr2; ++modelId) {
+            for (int sampleId = 0; sampleId < numOfSamples; ++sampleId) {
+                int idx = sampleId * cnr2 + modelId;
+//        int sampleId = idx / cnr2;
+//        int modelId = idx % cnr2;
+                if (sampleId < numOfSamples) {
+                    real sum = 0;
+                    const real *kernelValue = kernelValues + sampleId * svMapSize;//kernel values of this instance
+                    int si = start[modelId];
+                    int ci = count[modelId];
+                    for (int i = 0; i < ci; ++i) {//can be improved.
+                        sum += coef[si + i] * kernelValue[svIndex[si + i]];
+                    }
+                    decValues[idx] = sum - bias[modelId];
+                }
+            }
+    }
+}
 void MultiPredictor::computeDecisionValues(const vector<vector<KeyValue> > &v_vSamples,
-                        		   vector<vector<real> > &decisionValues) const {
+                                           vector<vector<real> > &decisionValues) const {
     //copy samples to device
     CSRMatrix sampleCSRMat(v_vSamples, model.numOfFeatures);
     real *devSampleVal;
@@ -121,92 +146,150 @@ void MultiPredictor::computeDecisionValues(const vector<vector<KeyValue> > &v_vS
     int *devSampleRowPtr;
     int *devSampleColInd;
     int sampleNnz = sampleCSRMat.getNnz();
-    checkCudaErrors(cudaMalloc((void **) &devSampleVal, sizeof(real) * sampleNnz));
-    checkCudaErrors(cudaMalloc((void **) &devSampleValSelfDot, sizeof(real) * sampleCSRMat.getNumOfSamples()));
-    checkCudaErrors(cudaMalloc((void **) &devSampleRowPtr, sizeof(int) * (sampleCSRMat.getNumOfSamples() + 1)));
-    checkCudaErrors(cudaMalloc((void **) &devSampleColInd, sizeof(int) * sampleNnz));
-    checkCudaErrors(cudaMemcpy(devSampleVal, sampleCSRMat.getCSRVal(), sizeof(real) * sampleNnz,
-                               cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(devSampleValSelfDot, sampleCSRMat.getCSRValSelfDot(),
-                               sizeof(real) * sampleCSRMat.getNumOfSamples(), cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(devSampleRowPtr, sampleCSRMat.getCSRRowPtr(),
-    						   sizeof(int) * (sampleCSRMat.getNumOfSamples() + 1), cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(devSampleColInd, sampleCSRMat.getCSRColInd(), sizeof(int) * sampleNnz,
-    						   cudaMemcpyHostToDevice));
+    sampleCSRMat.copy2Dev(devSampleVal, devSampleRowPtr, devSampleColInd, devSampleValSelfDot);
+//    checkCudaErrors(cudaMalloc((void **) &devSampleVal, sizeof(real) * sampleNnz));
+//    checkCudaErrors(cudaMalloc((void **) &devSampleValSelfDot, sizeof(real) * sampleCSRMat.getNumOfSamples()));
+//    checkCudaErrors(cudaMalloc((void **) &devSampleRowPtr, sizeof(int) * (sampleCSRMat.getNumOfSamples() + 1)));
+//    checkCudaErrors(cudaMalloc((void **) &devSampleColInd, sizeof(int) * sampleNnz));
+//    checkCudaErrors(cudaMemcpy(devSampleVal, sampleCSRMat.getCSRVal(), sizeof(real) * sampleNnz,
+//                               cudaMemcpyHostToDevice));
+//    checkCudaErrors(cudaMemcpy(devSampleValSelfDot, sampleCSRMat.getCSRValSelfDot(),
+//                               sizeof(real) * sampleCSRMat.getNumOfSamples(), cudaMemcpyHostToDevice));
+//    checkCudaErrors(cudaMemcpy(devSampleRowPtr, sampleCSRMat.getCSRRowPtr(),
+//    						   sizeof(int) * (sampleCSRMat.getNumOfSamples() + 1), cudaMemcpyHostToDevice));
+//    checkCudaErrors(cudaMemcpy(devSampleColInd, sampleCSRMat.getCSRColInd(), sizeof(int) * sampleNnz,
+//    						   cudaMemcpyHostToDevice));
 
-    cusparseHandle_t handle;
-    cusparseMatDescr_t descr;
-    cusparseCreate(&handle);
-    cusparseCreateMatDescr(&descr);
-    cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);
-    cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
-    real *devKernelValues;
-    checkCudaErrors(cudaMalloc((void **) &devKernelValues,
-    						   sizeof(real) * v_vSamples.size() * model.svMap.size()));
+//    cusparseHandle_t handle;
+//    cusparseMatDescr_t descr;
+//    cusparseCreate(&handle);
+//    cusparseCreateMatDescr(&descr);
+//    cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);
+//    cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
+    real *devKernelValues = new real[v_vSamples.size() * model.svMap.size()];
+//    real *devKernelValues;
+//    checkCudaErrors(cudaMallocManaged((void **) &devKernelValues,
+//    						   sizeof(real) * v_vSamples.size() * model.svMap.size()));
 
     //dot product between sv and sample
-    CSRMatrix::CSRmm2Dense(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
-                           sampleCSRMat.getNumOfSamples(), model.svMapCSRMat->getNumOfSamples(),
-						   model.svMapCSRMat->getNumOfFeatures(),
-                           descr, sampleNnz, devSampleVal, devSampleRowPtr, devSampleColInd,
-                           descr, model.svMapCSRMat->getNnz(), model.devSVMapVal, model.devSVMapRowPtr, model.devSVMapColInd,
-                           devKernelValues);
-
-    //obtain exp(-gamma*(a^2+b^2-2ab))
+//    CSRMatrix::CSRmm2Dense(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
+//                           sampleCSRMat.getNumOfSamples(), model.svMapCSRMat->getNumOfSamples(),
+//						   model.svMapCSRMat->getNumOfFeatures(),
+//                           descr, sampleNnz, devSampleVal, devSampleRowPtr, devSampleColInd,
+//                           descr, model.svMapCSRMat->getNnz(), model.devSVMapVal, model.devSVMapRowPtr, model.devSVMapColInd,
+//                           devKernelValues);
+//
+//    //obtain exp(-gamma*(a^2+b^2-2ab))
     int numOfBlock = Ceil(v_vSamples.size() * model.svMap.size(), BLOCK_SIZE);
-    rbfKernel<<<numOfBlock, BLOCK_SIZE>>>(devSampleValSelfDot, sampleCSRMat.getNumOfSamples(),
-                            		      model.devSVMapValSelfDot, model.svMapCSRMat->getNumOfSamples(),
-										  devKernelValues, model.param.gamma);
+//    rbfKernel<<<numOfBlock, BLOCK_SIZE>>>(devSampleValSelfDot, sampleCSRMat.getNumOfSamples(),
+//                            		      model.devSVMapValSelfDot, model.svMapCSRMat->getNumOfSamples(),
+//										  devKernelValues, model.param.gamma);
+    MKL_INT m, n, lda;
+    m = sampleCSRMat.getNumOfSamples();
+    n = sampleCSRMat.getNumOfFeatures();
+    lda = n;
+    int dnsinfo = 0;
+    float *a = new float[m * n];
+    float *trans_a = new float[m * n];
+    memset(a ,0, sizeof(real) * m * n);
+    MKL_INT job[6];
+    job[0] = 1;
+    job[1] = 0;
+    job[2] = 0;
+    job[3] = 2;
+    job[4] = m * n;
+    job[5] = 1;
+    mkl_sdnscsr(job, &m, &n, a, &lda, devSampleVal, devSampleColInd,devSampleRowPtr , &dnsinfo);
+    assert(dnsinfo == 0);
+//    for (int i = 0; i < m; ++i) {
+//        printf("-%d ",i);
+//        for (int j = 0; j < n; ++j) {
+//            printf("[%d]%.1f,",j,a[i*n+j]);
+//        }
+//        printf("\n");
+//    }
+    mkl_somatcopy('r', 't', m, n, 1, a, n, trans_a, m);
+    MKL_INT k;
+    float alpha(1), beta(0);
+    m = model.svMapCSRMat->getNumOfSamples();
+    n = sampleCSRMat.getNumOfSamples();
+    k = model.svMapCSRMat->getNumOfFeatures();
+    char transa = 'n';
+    char matdesca[6];
+    matdesca[0] = 'g';
+    matdesca[1] = 'l';
+    matdesca[2] = 'n';
+    matdesca[3] = 'c';
+    real *kernel = new real[m * n];
+    mkl_scsrmm(&transa, &m, &n, &k, &alpha, matdesca, model.devSVMapVal, model.devSVMapColInd, model.devSVMapRowPtr, model.devSVMapRowPtr + 1, trans_a, &n, &beta,
+               kernel, &n);
+    mkl_somatcopy('r', 't', m, n, 1, kernel, n, devKernelValues, m);
+#pragma omp parallel for schedule(guided)
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < m; ++j) {
+            devKernelValues[i * m + j] = expf(-param.gamma * (-2 * devKernelValues[i * m + j] +
+                                                                    devSampleValSelfDot[i] + model.devSVMapValSelfDot[j]));
+        }
+    }
+
+    delete[] a;
+    delete[] trans_a;
+    delete[] kernel;
 
     //sum kernel values of each model then obtain decision values
     int cnr2 = model.cnr2;
     numOfBlock = Ceil(v_vSamples.size() * cnr2, BLOCK_SIZE);
-    real *devDecisionValues;
-    checkCudaErrors(cudaMalloc((void **) &devDecisionValues, sizeof(real) * v_vSamples.size() * cnr2));
-    sumKernelValues<<<numOfBlock, BLOCK_SIZE>>>(devKernelValues, v_vSamples.size(),
-    				model.svMapCSRMat->getNumOfSamples(), cnr2, model.devSVIndex,
-					model.devCoef, model.devStart, model.devCount, model.devRho, devDecisionValues);
+    real *devDecisionValues = new real[v_vSamples.size() * cnr2];
+//    checkCudaErrors(cudaMallocManaged((void **) &devDecisionValues, sizeof(real) * v_vSamples.size() * cnr2));
+
+    cpu_sumKernelValues(devKernelValues, v_vSamples.size(),
+            model.svMapCSRMat->getNumOfSamples(), cnr2, model.devSVIndex,
+            model.devCoef, model.devStart, model.devCount, model.devRho, devDecisionValues);
     real *tempDecValues = new real[v_vSamples.size() * cnr2];
     checkCudaErrors(cudaMemcpy(tempDecValues, devDecisionValues,
-                               sizeof(real) * v_vSamples.size() * cnr2, cudaMemcpyDeviceToHost));
+                               sizeof(real) * v_vSamples.size() * cnr2, cudaMemcpyHostToHost));
     decisionValues = vector<vector<real> >(v_vSamples.size(), vector<real>(cnr2));
     for (int i = 0; i < decisionValues.size(); ++i) {
         memcpy(decisionValues[i].data(), tempDecValues + i * cnr2, sizeof(real) * cnr2);
     }
     delete[] tempDecValues;
-    checkCudaErrors(cudaFree(devDecisionValues));
-    checkCudaErrors(cudaFree(devKernelValues));
-    checkCudaErrors(cudaFree(devSampleVal));
-    checkCudaErrors(cudaFree(devSampleValSelfDot));
-    checkCudaErrors(cudaFree(devSampleRowPtr));
-    checkCudaErrors(cudaFree(devSampleColInd));
-    cusparseDestroy(handle);
-    cusparseDestroyMatDescr(descr);
+//    checkCudaErrors(cudaFree(devDecisionValues));
+    delete[] devDecisionValues;
+//    checkCudaErrors(cudaFree(devKernelValues));
+    delete[] devKernelValues;
+    sampleCSRMat.freeDev(devSampleVal, devSampleRowPtr, devSampleColInd, devSampleValSelfDot);
+//    checkCudaErrors(cudaFree(devSampleVal));
+//    checkCudaErrors(cudaFree(devSampleValSelfDot));
+//    checkCudaErrors(cudaFree(devSampleRowPtr));
+//    checkCudaErrors(cudaFree(devSampleColInd));
+//    cusparseDestroy(handle);
+//    cusparseDestroyMatDescr(descr);
 }
 
 /**
  * @brief: predict the label of the instances
  * @param: vnOriginalLabel is for computing errors of sub-classifier.
  */
-vector<int> MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples, const vector<int> &vnOriginalLabel) const{
-	int nrClass = model.nrClass;
-	bool probability = model.isProbability();
+vector<int>
+MultiPredictor::predict(const vector<vector<KeyValue> > &v_vSamples, const vector<int> &vnOriginalLabel) const {
+    int nrClass = model.nrClass;
+    bool probability = model.isProbability();
     vector<int> labels;
     if (!probability) {
         vector<vector<real> > decisionValues;
         computeDecisionValues(v_vSamples, decisionValues);
         for (int l = 0; l < v_vSamples.size(); ++l) {
-        	if(!vnOriginalLabel.empty())//want to measure sub-classifier error
-	            ClassifierEvaluater::collectSubSVMInfo(model, l, vnOriginalLabel[l], nrClass, decisionValues, false);
+            if (!vnOriginalLabel.empty())//want to measure sub-classifier error
+                ClassifierEvaluater::collectSubSVMInfo(model, l, vnOriginalLabel[l], nrClass, decisionValues, false);
 
             vector<int> votes(nrClass, 0);
             int k = 0;
             for (int i = 0; i < nrClass; ++i) {
                 for (int j = i + 1; j < nrClass; ++j) {
                     if (decisionValues[l][k++] > 0)
-                    	votes[i]++;
+                        votes[i]++;
                     else
-                    	votes[j]++;
+                        votes[j]++;
                 }
             }
             int maxVoteClass = 0;
