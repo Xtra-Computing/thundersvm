@@ -155,8 +155,8 @@ void LibSVMDataReader::ReaderHelper(vector<vector<KeyValue> > &v_vInstance, vect
 			i++;
 		}
 		//skip an empty line (usually this case happens in the last line)
-		if(x == 0xffffffff)
-			continue;
+//		if(x == 0xffffffff)
+//			continue;
 		//fill the value of the rest of the features as 0
 		if(bUseDense == true)
 		{
