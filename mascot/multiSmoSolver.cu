@@ -37,8 +37,9 @@ void MultiSmoSolver::solve() {
 
             //determine the size of working set
             workingSetSize = 1024;
-            if (subProblem.v_vSamples.size() < workingSetSize) {
-                workingSetSize = floorPow2(subProblem.v_vSamples.size());
+            int minSize = min(subProblem.count[0], subProblem.count[1]);
+            if (minSize< workingSetSize) {
+                workingSetSize = floorPow2(minSize);
             }
             q = workingSetSize / 2;
             printf("q = %d, working set size = %d\n", q, workingSetSize);
