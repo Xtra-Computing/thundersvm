@@ -52,8 +52,8 @@ case $1 in
         TrainingSet=${DATASET_DIR}/"cov1"
         ;;
     real-sim)
-        GAMMA=${GAMMA}"4"
-        C=${C}"0.5"
+        GAMMA=${GAMMA}"0.5"
+        C=${C}"4"
         TrainingSet=${DATASET_DIR}/"real-sim"
         ;;
 	cifar-10)
