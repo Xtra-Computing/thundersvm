@@ -11,14 +11,16 @@ public:
     SyncMem();
     explicit SyncMem(size_t size);
     ~SyncMem();
-    void* cpu_data();
-    void* gpu_data();
+    void* host_data();
+    void* device_data();
+    void to_host();
+    void to_device();
     size_t size() const;
-    enum HEAD {CPU, GPU, UNINITIALIZED};
+    enum HEAD {HOST, DEVICE, UNINITIALIZED};
     HEAD head() const;
 private:
-    void *gpu_ptr;
-    void *cpu_ptr;
+    void *device_ptr;
+    void *host_ptr;
     size_t size_;
     HEAD head_;
 };
