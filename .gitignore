@@ -1,6 +1,2 @@
-*.o
-dataset
-bin
-.*
-*.txt
-tags
+.idea
+.git
