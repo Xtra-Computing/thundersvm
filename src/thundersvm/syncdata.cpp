@@ -50,7 +50,7 @@ void SyncData<T>::to_device() {
 }
 
 template<typename T>
-size_t SyncData<T>::size() const {
+inline size_t SyncData<T>::size() const {
     return mem->size();
 }
 
@@ -68,7 +68,4 @@ template
 class SyncData<int>;
 
 template
-class SyncData<float>;
-
-template
-class SyncData<double>;
+class SyncData<real>;

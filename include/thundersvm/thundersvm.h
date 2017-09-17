@@ -9,4 +9,9 @@
 #include "cuda_runtime_api.h"
 #include "util/log.h"
 #include "util/cuda_check.h"
+#include <string>
+#include <vector>
+using std::string;
+using std::vector;
+typedef float real;
 #endif //THUNDERSVM_THUNDERSVM_H

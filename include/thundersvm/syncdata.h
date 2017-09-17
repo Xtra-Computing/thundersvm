@@ -10,6 +10,7 @@
 template <typename T>
 class SyncData{
 public:
+    SyncData():mem(nullptr), count_(0){};
     explicit SyncData(size_t count);
     ~SyncData();
     T *data();
@@ -21,7 +22,6 @@ public:
     size_t count() const;
     SyncMem::HEAD head() const;
 private:
-    SyncData():mem(nullptr), count_(0){};
     SyncMem *mem;
     size_t count_;
 };
