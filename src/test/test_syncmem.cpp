@@ -23,10 +23,14 @@ TEST(SyncMemTest, host_to_device){
     for (int i = 0; i < 10; ++i) {
         data[i] = i;
     }
-    syncMem.device_data();
+    syncMem.to_device();
     EXPECT_EQ(syncMem.head(), SyncMem::HEAD::DEVICE);
-    syncMem.host_data();
+    for (int i = 0; i < 10; ++i) {
+        data[i] = -1;
+    }
+    syncMem.to_host();
     EXPECT_EQ(syncMem.head(), SyncMem::HEAD::HOST);
+    data = static_cast<int *>(syncMem.host_data());
     for (int i = 0; i < 10; ++i) {
         EXPECT_EQ(data[i] , i);
     }
