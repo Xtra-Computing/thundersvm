@@ -13,6 +13,11 @@ public:
     void load_from_file(string file_name);
     size_t total_count() const;
     size_t n_features() const;
+    size_t n_classes() const;
+    const int* count() const;
+    const int* start() const;
+    const int* label() const;
+
 private:
     void group_classes();
     vector<int> y_;

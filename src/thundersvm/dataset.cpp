@@ -6,7 +6,7 @@
 using std::fstream;
 using std::stringstream;
 
-DataSet::DataSet():total_count_(0), n_features_(0) {
+DataSet::DataSet() : total_count_(0), n_features_(0) {
 }
 
 void DataSet::load_from_file(string file_name) {
@@ -30,7 +30,7 @@ void DataSet::load_from_file(string file_name) {
         string tuple;
         size_t n_features = 0;
         while (ss >> tuple) {
-            CHECK_EQ(sscanf(tuple.c_str(), "%d:%f", &i, &v), 2)<<"read error, using [index]:[value] format";
+            CHECK_EQ(sscanf(tuple.c_str(), "%d:%f", &i, &v), 2) << "read error, using [index]:[value] format";
             this->index_[total_count_].push_back(i);
             this->value_[total_count_].push_back(v);
             n_features++;
@@ -40,6 +40,22 @@ void DataSet::load_from_file(string file_name) {
     }
     file.close();
     group_classes();
+}
+
+const int *DataSet::count() const {
+    return count_.data();
+}
+
+const int *DataSet::start() const {
+    return start_.data();
+}
+
+size_t DataSet::n_classes() const {
+    return label_.size();
+}
+
+const int *DataSet::label() const {
+    return label_.data();
 }
 
 void DataSet::group_classes() {

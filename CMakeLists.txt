@@ -27,7 +27,9 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/src/thundersvm)
 
 set(PROJECT_TEST_NAME ${PROJECT_NAME}_test)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/test)
-add_custom_target(runtest src/test/${PROJECT_TEST_NAME})
+add_custom_target(runtest
+        COMMAND ${PROJECT_TEST_NAME}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src/test)
 
 #enable_testing()
 #add_test(test src/test/thundersvm_test)
