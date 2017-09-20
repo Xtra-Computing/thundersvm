@@ -19,7 +19,7 @@ set(COMMON_INCLUDES ${PROJECT_SOURCE_DIR}/include)
 #file(GLOB SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 #add_library(${PROJECT_LIB_NAME} ${SRC_FILES})
 
-
+set(LINK_LIBRARY ${CUDA_cusparse_LIBRARY})
 
 include_directories(${COMMON_INCLUDES})
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/thundersvm)

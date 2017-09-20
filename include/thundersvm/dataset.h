@@ -17,6 +17,8 @@ public:
     const int* count() const;
     const int* start() const;
     const int* label() const;
+    const vector<vector<int>>& index() const;
+    const vector<vector<real>>& value() const;
 
 private:
     void group_classes();

@@ -9,6 +9,9 @@ TEST(SyncDataTest, host_allocate){
     EXPECT_EQ(syncData.head(), SyncMem::HEAD::HOST);
     EXPECT_EQ(syncData.size(), sizeof(int) * 100);
     EXPECT_EQ(syncData.count(), 100);
+    syncData.resize(20);
+    EXPECT_EQ(syncData.head(), SyncMem::UNINITIALIZED);
+    EXPECT_EQ(syncData.count(), 20);
 }
 
 TEST(SyncDataTest, device_allocate){
@@ -17,6 +20,9 @@ TEST(SyncDataTest, device_allocate){
     EXPECT_EQ(syncData.head(), SyncMem::HEAD::DEVICE);
     EXPECT_EQ(syncData.size(), sizeof(int) * 100);
     EXPECT_EQ(syncData.count(), 100);
+    syncData.resize(20);
+    EXPECT_EQ(syncData.head(), SyncMem::UNINITIALIZED);
+    EXPECT_EQ(syncData.count(), 20);
 }
 
 TEST(SyncDataTest, host_to_device){

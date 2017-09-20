@@ -31,5 +31,5 @@ else()
             )
 endif()
 
-target_link_libraries(${PROJECT_TEST_NAME} ${CMAKE_THREAD_LIBS_INIT} ${PROJECT_NAME}_lib)
+target_link_libraries(${PROJECT_TEST_NAME} ${CMAKE_THREAD_LIBS_INIT} ${PROJECT_NAME}_lib ${LINK_LIBRARY})
 #add_test(test ${PROJECT_TEST_NAME})

@@ -102,3 +102,11 @@ size_t DataSet::total_count() const {
 size_t DataSet::n_features() const {
     return n_features_;
 }
+
+const vector<vector<int>> & DataSet::index() const {
+    return this->index_;
+}
+
+const vector<vector<real>> & DataSet::value() const {
+    return this->value_;
+}

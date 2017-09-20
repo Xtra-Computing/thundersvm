@@ -14,18 +14,45 @@ SyncData<T>::~SyncData() {
 }
 
 template<typename T>
-T *SyncData<T>::data() {
+const T *SyncData<T>::data() const {
     CHECK_NE(head(), SyncMem::UNINITIALIZED);
     switch (mem->head()) {
         case SyncMem::HOST:
-            return host_data();
+            return static_cast<T *>(mem->host_data());
         case SyncMem::DEVICE:
-            return device_data();
+            return static_cast<T *>(mem->device_data());
             //should never reach this
         case SyncMem::UNINITIALIZED:
             break;
     }
 }
+
+template<typename T>
+T *SyncData<T>::data() {
+    CHECK_NE(head(), SyncMem::UNINITIALIZED);
+    switch (mem->head()) {
+        case SyncMem::HOST:
+            return static_cast<T *>(mem->host_data());
+        case SyncMem::DEVICE:
+            return static_cast<T *>(mem->device_data());
+            //should never reach this
+        case SyncMem::UNINITIALIZED:
+            break;
+    }
+}
+
+template<typename T>
+const T *SyncData<T>::host_data() const {
+    to_host();
+    return static_cast<T *>(mem->host_data());
+}
+
+template<typename T>
+const T *SyncData<T>::device_data() const {
+    to_device();
+    return static_cast<T *>(mem->device_data());
+}
+
 
 template<typename T>
 T *SyncData<T>::host_data() {
@@ -40,12 +67,12 @@ T *SyncData<T>::device_data() {
 }
 
 template<typename T>
-void SyncData<T>::to_host() {
+void SyncData<T>::to_host() const {
     mem->to_host();
 }
 
 template<typename T>
-void SyncData<T>::to_device() {
+void SyncData<T>::to_device() const {
     mem->to_device();
 }
 
@@ -63,6 +90,18 @@ template<typename T>
 size_t SyncData<T>::count() const {
     return count_;
 }
+
+template<typename T>
+void SyncData<T>::resize(size_t count) {
+    this->mem->resize(sizeof(T) * count);
+    this->count_ = count;
+}
+
+template<typename T>
+void SyncData<T>::copy_from(const T *source, size_t count) {
+    CUDA_CHECK(cudaMemcpy(mem->device_data(), source, sizeof(T) * count, cudaMemcpyDefault));
+}
+
 
 template
 class SyncData<int>;

@@ -8,6 +8,9 @@ TEST(SyncMemTest, host_allocate){
     EXPECT_NE(syncMem.host_data(), nullptr);
     EXPECT_EQ(syncMem.head(), SyncMem::HEAD::HOST);
     EXPECT_EQ(syncMem.size(), 100);
+    syncMem.resize(20);
+    EXPECT_EQ(syncMem.head(), SyncMem::UNINITIALIZED);
+    EXPECT_EQ(syncMem.size(), 20);
 }
 
 TEST(SyncMemTest, device_allocate){
@@ -15,6 +18,9 @@ TEST(SyncMemTest, device_allocate){
     EXPECT_NE(syncMem.device_data(), nullptr);
     EXPECT_EQ(syncMem.head(), SyncMem::HEAD::DEVICE);
     EXPECT_EQ(syncMem.size(), 100);
+    syncMem.resize(20);
+    EXPECT_EQ(syncMem.head(), SyncMem::UNINITIALIZED);
+    EXPECT_EQ(syncMem.size(), 20);
 }
 
 TEST(SyncMemTest, host_to_device){
@@ -35,3 +41,4 @@ TEST(SyncMemTest, host_to_device){
         EXPECT_EQ(data[i] , i);
     }
 }
+

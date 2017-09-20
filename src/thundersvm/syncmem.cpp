@@ -13,10 +13,15 @@ SyncMem::SyncMem(size_t size) : device_ptr(nullptr), host_ptr(nullptr), size_(si
 }
 
 SyncMem::~SyncMem() {
-    if (host_ptr)
+    this->head_ = UNINITIALIZED;
+    if (host_ptr) {
         CUDA_CHECK(cudaFreeHost(host_ptr));
-    if (device_ptr)
+        host_ptr = nullptr;
+    }
+    if (device_ptr) {
         CUDA_CHECK(cudaFree(device_ptr));
+        device_ptr = nullptr;
+    }
 }
 
 void *SyncMem::host_data() {
@@ -67,4 +72,9 @@ void SyncMem::to_device() {
             break;
         case DEVICE:;
     }
+}
+
+void SyncMem::resize(size_t size) {
+    this->~SyncMem();
+    this->size_ = size;
 }

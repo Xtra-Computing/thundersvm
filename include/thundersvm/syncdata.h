@@ -13,15 +13,21 @@ public:
     SyncData():mem(nullptr), count_(0){};
     explicit SyncData(size_t count);
     ~SyncData();
+    const T *data() const;
     T *data();
+    const T *host_data() const;
     T *host_data();
+    const T *device_data() const;
     T *device_data();
-    void to_host();
-    void to_device();
+    void to_host() const;
+    void to_device() const;
+    void copy_from(const T *source, size_t count);
     size_t size() const;
+    void resize(size_t count);
     size_t count() const;
     SyncMem::HEAD head() const;
 private:
+    SyncData<T>& operator=(const SyncData<T>&);
     SyncMem *mem;
     size_t count_;
 };

@@ -16,8 +16,10 @@ public:
     void to_host();
     void to_device();
     size_t size() const;
+    void resize(size_t size) ;
     enum HEAD {HOST, DEVICE, UNINITIALIZED};
     HEAD head() const;
+
 private:
     void *device_ptr;
     void *host_ptr;
