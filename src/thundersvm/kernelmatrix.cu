@@ -54,7 +54,7 @@ void KernelMatrix::get_rows(const SyncData<int> *idx, SyncData<real> *kernel_row
     CHECK_EQ(kernel_rows->count(), idx->count() * m_) << "kernel_rows memory is too small";
 
     SyncData<real> data_rows(idx->count() * n_);
-    CUDA_CHECK(cudaMemset(data_rows.device_data(), 0, data_rows.count()));
+    CUDA_CHECK(cudaMemset(data_rows.device_data(), 0, data_rows.size()));
     kernel_get_data_rows << < 1, idx->count() >> >
                                  (val_.data(), col_ind_.data(), row_ptr_.data(), idx->data(), data_rows.device_data(), idx->count());
     float one(1);

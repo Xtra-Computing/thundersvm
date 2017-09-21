@@ -110,7 +110,7 @@ void SyncData<T>::log(el::base::type::ostream_t &ostream) const {
         ostream<<host_data()[i]<<",";
     }
     ostream<<host_data()[i];
-    ostream<<"]";
+    ostream<<"]"<<std::endl;
 }
 
 
