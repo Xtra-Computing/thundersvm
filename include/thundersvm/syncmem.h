@@ -13,6 +13,8 @@ public:
     ~SyncMem();
     void* host_data();
     void* device_data();
+    void set_host_data(void *data);
+    void set_device_data(void *data);
     void to_host();
     void to_device();
     size_t size() const;
@@ -23,6 +25,8 @@ public:
 private:
     void *device_ptr;
     void *host_ptr;
+    bool own_device_data;
+    bool own_host_data;
     size_t size_;
     HEAD head_;
 };
