@@ -43,6 +43,6 @@ TEST(SyncDataTest, host_to_device){
         EXPECT_EQ(data[i] , i);
     }
     for (int i = 0; i < 10; ++i) {
-        EXPECT_EQ(syncData.data()[i] , i);
+        EXPECT_EQ(syncData.host_data()[i] , i);
     }
 }

@@ -56,14 +56,15 @@ void KernelMatrix::get_rows(const SyncData<int> *idx, SyncData<real> *kernel_row
     SyncData<real> data_rows(idx->count() * n_);
     CUDA_CHECK(cudaMemset(data_rows.device_data(), 0, data_rows.size()));
     kernel_get_data_rows << < 1, idx->count() >> >
-                                 (val_.data(), col_ind_.data(), row_ptr_.data(), idx->data(), data_rows.device_data(), idx->count());
+                                 (val_.device_data(), col_ind_.device_data(), row_ptr_.device_data(), idx->device_data(), data_rows.device_data(), idx->count());
     float one(1);
     float zero(0);
     cusparseScsrmm2(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
-                    m_, idx->count(), n_, nnz_, &one, descr, val_.data(), row_ptr_.data(), col_ind_.data(),
+                    m_, idx->count(), n_, nnz_, &one, descr, val_.device_data(), row_ptr_.device_data(),
+                    col_ind_.device_data(),
                     data_rows.device_data(), idx->count(), &zero, kernel_rows->device_data(), m_);
     kernel_RBF_kernel << < ((idx->count()) * m_ - 1) / 512 + 1, 512 >> >
-                                                                (idx->data(), self_dot_.data(), kernel_rows->device_data(), idx->count(), m_, gamma);
+                                                                (idx->device_data(), self_dot_.device_data(), kernel_rows->device_data(), idx->count(), m_, gamma);
 }
 
 const SyncData<real> *KernelMatrix::diag() const {

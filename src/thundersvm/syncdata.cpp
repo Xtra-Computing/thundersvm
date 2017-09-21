@@ -14,34 +14,6 @@ SyncData<T>::~SyncData() {
 }
 
 template<typename T>
-const T *SyncData<T>::data() const {
-    CHECK_NE(head(), SyncMem::UNINITIALIZED);
-    switch (mem->head()) {
-        case SyncMem::HOST:
-            return static_cast<T *>(mem->host_data());
-        case SyncMem::DEVICE:
-            return static_cast<T *>(mem->device_data());
-            //should never reach this
-        case SyncMem::UNINITIALIZED:
-            break;
-    }
-}
-
-template<typename T>
-T *SyncData<T>::data() {
-    CHECK_NE(head(), SyncMem::UNINITIALIZED);
-    switch (mem->head()) {
-        case SyncMem::HOST:
-            return static_cast<T *>(mem->host_data());
-        case SyncMem::DEVICE:
-            return static_cast<T *>(mem->device_data());
-            //should never reach this
-        case SyncMem::UNINITIALIZED:
-            break;
-    }
-}
-
-template<typename T>
 const T *SyncData<T>::host_data() const {
     to_host();
     return static_cast<T *>(mem->host_data());

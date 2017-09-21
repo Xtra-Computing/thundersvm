@@ -13,8 +13,6 @@ public:
     SyncData():mem(nullptr), count_(0){};
     explicit SyncData(size_t count);
     ~SyncData();
-    const T *data() const;
-    T *data();
     const T *host_data() const;
     T *host_data();
     const T *device_data() const;
