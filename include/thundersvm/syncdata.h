@@ -8,7 +8,7 @@
 #include "thundersvm.h"
 #include "syncmem.h"
 template <typename T>
-class SyncData{
+class SyncData: public el::Loggable{
 public:
     SyncData():mem(nullptr), count_(0){};
     explicit SyncData(size_t count);
@@ -26,6 +26,9 @@ public:
     void resize(size_t count);
     size_t count() const;
     SyncMem::HEAD head() const;
+
+    void log(el::base::type::ostream_t &ostream) const override;
+
 private:
     SyncData<T>& operator=(const SyncData<T>&);
     SyncMem *mem;

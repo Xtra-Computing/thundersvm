@@ -102,6 +102,17 @@ void SyncData<T>::copy_from(const T *source, size_t count) {
     CUDA_CHECK(cudaMemcpy(mem->device_data(), source, sizeof(T) * count, cudaMemcpyDefault));
 }
 
+template<typename T>
+void SyncData<T>::log(el::base::type::ostream_t &ostream) const {
+    int i;
+    ostream<<"[";
+    for (i = 0; i < count()-1 && i < el::base::consts::kMaxLogPerContainer-1; ++i) {
+        ostream<<host_data()[i]<<",";
+    }
+    ostream<<host_data()[i];
+    ostream<<"]";
+}
+
 
 template
 class SyncData<int>;
