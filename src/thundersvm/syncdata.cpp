@@ -77,12 +77,33 @@ void SyncData<T>::copy_from(const T *source, size_t count) {
 template<typename T>
 void SyncData<T>::log(el::base::type::ostream_t &ostream) const {
     int i;
-    ostream<<"[";
-    for (i = 0; i < count()-1 && i < el::base::consts::kMaxLogPerContainer-1; ++i) {
-        ostream<<host_data()[i]<<",";
+    ostream << "[";
+    for (i = 0; i < count() - 1 && i < el::base::consts::kMaxLogPerContainer - 1; ++i) {
+        ostream << host_data()[i] << ",";
     }
-    ostream<<host_data()[i];
-    ostream<<"]"<<std::endl;
+    ostream << host_data()[i];
+    ostream << "]";
+}
+
+template<typename T>
+void SyncData<T>::copy_from(const SyncData<T> &source) {
+    CHECK_EQ(count(), source.count()) << "destination and source count doesn't match";
+    copy_from(source.device_data(), source.count());
+}
+
+template<typename T>
+void SyncData<T>::mem_set(const T &value) {
+    CUDA_CHECK(cudaMemset(device_data(), value, size()));
+}
+
+template<typename T>
+const T &SyncData<T>::operator[](int index) const {
+    return host_data()[index];
+}
+
+template<typename T>
+T &SyncData<T>::operator[](int index) {
+    return host_data()[index];
 }
 
 

@@ -11,6 +11,8 @@
 #include "util/cuda_check.h"
 #include <string>
 #include <vector>
+#include "util/common.h"
+
 using std::string;
 using std::vector;
 typedef float real;

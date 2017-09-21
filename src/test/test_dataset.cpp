@@ -19,4 +19,6 @@ TEST(SvmProblemTest, load_dataset){
     EXPECT_EQ(dataSet.label()[1],2);
     EXPECT_EQ(dataSet.label()[2],3);
     EXPECT_EQ(dataSet.n_classes(),3);
+    EXPECT_EQ(dataSet.instances(0).size(), 49);
+    EXPECT_EQ(dataSet.instances(0,1).size(), 99);
 }

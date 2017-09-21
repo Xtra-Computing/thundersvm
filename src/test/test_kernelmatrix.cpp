@@ -4,19 +4,19 @@
 #include "gtest/gtest.h"
 #include "thundersvm/kernelmatrix.h"
 
-real rbf_kernel(const vector<vector<int>> &index, const vector<vector<real>> &value, int x, int y, real gamma) {
+real rbf_kernel(const DataSet::node2d &instances, int x, int y, real gamma) {
     real res = 0;
     int i = 0;
     int j = 0;
-    while (i < index[x].size() || j < index[y].size()) {
-        if (j == index[y].size() || index[x][i] < index[y][j]) {
-            res += value[x][i] * value[x][i];
+    while (i < instances[x].size() || j < instances[y].size()) {
+        if (j == instances[y].size() || instances[x][i].index < instances[y][j].index) {
+            res += instances[x][i].value * instances[x][i].value;
             i++;
-        } else if (i == index[x].size() || index[x][i] > index[y][j]){
-            res += value[y][j] * value[y][j];
+        } else if (i == instances[x].size() || instances[x][i].index > instances[y][j].index) {
+            res += instances[y][j].value * instances[y][j].value;
             j++;
         } else {
-            res += (value[x][i] - value[y][j]) * (value[x][i] - value[y][j]);
+            res += (instances[x][i].value - instances[y][j].value) * (instances[x][i].value - instances[y][j].value);
             i++;
             j++;
         }
@@ -26,9 +26,10 @@ real rbf_kernel(const vector<vector<int>> &index, const vector<vector<real>> &va
 
 TEST(KernelMatrixTest, get_rows) {
     DataSet dataSet;
-    dataSet.load_from_file("data/test_dataset.txt");
-    real gamma = 1;
-    KernelMatrix kernelMatrix(dataSet.index(), dataSet.value(), dataSet.n_features(), gamma);
+//    dataSet.load_from_file("data/test_dataset.txt");
+    dataSet.load_from_file("/home/jiashuai/mascot_old/dataset/a9a");
+    real gamma = 0.5;
+    KernelMatrix kernelMatrix(dataSet.instances(), dataSet.n_features(), gamma);
     int n_rows = 10;
     SyncData<int> rows(n_rows);
     SyncData<real> kernel_rows(n_rows * dataSet.total_count());
@@ -39,12 +40,11 @@ TEST(KernelMatrixTest, get_rows) {
     kernel_rows.to_device();
     kernelMatrix.get_rows(&rows, &kernel_rows);
 
-    //check diagonal element equals to one
     for (int i = 0; i < rows.count(); ++i) {
         for (int j = 0; j < kernelMatrix.m(); ++j) {
             real gpu_kernel = kernel_rows.host_data()[i * kernelMatrix.m() + j];
-            real cpu_kernel = rbf_kernel(dataSet.index(), dataSet.value(), rows.host_data()[i], j, gamma);
-            EXPECT_NEAR(gpu_kernel, cpu_kernel, 1e-5)<<rows.host_data()[i]<<j;
+            real cpu_kernel = rbf_kernel(dataSet.instances(), rows.host_data()[i], j, gamma);
+            EXPECT_NEAR(gpu_kernel, cpu_kernel, 1e-5) << rows.host_data()[i] << j;
         }
     }
 

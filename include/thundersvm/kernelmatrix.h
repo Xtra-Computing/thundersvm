@@ -12,7 +12,7 @@
 
 class KernelMatrix{
 public:
-    explicit KernelMatrix(const vector<vector<int>> &index, const vector<vector<real>> &value, size_t n_features, real gamma);
+    explicit KernelMatrix(const DataSet::node2d &instances, size_t n_features, real gamma);
     ~KernelMatrix();
     void get_rows(const SyncData<int> *idx, SyncData<real> *kernel_rows) const;
     const SyncData<real> *diag() const;
@@ -20,11 +20,11 @@ public:
     size_t n() const {return n_;};
     size_t nnz() const {return nnz_;};
 private:
-    SyncData<real> val_;
-    SyncData<int> col_ind_;
-    SyncData<int> row_ptr_;
-    SyncData<real> diag_;
-    SyncData<real> self_dot_;
+    SyncData<real> *val_;
+    SyncData<int> *col_ind_;
+    SyncData<int> *row_ptr_;
+    SyncData<real> *diag_;
+    SyncData<real> *self_dot_;
     size_t nnz_;
     size_t m_;
     size_t n_;

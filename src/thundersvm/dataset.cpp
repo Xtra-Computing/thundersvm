@@ -11,12 +11,12 @@ DataSet::DataSet() : total_count_(0), n_features_(0) {
 
 void DataSet::load_from_file(string file_name) {
     y_.clear();
-    index_.clear();
-    value_.clear();
+    instances_.clear();
     total_count_ = 0;
     n_features_ = 0;
     fstream file;
     file.open(file_name, fstream::in);
+    CHECK(file.is_open())<<"file "<<file_name<<" not found";
     string line;
 
     while (getline(file, line)) {
@@ -25,14 +25,12 @@ void DataSet::load_from_file(string file_name) {
         stringstream ss(line);
         ss >> y;
         this->y_.push_back(y);
-        this->index_.emplace_back();
-        this->value_.emplace_back();
+        this->instances_.emplace_back();
         string tuple;
         size_t n_features = 0;
         while (ss >> tuple) {
             CHECK_EQ(sscanf(tuple.c_str(), "%d:%f", &i, &v), 2) << "read error, using [index]:[value] format";
-            this->index_[total_count_].push_back(i);
-            this->value_[total_count_].push_back(v);
+            this->instances_[total_count_].emplace_back(i,v);
             n_features++;
         };
         total_count_++;
@@ -103,10 +101,25 @@ size_t DataSet::n_features() const {
     return n_features_;
 }
 
-const vector<vector<int>> & DataSet::index() const {
-    return this->index_;
+const DataSet::node2d& DataSet::instances() const {
+    return instances_;
 }
 
-const vector<vector<real>> & DataSet::value() const {
-    return this->value_;
+const DataSet::node2d DataSet::instances(int y_i) const {
+    int si = start_[y_i];
+    int ci = count_[y_i];
+    node2d one_class_ins;
+    for (int i = si; i < si + ci; ++i) {
+        one_class_ins.push_back(instances_[perm_[i]]);
+    }
+    return one_class_ins;
+}
+
+const DataSet::node2d DataSet::instances(int y_i, int y_j) const {
+    node2d two_class_ins;
+    node2d i_ins = instances(y_i);
+    node2d j_ins = instances(y_j);
+    two_class_ins.insert(two_class_ins.end(),i_ins.begin(), i_ins.end());
+    two_class_ins.insert(two_class_ins.end(),j_ins.begin(), j_ins.end());
+    return two_class_ins;
 }
