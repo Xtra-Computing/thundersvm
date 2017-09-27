@@ -21,7 +21,13 @@ void SVC::train() {
     SyncData<real> alpha(ins.size());
     alpha.mem_set(0);
     real rho;
-    smo_solver(kernelMatrix, y, alpha, rho, 0.001, 10);
+    smo_solver(kernelMatrix, y, alpha, rho, 0.001, svmParam.C);
+    LOG(INFO) << "rho=" << rho;
+    int n_sv = 0;
+    for (int i = 0; i < alpha.size(); ++i) {
+        if (alpha[i] != 0) n_sv++;
+    }
+    LOG(INFO) << "n_sv=" << n_sv;
 }
 
 void SVC::predict(DataSet &dataSet) {
@@ -37,27 +43,30 @@ void SVC::load_from_file(string path) {
 }
 
 void SVC::smo_solver(const KernelMatrix &k_mat, SyncData<int> &y, SyncData<real> &alpha, real &rho, real eps, real C) {
+//    TIMED_FUNC(timer_obj);
     uint n_instances = k_mat.m();
     SyncData<real> f(n_instances);
-    uint ws_size = 32;
+    uint ws_size = 1024;
     uint q = ws_size / 2;
     SyncData<int> working_set(ws_size);
     SyncData<int> f_idx(n_instances);
     SyncData<int> f_idx2sort(n_instances);
-    SyncData<real> alpha_diff(n_instances);
+    SyncData<real> f_val2sort(n_instances);
+    SyncData<real> alpha_diff(ws_size);
     SyncData<real> k_mat_rows(ws_size * k_mat.m());
-    SyncData<real> diff(1);
+    SyncData<real> diff_and_bias(2);
     for (int i = 0; i < n_instances; ++i) {
         f.host_data()[i] = -y.host_data()[i];
         f_idx.host_data()[i] = i;
     }
-    LOG(INFO) << f;
     alpha.mem_set(0);
+    LOG(INFO) << "training start";
     for (int iter = 1;; ++iter) {
         //select working set
         f_idx2sort.copy_from(f_idx);
-        thrust::sort_by_key(thrust::cuda::par, f.device_data(), f.device_data() + n_instances, f_idx2sort.device_data(),
-                            thrust::less<real>());
+        f_val2sort.copy_from(f);
+        thrust::sort_by_key(thrust::cuda::par, f_val2sort.device_data(), f_val2sort.device_data() + n_instances,
+                            f_idx2sort.device_data(), thrust::less<real>());
         int *ws;
         vector<int> ws_indicator(n_instances, 0);
         if (1 == iter) {
@@ -79,35 +88,30 @@ void SVC::smo_solver(const KernelMatrix &k_mat, SyncData<int> &y, SyncData<real>
             int i;
             if (p_left < n_instances) {
                 i = index[p_left];
-                while (ws_indicator[i] == 1
-                       || !(y[i] > 0 && alpha[i] < C || y[i] < 0 && alpha[i] > 0)) {
+                while (ws_indicator[i] == 1 || !(y[i] > 0 && alpha[i] < C || y[i] < 0 && alpha[i] > 0)) {
                     p_left++;
                     if (p_left == n_instances) break;
                     i = index[p_left];
                 }
                 if (p_left < n_instances) {
                     ws[n_selected++] = i;
-//                    p_left++;
                     ws_indicator[i] = 1;
                 }
             }
             if (p_right >= 0) {
                 i = index[p_right];
-                while ((ws_indicator[i] == 1
-                        || !(y[i] > 0 && alpha[i] > 0 || y[i] < 0 && alpha[i] < C))) {
+                while ((ws_indicator[i] == 1 || !(y[i] > 0 && alpha[i] > 0 || y[i] < 0 && alpha[i] < C))) {
                     p_right--;
                     if (p_right == -1) break;
                     i = index[p_right];
                 }
                 if (p_right >= 0) {
                     ws[n_selected++] = i;
-//                    p_right--;
                     ws_indicator[i] = 1;
                 }
             }
         }
 
-        LOG(INFO) << working_set;
         //precompute kernel
         working_set.to_device();
         k_mat.get_rows(&working_set, &k_mat_rows);
@@ -116,12 +120,14 @@ void SVC::smo_solver(const KernelMatrix &k_mat, SyncData<int> &y, SyncData<real>
         localSMO << < 1, ws_size, smem_size >> >
                                   (y.device_data(), f.device_data(), alpha.device_data(), alpha_diff.device_data(),
                                           working_set.device_data(), ws_size, C, k_mat_rows.device_data(), n_instances,
-                                          eps, diff.device_data());
-        LOG(INFO) << "diff=" << diff;
-        if (diff[0] < eps) break;
+                                          eps, diff_and_bias.device_data());
+        LOG(INFO) << "diff=" << diff_and_bias[0];
+        if (diff_and_bias[0] < eps) {
+            rho = diff_and_bias[1];
+            break;
+        }
         //update f
-        update_f << < (n_instances - 1) / 512 + 1, 512 >> >
-                                                   (f.device_data(), ws_size, alpha_diff.device_data(), k_mat_rows.device_data(), n_instances);
+        update_f << < NUM_BLOCKS, BLOCK_SIZE >> >(f.device_data(), ws_size, alpha_diff.device_data(), k_mat_rows.device_data(), n_instances);
     }
 }
 

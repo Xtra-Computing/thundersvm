@@ -21,7 +21,7 @@ __device__ int getBlockMin(const float *values, int *index) {
 
 __global__ void
 localSMO(const int *label, real *FValues, real *alpha, real *alpha_diff, const int *working_set, int ws_size, float C,
-         const float *k_mat_rows, int row_len, real eps, real *diff) {
+         const float *k_mat_rows, int row_len, real eps, real *diff_and_bias) {
     //allocate shared memory
     extern __shared__ int sharedMem[];
     int *idx4Reduce = sharedMem;
@@ -57,11 +57,7 @@ localSMO(const int *label, real *FValues, real *alpha, real *alpha_diff, const i
         int j1 = getBlockMin(fValuesJ, idx4Reduce);
         float lowValue = -fValuesJ[j1];
 
-//        if (tid == 0)
-//            printf("i=%d,j1=%d\n", i, j1);
         float local_diff = lowValue - upValue;
-//        if (tid == 0)
-//            printf("diff=%f\n", local_diff);
         if (numOfIter == 0) {
             local_eps = max(eps, 0.1 * local_diff);
         }
@@ -70,8 +66,8 @@ localSMO(const int *label, real *FValues, real *alpha, real *alpha_diff, const i
             alpha[wsi] = a;
             alpha_diff[tid] = -(a - aold) * y;
             if (tid == 0) {
-                devRho = (lowValue + upValue) / 2;
-                diff[0] = local_diff;
+                diff_and_bias[1] = (lowValue + upValue) / 2;
+                diff_and_bias[0] = local_diff;
             }
             break;
         }
@@ -107,14 +103,13 @@ localSMO(const int *label, real *FValues, real *alpha, real *alpha_diff, const i
 }
 
 __global__ void update_f(real *f, int ws_size, const real *alpha_diff, const real *k_mat_rows, int n_instances) {
-    int nGlobalIndex = (blockIdx.y * gridDim.x + blockIdx.x) * blockDim.x + threadIdx.x;//global index for thread
-    if (nGlobalIndex < n_instances) {
+    KERNEL_LOOP(idx, n_instances) {
         real sumDiff = 0;
         for (int i = 0; i < ws_size; ++i) {
             real d = alpha_diff[i];
             if (d != 0)
-                sumDiff += d * k_mat_rows[i * n_instances + nGlobalIndex];
+                sumDiff += d * k_mat_rows[i * n_instances + idx];
         }
-        f[nGlobalIndex] -= sumDiff;
+        f[idx] -= sumDiff;
     }
 }

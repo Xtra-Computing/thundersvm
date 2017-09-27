@@ -52,16 +52,18 @@ void KernelMatrix::get_rows(const SyncData<int> *idx, SyncData<real> *kernel_row
 
     SyncData<real> data_rows(idx->count() * n_);
     data_rows.mem_set(0);
-    kernel_get_data_rows << < 1, idx->count() >> >
-                                 (val_->device_data(), col_ind_->device_data(), row_ptr_->device_data(), idx->device_data(), data_rows.device_data(), idx->count());
+    kernel_get_data_rows << < NUM_BLOCKS, BLOCK_SIZE >> >(val_->device_data(), col_ind_->device_data(), row_ptr_->device_data(), idx->device_data(), data_rows.device_data(), idx->count(), n_);
+    //cuSparse use column-major dense matrix format, kernel_get_data_rows returns row-major format,
+    //so no transpose is needed in cusparseScsrmm
     float one(1);
     float zero(0);
-    cusparseScsrmm2(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
+    cusparseScsrmm(handle, CUSPARSE_OPERATION_NON_TRANSPOSE,
                     m_, idx->count(), n_, nnz_, &one, descr, val_->device_data(), row_ptr_->device_data(),
                     col_ind_->device_data(),
-                    data_rows.device_data(), idx->count(), &zero, kernel_rows->device_data(), m_);
-    kernel_RBF_kernel << < ((idx->count()) * m_ - 1) / 512 + 1, 512 >> >
-                                                                (idx->device_data(), self_dot_->device_data(), kernel_rows->device_data(), idx->count(), m_, gamma);
+                    data_rows.device_data(), n_, &zero, kernel_rows->device_data(), m_);
+    //cusparseScsrmm return column-major matrix, so no transpose is needed
+    kernel_RBF_kernel <<< NUM_BLOCKS, BLOCK_SIZE >>>(idx->device_data(), self_dot_->device_data(), kernel_rows->device_data(), idx->count(), m_, gamma);
+    cudaDeviceSynchronize();
 }
 
 const SyncData<real> *KernelMatrix::diag() const {

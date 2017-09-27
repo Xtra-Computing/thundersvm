@@ -27,14 +27,12 @@ void DataSet::load_from_file(string file_name) {
         this->y_.push_back(y);
         this->instances_.emplace_back();
         string tuple;
-        size_t n_features = 0;
         while (ss >> tuple) {
             CHECK_EQ(sscanf(tuple.c_str(), "%d:%f", &i, &v), 2) << "read error, using [index]:[value] format";
             this->instances_[total_count_].emplace_back(i,v);
-            n_features++;
+            if (i > this->n_features_) this->n_features_ = i;
         };
         total_count_++;
-        if (n_features > this->n_features_) this->n_features_ = n_features;
     }
     file.close();
     group_classes();
