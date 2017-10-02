@@ -42,28 +42,22 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, size_t n_features, 
     cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
 }
 
-void KernelMatrix::get_rows(const SyncData<int> *idx, SyncData<real> *kernel_rows) const {
+void KernelMatrix::get_rows(const SyncData<int> &idx, SyncData<real> &kernel_rows) const {
     CHECK_EQ(val_->head(), SyncMem::DEVICE);
     CHECK_EQ(row_ptr_->head(), SyncMem::DEVICE);
     CHECK_EQ(col_ind_->head(), SyncMem::DEVICE);
     CHECK_EQ(self_dot_->head(), SyncMem::DEVICE);
-    CHECK_EQ(idx->head(), SyncMem::DEVICE);
-    CHECK_EQ(kernel_rows->count(), idx->count() * m_) << "kernel_rows memory is too small";
+    CHECK_EQ(idx.head(), SyncMem::DEVICE);
+    CHECK_EQ(kernel_rows.count(), idx.count() * m_) << "kernel_rows memory is too small";
 
-    SyncData<real> data_rows(idx->count() * n_);
+    SyncData<real> data_rows(idx.count() * n_);
     data_rows.mem_set(0);
-    kernel_get_data_rows << < NUM_BLOCKS, BLOCK_SIZE >> >(val_->device_data(), col_ind_->device_data(), row_ptr_->device_data(), idx->device_data(), data_rows.device_data(), idx->count());
-    //cuSparse use column-major dense matrix format, kernel_get_data_rows returns row-major format,
-    //so no transpose is needed in cusparseScsrmm
-    float one(1);
-    float zero(0);
-    cusparseScsrmm2(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
-                    m_, idx->count(), n_, nnz_, &one, descr, val_->device_data(), row_ptr_->device_data(),
-                    col_ind_->device_data(),
-                    data_rows.device_data(), idx->count(), &zero, kernel_rows->device_data(), m_);
-    //cusparseScsrmm return column-major matrix, so no transpose is needed
-    kernel_RBF_kernel <<< NUM_BLOCKS, BLOCK_SIZE >>>(idx->device_data(), self_dot_->device_data(), kernel_rows->device_data(), idx->count(), m_, gamma);
-    cudaDeviceSynchronize();
+    SAFE_KERNEL_LAUNCH(kernel_get_data_rows, val_->device_data(), col_ind_->device_data(), row_ptr_->device_data(),
+                       idx.device_data(), data_rows.device_data(), idx.count());
+    dns_csr_mul(data_rows, idx.count(), kernel_rows);
+    //cusparseScsrmm return row-major matrix, so no transpose is needed
+    SAFE_KERNEL_LAUNCH(kernel_RBF_kernel, idx.device_data(), self_dot_->device_data(), kernel_rows.device_data(),
+                       idx.count(), m_, gamma);
 }
 
 const SyncData<real> *KernelMatrix::diag() const {
@@ -78,4 +72,14 @@ KernelMatrix::~KernelMatrix() {
     delete row_ptr_;
     delete self_dot_;
     delete diag_;
+}
+
+void KernelMatrix::dns_csr_mul(const SyncData<real> &dense_mat, int n_rows, SyncData<real> &result) const {
+    CHECK_EQ(dense_mat.count(), n_rows * n_) << "dense matrix features doesn't match";
+    float one(1);
+    float zero(0);
+    cusparseScsrmm2(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
+                    m_, n_rows, n_, nnz_, &one, descr, val_->device_data(), row_ptr_->device_data(),
+                    col_ind_->device_data(),
+                    dense_mat.device_data(), n_rows, &zero, result.device_data(), m_);
 }

@@ -47,7 +47,7 @@ TEST(KernelMatrixTest, get_rows) {
     }
     rows.to_device();
     kernel_rows.to_device();
-    kernelMatrix.get_rows(&rows, &kernel_rows);
+    kernelMatrix.get_rows(rows, kernel_rows);
 
     for (int i = 0; i < rows.count(); ++i) {
         for (int j = 0; j < kernelMatrix.m(); ++j) {

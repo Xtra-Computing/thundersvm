@@ -124,7 +124,7 @@ void SVC::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData
 
         //precompute kernel
         working_set.to_device();
-        k_mat.get_rows(&working_set, &k_mat_rows);
+        k_mat.get_rows(working_set, k_mat_rows);
         //local smo
         size_t smem_size = ws_size * sizeof(real) * 3 + 2 * sizeof(float);
         localSMO << < 1, ws_size, smem_size >> >
@@ -137,8 +137,8 @@ void SVC::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData
             break;
         }
         //update f
-        update_f << < NUM_BLOCKS, BLOCK_SIZE >> >
-                                  (f.device_data(), ws_size, alpha_diff.device_data(), k_mat_rows.device_data(), n_instances);
+        SAFE_KERNEL_LAUNCH(update_f, f.device_data(), ws_size, alpha_diff.device_data(), k_mat_rows.device_data(),
+                           n_instances);
     }
 }
 
