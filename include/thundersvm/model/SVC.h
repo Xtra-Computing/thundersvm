@@ -22,5 +22,12 @@ public:
 
 private:
     void smo_solver(const KernelMatrix &k_mat, SyncData<int> &y, SyncData<real> &alpha, real &rho, real eps, real C);
+    vector<vector<real>> coef; //alpha_i * y_i
+    DataSet::node2d sv;
+    vector<vector<int>> sv_index;
+    vector<real> rho;
+
+    size_t n_classes;
+    size_t n_binary_models;
 };
 #endif //THUNDERSVM_SVC_H

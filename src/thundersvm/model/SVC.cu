@@ -6,28 +6,33 @@
 #include "thrust/sort.h"
 #include "thrust/system/cuda/execution_policy.h"
 
-SVC::SVC(DataSet &dataSet, const SvmParam &svmParam) : SvmModel(dataSet, svmParam) {}
+SVC::SVC(DataSet &dataSet, const SvmParam &svmParam) : SvmModel(dataSet, svmParam) {
+    n_classes = dataSet.n_classes();
+    n_binary_models = n_classes * (n_classes - 1) / 2;
+    rho = vector<real>(n_binary_models);
+}
 
 void SVC::train() {
-    SyncData<int> y(dataSet.count()[0] + dataSet.count()[1]);
-    for (int i = 0; i < dataSet.count()[0]; ++i) {
-        y[i] = +1;
+    int k = 0;
+    for (int i = 0; i < n_classes; ++i) {
+        for (int j = i + 1; j < n_classes; ++j) {
+            DataSet::node2d ins = dataSet.instances(i, j);
+            size_t subproblem_size = ins.size();
+            SyncData<int> y(subproblem_size);
+            SyncData<real> alpha(subproblem_size);
+            alpha.mem_set(0);
+            for (int l = 0; l < dataSet.count()[i]; ++l) {
+                y[l] = +1;
+            }
+            for (int l = 0; l < dataSet.count()[j]; ++l) {
+                y[dataSet.count()[i] + l] = -1;
+            }
+            KernelMatrix k_mat(ins, dataSet.n_features(), svmParam.gamma);
+            smo_solver(k_mat, y, alpha, rho[k], 0.001, svmParam.C);
+            LOG(INFO) << "rho=" << rho[k];
+            k++;
+        }
     }
-    for (int i = 0; i < dataSet.count()[1]; ++i) {
-        y[dataSet.count()[0] + i] = -1;
-    }
-    DataSet::node2d ins = dataSet.instances(0, 1);
-    KernelMatrix kernelMatrix(ins, dataSet.n_features(), svmParam.gamma);
-    SyncData<real> alpha(ins.size());
-    alpha.mem_set(0);
-    real rho;
-    smo_solver(kernelMatrix, y, alpha, rho, 0.001, svmParam.C);
-    LOG(INFO) << "rho=" << rho;
-    int n_sv = 0;
-    for (int i = 0; i < alpha.size(); ++i) {
-        if (alpha[i] != 0) n_sv++;
-    }
-    LOG(INFO) << "n_sv=" << n_sv;
 }
 
 void SVC::predict(DataSet &dataSet) {
@@ -46,6 +51,7 @@ void SVC::smo_solver(const KernelMatrix &k_mat, SyncData<int> &y, SyncData<real>
 //    TIMED_FUNC(timer_obj);
     uint n_instances = k_mat.m();
     SyncData<real> f(n_instances);
+//    LOG(INFO)<<min(10.,ceil(log2(float(n_instances))));
     uint ws_size = 1024;
     uint q = ws_size / 2;
     SyncData<int> working_set(ws_size);
