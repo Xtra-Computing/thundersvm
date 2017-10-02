@@ -10,7 +10,7 @@
 
 __global__ void
 kernel_get_data_rows(const real *val, const int *col_ind, const int *row_ptr, const int *data_row_idx, real *data_rows,
-                     int m, int n);
+                     int m);
 
 __global__ void
 kernel_RBF_kernel(const real *self_dot0, const real *self_dot1, real *dot_product, int m, int n, real gamma);

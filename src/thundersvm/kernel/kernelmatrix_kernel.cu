@@ -5,12 +5,12 @@
 
 __global__ void
 kernel_get_data_rows(const real *val, const int *col_ind, const int *row_ptr, const int *data_row_idx, real *data_rows,
-                     int m, int n) {
+                     int m) {
     KERNEL_LOOP(i, m) {
         int row = data_row_idx[i];
         for (int j = row_ptr[row]; j < row_ptr[row + 1]; ++j) {
             int col = col_ind[j];
-            data_rows[i * n + col] = val[j];
+            data_rows[col * m + i] = val[j]; // row-major for cuSPARSE
         }
     }
 }
