@@ -9,7 +9,9 @@
 SVC::SVC(DataSet &dataSet, const SvmParam &svmParam) : SvmModel(dataSet, svmParam) {
     n_classes = dataSet.n_classes();
     n_binary_models = n_classes * (n_classes - 1) / 2;
-    rho = vector<real>(n_binary_models);
+    rho.resize(n_binary_models);
+    sv_index.resize(n_binary_models);
+    coef.resize(n_binary_models);
 }
 
 void SVC::train() {
@@ -20,6 +22,7 @@ void SVC::train() {
             size_t subproblem_size = ins.size();
             SyncData<int> y(subproblem_size);
             SyncData<real> alpha(subproblem_size);
+            real rho;
             alpha.mem_set(0);
             for (int l = 0; l < dataSet.count()[i]; ++l) {
                 y[l] = +1;
@@ -28,8 +31,8 @@ void SVC::train() {
                 y[dataSet.count()[i] + l] = -1;
             }
             KernelMatrix k_mat(ins, dataSet.n_features(), svmParam.gamma);
-            smo_solver(k_mat, y, alpha, rho[k], 0.001, svmParam.C);
-            LOG(INFO) << "rho=" << rho[k];
+            smo_solver(k_mat, y, alpha, rho, 0.001, svmParam.C);
+            record_binary_model(k, alpha, y, rho, dataSet.original_index(i, j));
             k++;
         }
     }
@@ -47,7 +50,8 @@ void SVC::load_from_file(string path) {
 
 }
 
-void SVC::smo_solver(const KernelMatrix &k_mat, SyncData<int> &y, SyncData<real> &alpha, real &rho, real eps, real C) {
+void SVC::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho, real eps,
+                     real C) {
 //    TIMED_FUNC(timer_obj);
     uint n_instances = k_mat.m();
     SyncData<real> f(n_instances);
@@ -127,13 +131,33 @@ void SVC::smo_solver(const KernelMatrix &k_mat, SyncData<int> &y, SyncData<real>
                                   (y.device_data(), f.device_data(), alpha.device_data(), alpha_diff.device_data(),
                                           working_set.device_data(), ws_size, C, k_mat_rows.device_data(), n_instances,
                                           eps, diff_and_bias.device_data());
-        LOG_EVERY_N(10,INFO) << "diff=" << diff_and_bias[0];
+        LOG_EVERY_N(10, INFO) << "diff=" << diff_and_bias[0];
         if (diff_and_bias[0] < eps) {
             rho = diff_and_bias[1];
             break;
         }
         //update f
-        update_f << < NUM_BLOCKS, BLOCK_SIZE >> >(f.device_data(), ws_size, alpha_diff.device_data(), k_mat_rows.device_data(), n_instances);
+        update_f << < NUM_BLOCKS, BLOCK_SIZE >> >
+                                  (f.device_data(), ws_size, alpha_diff.device_data(), k_mat_rows.device_data(), n_instances);
     }
+}
+
+void SVC::record_binary_model(int k, const SyncData<real> &alpha, const SyncData<int> &y, real rho,
+                              const vector<int> &original_index) {
+    int n_sv = 0;
+    for (int i = 0; i < alpha.count(); ++i) {
+        if (alpha[i] != 0) {
+            coef[k].push_back(alpha[i] * y[i]);
+            if (sv_index_map.find(original_index[i]) == sv_index_map.end()) {
+                sv_index_map[original_index[i]] = sv_index_map.size();
+                sv.push_back(dataSet.instances()[original_index[i]]);
+            }
+            sv_index[k].push_back(sv_index_map[original_index[i]]);
+            n_sv++;
+        }
+    }
+    this->rho[k] = rho;
+    LOG(INFO) << "rho=" << rho;
+    LOG(INFO) << "#SV=" << n_sv;
 }
 

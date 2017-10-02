@@ -26,6 +26,9 @@ public:
     const node2d & instances() const;
     const node2d instances(int y_i) const;
     const node2d instances(int y_i, int y_j) const;
+    const vector<int> original_index() const;
+    const vector<int> original_index(int y_i) const;
+    const vector<int> original_index(int y_i, int y_j) const;
 
 private:
     void group_classes();

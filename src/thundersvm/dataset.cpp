@@ -121,3 +121,27 @@ const DataSet::node2d DataSet::instances(int y_i, int y_j) const {
     two_class_ins.insert(two_class_ins.end(),j_ins.begin(), j_ins.end());
     return two_class_ins;
 }
+
+const vector<int> DataSet::original_index() const {
+    return perm_;
+}
+
+const vector<int> DataSet::original_index(int y_i) const {
+    int si = start_[y_i];
+    int ci = count_[y_i];
+    vector<int> one_class_idx;
+    for (int i = si; i < si + ci; ++i) {
+        one_class_idx.push_back(perm_[i]);
+    }
+    return one_class_idx;
+}
+
+const vector<int> DataSet::original_index(int y_i, int y_j) const {
+    vector<int> two_class_idx;
+    vector<int> i_idx = original_index(y_i);
+    vector<int> j_idx = original_index(y_j);
+    two_class_idx.insert(two_class_idx.end(), i_idx.begin(), i_idx.end());
+    two_class_idx.insert(two_class_idx.end(), j_idx.begin(), j_idx.end());
+    return two_class_idx;
+}
+

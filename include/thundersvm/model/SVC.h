@@ -7,8 +7,11 @@
 
 #include <thundersvm/kernelmatrix.h>
 #include "SvmModel.h"
+#include <map>
 
-class SVC: public SvmModel{
+using std::map;
+
+class SVC : public SvmModel {
 public:
     SVC(DataSet &dataSet, const SvmParam &svmParam);
 
@@ -21,7 +24,13 @@ public:
     void load_from_file(string path) override;
 
 private:
-    void smo_solver(const KernelMatrix &k_mat, SyncData<int> &y, SyncData<real> &alpha, real &rho, real eps, real C);
+    void smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho, real eps,
+                    real C);
+
+    void record_binary_model(int k, const SyncData<real> &alpha, const SyncData<int> &y, real rho,
+                             const vector<int> &original_index);
+
+    map<int, int> sv_index_map;
     vector<vector<real>> coef; //alpha_i * y_i
     DataSet::node2d sv;
     vector<vector<int>> sv_index;
@@ -30,4 +39,5 @@ private:
     size_t n_classes;
     size_t n_binary_models;
 };
+
 #endif //THUNDERSVM_SVC_H
