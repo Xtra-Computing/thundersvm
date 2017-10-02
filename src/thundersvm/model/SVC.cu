@@ -121,7 +121,7 @@ void SVC::smo_solver(const KernelMatrix &k_mat, SyncData<int> &y, SyncData<real>
                                   (y.device_data(), f.device_data(), alpha.device_data(), alpha_diff.device_data(),
                                           working_set.device_data(), ws_size, C, k_mat_rows.device_data(), n_instances,
                                           eps, diff_and_bias.device_data());
-        LOG(INFO) << "diff=" << diff_and_bias[0];
+        LOG_EVERY_N(10,INFO) << "diff=" << diff_and_bias[0];
         if (diff_and_bias[0] < eps) {
             rho = diff_and_bias[1];
             break;

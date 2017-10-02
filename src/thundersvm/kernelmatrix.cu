@@ -52,7 +52,7 @@ void KernelMatrix::get_rows(const SyncData<int> *idx, SyncData<real> *kernel_row
 
     SyncData<real> data_rows(idx->count() * n_);
     data_rows.mem_set(0);
-    kernel_get_data_rows << < NUM_BLOCKS, BLOCK_SIZE >> >(val_->device_data(), col_ind_->device_data(), row_ptr_->device_data(), idx->device_data(), data_rows.device_data(), idx->count(), n_);
+    kernel_get_data_rows << < NUM_BLOCKS, BLOCK_SIZE >> >(val_->device_data(), col_ind_->device_data(), row_ptr_->device_data(), idx->device_data(), data_rows.device_data(), idx->count());
     //cuSparse use column-major dense matrix format, kernel_get_data_rows returns row-major format,
     //so no transpose is needed in cusparseScsrmm
     float one(1);
