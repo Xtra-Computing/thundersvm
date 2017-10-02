@@ -2,6 +2,7 @@
 // Created by jiashuai on 17-9-21.
 //
 #include <thundersvm/kernel/smo_kernel.h>
+#include <thundersvm/kernel/kernelmatrix_kernel.h>
 #include "thundersvm/model/SVC.h"
 #include "thrust/sort.h"
 #include "thrust/system/cuda/execution_policy.h"
@@ -38,8 +39,42 @@ void SVC::train() {
     }
 }
 
-void SVC::predict(DataSet &dataSet) {
-
+vector<int> SVC::predict(DataSet::node2d &instances) {
+    SyncData<int> sv_start(n_binary_models);
+    SyncData<int> sv_count(n_binary_models);
+    int n_sv = 0;
+    for (int i = 0; i < n_binary_models; ++i) {
+        sv_start[i] = n_sv;
+        sv_count[i] = this->coef[i].size();
+        n_sv += this->coef[i].size();
+    }
+    SyncData<real> coef(n_sv);
+    SyncData<int> sv_index(n_sv);
+    SyncData<real> rho(n_binary_models);
+    for (int i = 0; i < n_binary_models; ++i) {
+        CUDA_CHECK(cudaMemcpy(coef.device_data() + sv_start[i], this->coef[i].data(), sizeof(real) * sv_count[i],
+                              cudaMemcpyHostToDevice));
+        CUDA_CHECK(cudaMemcpy(sv_index.device_data() + sv_start[i], this->sv_index[i].data(), sizeof(int) * sv_count[i],
+                              cudaMemcpyHostToDevice));
+    }
+    rho.copy_from(this->rho.data(), rho.count());
+    SyncData<real> self_dot(instances.size());
+    SyncData<real> dense_ins(instances.size() * dataSet.n_features());
+    for (int i = 0; i < instances.size(); ++i) {
+        real sum = 0;
+        for (int j = 0; j < instances[i].size(); ++j) {
+            dense_ins[i * dataSet.n_features() + instances[i][j].index] = instances[i][j].value;
+            sum += instances[i][j].value * instances[i][j].value;
+        }
+        self_dot[i] = sum;
+    }
+    KernelMatrix k_mat(sv, dataSet.n_features(), svmParam.gamma);
+    SyncData<real> kernel_values(instances.size() * sv.size());
+    k_mat.get_rows(dense_ins, self_dot, kernel_values, instances.size());
+    SyncData<real> dec_values(instances.size() * n_binary_models);
+    SAFE_KERNEL_LAUNCH(kernel_sum_kernel_values, kernel_values.device_data(), instances.size(), sv.size(),
+                       n_binary_models, sv_index.device_data(), coef.device_data(), sv_start.device_data(),
+                       sv_count.device_data(), rho.device_data(), dec_values.device_data());
 }
 
 void SVC::save_to_file(string path) {

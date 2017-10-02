@@ -43,11 +43,6 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, size_t n_features, 
 }
 
 void KernelMatrix::get_rows(const SyncData<int> &idx, SyncData<real> &kernel_rows) const {
-    CHECK_EQ(val_->head(), SyncMem::DEVICE);
-    CHECK_EQ(row_ptr_->head(), SyncMem::DEVICE);
-    CHECK_EQ(col_ind_->head(), SyncMem::DEVICE);
-    CHECK_EQ(self_dot_->head(), SyncMem::DEVICE);
-    CHECK_EQ(idx.head(), SyncMem::DEVICE);
     CHECK_EQ(kernel_rows.count(), idx.count() * m_) << "kernel_rows memory is too small";
 
     SyncData<real> data_rows(idx.count() * n_);
@@ -82,4 +77,14 @@ void KernelMatrix::dns_csr_mul(const SyncData<real> &dense_mat, int n_rows, Sync
                     m_, n_rows, n_, nnz_, &one, descr, val_->device_data(), row_ptr_->device_data(),
                     col_ind_->device_data(),
                     dense_mat.device_data(), n_rows, &zero, result.device_data(), m_);
+}
+
+void
+KernelMatrix::get_rows(const SyncData<real> &dense_mat, const SyncData<real> &dot, SyncData<real> &kernel_rows,
+                       int n_rows) const {
+    CHECK_EQ(dot.count(), n_rows);
+    CHECK_EQ(dense_mat.count(), n_rows * n_);
+    dns_csr_mul(dense_mat, n_rows, kernel_rows);
+    SAFE_KERNEL_LAUNCH(kernel_RBF_kernel, dot.device_data(), self_dot_->device_data(), kernel_rows.device_data(),
+                       n_rows, m_, gamma);
 }

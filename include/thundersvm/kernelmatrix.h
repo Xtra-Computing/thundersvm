@@ -15,6 +15,8 @@ public:
     explicit KernelMatrix(const DataSet::node2d &instances, size_t n_features, real gamma);
     ~KernelMatrix();
     void get_rows(const SyncData<int> &idx, SyncData<real> &kernel_rows) const;
+    void get_rows(const SyncData<real> &dense_mat, const SyncData<real> &dot, SyncData<real> &kernel_rows,
+                      int n_rows) const;
     void dns_csr_mul(const SyncData<real> &dense_mat, int n_rows, SyncData<real> &result) const;
     const SyncData<real> *diag() const;
     size_t m() const {return m_;};
