@@ -20,9 +20,8 @@ void SVC::train() {
     for (int i = 0; i < n_classes; ++i) {
         for (int j = i + 1; j < n_classes; ++j) {
             DataSet::node2d ins = dataSet.instances(i, j);
-            size_t subproblem_size = ins.size();
-            SyncData<int> y(subproblem_size);
-            SyncData<real> alpha(subproblem_size);
+            SyncData<int> y(ins.size());
+            SyncData<real> alpha(ins.size());
             real rho;
             alpha.mem_set(0);
             for (int l = 0; l < dataSet.count()[i]; ++l) {
@@ -39,7 +38,8 @@ void SVC::train() {
     }
 }
 
-vector<int> SVC::predict(DataSet::node2d &instances) {
+vector<int> SVC::predict(const DataSet::node2d &instances) {
+    //prepare device data
     SyncData<int> sv_start(n_binary_models);
     SyncData<int> sv_count(n_binary_models);
     int n_sv = 0;
@@ -58,23 +58,40 @@ vector<int> SVC::predict(DataSet::node2d &instances) {
                               cudaMemcpyHostToDevice));
     }
     rho.copy_from(this->rho.data(), rho.count());
-    SyncData<real> self_dot(instances.size());
-    SyncData<real> dense_ins(instances.size() * dataSet.n_features());
-    for (int i = 0; i < instances.size(); ++i) {
-        real sum = 0;
-        for (int j = 0; j < instances[i].size(); ++j) {
-            dense_ins[i * dataSet.n_features() + instances[i][j].index] = instances[i][j].value;
-            sum += instances[i][j].value * instances[i][j].value;
-        }
-        self_dot[i] = sum;
-    }
+
+    //compute kernel values
     KernelMatrix k_mat(sv, dataSet.n_features(), svmParam.gamma);
     SyncData<real> kernel_values(instances.size() * sv.size());
-    k_mat.get_rows(dense_ins, self_dot, kernel_values, instances.size());
+    k_mat.get_rows(instances, kernel_values);
     SyncData<real> dec_values(instances.size() * n_binary_models);
+
+    //sum kernel values and get decision values
     SAFE_KERNEL_LAUNCH(kernel_sum_kernel_values, kernel_values.device_data(), instances.size(), sv.size(),
                        n_binary_models, sv_index.device_data(), coef.device_data(), sv_start.device_data(),
                        sv_count.device_data(), rho.device_data(), dec_values.device_data());
+
+    //predict y by voting among k(k-1)/2 models
+    vector<int> predict_y;
+    for (int l = 0; l < instances.size(); ++l) {
+        vector<int> votes(n_binary_models, 0);
+        int k = 0;
+        for (int i = 0; i < n_classes; ++i) {
+            for (int j = i + 1; j < n_classes; ++j) {
+                if (dec_values[l * n_binary_models + k] > 0)
+                    votes[i]++;
+                else
+                    votes[j]++;
+                k++;
+            }
+        }
+        int maxVoteClass = 0;
+        for (int i = 0; i < n_classes; ++i) {
+            if (votes[i] > votes[maxVoteClass])
+                maxVoteClass = i;
+        }
+        predict_y.push_back(dataSet.label()[maxVoteClass]);
+    }
+    return predict_y;
 }
 
 void SVC::save_to_file(string path) {
@@ -184,7 +201,8 @@ void SVC::record_binary_model(int k, const SyncData<real> &alpha, const SyncData
         if (alpha[i] != 0) {
             coef[k].push_back(alpha[i] * y[i]);
             if (sv_index_map.find(original_index[i]) == sv_index_map.end()) {
-                sv_index_map[original_index[i]] = sv_index_map.size();
+                int sv_index = sv_index_map.size();
+                sv_index_map[original_index[i]] = sv_index;
                 sv.push_back(dataSet.instances()[original_index[i]]);
             }
             sv_index[k].push_back(sv_index_map[original_index[i]]);

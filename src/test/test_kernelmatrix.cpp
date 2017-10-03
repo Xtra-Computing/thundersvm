@@ -39,7 +39,7 @@ TEST(KernelMatrixTest, get_rows) {
 //    dataSet.load_from_file("/home/jiashuai/mascot_old/dataset/w8a");
     real gamma = 0.5;
     KernelMatrix kernelMatrix(dataSet.instances(), dataSet.n_features(), gamma);
-    int n_rows = 10;
+    int n_rows = 100;
     SyncData<int> rows(n_rows);
     SyncData<real> kernel_rows(n_rows * dataSet.total_count());
     for (int i = 0; i < n_rows; ++i) {

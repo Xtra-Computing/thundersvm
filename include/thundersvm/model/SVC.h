@@ -17,7 +17,7 @@ public:
 
     void train() override;
 
-    vector<int> predict(DataSet::node2d &instances) override;
+    vector<int> predict(const DataSet::node2d &instances) override;
 
     void save_to_file(string path) override;
 

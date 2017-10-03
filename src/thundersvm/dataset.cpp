@@ -145,3 +145,7 @@ const vector<int> DataSet::original_index(int y_i, int y_j) const {
     return two_class_idx;
 }
 
+const vector<int> &DataSet::y() const {
+    return y_;
+}
+

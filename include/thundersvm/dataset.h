@@ -23,6 +23,8 @@ public:
     const int* count() const;
     const int* start() const;
     const int* label() const;
+
+    const vector<int> &y() const;
     const node2d & instances() const;
     const node2d instances(int y_i) const;
     const node2d instances(int y_i, int y_j) const;

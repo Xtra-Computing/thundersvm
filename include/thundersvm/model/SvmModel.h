@@ -13,7 +13,8 @@ class SvmModel{
 public:
     SvmModel(DataSet &dataSet, SvmParam svmParam);
     virtual void train() = 0;
-    virtual vector<int> predict(DataSet::node2d &instances) = 0;
+
+    virtual vector<int> predict(const DataSet::node2d &instances) = 0;
     virtual void save_to_file(string path) = 0;
     virtual void load_from_file(string path) = 0;
 
