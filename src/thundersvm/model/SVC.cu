@@ -38,7 +38,7 @@ void SVC::train() {
     }
 }
 
-vector<int> SVC::predict(const DataSet::node2d &instances) {
+vector<int> SVC::predict(const DataSet::node2d &instances, int batch_size) {
     //prepare device data
     SyncData<int> sv_start(n_binary_models);
     SyncData<int> sv_count(n_binary_models);
@@ -61,35 +61,43 @@ vector<int> SVC::predict(const DataSet::node2d &instances) {
 
     //compute kernel values
     KernelMatrix k_mat(sv, dataSet.n_features(), svmParam.gamma);
-    SyncData<real> kernel_values(instances.size() * sv.size());
-    k_mat.get_rows(instances, kernel_values);
-    SyncData<real> dec_values(instances.size() * n_binary_models);
 
-    //sum kernel values and get decision values
-    SAFE_KERNEL_LAUNCH(kernel_sum_kernel_values, kernel_values.device_data(), instances.size(), sv.size(),
-                       n_binary_models, sv_index.device_data(), coef.device_data(), sv_start.device_data(),
-                       sv_count.device_data(), rho.device_data(), dec_values.device_data());
-
-    //predict y by voting among k(k-1)/2 models
+    auto batch_start = instances.begin();
+    auto batch_end = batch_start;
     vector<int> predict_y;
-    for (int l = 0; l < instances.size(); ++l) {
-        vector<int> votes(n_binary_models, 0);
-        int k = 0;
-        for (int i = 0; i < n_classes; ++i) {
-            for (int j = i + 1; j < n_classes; ++j) {
-                if (dec_values[l * n_binary_models + k] > 0)
-                    votes[i]++;
-                else
-                    votes[j]++;
-                k++;
+    while (batch_end != instances.end()) {
+        while (batch_end != instances.end() && batch_end - batch_start < batch_size) batch_end++;
+        DataSet::node2d batch_ins(batch_start, batch_end);
+        SyncData<real> kernel_values(batch_ins.size() * sv.size());
+        k_mat.get_rows(batch_ins, kernel_values);
+        SyncData<real> dec_values(batch_ins.size() * n_binary_models);
+
+        //sum kernel values and get decision values
+        SAFE_KERNEL_LAUNCH(kernel_sum_kernel_values, kernel_values.device_data(), batch_ins.size(), sv.size(),
+                           n_binary_models, sv_index.device_data(), coef.device_data(), sv_start.device_data(),
+                           sv_count.device_data(), rho.device_data(), dec_values.device_data());
+
+        //predict y by voting among k(k-1)/2 models
+        for (int l = 0; l < batch_ins.size(); ++l) {
+            vector<int> votes(n_binary_models, 0);
+            int k = 0;
+            for (int i = 0; i < n_classes; ++i) {
+                for (int j = i + 1; j < n_classes; ++j) {
+                    if (dec_values[l * n_binary_models + k] > 0)
+                        votes[i]++;
+                    else
+                        votes[j]++;
+                    k++;
+                }
             }
+            int maxVoteClass = 0;
+            for (int i = 0; i < n_classes; ++i) {
+                if (votes[i] > votes[maxVoteClass])
+                    maxVoteClass = i;
+            }
+            predict_y.push_back(dataSet.label()[maxVoteClass]);
         }
-        int maxVoteClass = 0;
-        for (int i = 0; i < n_classes; ++i) {
-            if (votes[i] > votes[maxVoteClass])
-                maxVoteClass = i;
-        }
-        predict_y.push_back(dataSet.label()[maxVoteClass]);
+        batch_start += batch_size;
     }
     return predict_y;
 }

@@ -56,7 +56,7 @@ void KernelMatrix::get_rows(const SyncData<int> &idx, SyncData<real> &kernel_row
 }
 
 void KernelMatrix::get_rows(const DataSet::node2d &instances, SyncData<real> &kernel_rows) const {
-    CHECK_EQ(kernel_rows.count(), instances.size() * m_) << "kernel_rows memory is too small";
+    CHECK_GE(kernel_rows.count(), instances.size() * m_) << "kernel_rows memory is too small";
     SyncData<real> self_dot(instances.size());
     SyncData<real> dense_ins(instances.size() * n_);
     for (int i = 0; i < instances.size(); ++i) {
