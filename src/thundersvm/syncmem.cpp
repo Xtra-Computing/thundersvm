@@ -52,11 +52,12 @@ void SyncMem::to_host() {
             own_host_data = true;
             break;
         case DEVICE:
-            if (nullptr == host_ptr)
+            if (nullptr == host_ptr) {
                 CUDA_CHECK(cudaMallocHost(&host_ptr, size_));
+                own_host_data = true;
+            }
             CUDA_CHECK(cudaMemcpy(host_ptr, device_ptr, size_, cudaMemcpyDeviceToHost));
             head_ = HOST;
-            own_host_data = true;
             break;
         case HOST:;
     }
@@ -70,11 +71,12 @@ void SyncMem::to_device() {
             own_device_data = true;
             break;
         case HOST:
-            if (nullptr == device_ptr)
+            if (nullptr == device_ptr) {
                 CUDA_CHECK(cudaMalloc(&device_ptr, size_));
+                own_device_data = true;
+            }
             CUDA_CHECK(cudaMemcpy(device_ptr, host_ptr, size_, cudaMemcpyHostToDevice));
             head_ = DEVICE;
-            own_device_data = true;
             break;
         case DEVICE:;
     }

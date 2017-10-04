@@ -31,7 +31,7 @@ void SVC::train() {
                 y[dataSet.count()[i] + l] = -1;
             }
             KernelMatrix k_mat(ins, dataSet.n_features(), svmParam.gamma);
-            smo_solver(k_mat, y, alpha, rho, 0.001, svmParam.C);
+            smo_solver(k_mat, y, alpha, rho, 0.001, svmParam.C, 1024);
             record_binary_model(k, alpha, y, rho, dataSet.original_index(i, j));
             k++;
         }
@@ -110,20 +110,30 @@ void SVC::load_from_file(string path) {
 
 }
 
-void SVC::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho, real eps,
-                     real C) {
+void
+SVC::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho, real eps, real C,
+                int ws_size) {
 //    TIMED_FUNC(timer_obj);
     uint n_instances = k_mat.m();
     SyncData<real> f(n_instances);
 //    LOG(INFO)<<min(10.,ceil(log2(float(n_instances))));
-    uint ws_size = 1024;
     uint q = ws_size / 2;
     SyncData<int> working_set(ws_size);
+    SyncData<int> working_set_first_half(q);
+    SyncData<int> working_set_last_half(q);
+    working_set_first_half.set_device_data(working_set.device_data());
+    working_set_last_half.set_device_data(&working_set.device_data()[q]);
+    working_set_first_half.set_host_data(working_set.host_data());
+    working_set_last_half.set_host_data(&working_set.host_data()[q]);
     SyncData<int> f_idx(n_instances);
     SyncData<int> f_idx2sort(n_instances);
     SyncData<real> f_val2sort(n_instances);
     SyncData<real> alpha_diff(ws_size);
     SyncData<real> k_mat_rows(ws_size * k_mat.m());
+    SyncData<real> k_mat_rows_first_half(q * k_mat.m());
+    SyncData<real> k_mat_rows_last_half(q * k_mat.m());
+    k_mat_rows_first_half.set_device_data(k_mat_rows.device_data());
+    k_mat_rows_last_half.set_device_data(&k_mat_rows.device_data()[q * k_mat.m()]);
     SyncData<real> diff_and_bias(2);
     for (int i = 0; i < n_instances; ++i) {
         f.host_data()[i] = -y.host_data()[i];
@@ -144,8 +154,9 @@ void SVC::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData
             q = ws_size;
         } else {
             q = ws_size / 2;
-            working_set.copy_from(working_set.device_data() + q, q);
-            ws = working_set.host_data() + q;
+//            working_set.copy_from(working_set.device_data() + q, q);
+            working_set_first_half.copy_from(working_set_last_half);
+            ws = working_set_last_half.host_data();
             for (int i = 0; i < q; ++i) {
                 ws_indicator[working_set[i]] = 1;
             }

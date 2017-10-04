@@ -19,9 +19,13 @@ public:
 
     const T *host_data() const;
 
+    void set_host_data(T *host_ptr);
+
     T *host_data();
 
     const T *device_data() const;
+
+    void set_device_data(T *device_ptr);
 
     T *device_data();
 

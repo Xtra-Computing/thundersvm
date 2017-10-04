@@ -106,6 +106,16 @@ T &SyncData<T>::operator[](int index) {
     return host_data()[index];
 }
 
+template<typename T>
+void SyncData<T>::set_host_data(T *host_ptr) {
+    mem->set_host_data(host_ptr);
+}
+
+template<typename T>
+void SyncData<T>::set_device_data(T *device_ptr) {
+    mem->set_device_data(device_ptr);
+}
+
 
 template
 class SyncData<int>;

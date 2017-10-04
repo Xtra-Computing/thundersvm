@@ -27,6 +27,9 @@ TEST(SyncDataTest, device_allocate){
 
 TEST(SyncDataTest, host_to_device){
     SyncData<int> syncData(10);
+    SyncData<int> syncData1(10);
+    syncData1.set_host_data(syncData.host_data());
+    syncData1.set_device_data(syncData.device_data());
     int *data = syncData.host_data();
     for (int i = 0; i < 10; ++i) {
         data[i] = i;
@@ -44,5 +47,6 @@ TEST(SyncDataTest, host_to_device){
     }
     for (int i = 0; i < 10; ++i) {
         EXPECT_EQ(syncData[i] , i);
+        EXPECT_EQ(syncData1[i], i);
     }
 }
