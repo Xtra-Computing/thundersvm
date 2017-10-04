@@ -24,8 +24,9 @@ public:
     void load_from_file(string path) override;
 
 private:
-    void smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho, real eps,
-                    real C);
+    void
+    smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho, real eps, real C,
+               int ws_size);
 
     void record_binary_model(int k, const SyncData<real> &alpha, const SyncData<int> &y, real rho,
                              const vector<int> &original_index);
