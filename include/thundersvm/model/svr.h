@@ -7,6 +7,9 @@
 
 #include "thundersvm/thundersvm.h"
 #include "svmmodel.h"
+#include <map>
+
+using std::map;
 
 class SVR : public SvmModel {
 public:
@@ -27,6 +30,8 @@ private:
     vector<real> coef;
     vector<real> alpha;
     DataSet::node2d sv;
+    vector<int> sv_index;
+    map<int, int> sv_map;
     real rho;
     int n_instances;
 };

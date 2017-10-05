@@ -99,7 +99,7 @@ vector<real> SVC::predict(const DataSet::node2d &instances, int batch_size) {
                 if (votes[i] > votes[maxVoteClass])
                     maxVoteClass = i;
             }
-            predict_y.push_back(dataSet.label()[maxVoteClass]);
+            predict_y.push_back((float) dataSet.label()[maxVoteClass]);
         }
         batch_start += batch_size;
     }
