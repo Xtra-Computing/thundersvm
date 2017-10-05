@@ -6,7 +6,6 @@
 #include "thundersvm/model/SVC.h"
 #include "thrust/sort.h"
 #include "thrust/system/cuda/execution_policy.h"
-
 SVC::SVC(DataSet &dataSet, const SvmParam &svmParam) : SvmModel(dataSet, svmParam) {
     n_classes = dataSet.n_classes();
     n_binary_models = n_classes * (n_classes - 1) / 2;
@@ -22,16 +21,21 @@ void SVC::train() {
             DataSet::node2d ins = dataSet.instances(i, j);
             SyncData<int> y(ins.size());
             SyncData<real> alpha(ins.size());
+            SyncData<real> init_f(ins.size());
             real rho;
             alpha.mem_set(0);
             for (int l = 0; l < dataSet.count()[i]; ++l) {
                 y[l] = +1;
+                init_f[l] = -1;
             }
             for (int l = 0; l < dataSet.count()[j]; ++l) {
                 y[dataSet.count()[i] + l] = -1;
+                init_f[dataSet.count()[i] + l] = +1;
             }
             KernelMatrix k_mat(ins, dataSet.n_features(), svmParam.gamma);
-            smo_solver(k_mat, y, alpha, rho, 0.001, svmParam.C, 1024);
+            int ws_size = min(max2power(dataSet.count()[0]), max2power(dataSet.count()[1])) * 2;
+            LOG(INFO) << ws_size;
+            smo_solver(k_mat, y, alpha, rho, init_f, 0.001, svmParam.C, ws_size);
             record_binary_model(k, alpha, y, rho, dataSet.original_index(i, j));
             k++;
         }
@@ -111,13 +115,11 @@ void SVC::load_from_file(string path) {
 }
 
 void
-SVC::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho, real eps, real C,
-                int ws_size) {
-//    TIMED_FUNC(timer_obj);
+SVC::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho,
+                SyncData<real> &init_f, real eps, real C, int ws_size) {
     uint n_instances = k_mat.m();
-    SyncData<real> f(n_instances);
-//    LOG(INFO)<<min(10.,ceil(log2(float(n_instances))));
     uint q = ws_size / 2;
+
     SyncData<int> working_set(ws_size);
     SyncData<int> working_set_first_half(q);
     SyncData<int> working_set_last_half(q);
@@ -125,19 +127,23 @@ SVC::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real
     working_set_last_half.set_device_data(&working_set.device_data()[q]);
     working_set_first_half.set_host_data(working_set.host_data());
     working_set_last_half.set_host_data(&working_set.host_data()[q]);
+
+    SyncData<real> f(n_instances);
     SyncData<int> f_idx(n_instances);
     SyncData<int> f_idx2sort(n_instances);
     SyncData<real> f_val2sort(n_instances);
     SyncData<real> alpha_diff(ws_size);
+    SyncData<real> diff_and_bias(2);
+
     SyncData<real> k_mat_rows(ws_size * k_mat.m());
     SyncData<real> k_mat_rows_first_half(q * k_mat.m());
     SyncData<real> k_mat_rows_last_half(q * k_mat.m());
     k_mat_rows_first_half.set_device_data(k_mat_rows.device_data());
     k_mat_rows_last_half.set_device_data(&k_mat_rows.device_data()[q * k_mat.m()]);
-    SyncData<real> diff_and_bias(2);
+    CHECK_EQ(init_f.count(), n_instances);
+    f.copy_from(init_f);
     for (int i = 0; i < n_instances; ++i) {
-        f.host_data()[i] = -y.host_data()[i];
-        f_idx.host_data()[i] = i;
+        f_idx[i] = i;
     }
     alpha.mem_set(0);
     LOG(INFO) << "training start";
@@ -211,6 +217,7 @@ SVC::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real
             rho = diff_and_bias[1];
             break;
         }
+
         //update f
         SAFE_KERNEL_LAUNCH(update_f, f.device_data(), ws_size, alpha_diff.device_data(), k_mat_rows.device_data(),
                            n_instances);
@@ -235,5 +242,9 @@ void SVC::record_binary_model(int k, const SyncData<real> &alpha, const SyncData
     this->rho[k] = rho;
     LOG(INFO) << "rho=" << rho;
     LOG(INFO) << "#SV=" << n_sv;
+}
+
+int SVC::max2power(int n) const {
+    return min(int(pow(2, floor(log2f(float(n))))), 512);
 }
 

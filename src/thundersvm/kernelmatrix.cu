@@ -43,7 +43,7 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, size_t n_features, 
 }
 
 void KernelMatrix::get_rows(const SyncData<int> &idx, SyncData<real> &kernel_rows) const {
-    CHECK_EQ(kernel_rows.count(), idx.count() * m_) << "kernel_rows memory is too small";
+    CHECK_GE(kernel_rows.count(), idx.count() * m_) << "kernel_rows memory is too small";
 
     SyncData<real> data_rows(idx.count() * n_);
     data_rows.mem_set(0);

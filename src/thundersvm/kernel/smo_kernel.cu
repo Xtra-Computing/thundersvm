@@ -59,7 +59,7 @@ localSMO(const int *label, real *FValues, real *alpha, real *alpha_diff, const i
 
         float local_diff = lowValue - upValue;
         if (numOfIter == 0) {
-            local_eps = max(eps, 0.1 * local_diff);
+            local_eps = max(eps, 0.1f * local_diff);
         }
 
         if (local_diff < local_eps) {
