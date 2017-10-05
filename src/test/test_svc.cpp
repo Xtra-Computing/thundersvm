@@ -1,8 +1,8 @@
 //
 // Created by jiashuai on 17-9-21.
 //
+#include <thundersvm/model/svc.h>
 #include "gtest/gtest.h"
-#include "thundersvm/model/SVC.h"
 TEST(SVCTest, train){
     DataSet dataSet;
     dataSet.load_from_file("data/test_dataset.txt");

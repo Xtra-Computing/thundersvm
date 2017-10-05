@@ -6,7 +6,7 @@
 #define THUNDERSVM_SVR_H
 
 #include "thundersvm/thundersvm.h"
-#include "SvmModel.h"
+#include "svmmodel.h"
 
 class SVR : public SvmModel {
 public:

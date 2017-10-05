@@ -7,7 +7,7 @@
 
 #include <map>
 #include <thundersvm/kernelmatrix.h>
-#include "SvmModel.h"
+#include "svmmodel.h"
 
 using std::map;
 

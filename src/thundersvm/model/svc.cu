@@ -3,7 +3,7 @@
 //
 #include <thundersvm/kernel/smo_kernel.h>
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
-#include "thundersvm/model/SVC.h"
+#include <thundersvm/model/svc.h>
 #include "thrust/sort.h"
 
 SVC::SVC(DataSet &dataSet, const SvmParam &svmParam) : SvmModel(dataSet, svmParam) {

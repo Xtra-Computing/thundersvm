@@ -5,7 +5,7 @@
 #include <thundersvm/kernel/smo_kernel.h>
 #include <thrust/sort.h>
 #include <thrust/system/cuda/detail/par.h>
-#include "thundersvm/model/SvmModel.h"
+#include <thundersvm/model/svmmodel.h>
 
 SvmModel::SvmModel(DataSet &dataSet, const SvmParam &svmParam) : dataSet(dataSet), svmParam(svmParam) {
 
