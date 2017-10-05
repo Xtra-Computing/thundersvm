@@ -34,12 +34,12 @@ real rbf_kernel(const DataSet::node2d &instances, int x, int y, real gamma) {
 
 TEST(KernelMatrixTest, get_rows) {
     DataSet dataSet;
-//    dataSet.load_from_file("data/test_dataset.txt");
-    dataSet.load_from_file("/home/jiashuai/mascot_old/dataset/a9a");
+    dataSet.load_from_file("data/test_dataset.txt");
+//    dataSet.load_from_file("/home/jiashuai/mascot_old/dataset/a9a");
 //    dataSet.load_from_file("/home/jiashuai/mascot_old/dataset/w8a");
     real gamma = 0.5;
     KernelMatrix kernelMatrix(dataSet.instances(), dataSet.n_features(), gamma);
-    int n_rows = 100;
+    int n_rows = 40;
     SyncData<int> rows(n_rows);
     SyncData<real> kernel_rows(n_rows * dataSet.total_count());
     for (int i = 0; i < n_rows; ++i) {

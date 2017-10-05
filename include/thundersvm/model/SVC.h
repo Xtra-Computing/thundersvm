@@ -17,14 +17,13 @@ public:
 
     void train() override;
 
-    vector<int> predict(const DataSet::node2d &instances, int batch_size) override;
+    vector<real> predict(const DataSet::node2d &instances, int batch_size) override;
 
     void save_to_file(string path) override;
 
     void load_from_file(string path) override;
 
 private:
-    int max2power(int n) const;
 
     void record_binary_model(int k, const SyncData<real> &alpha, const SyncData<int> &y, real rho,
                              const vector<int> &original_index);

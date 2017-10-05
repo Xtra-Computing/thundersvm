@@ -10,5 +10,7 @@
 struct SvmParam{
     real C;
     real gamma;
+
+    real p;
 };
 #endif //THUNDERSVM_SVMPARAM_H

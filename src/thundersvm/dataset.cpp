@@ -73,7 +73,7 @@ void DataSet::group_classes() {
         dataLabel[i] = j;
         //if the label is unseen, add it to label vector.
         if (j == label_.size()) {
-            label_.push_back(y_[i]);
+            label_.push_back(int(y_[i]));
             count_.push_back(1);
         }
     }
@@ -145,7 +145,7 @@ const vector<int> DataSet::original_index(int y_i, int y_j) const {
     return two_class_idx;
 }
 
-const vector<int> &DataSet::y() const {
+const vector<real> &DataSet::y() const {
     return y_;
 }
 

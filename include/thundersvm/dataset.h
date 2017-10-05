@@ -17,6 +17,8 @@ public:
     typedef vector<vector<DataSet::node>> node2d;
     DataSet();
     void load_from_file(string file_name);
+
+    void group_classes();
     size_t total_count() const;
     size_t n_features() const;
     size_t n_classes() const;
@@ -24,7 +26,7 @@ public:
     const int* start() const;
     const int* label() const;
 
-    const vector<int> &y() const;
+    const vector<real> &y() const;
     const node2d & instances() const;
     const node2d instances(int y_i) const;
     const node2d instances(int y_i, int y_j) const;
@@ -33,8 +35,7 @@ public:
     const vector<int> original_index(int y_i, int y_j) const;
 
 private:
-    void group_classes();
-    vector<int> y_;
+    vector<real> y_;
     node2d instances_;
     size_t total_count_;
     size_t n_features_;

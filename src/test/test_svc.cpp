@@ -15,7 +15,7 @@ TEST(SVCTest, train){
     param.C = 100;
     SvmModel *model = new SVC(dataSet, param);
     model->train();
-    vector<int> predict_y;
+    vector<real> predict_y;
     predict_y = model->predict(dataSet.instances(), 1000);
     int n_correct = 0;
     for (int i = 0; i < predict_y.size(); ++i) {

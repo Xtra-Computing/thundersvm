@@ -12,6 +12,7 @@ SVC::SVC(DataSet &dataSet, const SvmParam &svmParam) : SvmModel(dataSet, svmPara
     rho.resize(n_binary_models);
     sv_index.resize(n_binary_models);
     coef.resize(n_binary_models);
+    dataSet.group_classes();
 }
 
 void SVC::train() {
@@ -33,7 +34,7 @@ void SVC::train() {
                 init_f[dataSet.count()[i] + l] = +1;
             }
             KernelMatrix k_mat(ins, dataSet.n_features(), svmParam.gamma);
-            int ws_size = min(max2power(dataSet.count()[0]), max2power(dataSet.count()[1])) * 2;
+            int ws_size = min(min(max2power(dataSet.count()[0]), max2power(dataSet.count()[1])) * 2, 1024);
             smo_solver(k_mat, y, alpha, rho, init_f, 0.001, svmParam.C, ws_size);
             record_binary_model(k, alpha, y, rho, dataSet.original_index(i, j));
             k++;
@@ -41,7 +42,7 @@ void SVC::train() {
     }
 }
 
-vector<int> SVC::predict(const DataSet::node2d &instances, int batch_size) {
+vector<real> SVC::predict(const DataSet::node2d &instances, int batch_size) {
     //prepare device data
     SyncData<int> sv_start(n_binary_models);
     SyncData<int> sv_count(n_binary_models);
@@ -67,7 +68,7 @@ vector<int> SVC::predict(const DataSet::node2d &instances, int batch_size) {
 
     auto batch_start = instances.begin();
     auto batch_end = batch_start;
-    vector<int> predict_y;
+    vector<real> predict_y;
     while (batch_end != instances.end()) {
         while (batch_end != instances.end() && batch_end - batch_start < batch_size) batch_end++;
         DataSet::node2d batch_ins(batch_start, batch_end);
@@ -134,7 +135,4 @@ void SVC::record_binary_model(int k, const SyncData<real> &alpha, const SyncData
     LOG(INFO) << "#SV=" << n_sv;
 }
 
-int SVC::max2power(int n) const {
-    return min(int(pow(2, floor(log2f(float(n))))), 512);
-}
 

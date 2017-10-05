@@ -7,10 +7,13 @@
 #include <thrust/system/cuda/detail/par.h>
 #include "thundersvm/model/SvmModel.h"
 
-SvmModel::SvmModel(DataSet &dataSet, SvmParam svmParam) : dataSet(dataSet), svmParam(svmParam) {
+SvmModel::SvmModel(DataSet &dataSet, const SvmParam &svmParam) : dataSet(dataSet), svmParam(svmParam) {
 
 }
 
+int SvmModel::max2power(int n) const {
+    return int(pow(2, floor(log2f(float(n)))));
+}
 void
 SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho,
                      SyncData<real> &init_f, real eps, real C, int ws_size) {
