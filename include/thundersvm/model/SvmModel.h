@@ -19,6 +19,8 @@ public:
     virtual void load_from_file(string path) = 0;
 
 protected:
+    void smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho,
+                    SyncData<real> &init_f, real eps, real C, int ws_size);
     DataSet &dataSet;
     SvmParam svmParam;
 };

@@ -5,7 +5,6 @@
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
 #include "thundersvm/model/SVC.h"
 #include "thrust/sort.h"
-#include "thrust/system/cuda/execution_policy.h"
 
 SVC::SVC(DataSet &dataSet, const SvmParam &svmParam) : SvmModel(dataSet, svmParam) {
     n_classes = dataSet.n_classes();
@@ -114,115 +113,6 @@ void SVC::load_from_file(string path) {
 
 }
 
-void
-SVC::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho,
-                SyncData<real> &init_f, real eps, real C, int ws_size) {
-    uint n_instances = k_mat.m();
-    uint q = ws_size / 2;
-
-    SyncData<int> working_set(ws_size);
-    SyncData<int> working_set_first_half(q);
-    SyncData<int> working_set_last_half(q);
-    working_set_first_half.set_device_data(working_set.device_data());
-    working_set_last_half.set_device_data(&working_set.device_data()[q]);
-    working_set_first_half.set_host_data(working_set.host_data());
-    working_set_last_half.set_host_data(&working_set.host_data()[q]);
-
-    SyncData<real> f(n_instances);
-    SyncData<int> f_idx(n_instances);
-    SyncData<int> f_idx2sort(n_instances);
-    SyncData<real> f_val2sort(n_instances);
-    SyncData<real> alpha_diff(ws_size);
-    SyncData<real> diff_and_bias(2);
-
-    SyncData<real> k_mat_rows(ws_size * k_mat.m());
-    SyncData<real> k_mat_rows_first_half(q * k_mat.m());
-    SyncData<real> k_mat_rows_last_half(q * k_mat.m());
-    k_mat_rows_first_half.set_device_data(k_mat_rows.device_data());
-    k_mat_rows_last_half.set_device_data(&k_mat_rows.device_data()[q * k_mat.m()]);
-    CHECK_EQ(init_f.count(), n_instances);
-    f.copy_from(init_f);
-    for (int i = 0; i < n_instances; ++i) {
-        f_idx[i] = i;
-    }
-    alpha.mem_set(0);
-    LOG(INFO) << "training start";
-    for (int iter = 1;; ++iter) {
-        //select working set
-        f_idx2sort.copy_from(f_idx);
-        f_val2sort.copy_from(f);
-        thrust::sort_by_key(thrust::cuda::par, f_val2sort.device_data(), f_val2sort.device_data() + n_instances,
-                            f_idx2sort.device_data(), thrust::less<real>());
-        int *ws;
-        vector<int> ws_indicator(n_instances, 0);
-        if (1 == iter) {
-            ws = working_set.host_data();
-            q = ws_size;
-        } else {
-            q = ws_size / 2;
-            working_set_first_half.copy_from(working_set_last_half);
-            ws = working_set_last_half.host_data();
-            for (int i = 0; i < q; ++i) {
-                ws_indicator[working_set[i]] = 1;
-            }
-        }
-        int p_left = 0;
-        int p_right = n_instances - 1;
-        int n_selected = 0;
-        const int *index = f_idx2sort.host_data();
-        while (n_selected < q) {
-            int i;
-            if (p_left < n_instances) {
-                i = index[p_left];
-                while (ws_indicator[i] == 1 || !(y[i] > 0 && alpha[i] < C || y[i] < 0 && alpha[i] > 0)) {
-                    p_left++;
-                    if (p_left == n_instances) break;
-                    i = index[p_left];
-                }
-                if (p_left < n_instances) {
-                    ws[n_selected++] = i;
-                    ws_indicator[i] = 1;
-                }
-            }
-            if (p_right >= 0) {
-                i = index[p_right];
-                while ((ws_indicator[i] == 1 || !(y[i] > 0 && alpha[i] > 0 || y[i] < 0 && alpha[i] < C))) {
-                    p_right--;
-                    if (p_right == -1) break;
-                    i = index[p_right];
-                }
-                if (p_right >= 0) {
-                    ws[n_selected++] = i;
-                    ws_indicator[i] = 1;
-                }
-            }
-        }
-
-        //precompute kernel
-        if (1 == iter) {
-            k_mat.get_rows(working_set, k_mat_rows);
-        } else {
-            k_mat_rows_first_half.copy_from(k_mat_rows_last_half);
-            k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
-        }
-
-        //local smo
-        size_t smem_size = ws_size * sizeof(real) * 3 + 2 * sizeof(float);
-        localSMO << < 1, ws_size, smem_size >> >
-                                  (y.device_data(), f.device_data(), alpha.device_data(), alpha_diff.device_data(),
-                                          working_set.device_data(), ws_size, C, k_mat_rows.device_data(), n_instances,
-                                          eps, diff_and_bias.device_data());
-        LOG_EVERY_N(10, INFO) << "diff=" << diff_and_bias[0];
-        if (diff_and_bias[0] < eps) {
-            rho = diff_and_bias[1];
-            break;
-        }
-
-        //update f
-        SAFE_KERNEL_LAUNCH(update_f, f.device_data(), ws_size, alpha_diff.device_data(), k_mat_rows.device_data(),
-                           n_instances);
-    }
-}
 
 void SVC::record_binary_model(int k, const SyncData<real> &alpha, const SyncData<int> &y, real rho,
                               const vector<int> &original_index) {

@@ -25,9 +25,6 @@ public:
 
 private:
     int max2power(int n) const;
-    void
-    smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho,
-               SyncData<real> &init_f, real eps, real C, int ws_size);
 
     void record_binary_model(int k, const SyncData<real> &alpha, const SyncData<int> &y, real rho,
                              const vector<int> &original_index);
