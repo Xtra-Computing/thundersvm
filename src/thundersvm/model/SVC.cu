@@ -6,6 +6,7 @@
 #include "thundersvm/model/SVC.h"
 #include "thrust/sort.h"
 #include "thrust/system/cuda/execution_policy.h"
+
 SVC::SVC(DataSet &dataSet, const SvmParam &svmParam) : SvmModel(dataSet, svmParam) {
     n_classes = dataSet.n_classes();
     n_binary_models = n_classes * (n_classes - 1) / 2;
@@ -34,7 +35,6 @@ void SVC::train() {
             }
             KernelMatrix k_mat(ins, dataSet.n_features(), svmParam.gamma);
             int ws_size = min(max2power(dataSet.count()[0]), max2power(dataSet.count()[1])) * 2;
-            LOG(INFO) << ws_size;
             smo_solver(k_mat, y, alpha, rho, init_f, 0.001, svmParam.C, ws_size);
             record_binary_model(k, alpha, y, rho, dataSet.original_index(i, j));
             k++;
