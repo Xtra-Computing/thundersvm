@@ -28,7 +28,6 @@ private:
     void record_model(const SyncData<real> &alpha, const SyncData<int> &y, real rho);
 
     vector<real> coef;
-    vector<real> alpha;
     DataSet::node2d sv;
     vector<int> sv_index;
     map<int, int> sv_map;

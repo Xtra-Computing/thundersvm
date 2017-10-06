@@ -10,7 +10,7 @@ SVR::SVR(DataSet &dataSet, const SvmParam &svmParam) : SvmModel(dataSet, svmPara
 
 void SVR::train() {
     //duplicate instances
-    DataSet::node2d instances_2 = dataSet.instances();
+    DataSet::node2d instances_2(dataSet.instances());
     instances_2.insert(instances_2.end(), dataSet.instances().begin(), dataSet.instances().end());
 
     KernelMatrix kernelMatrix(instances_2, dataSet.n_features(), svmParam.gamma);

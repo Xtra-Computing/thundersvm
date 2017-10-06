@@ -14,6 +14,7 @@ SvmModel::SvmModel(DataSet &dataSet, const SvmParam &svmParam) : dataSet(dataSet
 int SvmModel::max2power(int n) const {
     return int(pow(2, floor(log2f(float(n)))));
 }
+
 void
 SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho,
                      SyncData<real> &init_f, real eps, real C, int ws_size) {
@@ -53,55 +54,16 @@ SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData
         f_val2sort.copy_from(f);
         thrust::sort_by_key(thrust::cuda::par, f_val2sort.device_data(), f_val2sort.device_data() + n_instances,
                             f_idx2sort.device_data(), thrust::less<real>());
-        int *ws;
         vector<int> ws_indicator(n_instances, 0);
         if (1 == iter) {
-            ws = working_set.host_data();
-            q = ws_size;
+            select_working_set(ws_indicator, f_idx2sort, y, alpha, working_set);
+            k_mat.get_rows(working_set, k_mat_rows);
         } else {
-            q = ws_size / 2;
             working_set_first_half.copy_from(working_set_last_half);
-            ws = working_set_last_half.host_data();
             for (int i = 0; i < q; ++i) {
                 ws_indicator[working_set[i]] = 1;
             }
-        }
-        int p_left = 0;
-        int p_right = n_instances - 1;
-        int n_selected = 0;
-        const int *index = f_idx2sort.host_data();
-        while (n_selected < q) {
-            int i;
-            if (p_left < n_instances) {
-                i = index[p_left];
-                while (ws_indicator[i] == 1 || !(y[i] > 0 && alpha[i] < C || y[i] < 0 && alpha[i] > 0)) {
-                    p_left++;
-                    if (p_left == n_instances) break;
-                    i = index[p_left];
-                }
-                if (p_left < n_instances) {
-                    ws[n_selected++] = i;
-                    ws_indicator[i] = 1;
-                }
-            }
-            if (p_right >= 0) {
-                i = index[p_right];
-                while ((ws_indicator[i] == 1 || !(y[i] > 0 && alpha[i] > 0 || y[i] < 0 && alpha[i] < C))) {
-                    p_right--;
-                    if (p_right == -1) break;
-                    i = index[p_right];
-                }
-                if (p_right >= 0) {
-                    ws[n_selected++] = i;
-                    ws_indicator[i] = 1;
-                }
-            }
-        }
-
-        //precompute kernel
-        if (1 == iter) {
-            k_mat.get_rows(working_set, k_mat_rows);
-        } else {
+            select_working_set(ws_indicator, f_idx2sort, y, alpha, working_set_last_half);
             k_mat_rows_first_half.copy_from(k_mat_rows_last_half);
             k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
         }
@@ -121,5 +83,43 @@ SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData
         //update f
         SAFE_KERNEL_LAUNCH(update_f, f.device_data(), ws_size, alpha_diff.device_data(), k_mat_rows.device_data(),
                            n_instances);
+    }
+}
+
+void
+SvmModel::select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
+                             const SyncData<real> &alpha, SyncData<int> &working_set) {
+    int n_instances = ws_indicator.size();
+    int p_left = 0;
+    int p_right = n_instances - 1;
+    int n_selected = 0;
+    const int *index = f_idx2sort.host_data();
+    while (n_selected < working_set.count()) {
+        int i;
+        if (p_left < n_instances) {
+            i = index[p_left];
+            while (ws_indicator[i] == 1 || !(y[i] > 0 && alpha[i] < svmParam.C || y[i] < 0 && alpha[i] > 0)) {
+                p_left++;
+                if (p_left == n_instances) break;
+                i = index[p_left];
+            }
+            if (p_left < n_instances) {
+                working_set[n_selected++] = i;
+                ws_indicator[i] = 1;
+            }
+        }
+        if (p_right >= 0) {
+            i = index[p_right];
+            while ((ws_indicator[i] == 1 || !(y[i] > 0 && alpha[i] > 0 || y[i] < 0 && alpha[i] < svmParam.C))) {
+                p_right--;
+                if (p_right == -1) break;
+                i = index[p_right];
+            }
+            if (p_right >= 0) {
+                working_set[n_selected++] = i;
+                ws_indicator[i] = 1;
+            }
+        }
+
     }
 }

@@ -68,7 +68,8 @@ void KernelMatrix::get_rows(const DataSet::node2d &instances, SyncData<real> &ke
         self_dot[i] = sum;
     }
     dns_csr_mul(dense_ins, instances.size(), kernel_rows);
-    SAFE_KERNEL_LAUNCH(kernel_RBF_kernel, self_dot.device_data(), self_dot_->device_data(), kernel_rows.device_data(),
+    SAFE_KERNEL_LAUNCH(kernel_RBF_kernel, self_dot.device_data(), this->self_dot_->device_data(),
+                       kernel_rows.device_data(),
                        instances.size(), m_, gamma);
 }
 

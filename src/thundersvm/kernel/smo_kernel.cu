@@ -4,7 +4,7 @@
 #include <cfloat>
 #include "thundersvm/kernel/smo_kernel.h"
 
-__device__ int getBlockMin(const float *values, int *index) {
+__device__ int get_block_min(const float *values, int *index) {
     int tid = threadIdx.x;
     index[tid] = tid;
     __syncthreads();
@@ -50,11 +50,11 @@ localSMO(const int *label, real *FValues, real *alpha, real *alpha_diff, const i
             fValuesJ[tid] = -f;
         else
             fValuesJ[tid] = FLT_MAX;
-        int i = getBlockMin(fValuesI, idx4Reduce);
+        int i = get_block_min(fValuesI, idx4Reduce);
         float upValue = fValuesI[i];
         float kIwsI = k_mat_rows[row_len * i + wsi];//K[i, wsi]
         __syncthreads();
-        int j1 = getBlockMin(fValuesJ, idx4Reduce);
+        int j1 = get_block_min(fValuesJ, idx4Reduce);
         float lowValue = -fValuesJ[j1];
 
         float local_diff = lowValue - upValue;
@@ -80,7 +80,7 @@ localSMO(const int *label, real *FValues, real *alpha, real *alpha_diff, const i
             fValuesI[tid] = -bIJ * bIJ / aIJ;
         } else
             fValuesI[tid] = FLT_MAX;
-        int j2 = getBlockMin(fValuesI, idx4Reduce);
+        int j2 = get_block_min(fValuesI, idx4Reduce);
 
         //update alpha
         if (tid == i)
