@@ -86,28 +86,6 @@ SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData
     }
 }
 
-void add_to_working_set(int &ws_counter, vector<int> &ws_indicator, SyncData<int> &working_set, bool &has_done,
-					    const SyncData<real> &alpha, bool is_left, bool is_in_part, int n_limit){
-    if (has_done == false) {
-        int i = index[ws_counter];
-        while (ws_indicator[i] == 1 || is_in_part) {
-        	if(is_left)
-        		ws_counter++;
-        	else
-        		ws_counter--;
-            if (ws_counter == n_limit){
-            	has_done = true;
-            	break;
-            }
-            i = index[ws_counter];
-        }
-        if (has_done) {
-            working_set[n_selected++] = i;
-            ws_indicator[i] = 1;
-        }
-    }
-}
-
 void
 SvmModel::select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
                              const SyncData<real> &alpha, SyncData<int> &working_set) {

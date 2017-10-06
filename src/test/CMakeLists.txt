@@ -13,7 +13,6 @@ include_directories(${COMMON_INCLUDES} ${GTEST_INCLUDE_DIRS})
 file(GLOB TEST_SRC_FILES *.cpp)
 cuda_add_executable(${PROJECT_TEST_NAME} ${TEST_SRC_FILES} ${SRC})
 add_dependencies(${PROJECT_TEST_NAME} googletest ${PROJECT_NAME}_lib)
-file(COPY data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 if(NOT WIN32 OR MINGW)
     target_link_libraries(${PROJECT_TEST_NAME}

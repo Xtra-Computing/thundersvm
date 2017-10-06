@@ -3,25 +3,48 @@
 //
 #include <thundersvm/model/svc.h>
 #include "gtest/gtest.h"
-TEST(SVCTest, train){
-    DataSet dataSet;
-    dataSet.load_from_file("data/test_dataset.txt");
-//    dataSet.load_from_file("/home/jiashuai/mascot_old/dataset/iris.scale");
-//    dataSet.load_from_file("/home/jiashuai/mascot_old/dataset/news20.binary");
-//    dataSet.load_from_file("/home/jiashuai/mascot_old/dataset/mnist.scale");
-//    dataSet.load_from_file("/home/jiashuai/mascot_old/dataset/a9a");
-    SvmParam param;
-    param.gamma = 0.5;
-    param.C = 100;
-    SvmModel *model = new SVC(dataSet, param);
-    model->train();
+#include "dataset.h"
+
+class SVCTest : public ::testing::Test {
+protected:
+    DataSet train_dataset;
+    DataSet test_dataset;
+    SvmParam svmParam;
     vector<real> predict_y;
-    predict_y = model->predict(dataSet.instances(), 1000);
-    int n_correct = 0;
-    for (int i = 0; i < predict_y.size(); ++i) {
-        if (predict_y[i] == dataSet.y()[i])
-            n_correct++;
+
+    float load_dataset_and_train(string train_filename, string test_filename, real C, real gamma) {
+        train_dataset.load_from_file(train_filename);
+        test_dataset.load_from_file(test_filename);
+        svmParam.gamma = gamma;
+        svmParam.C = C;
+        SvmModel *model = new SVC(train_dataset, svmParam);
+
+        model->train();
+        predict_y = model->predict(test_dataset.instances(), 1000);
+        int n_correct = 0;
+        for (int i = 0; i < predict_y.size(); ++i) {
+            if (predict_y[i] == test_dataset.y()[i])
+                n_correct++;
+        }
+        float accuracy = n_correct / (float) train_dataset.instances().size();
+        LOG(INFO) << "Accuracy = " << accuracy << "(" << n_correct << "/"
+                  << train_dataset.instances().size() << ")\n";
+        return accuracy;
     }
-    LOG(INFO) << "Accuracy = " << n_correct / (float) dataSet.instances().size() << "(" << n_correct << "/"
-              << dataSet.instances().size() << ")";
+};
+
+TEST_F(SVCTest, test_set) {
+    load_dataset_and_train(DATASET_DIR "test_dataset.txt", DATASET_DIR "test_dataset.txt", 100, 0.5);
+}
+
+TEST_F(SVCTest, a9a) {
+    load_dataset_and_train(DATASET_DIR "a9a", DATASET_DIR "a9a.t", 100, 0.5);
+}
+
+TEST_F(SVCTest, mnist) {
+//    load_dataset_and_train(DATASET_DIR "mnist.scale", DATASET_DIR "mnist.scale.t", 10, 0.125);
+}
+
+TEST_F(SVCTest, realsim) {
+    load_dataset_and_train(DATASET_DIR "real-sim", DATASET_DIR "real-sim", 4, 0.5);
 }

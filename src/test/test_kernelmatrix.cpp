@@ -3,7 +3,7 @@
 //
 #include "gtest/gtest.h"
 #include "thundersvm/kernelmatrix.h"
-
+#include <dataset.h>
 real rbf_kernel(const DataSet::node2d &instances, int x, int y, real gamma) {
     real sum = 0;
     auto i = instances[x].begin();
@@ -34,9 +34,7 @@ real rbf_kernel(const DataSet::node2d &instances, int x, int y, real gamma) {
 
 TEST(KernelMatrixTest, get_rows) {
     DataSet dataSet;
-    dataSet.load_from_file("data/test_dataset.txt");
-//    dataSet.load_from_file("/home/jiashuai/mascot_old/dataset/a9a");
-//    dataSet.load_from_file("/home/jiashuai/mascot_old/dataset/w8a");
+    dataSet.load_from_file(DATASET_DIR "test_dataset.txt");
     real gamma = 0.5;
     KernelMatrix kernelMatrix(dataSet.instances(), dataSet.n_features(), gamma);
     int n_rows = 40;

@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD 11)
 #-------------------
 # set common include folder for module
 #-------------------
-set(COMMON_INCLUDES ${PROJECT_SOURCE_DIR}/include)
+set(COMMON_INCLUDES ${PROJECT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR})
 #-------------------
 # Module source
 #-------------------
@@ -21,6 +21,9 @@ set(COMMON_INCLUDES ${PROJECT_SOURCE_DIR}/include)
 
 set(LINK_LIBRARY ${CUDA_cusparse_LIBRARY})
 
+set(DATASET_DIR ${PROJECT_SOURCE_DIR}/dataset/)
+configure_file(include/test/dataset.h.in dataset.h)
+
 include_directories(${COMMON_INCLUDES})
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/thundersvm)
 
@@ -28,8 +31,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/src/thundersvm)
 set(PROJECT_TEST_NAME ${PROJECT_NAME}_test)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/test)
 add_custom_target(runtest
-        COMMAND ${PROJECT_TEST_NAME}
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src/test)
+        COMMAND ${PROJECT_TEST_NAME})
 
 #enable_testing()
 #add_test(test src/test/thundersvm_test)

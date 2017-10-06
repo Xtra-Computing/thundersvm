@@ -1,0 +1,1 @@
+#cmakedefine DATASET_DIR "@DATASET_DIR@"
