@@ -3,10 +3,11 @@
 //
 #include "gtest/gtest.h"
 #include "thundersvm/dataset.h"
+#include <dataset.h>
 TEST(SvmProblemTest, load_dataset){
     DataSet dataSet;
-    dataSet.load_from_file("data/test_dataset.txt");
-    dataSet.load_from_file("data/test_dataset.txt");
+    dataSet.load_from_file(DATASET_DIR "test_dataset.txt");
+    dataSet.load_from_file(DATASET_DIR "test_dataset.txt");
     EXPECT_EQ(dataSet.total_count(), 150);
     EXPECT_EQ(dataSet.n_features(), 4);
     EXPECT_EQ(dataSet.count()[0],49);

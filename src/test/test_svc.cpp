@@ -26,25 +26,25 @@ protected:
             if (predict_y[i] == test_dataset.y()[i])
                 n_correct++;
         }
-        float accuracy = n_correct / (float) train_dataset.instances().size();
+        float accuracy = n_correct / (float) test_dataset.instances().size();
         LOG(INFO) << "Accuracy = " << accuracy << "(" << n_correct << "/"
-                  << train_dataset.instances().size() << ")\n";
+                  << test_dataset.instances().size() << ")\n";
         return accuracy;
     }
 };
 
-TEST_F(SVCTest, test_set) {
-    load_dataset_and_train(DATASET_DIR "test_dataset.txt", DATASET_DIR "test_dataset.txt", 100, 0.5);
-}
+//TEST_F(SVCTest, test_set) {
+//    load_dataset_and_train(DATASET_DIR "test_dataset.txt", DATASET_DIR "test_dataset.txt", 100, 0.5);
+//}
 
 TEST_F(SVCTest, a9a) {
     load_dataset_and_train(DATASET_DIR "a9a", DATASET_DIR "a9a.t", 100, 0.5);
 }
 
-TEST_F(SVCTest, mnist) {
+//TEST_F(SVCTest, mnist) {
 //    load_dataset_and_train(DATASET_DIR "mnist.scale", DATASET_DIR "mnist.scale.t", 10, 0.125);
-}
+//}
 
-TEST_F(SVCTest, realsim) {
-    load_dataset_and_train(DATASET_DIR "real-sim", DATASET_DIR "real-sim", 4, 0.5);
-}
+//TEST_F(SVCTest, realsim) {
+//    load_dataset_and_train(DATASET_DIR "real-sim", DATASET_DIR "real-sim", 4, 0.5);
+//}
