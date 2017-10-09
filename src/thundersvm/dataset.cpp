@@ -36,7 +36,6 @@ void DataSet::load_from_file(string file_name) {
         total_count_++;
     }
     file.close();
-    group_classes();
 }
 
 const int *DataSet::count() const {//return the number of instances of each class
