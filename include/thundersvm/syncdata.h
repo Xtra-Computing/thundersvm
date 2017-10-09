@@ -11,45 +11,54 @@
 template<typename T>
 class SyncData : public el::Loggable {
 public:
-    SyncData() : mem(nullptr), count_(0) {};
-
     explicit SyncData(size_t count);
-
+    SyncData() : mem(nullptr), count_(0) {};
     ~SyncData();
 
     const T *host_data() const;
-
-    void set_host_data(T *host_ptr);
-
-    T *host_data();
-
     const T *device_data() const;
 
-    void set_device_data(T *device_ptr);
-
+    T *host_data();
     T *device_data();
 
-    void to_host() const;
+    void set_host_data(T *host_ptr){
+        mem->set_host_data(host_ptr);
+    }
+    void set_device_data(T *device_ptr){
+    	mem->set_device_data(device_ptr);
+    }
 
-    void to_device() const;
+    void to_host() const{
+    	mem->to_host();
+    }
+    void to_device() const{
+    	mem->to_device();
+    }
 
-    T &operator[](int index);
-
-    const T &operator[](int index) const;
+    const T &operator[](int index) const{
+    	return host_data()[index];
+    }
+    T &operator[](int index){
+    	return host_data()[index];
+    }
 
     void copy_from(const T *source, size_t count);
-
     void copy_from(const SyncData<T> &source);
 
     void mem_set(const T &value);
 
-    size_t size() const;
-
     void resize(size_t count);
 
-    size_t count() const;
+    size_t size() const{//number of bytes
+    	return mem->size();
+    }
+    size_t count() const{//number of values
+    	return count_;
+    }
 
-    SyncMem::HEAD head() const;
+    SyncMem::HEAD head() const{
+    	return mem->head();
+    }
 
     void log(el::base::type::ostream_t &ostream) const override;
 

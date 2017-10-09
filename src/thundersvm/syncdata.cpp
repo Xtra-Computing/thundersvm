@@ -39,31 +39,6 @@ T *SyncData<T>::device_data() {
 }
 
 template<typename T>
-void SyncData<T>::to_host() const {
-    mem->to_host();
-}
-
-template<typename T>
-void SyncData<T>::to_device() const {
-    mem->to_device();
-}
-
-template<typename T>
-size_t SyncData<T>::size() const {
-    return mem->size();
-}
-
-template<typename T>
-SyncMem::HEAD SyncData<T>::head() const {
-    return mem->head();
-}
-
-template<typename T>
-size_t SyncData<T>::count() const {
-    return count_;
-}
-
-template<typename T>
 void SyncData<T>::resize(size_t count) {
     this->mem->resize(sizeof(T) * count);
     this->count_ = count;
@@ -95,27 +70,6 @@ template<typename T>
 void SyncData<T>::mem_set(const T &value) {
     CUDA_CHECK(cudaMemset(device_data(), value, size()));
 }
-
-template<typename T>
-const T &SyncData<T>::operator[](int index) const {
-    return host_data()[index];
-}
-
-template<typename T>
-T &SyncData<T>::operator[](int index) {
-    return host_data()[index];
-}
-
-template<typename T>
-void SyncData<T>::set_host_data(T *host_ptr) {
-    mem->set_host_data(host_ptr);
-}
-
-template<typename T>
-void SyncData<T>::set_device_data(T *device_ptr) {
-    mem->set_device_data(device_ptr);
-}
-
 
 template
 class SyncData<int>;
