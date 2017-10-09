@@ -20,7 +20,7 @@ protected:
         SvmModel *model = new SVC(train_dataset, svmParam);
 
         model->train();
-        predict_y = model->predict(test_dataset.instances(), 1000);
+        predict_y = model->predict(test_dataset.instances(), 10000);
         int n_correct = 0;
         for (int i = 0; i < predict_y.size(); ++i) {
             if (predict_y[i] == test_dataset.y()[i])

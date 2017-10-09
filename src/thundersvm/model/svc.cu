@@ -7,12 +7,12 @@
 #include "thrust/sort.h"
 
 SVC::SVC(DataSet &dataSet, const SvmParam &svmParam) : SvmModel(dataSet, svmParam) {
+    dataSet.group_classes();
     n_classes = dataSet.n_classes();
     n_binary_models = n_classes * (n_classes - 1) / 2;
     rho.resize(n_binary_models);
     sv_index.resize(n_binary_models);
     coef.resize(n_binary_models);
-    dataSet.group_classes();
 }
 
 void SVC::train() {
@@ -87,7 +87,7 @@ vector<real> SVC::predict(const DataSet::node2d &instances, int batch_size) {
             int k = 0;
             for (int i = 0; i < n_classes; ++i) {
                 for (int j = i + 1; j < n_classes; ++j) {
-                    if (dec_values[l * n_binary_models + k] > 0)
+                    if (dec_values[l * n_binary_models + k] - 0 > 1e-5)
                         votes[i]++;
                     else
                         votes[j]++;

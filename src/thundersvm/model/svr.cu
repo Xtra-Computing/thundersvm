@@ -5,7 +5,6 @@
 #include "thundersvm/model/svr.h"
 
 SVR::SVR(DataSet &dataSet, const SvmParam &svmParam) : SvmModel(dataSet, svmParam) {
-    n_instances = dataSet.instances().size();
 }
 
 void SVR::train() {

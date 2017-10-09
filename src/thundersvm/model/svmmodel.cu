@@ -8,7 +8,8 @@
 #include <thundersvm/model/svmmodel.h>
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
 
-SvmModel::SvmModel(DataSet &dataSet, const SvmParam &svmParam) : dataSet(dataSet), svmParam(svmParam) {
+SvmModel::SvmModel(DataSet &dataSet, const SvmParam &svmParam) : dataSet(dataSet), svmParam(svmParam),
+                                                                 n_instances(dataSet.total_count()) {
 
 }
 
