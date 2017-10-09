@@ -10,7 +10,7 @@
 
 __global__ void
 localSMO(const int *label, real *FValues, real *alpha, real *alpha_diff, const int *working_set, int ws_size, float C,
-         const float *k_mat_rows, int row_len, real eps, real *diff_and_bias);
+         const real *k_mat_rows, int row_len, real eps, real *diff_and_bias);
 
 __global__ void update_f(real *f, int ws_size, const real *alpha_diff, const real *k_mat_rows, int n_instances);
 
