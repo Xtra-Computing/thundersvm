@@ -19,9 +19,9 @@ public:
     void get_rows(const DataSet::node2d &instances, SyncData<real> &kernel_rows) const;
     void dns_csr_mul(const SyncData<real> &dense_mat, int n_rows, SyncData<real> &result) const;
     const SyncData<real> *diag() const;
-    size_t m() const {return m_;};
-    size_t n() const {return n_;};
-    size_t nnz() const {return nnz_;};
+    size_t m() const {return m_;};//number of instances
+    size_t n() const {return n_;};//number of features
+    size_t nnz() const {return nnz_;};//number of nonzero
 private:
     SyncData<real> *val_;
     SyncData<int> *col_ind_;

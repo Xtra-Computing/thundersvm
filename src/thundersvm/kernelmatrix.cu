@@ -8,11 +8,14 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, size_t n_features, 
     m_ = instances.size();
     n_ = n_features;
     this->gamma = gamma;
+
+    //three arrays for csr representation
     vector<real> csr_val;
-    vector<int> csr_col_ind;
-    vector<int> csr_row_ptr(1, 0);
+    vector<int> csr_col_ind;//index of each value of all the instances
+    vector<int> csr_row_ptr(1, 0);//the start positions of the instances
+
     vector<real> csr_self_dot;
-    for (int i = 0; i < m_; ++i) {
+    for (int i = 0; i < m_; ++i) {//convert libsvm format to csr format?
         real self_dot = 0;
         for (int j = 0; j < instances[i].size(); ++j) {
             csr_val.push_back(instances[i][j].value);
@@ -22,15 +25,20 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, size_t n_features, 
         csr_row_ptr.push_back(csr_row_ptr.back() + instances[i].size());
         csr_self_dot.push_back(self_dot);
     }
+
+    //three arrays (on GPU/CPU) for csr representation
     val_ = new SyncData<real>(csr_val.size());
     col_ind_ = new SyncData<int>(csr_col_ind.size());
     row_ptr_ = new SyncData<int>(csr_row_ptr.size());
-    self_dot_ = new SyncData<real>(m_);
+    //copy data to the three arrays
     val_->copy_from(csr_val.data(), val_->count());
     col_ind_->copy_from(csr_col_ind.data(), col_ind_->count());
     row_ptr_->copy_from(csr_row_ptr.data(), row_ptr_->count());
+
+    self_dot_ = new SyncData<real>(m_);
     self_dot_->copy_from(csr_self_dot.data(), self_dot_->count());
-    nnz_ = csr_val.size();
+
+    nnz_ = csr_val.size();//number of nonzero
     diag_ = new SyncData<real>(m_);
     for (int i = 0; i < m_; ++i) {
         diag_->host_data()[i] = 1;//rbf kernel
@@ -42,7 +50,7 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, size_t n_features, 
     cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
 }
 
-void KernelMatrix::get_rows(const SyncData<int> &idx, SyncData<real> &kernel_rows) const {
+void KernelMatrix::get_rows(const SyncData<int> &idx, SyncData<real> &kernel_rows) const {//compute multiple rows of kernel matrix according to idx
     CHECK_GE(kernel_rows.count(), idx.count() * m_) << "kernel_rows memory is too small";
 
     SyncData<real> data_rows(idx.count() * n_);
@@ -55,10 +63,12 @@ void KernelMatrix::get_rows(const SyncData<int> &idx, SyncData<real> &kernel_row
                        idx.count(), m_, gamma);
 }
 
-void KernelMatrix::get_rows(const DataSet::node2d &instances, SyncData<real> &kernel_rows) const {
+void KernelMatrix::get_rows(const DataSet::node2d &instances, SyncData<real> &kernel_rows) const {//compute the whole (sub-) kernel matrix of the given instances.
     CHECK_GE(kernel_rows.count(), instances.size() * m_) << "kernel_rows memory is too small";
     SyncData<real> self_dot(instances.size());
     SyncData<real> dense_ins(instances.size() * n_);
+
+    //convert libsvm to dense representation; compute self dot.
     for (int i = 0; i < instances.size(); ++i) {
         real sum = 0;
         for (int j = 0; j < instances[i].size(); ++j) {
