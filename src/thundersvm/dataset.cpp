@@ -20,12 +20,13 @@ void DataSet::load_from_file(string file_name) {
     string line;
 
     while (getline(file, line)) {
-        int y, i;
+        real y;
+        int i;
         real v;
         stringstream ss(line);
         ss >> y;
         this->y_.push_back(y);
-        this->instances_.emplace_back();
+        this->instances_.emplace_back();//reserve space for an instance
         string tuple;
         while (ss >> tuple) {
             CHECK_EQ(sscanf(tuple.c_str(), "%d:%f", &i, &v), 2) << "read error, using [index]:[value] format";
@@ -38,7 +39,7 @@ void DataSet::load_from_file(string file_name) {
     group_classes();
 }
 
-const int *DataSet::count() const {
+const int *DataSet::count() const {//return the number of instances of each class
     return count_.data();
 }
 
@@ -59,7 +60,7 @@ void DataSet::group_classes() {
     count_.clear();
     label_.clear();
     perm_.clear();
-    vector<int> dataLabel(y_.size());
+    vector<int> dataLabel(y_.size());//temporary labels of all the instances
 
     //get the class labels; count the number of instances in each class.
     for (int i = 0; i < y_.size(); ++i) {
@@ -73,6 +74,7 @@ void DataSet::group_classes() {
         dataLabel[i] = j;
         //if the label is unseen, add it to label vector.
         if (j == label_.size()) {
+        	//real to int conversion is safe, because group_classes only used in classification
             label_.push_back(int(y_[i]));
             count_.push_back(1);
         }
@@ -84,14 +86,14 @@ void DataSet::group_classes() {
         start_.push_back(start_[i - 1] + count_[i - 1]);
     }
     vector<int> start_copy(start_);
-    perm_ = vector<int>(y_.size());
+    perm_ = vector<int>(y_.size());//index of each instance in the original array
     for (int i = 0; i < y_.size(); ++i) {
         perm_[start_copy[dataLabel[i]]] = i;
         start_copy[dataLabel[i]]++;
     }
 }
 
-size_t DataSet::total_count() const {
+size_t DataSet::total_count() const {//return the total number of instances
     return total_count_;
 }
 
@@ -99,11 +101,11 @@ size_t DataSet::n_features() const {
     return n_features_;
 }
 
-const DataSet::node2d& DataSet::instances() const {
+const DataSet::node2d& DataSet::instances() const {//return all the instances
     return instances_;
 }
 
-const DataSet::node2d DataSet::instances(int y_i) const {
+const DataSet::node2d DataSet::instances(int y_i) const {//return instances of a given class
     int si = start_[y_i];
     int ci = count_[y_i];
     node2d one_class_ins;
@@ -113,7 +115,7 @@ const DataSet::node2d DataSet::instances(int y_i) const {
     return one_class_ins;
 }
 
-const DataSet::node2d DataSet::instances(int y_i, int y_j) const {
+const DataSet::node2d DataSet::instances(int y_i, int y_j) const {//return instances of two classes
     node2d two_class_ins;
     node2d i_ins = instances(y_i);
     node2d j_ins = instances(y_j);
@@ -122,11 +124,11 @@ const DataSet::node2d DataSet::instances(int y_i, int y_j) const {
     return two_class_ins;
 }
 
-const vector<int> DataSet::original_index() const {
+const vector<int> DataSet::original_index() const {//index of each instance in the original array
     return perm_;
 }
 
-const vector<int> DataSet::original_index(int y_i) const {
+const vector<int> DataSet::original_index(int y_i) const {//index of each instance in the original array for one class
     int si = start_[y_i];
     int ci = count_[y_i];
     vector<int> one_class_idx;
@@ -136,7 +138,7 @@ const vector<int> DataSet::original_index(int y_i) const {
     return one_class_idx;
 }
 
-const vector<int> DataSet::original_index(int y_i, int y_j) const {
+const vector<int> DataSet::original_index(int y_i, int y_j) const {//index of each instance in the original array for two class
     vector<int> two_class_idx;
     vector<int> i_idx = original_index(y_i);
     vector<int> j_idx = original_index(y_j);

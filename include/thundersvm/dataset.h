@@ -39,8 +39,8 @@ private:
     node2d instances_;
     size_t total_count_;
     size_t n_features_;
-    vector<int> start_;
-    vector<int> count_;
+    vector<int> start_; //logical start position of each class
+    vector<int> count_; //the number of instances of each class
     vector<int> label_;
     vector<int> perm_;
 };
