@@ -23,4 +23,5 @@ TEST(SVRTest, train) {
     }
     mse /= predict_y.size();
     LOG(INFO) << "MSE = " << mse;
+    EXPECT_NEAR(mse, 4.50517, 1e-5);
 }

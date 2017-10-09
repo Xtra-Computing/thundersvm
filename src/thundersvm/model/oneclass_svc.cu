@@ -15,9 +15,6 @@ void OneClassSVC::train() {
     KernelMatrix kernelMatrix(dataSet.instances(), dataSet.n_features(), svmParam.gamma);
 }
 
-vector<real> OneClassSVC::predict(const DataSet::node2d &instances, int batch_size) {
-}
-
 void OneClassSVC::save_to_file(string path) {
 
 }

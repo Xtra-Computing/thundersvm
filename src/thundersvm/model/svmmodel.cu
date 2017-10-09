@@ -6,6 +6,7 @@
 #include <thrust/sort.h>
 #include <thrust/system/cuda/detail/par.h>
 #include <thundersvm/model/svmmodel.h>
+#include <thundersvm/kernel/kernelmatrix_kernel.h>
 
 SvmModel::SvmModel(DataSet &dataSet, const SvmParam &svmParam) : dataSet(dataSet), svmParam(svmParam) {
 
@@ -17,7 +18,7 @@ int SvmModel::max2power(int n) const {
 
 void
 SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho,
-                     SyncData<real> &init_f, real eps, real C, int ws_size) {
+                     SyncData<real> &f, real eps, real C, int ws_size) const {
     uint n_instances = k_mat.m();
     uint q = ws_size / 2;
 
@@ -29,7 +30,6 @@ SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData
     working_set_first_half.set_host_data(working_set.host_data());
     working_set_last_half.set_host_data(&working_set.host_data()[q]);
 
-    SyncData<real> f(n_instances);
     SyncData<int> f_idx(n_instances);
     SyncData<int> f_idx2sort(n_instances);
     SyncData<real> f_val2sort(n_instances);
@@ -41,12 +41,9 @@ SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData
     SyncData<real> k_mat_rows_last_half(q * k_mat.m());
     k_mat_rows_first_half.set_device_data(k_mat_rows.device_data());
     k_mat_rows_last_half.set_device_data(&k_mat_rows.device_data()[q * k_mat.m()]);
-    CHECK_EQ(init_f.count(), n_instances);
-    f.copy_from(init_f);
     for (int i = 0; i < n_instances; ++i) {
         f_idx[i] = i;
     }
-    alpha.mem_set(0);
     LOG(INFO) << "training start";
     for (int iter = 1;; ++iter) {
         //select working set
@@ -88,7 +85,7 @@ SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData
 
 void
 SvmModel::select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
-                             const SyncData<real> &alpha, SyncData<int> &working_set) {
+                             const SyncData<real> &alpha, SyncData<int> &working_set) const {
     int n_instances = ws_indicator.size();
     int p_left = 0;
     int p_right = n_instances - 1;
@@ -123,3 +120,46 @@ SvmModel::select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_i
 
     }
 }
+
+vector<real> SvmModel::predict(const DataSet::node2d &instances, int batch_size) {
+    //TODO use thrust
+    //prepare device data
+    int n_sv = coef.size();
+    SyncData<real> coef(n_sv);
+    SyncData<int> sv_index(n_sv);
+    SyncData<int> sv_start(1);
+    SyncData<int> sv_count(1);
+    SyncData<real> rho(1);
+
+    sv_start[0] = 0;
+    sv_count[0] = n_sv;
+    rho[0] = this->rho;
+    coef.copy_from(this->coef.data(), n_sv);
+    sv_index.copy_from(this->sv_index.data(), n_sv);
+
+    //compute kernel values
+    KernelMatrix k_mat(sv, dataSet.n_features(), svmParam.gamma);
+
+    auto batch_start = instances.begin();
+    auto batch_end = batch_start;
+    vector<real> predict_y;
+    while (batch_end != instances.end()) {
+        while (batch_end != instances.end() && batch_end - batch_start < batch_size) batch_end++;
+        DataSet::node2d batch_ins(batch_start, batch_end);
+        SyncData<real> kernel_values(batch_ins.size() * sv.size());
+        k_mat.get_rows(batch_ins, kernel_values);
+        SyncData<real> dec_values(batch_ins.size());
+
+        //sum kernel values and get decision values
+        SAFE_KERNEL_LAUNCH(kernel_sum_kernel_values, kernel_values.device_data(), batch_ins.size(), sv.size(),
+                           1, sv_index.device_data(), coef.device_data(), sv_start.device_data(),
+                           sv_count.device_data(), rho.device_data(), dec_values.device_data());
+
+        for (int i = 0; i < batch_ins.size(); ++i) {
+            predict_y.push_back(dec_values[i]);
+        }
+        batch_start += batch_size;
+    }
+    return predict_y;
+}
+
