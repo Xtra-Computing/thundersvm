@@ -26,10 +26,12 @@ void SVR::train() {
 
     SyncData<real> alpha(n_instances * 2);
     alpha.mem_set(0);
-    real rho;
     int ws_size = min(max2power(n_instances) * 2, 1024);
     smo_solver(kernelMatrix, y, alpha, rho, f, 0.001, svmParam.C, ws_size);
-    record_model(alpha, y, rho);
+    for (int i = 0; i < n_instances; ++i) {
+        alpha[i] -= alpha[i + n_instances];
+    }
+    record_model(alpha, y);
 }
 
 
@@ -41,23 +43,4 @@ void SVR::load_from_file(string path) {
 
 }
 
-void SVR::record_model(const SyncData<real> &alpha, const SyncData<int> &y, real rho) {
-    int n_sv = 0;
-    for (int i = 0; i < n_instances * 2; ++i) {
-        if (alpha[i] != 0) {
-            coef.push_back(alpha[i] * y[i]);
-            int original_index = i > n_instances ? (i - n_instances) : i;
-            if (sv_map.find(original_index) == sv_map.end()) {
-                int sv_index = sv_map.size();
-                sv_map[original_index] = sv_index;
-                sv.push_back(dataSet.instances()[original_index]);
-            }
-            sv_index.push_back(sv_map[original_index]);
-            n_sv++;
-        }
-    }
-    this->rho = rho;
-    LOG(INFO) << "RHO = " << rho;
-    LOG(INFO) << "#SV = " << n_sv;
-}
 

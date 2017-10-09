@@ -18,13 +18,11 @@ public:
 
     void train() override;
 
-
     void save_to_file(string path) override;
 
     void load_from_file(string path) override;
 
 private:
-    void record_model(const SyncData<real> &alpha, const SyncData<int> &y, real rho);
 };
 
 #endif //THUNDERSVM_SVR_H

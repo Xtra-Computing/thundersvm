@@ -11,6 +11,7 @@
 #include <map>
 
 using std::map;
+
 class SvmModel {
 public:
     SvmModel(DataSet &dataSet, const SvmParam &svmParam);
@@ -26,18 +27,19 @@ public:
 protected:
     int max2power(int n) const;
 
-    void smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho,
-                    SyncData<real> &f, real eps, real C, int ws_size) const;
+    virtual void smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho,
+                            SyncData<real> &f, real eps, real C, int ws_size) const;
 
-    void select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
-                            const SyncData<real> &alpha, SyncData<int> &working_set) const;
+    virtual void select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
+                                    const SyncData<real> &alpha, SyncData<int> &working_set) const;
+
+    virtual void record_model(const SyncData<real> &alpha, const SyncData<int> &y);
 
     DataSet &dataSet;
     SvmParam svmParam;
     vector<real> coef;
     DataSet::node2d sv;
     vector<int> sv_index;
-    map<int, int> sv_map;
     real rho;
     int n_instances;
 };

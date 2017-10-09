@@ -164,3 +164,17 @@ vector<real> SvmModel::predict(const DataSet::node2d &instances, int batch_size)
     return predict_y;
 }
 
+void SvmModel::record_model(const SyncData<real> &alpha, const SyncData<int> &y) {
+    int n_sv = 0;
+    for (int i = 0; i < n_instances; ++i) {
+        if (alpha[i] != 0) {
+            coef.push_back(alpha[i]);
+            sv_index.push_back(sv.size());
+            sv.push_back(dataSet.instances()[i]);
+            n_sv++;
+        }
+    }
+    LOG(INFO) << "RHO = " << rho;
+    LOG(INFO) << "#SV = " << n_sv;
+}
+
