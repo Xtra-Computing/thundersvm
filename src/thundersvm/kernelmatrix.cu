@@ -55,7 +55,7 @@ void KernelMatrix::get_rows(const SyncData<int> &idx, SyncData<real> &kernel_row
 
     SyncData<real> data_rows(idx.count() * n_);
     data_rows.mem_set(0);
-    SAFE_KERNEL_LAUNCH(kernel_get_data_rows, val_->device_data(), col_ind_->device_data(), row_ptr_->device_data(),
+    SAFE_KERNEL_LAUNCH(kernel_get_working_set_ins, val_->device_data(), col_ind_->device_data(), row_ptr_->device_data(),
                        idx.device_data(), data_rows.device_data(), idx.count());
     dns_csr_mul(data_rows, idx.count(), kernel_rows);
     //cusparseScsrmm return row-major matrix, so no transpose is needed
