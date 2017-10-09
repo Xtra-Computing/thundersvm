@@ -17,7 +17,6 @@ public:
 
     void load_from_file(string path) override;
 
-    int n_instances;
 };
 
 #endif //THUNDERSVM_ONECLASS_SVC_H
