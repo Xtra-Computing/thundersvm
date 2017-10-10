@@ -11,6 +11,7 @@ TEST(OneClassSVCTest, train) {
     SvmParam param;
     param.gamma = 0.5;
     param.nu = 0.5;
+    param.epsilon = 0.001;
     SvmModel *model = new OneClassSVC(dataSet, param);
     model->train();
 

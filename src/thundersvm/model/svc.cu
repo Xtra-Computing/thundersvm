@@ -22,20 +22,20 @@ void SVC::train() {
             DataSet::node2d ins = dataSet.instances(i, j);//get instances of class i and j
             SyncData<int> y(ins.size());
             SyncData<real> alpha(ins.size());
-            SyncData<real> f(ins.size());
+            SyncData<real> f_val(ins.size());
             real rho;
             alpha.mem_set(0);
             for (int l = 0; l < dataSet.count()[i]; ++l) {
                 y[l] = +1;
-                f[l] = -1;
+                f_val[l] = -1;
             }
             for (int l = 0; l < dataSet.count()[j]; ++l) {
                 y[dataSet.count()[i] + l] = -1;
-                f[dataSet.count()[i] + l] = +1;
+                f_val[dataSet.count()[i] + l] = +1;
             }
             KernelMatrix k_mat(ins, dataSet.n_features(), svmParam.gamma);
             int ws_size = min(min(max2power(dataSet.count()[0]), max2power(dataSet.count()[1])) * 2, 1024);
-            smo_solver(k_mat, y, alpha, rho, f, 0.001, svmParam.C, ws_size);//TODO: use eps in svm_param
+            smo_solver(k_mat, y, alpha, rho, f_val, svmParam.epsilon, svmParam.C, ws_size);
             record_binary_model(k, alpha, y, rho, dataSet.original_index(i, j));
             k++;
         }

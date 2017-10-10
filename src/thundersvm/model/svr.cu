@@ -14,20 +14,20 @@ void SVR::train() {
 
     KernelMatrix kernelMatrix(instances_2, dataSet.n_features(), svmParam.gamma);
 
-    SyncData<real> f(n_instances * 2);
+    SyncData<real> f_val(n_instances * 2);
     SyncData<int> y(n_instances * 2);
 
     for (int i = 0; i < n_instances; ++i) {
-        f[i] = svmParam.p - dataSet.y()[i];
+        f_val[i] = svmParam.p - dataSet.y()[i];
         y[i] = +1;
-        f[i + n_instances] = -svmParam.p - dataSet.y()[i];
+        f_val[i + n_instances] = -svmParam.p - dataSet.y()[i];
         y[i + n_instances] = -1;
     }
 
     SyncData<real> alpha(n_instances * 2);
     alpha.mem_set(0);
     int ws_size = min(max2power(n_instances) * 2, 1024);
-    smo_solver(kernelMatrix, y, alpha, rho, f, 0.001, svmParam.C, ws_size);//TODO: use eps in svm_param
+    smo_solver(kernelMatrix, y, alpha, rho, f_val, svmParam.epsilon, svmParam.C, ws_size);
     for (int i = 0; i < n_instances; ++i) {
         alpha[i] -= alpha[i + n_instances];
     }

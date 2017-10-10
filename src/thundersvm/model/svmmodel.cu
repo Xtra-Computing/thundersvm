@@ -19,7 +19,7 @@ int SvmModel::max2power(int n) const {
 
 void
 SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho,
-                     SyncData<real> &f, real eps, real C, int ws_size) const {//TODO: f->f_val
+                     SyncData<real> &f_val, real eps, real C, int ws_size) const {
     uint n_instances = k_mat.m();
     uint q = ws_size / 2;
 
@@ -49,7 +49,7 @@ SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData
     for (int iter = 1;; ++iter) {
         //select working set
         f_idx2sort.copy_from(f_idx);
-        f_val2sort.copy_from(f);
+        f_val2sort.copy_from(f_val);
         thrust::sort_by_key(thrust::cuda::par, f_val2sort.device_data(), f_val2sort.device_data() + n_instances,
                             f_idx2sort.device_data(), thrust::less<real>());
 //        for (int i = 0; i < n_instances; ++i) {
@@ -73,7 +73,7 @@ SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData
         //local smo
         size_t smem_size = ws_size * sizeof(real) * 3 + 2 * sizeof(float);
         local_smo << < 1, ws_size, smem_size >> >
-                                   (y.device_data(), f.device_data(), alpha.device_data(), alpha_diff.device_data(),
+                                   (y.device_data(), f_val.device_data(), alpha.device_data(), alpha_diff.device_data(),
                                           working_set.device_data(), ws_size, C, k_mat_rows.device_data(), n_instances,
                                           eps, diff_and_bias.device_data());
         LOG_EVERY_N(10, INFO) << "diff=" << diff_and_bias[0];
@@ -83,7 +83,7 @@ SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData
         }
 
         //update f
-        SAFE_KERNEL_LAUNCH(update_f, f.device_data(), ws_size, alpha_diff.device_data(), k_mat_rows.device_data(),
+        SAFE_KERNEL_LAUNCH(update_f, f_val.device_data(), ws_size, alpha_diff.device_data(), k_mat_rows.device_data(),
                            n_instances);
     }
 }

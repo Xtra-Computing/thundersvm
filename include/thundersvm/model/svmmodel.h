@@ -28,7 +28,7 @@ protected:
     int max2power(int n) const;
 
     virtual void smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho,
-                            SyncData<real> &f, real eps, real C, int ws_size) const;
+                            SyncData<real> &f_val, real eps, real C, int ws_size) const;
 
     virtual void select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
                                     const SyncData<real> &alpha, real C, SyncData<int> &working_set) const;

@@ -17,6 +17,7 @@ protected:
         test_dataset.load_from_file(test_filename);
         svmParam.gamma = gamma;
         svmParam.C = C;
+        svmParam.epsilon = 0.001;
         SvmModel *model = new SVC(train_dataset, svmParam);
 
         model->train();
@@ -33,9 +34,11 @@ protected:
     }
 };
 
-//TEST_F(SVCTest, test_set) {
-//    load_dataset_and_train(DATASET_DIR "test_dataset.txt", DATASET_DIR "test_dataset.txt", 100, 0.5);
-//}
+TEST_F(SVCTest, test_set) {
+    EXPECT_NEAR(load_dataset_and_train(DATASET_DIR
+                        "test_dataset.txt", DATASET_DIR
+                        "test_dataset.txt", 100, 0.5), 0.98, 1e-5);
+}
 
 TEST_F(SVCTest, a9a) {
     EXPECT_NEAR(load_dataset_and_train(DATASET_DIR

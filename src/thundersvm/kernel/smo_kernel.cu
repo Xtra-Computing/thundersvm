@@ -42,18 +42,15 @@ local_smo(const int *label, real *f_values, real *alpha, real *alpha_diff, const
     float local_eps;
     int numOfIter = 0;
     while (1) {
-//        printf("a[%d] = %f\n", tid, a);
         //select fUp and fLow
         if ((y > 0 && a < C) || (y < 0 && a > 0))
             f_values_i[tid] = f;
         else
             f_values_i[tid] = INFINITY;
-//        printf("f_up[%d] = %f\n", tid, f_values_i[tid]);
         if ((y > 0 && a > 0) || (y < 0 && a < C))
             f_values_j[tid] = -f;
         else
             f_values_j[tid] = INFINITY;
-//        printf("f_low[%d] = %f\n", tid, f_values_j[tid]);
         int i = get_block_min(f_values_i, idx2reduce);
         float up_value = f_values_i[i];
         float kIwsI = k_mat_rows[row_len * i + wsi];//K[i, wsi]
@@ -62,8 +59,6 @@ local_smo(const int *label, real *f_values, real *alpha, real *alpha_diff, const
         float low_value = -f_values_j[j1];
 
         float local_diff = low_value - up_value;
-//        if (tid == 0)
-//            printf("up = %f, low = %f, diff = %f\n", low_value, up_value, local_diff);
         if (numOfIter == 0) {
             local_eps = max(eps, 0.1f * local_diff);
         }

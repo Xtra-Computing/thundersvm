@@ -8,7 +8,7 @@ OneClassSVC::OneClassSVC(DataSet &dataSet, const SvmParam &svmParam) : SvmModel(
 
 void OneClassSVC::train() {
     SyncData<real> alpha(n_instances);
-    SyncData<real> f(n_instances);
+    SyncData<real> f_val(n_instances);
 
     KernelMatrix kernelMatrix(dataSet.instances(), dataSet.n_features(), svmParam.gamma);
 
@@ -25,12 +25,12 @@ void OneClassSVC::train() {
     //TODO batch, thrust
     SyncData<int> idx(1);
     SyncData<real> kernel_row(n_instances);
-    f.mem_set(0);
+    f_val.mem_set(0);
     for (int i = 0; i <= n; ++i) {
         idx[0] = i;
         kernelMatrix.get_rows(idx, kernel_row);
         for (int j = 0; j < n_instances; ++j) {
-            f[j] += alpha[i] * kernel_row[j];
+            f_val[j] += alpha[i] * kernel_row[j];
         }
     }
 
@@ -38,7 +38,7 @@ void OneClassSVC::train() {
     for (int i = 0; i < n_instances; ++i) {
         y[i] = 1;
     }
-    smo_solver(kernelMatrix, y, alpha, rho, f, 0.001, 1, ws_size);
+    smo_solver(kernelMatrix, y, alpha, rho, f_val, svmParam.epsilon, 1, ws_size);
     record_model(alpha, y);
 }
 
