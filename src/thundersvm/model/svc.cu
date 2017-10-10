@@ -19,7 +19,7 @@ void SVC::train() {
     int k = 0;
     for (int i = 0; i < n_classes; ++i) {
         for (int j = i + 1; j < n_classes; ++j) {
-            DataSet::node2d ins = dataSet.instances(i, j);
+            DataSet::node2d ins = dataSet.instances(i, j);//get instances of class i and j
             SyncData<int> y(ins.size());
             SyncData<real> alpha(ins.size());
             SyncData<real> f(ins.size());
@@ -35,7 +35,7 @@ void SVC::train() {
             }
             KernelMatrix k_mat(ins, dataSet.n_features(), svmParam.gamma);
             int ws_size = min(min(max2power(dataSet.count()[0]), max2power(dataSet.count()[1])) * 2, 1024);
-            smo_solver(k_mat, y, alpha, rho, f, 0.001, svmParam.C, ws_size);
+            smo_solver(k_mat, y, alpha, rho, f, 0.001, svmParam.C, ws_size);//TODO: use eps in svm_param
             record_binary_model(k, alpha, y, rho, dataSet.original_index(i, j));
             k++;
         }
@@ -64,14 +64,15 @@ vector<real> SVC::predict(const DataSet::node2d &instances, int batch_size) {
     rho.copy_from(this->rho.data(), rho.count());
 
     //compute kernel values
-    KernelMatrix k_mat(sv, dataSet.n_features(), svmParam.gamma);
+    KernelMatrix k_mat(sv, dataSet.n_features(), svmParam.gamma);//TODO: initialize dataSet in svm_load.
 
     auto batch_start = instances.begin();
     auto batch_end = batch_start;
     vector<real> predict_y;
     while (batch_end != instances.end()) {
         while (batch_end != instances.end() && batch_end - batch_start < batch_size) batch_end++;
-        DataSet::node2d batch_ins(batch_start, batch_end);
+
+        DataSet::node2d batch_ins(batch_start, batch_end);//get a batch of instances
         SyncData<real> kernel_values(batch_ins.size() * sv.size());
         k_mat.get_rows(batch_ins, kernel_values);
         SyncData<real> dec_values(batch_ins.size() * n_binary_models);
@@ -126,7 +127,7 @@ void SVC::record_binary_model(int k, const SyncData<real> &alpha, const SyncData
                 sv_index_map[original_index[i]] = sv_index;
                 sv.push_back(dataSet.instances()[original_index[i]]);
             }
-            sv_index[k].push_back(sv_index_map[original_index[i]]);
+            sv_index[k].push_back(sv_index_map[original_index[i]]);//save unique sv id.
             n_sv++;
         }
     }

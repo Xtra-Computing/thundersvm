@@ -47,7 +47,7 @@ __global__ void kernel_sum_kernel_values(const real *k_mat, int n_instances, int
 		const real *kernel_row = k_mat + ins_id * n_sv_unique;//kernel values of this instance
 		int si = sv_start[model_id];
 		int ci = sv_count[model_id];
-		for (int i = 0; i < ci; ++i) {//can be improved.
+		for (int i = 0; i < ci; ++i) {//TODO: improve by parallelism
 			sum += coef[si + i] * kernel_row[sv_index[si + i]];//sv_index maps uncompressed sv idx to compressed sv idx.
 		}
 		dec_values[idx] = sum - rho[model_id];

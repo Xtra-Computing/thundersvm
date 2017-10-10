@@ -19,7 +19,7 @@ int SvmModel::max2power(int n) const {
 
 void
 SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho,
-                     SyncData<real> &f, real eps, real C, int ws_size) const {
+                     SyncData<real> &f, real eps, real C, int ws_size) const {//TODO: f->f_val
     uint n_instances = k_mat.m();
     uint q = ws_size / 2;
 
@@ -96,7 +96,8 @@ SvmModel::select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_i
         int i;
         if (p_left < n_instances) {
             i = index[p_left];
-            while (ws_indicator[i] == 1 || !(y[i] > 0 && alpha[i] < svmParam.C || y[i] < 0 && alpha[i] > 0)) {
+            while (ws_indicator[i] == 1 || !((y[i] > 0 && alpha[i] < svmParam.C) || (y[i] < 0 && alpha[i] > 0))) {
+            	//construct working set of I_up
                 p_left++;
                 if (p_left == n_instances) break;
                 i = index[p_left];
@@ -108,7 +109,8 @@ SvmModel::select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_i
         }
         if (p_right >= 0) {
             i = index[p_right];
-            while ((ws_indicator[i] == 1 || !(y[i] > 0 && alpha[i] > 0 || y[i] < 0 && alpha[i] < svmParam.C))) {
+            while ((ws_indicator[i] == 1 || !((y[i] > 0 && alpha[i] > 0) || (y[i] < 0 && alpha[i] < svmParam.C)))) {
+            	//construct working set of I_low
                 p_right--;
                 if (p_right == -1) break;
                 i = index[p_right];

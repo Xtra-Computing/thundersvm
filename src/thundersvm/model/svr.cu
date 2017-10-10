@@ -27,7 +27,7 @@ void SVR::train() {
     SyncData<real> alpha(n_instances * 2);
     alpha.mem_set(0);
     int ws_size = min(max2power(n_instances) * 2, 1024);
-    smo_solver(kernelMatrix, y, alpha, rho, f, 0.001, svmParam.C, ws_size);
+    smo_solver(kernelMatrix, y, alpha, rho, f, 0.001, svmParam.C, ws_size);//TODO: use eps in svm_param
     for (int i = 0; i < n_instances; ++i) {
         alpha[i] -= alpha[i + n_instances];
     }
