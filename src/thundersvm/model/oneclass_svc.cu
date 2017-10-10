@@ -30,7 +30,7 @@ void OneClassSVC::train() {
         idx[0] = i;
         kernelMatrix.get_rows(idx, kernel_row);
         for (int j = 0; j < n_instances; ++j) {
-            f[i] += alpha[i] * kernel_row[j];
+            f[j] += alpha[i] * kernel_row[j];
         }
     }
 
@@ -40,6 +40,15 @@ void OneClassSVC::train() {
     }
     smo_solver(kernelMatrix, y, alpha, rho, f, 0.001, 1, ws_size);
     record_model(alpha, y);
+}
+
+vector<real> OneClassSVC::predict(const DataSet::node2d &instances, int batch_size) {
+    vector<real> dec_values = SvmModel::predict(instances, batch_size);
+    vector<real> predict_y;
+    for (int i = 0; i < dec_values.size(); ++i) {
+        predict_y.push_back(dec_values[i] > 0 ? 1 : -1);
+    }
+    return predict_y;
 }
 
 void OneClassSVC::save_to_file(string path) {

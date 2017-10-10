@@ -52,24 +52,28 @@ SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData
         f_val2sort.copy_from(f);
         thrust::sort_by_key(thrust::cuda::par, f_val2sort.device_data(), f_val2sort.device_data() + n_instances,
                             f_idx2sort.device_data(), thrust::less<real>());
+//        for (int i = 0; i < n_instances; ++i) {
+//            LOG(INFO)<<i<<" "<<f_idx2sort[i]<<" "<<alpha[f_idx2sort[i]];
+//        }
         vector<int> ws_indicator(n_instances, 0);
         if (1 == iter) {
-            select_working_set(ws_indicator, f_idx2sort, y, alpha, working_set);
+            select_working_set(ws_indicator, f_idx2sort, y, alpha, C, working_set);
             k_mat.get_rows(working_set, k_mat_rows);
         } else {
             working_set_first_half.copy_from(working_set_last_half);
             for (int i = 0; i < q; ++i) {
                 ws_indicator[working_set[i]] = 1;
             }
-            select_working_set(ws_indicator, f_idx2sort, y, alpha, working_set_last_half);
+            select_working_set(ws_indicator, f_idx2sort, y, alpha, C, working_set_last_half);
             k_mat_rows_first_half.copy_from(k_mat_rows_last_half);
             k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
         }
 
+//        LOG(INFO)<<working_set;
         //local smo
         size_t smem_size = ws_size * sizeof(real) * 3 + 2 * sizeof(float);
-        localSMO << < 1, ws_size, smem_size >> >
-                                  (y.device_data(), f.device_data(), alpha.device_data(), alpha_diff.device_data(),
+        local_smo << < 1, ws_size, smem_size >> >
+                                   (y.device_data(), f.device_data(), alpha.device_data(), alpha_diff.device_data(),
                                           working_set.device_data(), ws_size, C, k_mat_rows.device_data(), n_instances,
                                           eps, diff_and_bias.device_data());
         LOG_EVERY_N(10, INFO) << "diff=" << diff_and_bias[0];
@@ -86,7 +90,7 @@ SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData
 
 void
 SvmModel::select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
-                             const SyncData<real> &alpha, SyncData<int> &working_set) const {
+                             const SyncData<real> &alpha, real C, SyncData<int> &working_set) const {
     int n_instances = ws_indicator.size();
     int p_left = 0;
     int p_right = n_instances - 1;
@@ -96,7 +100,7 @@ SvmModel::select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_i
         int i;
         if (p_left < n_instances) {
             i = index[p_left];
-            while (ws_indicator[i] == 1 || !((y[i] > 0 && alpha[i] < svmParam.C) || (y[i] < 0 && alpha[i] > 0))) {
+            while (ws_indicator[i] == 1 || !((y[i] > 0 && alpha[i] < C) || (y[i] < 0 && alpha[i] > 0))) {
             	//construct working set of I_up
                 p_left++;
                 if (p_left == n_instances) break;
@@ -109,7 +113,7 @@ SvmModel::select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_i
         }
         if (p_right >= 0) {
             i = index[p_right];
-            while ((ws_indicator[i] == 1 || !((y[i] > 0 && alpha[i] > 0) || (y[i] < 0 && alpha[i] < svmParam.C)))) {
+            while ((ws_indicator[i] == 1 || !((y[i] > 0 && alpha[i] > 0) || (y[i] < 0 && alpha[i] < C)))) {
             	//construct working set of I_low
                 p_right--;
                 if (p_right == -1) break;

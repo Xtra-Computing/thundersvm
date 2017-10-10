@@ -31,7 +31,7 @@ protected:
                             SyncData<real> &f, real eps, real C, int ws_size) const;
 
     virtual void select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
-                                    const SyncData<real> &alpha, SyncData<int> &working_set) const;
+                                    const SyncData<real> &alpha, real C, SyncData<int> &working_set) const;
 
     virtual void record_model(const SyncData<real> &alpha, const SyncData<int> &y);
 

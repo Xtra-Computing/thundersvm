@@ -88,7 +88,7 @@ vector<real> SVC::predict(const DataSet::node2d &instances, int batch_size) {
             int k = 0;
             for (int i = 0; i < n_classes; ++i) {
                 for (int j = i + 1; j < n_classes; ++j) {
-                    if (dec_values[l * n_binary_models + k] - 0 > 1e-5)
+                    if (dec_values[l * n_binary_models + k] > 0)
                         votes[i]++;
                     else
                         votes[j]++;

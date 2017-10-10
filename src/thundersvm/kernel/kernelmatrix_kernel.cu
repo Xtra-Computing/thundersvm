@@ -4,8 +4,9 @@
 #include "thundersvm/kernel/kernelmatrix_kernel.h"
 
 __global__ void
-kernel_get_data_rows(const real *val, const int *col_ind, const int *row_ptr, const int *data_row_idx, real *data_rows,
-                     int m) {//change to kernel_get_working_set_ins.
+kernel_get_working_set_ins(const real *val, const int *col_ind, const int *row_ptr, const int *data_row_idx,
+                           real *data_rows,
+                           int m) {
     KERNEL_LOOP(i, m) {
         int row = data_row_idx[i];
         for (int j = row_ptr[row]; j < row_ptr[row + 1]; ++j) {
