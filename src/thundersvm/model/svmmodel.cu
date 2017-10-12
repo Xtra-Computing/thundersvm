@@ -8,10 +8,8 @@
 #include <thundersvm/model/svmmodel.h>
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
 
-SvmModel::SvmModel(DataSet &dataSet, const SvmParam &svmParam) : dataSet(dataSet), svmParam(svmParam),
-                                                                 n_instances(dataSet.total_count()) {
-
-}
+SvmModel::SvmModel(DataSet &dataSet, const SvmParam &svmParam) :
+        dataSet(dataSet), svmParam(svmParam), n_instances(dataSet.total_count()) {}
 
 int SvmModel::max2power(int n) const {
     return int(pow(2, floor(log2f(float(n)))));
@@ -20,7 +18,7 @@ int SvmModel::max2power(int n) const {
 void
 SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho,
                      SyncData<real> &f_val, real eps, real C, int ws_size) const {
-    uint n_instances = k_mat.m();
+    uint n_instances = k_mat.n_instances();
     uint q = ws_size / 2;
 
     SyncData<int> working_set(ws_size);
@@ -37,11 +35,11 @@ SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData
     SyncData<real> alpha_diff(ws_size);
     SyncData<real> diff_and_bias(2);
 
-    SyncData<real> k_mat_rows(ws_size * k_mat.m());
-    SyncData<real> k_mat_rows_first_half(q * k_mat.m());
-    SyncData<real> k_mat_rows_last_half(q * k_mat.m());
+    SyncData<real> k_mat_rows(ws_size * k_mat.n_instances());
+    SyncData<real> k_mat_rows_first_half(q * k_mat.n_instances());
+    SyncData<real> k_mat_rows_last_half(q * k_mat.n_instances());
     k_mat_rows_first_half.set_device_data(k_mat_rows.device_data());
-    k_mat_rows_last_half.set_device_data(&k_mat_rows.device_data()[q * k_mat.m()]);
+    k_mat_rows_last_half.set_device_data(&k_mat_rows.device_data()[q * k_mat.n_instances()]);
     for (int i = 0; i < n_instances; ++i) {
         f_idx[i] = i;
     }
@@ -52,9 +50,6 @@ SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData
         f_val2sort.copy_from(f_val);
         thrust::sort_by_key(thrust::cuda::par, f_val2sort.device_data(), f_val2sort.device_data() + n_instances,
                             f_idx2sort.device_data(), thrust::less<real>());
-//        for (int i = 0; i < n_instances; ++i) {
-//            LOG(INFO)<<i<<" "<<f_idx2sort[i]<<" "<<alpha[f_idx2sort[i]];
-//        }
         vector<int> ws_indicator(n_instances, 0);
         if (1 == iter) {
             select_working_set(ws_indicator, f_idx2sort, y, alpha, C, working_set);
@@ -69,7 +64,6 @@ SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData
             k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
         }
 
-//        LOG(INFO)<<working_set;
         //local smo
         size_t smem_size = ws_size * sizeof(real) * 3 + 2 * sizeof(float);
         local_smo << < 1, ws_size, smem_size >> >

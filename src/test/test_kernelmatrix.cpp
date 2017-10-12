@@ -48,8 +48,8 @@ TEST(KernelMatrixTest, get_rows) {
     kernelMatrix.get_rows(rows, kernel_rows);
 
     for (int i = 0; i < rows.count(); ++i) {
-        for (int j = 0; j < kernelMatrix.m(); ++j) {
-            real gpu_kernel = kernel_rows.host_data()[i * kernelMatrix.m() + j];
+        for (int j = 0; j < kernelMatrix.n_instances(); ++j) {
+            real gpu_kernel = kernel_rows.host_data()[i * kernelMatrix.n_instances() + j];
             real cpu_kernel = rbf_kernel(dataSet.instances(), rows.host_data()[i], j, gamma);
             EXPECT_NEAR(gpu_kernel, cpu_kernel, 1e-5) << rows.host_data()[i] << "," << j;
         }
@@ -59,8 +59,8 @@ TEST(KernelMatrixTest, get_rows) {
     kernelMatrix.get_rows(instances, kernel_rows);
 
     for (int i = 0; i < n_rows; ++i) {
-        for (int j = 0; j < kernelMatrix.m(); ++j) {
-            real gpu_kernel = kernel_rows.host_data()[i * kernelMatrix.m() + j];
+        for (int j = 0; j < kernelMatrix.n_instances(); ++j) {
+            real gpu_kernel = kernel_rows.host_data()[i * kernelMatrix.n_instances() + j];
             real cpu_kernel = rbf_kernel(dataSet.instances(), i, j, gamma);
             EXPECT_NEAR(gpu_kernel, cpu_kernel, 1e-5) << i << "," << j;
         }
