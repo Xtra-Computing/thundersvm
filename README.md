@@ -6,8 +6,8 @@ git clone git@github.com:zeyiwen/mascot.git
 ```
 2. download datasets
 ```bash
-cd mascot/dataset
-sh get_datasets.sh
+cd mascot
+dataset/get_datasets.sh
 ```
 
 3. build and test
@@ -17,7 +17,7 @@ cd build
 cmake ..
 make -j runtest
 ```
-see all tests pass
+see if all tests pass
 
 ## TODO
 - command line parser (3d)

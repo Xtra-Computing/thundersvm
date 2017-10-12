@@ -1,6 +1,10 @@
 #!/bin/sh
 
+DIR="$( cd "$(dirname "$0")" ; pwd -P )"
+cd "$DIR"
+
 echo "Downloading..."
+
 
 if [ ! -f "a9a" ]; then
 wget --no-check-certificate https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary/a9a
