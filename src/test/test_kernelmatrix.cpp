@@ -36,7 +36,7 @@ TEST(KernelMatrixTest, get_rows) {
     DataSet dataSet;
     dataSet.load_from_file(DATASET_DIR "test_dataset.txt");
     real gamma = 0.5;
-    KernelMatrix kernelMatrix(dataSet.instances(), dataSet.n_features(), gamma);
+    KernelMatrix kernelMatrix(dataSet.instances(), gamma);
     int n_rows = 40;
     SyncData<int> rows(n_rows);
     SyncData<real> kernel_rows(n_rows * dataSet.total_count());

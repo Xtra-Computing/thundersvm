@@ -14,9 +14,7 @@ using std::map;
 class SVR : public SvmModel {
 public:
 
-    SVR(DataSet &dataSet, const SvmParam &svmParam);
-
-    void train() override;
+    void train(DataSet dataset, SvmParam param) override;
 
     void save_to_file(string path) override;
 

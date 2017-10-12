@@ -14,15 +14,15 @@ using std::map;
 
 class SvmModel {
 public:
-    SvmModel(DataSet &dataSet, const SvmParam &svmParam);
-
-    virtual void train() = 0;
+    virtual void train(DataSet dataset, SvmParam param) {};
 
     virtual vector<real> predict(const DataSet::node2d &instances, int batch_size);
 
     virtual void save_to_file(string path) = 0;
 
     virtual void load_from_file(string path) = 0;
+
+//    real cross_validation()
 
 protected:
     int max2power(int n) const;
@@ -33,15 +33,14 @@ protected:
     virtual void select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
                                     const SyncData<real> &alpha, real C, SyncData<int> &working_set) const;
 
-    virtual void record_model(const SyncData<real> &alpha, const SyncData<int> &y);
+    virtual void record_model(const SyncData<real> &alpha, const SyncData<int> &y, const DataSet::node2d &instances,
+                              const SvmParam param);
 
-    DataSet &dataSet;
-    SvmParam svmParam;
+    SvmParam param;
     vector<real> coef;
     DataSet::node2d sv;
     vector<int> sv_index;
     real rho;
-    int n_instances;
 };
 
 #endif //THUNDERSVM_SVMMODEL_H

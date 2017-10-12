@@ -6,16 +6,16 @@
 #include <dataset.h>
 
 TEST(OneClassSVCTest, train) {
-    DataSet dataSet;
-    dataSet.load_from_file(DATASET_DIR "test_dataset.txt");
+    DataSet dataset;
+    dataset.load_from_file(DATASET_DIR "test_dataset.txt");
     SvmParam param;
     param.gamma = 0.5;
     param.nu = 0.5;
     param.epsilon = 0.001;
-    SvmModel *model = new OneClassSVC(dataSet, param);
-    model->train();
+    SvmModel *model = new OneClassSVC();
+    model->train(dataset, param);
 
-    vector<real> predict_y = model->predict(dataSet.instances(), 100);
+    vector<real> predict_y = model->predict(dataset.instances(), 100);
     int n_pos = 0;
     for (int i = 0; i < predict_y.size(); ++i) {
         if (predict_y[i] > 0)

@@ -22,9 +22,12 @@ public:
     size_t total_count() const;
     size_t n_features() const;
     size_t n_classes() const;
-    const int* count() const;
-    const int* start() const;
-    const int* label() const;
+
+    const vector<int> &count() const;
+
+    const vector<int> &start() const;
+
+    const vector<int> &label() const;
 
     const vector<real> &y() const;
     const node2d & instances() const;

@@ -8,9 +8,6 @@
 #include <thundersvm/model/svmmodel.h>
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
 
-SvmModel::SvmModel(DataSet &dataSet, const SvmParam &svmParam) :
-        dataSet(dataSet), svmParam(svmParam), n_instances(dataSet.total_count()) {}
-
 int SvmModel::max2power(int n) const {
     return int(pow(2, floor(log2f(float(n)))));
 }
@@ -139,7 +136,7 @@ vector<real> SvmModel::predict(const DataSet::node2d &instances, int batch_size)
     sv_index.copy_from(this->sv_index.data(), n_sv);
 
     //compute kernel values
-    KernelMatrix k_mat(sv, dataSet.n_features(), svmParam.gamma);
+    KernelMatrix k_mat(sv, param.gamma);
 
     auto batch_start = instances.begin();
     auto batch_end = batch_start;
@@ -164,16 +161,18 @@ vector<real> SvmModel::predict(const DataSet::node2d &instances, int batch_size)
     return predict_y;
 }
 
-void SvmModel::record_model(const SyncData<real> &alpha, const SyncData<int> &y) {
+void SvmModel::record_model(const SyncData<real> &alpha, const SyncData<int> &y, const DataSet::node2d &instances,
+                            const SvmParam param) {
     int n_sv = 0;
-    for (int i = 0; i < n_instances; ++i) {
+    for (int i = 0; i < alpha.count(); ++i) {
         if (alpha[i] != 0) {
             coef.push_back(alpha[i]);
             sv_index.push_back(sv.size());
-            sv.push_back(dataSet.instances()[i]);
+            sv.push_back(instances[i]);
             n_sv++;
         }
     }
+    this->param = param;
     LOG(INFO) << "RHO = " << rho;
     LOG(INFO) << "#SV = " << n_sv;
 }

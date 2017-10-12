@@ -12,7 +12,7 @@
 
 class KernelMatrix{
 public:
-    explicit KernelMatrix(const DataSet::node2d &instances, size_t n_features, real gamma);
+    explicit KernelMatrix(const DataSet::node2d &instances, real gamma);
     ~KernelMatrix();
     void get_rows(const SyncData<int> &idx, SyncData<real> &kernel_rows) const;
 

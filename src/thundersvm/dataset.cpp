@@ -38,20 +38,20 @@ void DataSet::load_from_file(string file_name) {
     file.close();
 }
 
-const int *DataSet::count() const {//return the number of instances of each class
-    return count_.data();
+const vector<int> &DataSet::count() const {//return the number of instances of each class
+    return count_;
 }
 
-const int *DataSet::start() const {
-    return start_.data();
+const vector<int> &DataSet::start() const {
+    return start_;
 }
 
 size_t DataSet::n_classes() const {
     return label_.size();
 }
 
-const int *DataSet::label() const {
-    return label_.data();
+const vector<int> &DataSet::label() const {
+    return label_;
 }
 
 void DataSet::group_classes() {

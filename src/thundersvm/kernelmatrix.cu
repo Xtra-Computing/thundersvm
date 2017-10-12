@@ -4,9 +4,9 @@
 #include "thundersvm/kernelmatrix.h"
 #include "thundersvm/kernel/kernelmatrix_kernel.h"
 
-KernelMatrix::KernelMatrix(const DataSet::node2d &instances, size_t n_features, real gamma) {
+KernelMatrix::KernelMatrix(const DataSet::node2d &instances, real gamma) {
     n_instances_ = instances.size();
-    n_features_ = n_features;
+    n_features_ = 0;
     this->gamma = gamma;
 
     //three arrays for csr representation
@@ -15,12 +15,13 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, size_t n_features, 
     vector<int> csr_row_ptr(1, 0);//the start positions of the instances
 
     vector<real> csr_self_dot;
-    for (int i = 0; i < n_instances_; ++i) {//convert libsvm format to csr format?
+    for (int i = 0; i < n_instances_; ++i) {//convert libsvm format to csr format
         real self_dot = 0;
         for (int j = 0; j < instances[i].size(); ++j) {
             csr_val.push_back(instances[i][j].value);
             self_dot += instances[i][j].value * instances[i][j].value;
             csr_col_ind.push_back(instances[i][j].index - 1);//libSVM data format is one-based, convert to zero-based
+            if (instances[i][j].index > n_features_) n_features_ = instances[i][j].index;
         }
         csr_row_ptr.push_back(csr_row_ptr.back() + instances[i].size());
         csr_self_dot.push_back(self_dot);
@@ -67,11 +68,14 @@ void KernelMatrix::get_rows(const DataSet::node2d &instances, SyncData<real> &ke
     CHECK_GE(kernel_rows.count(), instances.size() * n_instances_) << "kernel_rows memory is too small";
     SyncData<real> self_dot(instances.size());
     SyncData<real> dense_ins(instances.size() * n_features_);
+    dense_ins.mem_set(0);
 
     //convert libsvm to dense representation; compute self dot.
     for (int i = 0; i < instances.size(); ++i) {
         real sum = 0;
         for (int j = 0; j < instances[i].size(); ++j) {
+            CHECK_LE(instances[i][j].index, n_features_)
+                << "the number of features in testing set is larger than training set";
             dense_ins[(instances[i][j].index - 1) * instances.size() + i] = instances[i][j].value;
             sum += instances[i][j].value * instances[i][j].value;
         }

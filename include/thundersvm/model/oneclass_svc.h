@@ -9,9 +9,7 @@
 
 class OneClassSVC : public SvmModel {
 public:
-    OneClassSVC(DataSet &dataSet, const SvmParam &svmParam);
-
-    void train() override;
+    void train(DataSet dataset, SvmParam param) override;
 
     void save_to_file(string path) override;
 
