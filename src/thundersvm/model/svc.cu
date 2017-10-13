@@ -1,11 +1,14 @@
 //
 // Created by jiashuai on 17-9-21.
 //
+#include <iostream>
+#include <iomanip>
+#include <cstring>
 #include <thundersvm/kernel/smo_kernel.h>
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
 #include <thundersvm/model/svc.h>
 #include "thrust/sort.h"
-
+using namespace std;
 
 void SVC::train(DataSet dataset, SvmParam param) {
     dataset.group_classes();
@@ -108,11 +111,236 @@ vector<real> SVC::predict(const DataSet::node2d &instances, int batch_size) {
 }
 
 void SVC::save_to_file(string path) {
+    ofstream libmod;
+    string str = path + ".model";
+    libmod.open(str.c_str());
+    if (!libmod.is_open()) {
+        cout << "can't open file " << path << endl;
+        //return ret;
+    }
+    //cout<<"120"<<endl;
+    const SvmParam &param = this->param;
+    const char *sType[] = {"c_svc", "nu_svc", "one_class", "epsilon_svr", "nu_svr", "NULL"};  /* svm_type */
+    const char *kType[] = {"linear", "polynomial", "rbf", "sigmoid", "precomputed", "NULL"};
+    libmod << "svm_type " << sType[param.svm_type] << endl;
+    libmod << "kernel_type " << kType[param.kernel_type] << endl;
+    if (param.kernel_type == 1)
+        libmod << "degree " << param.degree << endl;
+    if (param.kernel_type == 1 || param.kernel_type == 2 || param.kernel_type == 3)/*1:poly 2:rbf 3:sigmoid*/
+        libmod << "gamma " << param.gamma << endl;
+    if (param.kernel_type == 1 || param.kernel_type == 3)
+        libmod << "coef0 " << param.coef0 << endl;
+    //unsigned int nr_class = this->dataSet.n_classes();
+    //unsigned int total_sv = this->dataSet.total_count();            //not sure
+    unsigned int nr_class = n_classes;
+    unsigned int total_sv = sv.size();
+    //unsigned int total_sv = n_instances;
+    libmod << "nr_class " << nr_class << endl;
+    libmod << "total_sv " << total_sv << endl;
+    vector<real> frho = rho;
+    libmod << "rho";
+    for (int i = 0; i < nr_class * (nr_class - 1) / 2; i++) {
+        libmod << " " << frho[i];
+    }
+    libmod << endl;
+    
+    if (param.svm_type == 0) {
+        libmod << "label";
+        for (int i = 0; i < nr_class; i++)
+            libmod << " " << label[i];
+        libmod << endl;
+    }
+    
+    //cout<<"149"<<endl;
+    /*
+    if (this->probability) // regression has probA only
+    {
+        libmod << "probA";
+        for (int i = 0; i < nr_class * (nr_class - 1) / 2; i++)
+            libmod << " " << probA[i];
+        libmod << endl;
+        libmod << "probB";
+        for (int i = 0; i < nr_class * (nr_class - 1) / 2; i++)
+            libmod << " " << probB[i];
+        libmod << endl;
+    }
+    */
+    /*
+    if (param.svm_type == 0)//c-svm
+    {
+        libmod << "nr_sv";
+        for (int i = 0; i < nr_class; i++)
+            libmod << " " << this->dataSet.count()[i];
+        libmod << endl;
+    }
+    */
+    libmod << "SV" << endl;
+    
+    vector<vector<real>> sv_coef = this->coef;
+    vector<vector<DataSet::node>> SV = this->sv;
+    //cout<<"total_sv:"<<total_sv<<endl;
+    for(int i=0;i<total_sv;i++)
+    {
+        //cout<<"185"<<endl;
+        for(int j = 0; j < n_binary_models; j++){
+            libmod << setprecision(16) << sv_coef[j][i]<< " ";
+
+        }
+        for(int j = 0; j < n_binary_models; j++){
+            vector<DataSet::node> p = SV[sv_index[j][i]];
+            //cout<<"sv_index j:" <<j<<"sv_index i:"<<i<<endl;
+            int k = 0;
+            //cout<<"193"<<endl;
+            if(param.kernel_type == PRECOMPUTED)
+                //fprintf(fp,"0:%d ",(int)(p->value));
+                libmod << "0:" << p[k].value << " ";
+            else
+                for(; k < p.size(); k++)
+                {
+                    //fprintf(fp,"%d:%.8g ",p->index,p->value);
+                    //cout<<"218"<<endl;
+                    libmod << p[k].index << ":" << setprecision(8) << p[k].value << " ";
+                }
+            //cout<<"222"<<endl;
+            //fprintf(fp, "\n");
+            libmod << endl;
+        }
+    }
+    libmod.close();
 
 }
 
 void SVC::load_from_file(string path) {
+    //SvmParam paramT;
+    //int nr_class = 0;
+    /*
+    int total_sv;
+    float ftemp;
+    unsigned int cnr2 = 0;
+    const char *sType[] = {"c_svc", "nu_svc", "one_class", "epsilon_svr", "nu_svr", "NULL"};  
+    const char *kType[] = {"linear", "polynomial", "rbf", "sigmoid", "precomputed", "NULL"};
 
+    ifstream ifs;
+    path = path + ".model";
+    ifs.open(path.c_str());//"dataset/a6a.model");
+    if (!ifs.is_open())
+        cout << "can't open file" << endl;
+    string feature;
+    while (ifs >> feature) {
+        //cout<<"247"<<endl;
+        // cout<<feature<<endl;
+        if (feature == "svm_type") {
+            string value;
+            ifs >> value;
+            for (int i = 0; i < 6; i++) {
+                if (value == sType[i])
+                    param.svm_type = i;
+            }
+        } else if (feature == "kernel_type") {
+            string value;
+            ifs >> value;
+            for (int i = 0; i < 6; i++) {
+                if (feature == kType[i])
+                    param.kernel_type = i;
+            }
+        } else if (feature == "degree") {
+            ifs >> param.degree;
+        } else if (feature == "coef0") {
+            ifs >> param.coef0;
+        } else if (feature == "gamma") {
+            ifs >> param.gamma;
+
+        } else if (feature == "nr_class") {
+            ifs >> n_classes;
+            n_binary_models = n_classes * (n_classes - 1) / 2;
+            cnr2 = n_binary_models;
+            //cout<<"cnr2:"<<cnr2<<endl;
+        } 
+        else if (feature == "total_sv") {
+            ifs >> total_sv;
+        } else if (feature == "rho") {
+            vector<real> frho(cnr2, 0);
+            for (int i = 0; i < cnr2; i++)
+                ifs >> frho[i];
+            rho = frho;
+        }
+
+        
+        else if (feature == "label") {
+            vector<int> ilabel(n_classes, 0);
+            for (int i = 0; i < n_classes; i++)
+                ifs >> ilabel[i];
+            dataSet.label_ = ilabel;
+        } else if (feature == "probA") {
+            vector<real> fprobA(cnr2, 0);
+            for (int i = 0; i < cnr2; i++)
+                ifs >> fprobA[i];
+            model.probA = fprobA;
+        } else if (feature == "probB") {
+            vector<real> fprobB(cnr2, 0);
+            for (int i = 0; i < cnr2; i++)
+                ifs >> fprobB[i];
+            model.probB = fprobB;
+        } 
+
+        else if (feature == "nr_sv") {
+            vector<int> fnSV(nr_class, 0);
+            for (int i = 0; i < nr_class; i++)
+                ifs >> fnSV[i];
+            dataSet.count_ = fnSV;
+        } 
+        
+        else if (feature == "SV") {
+            //cout<<"309"<<endl;
+            string value;
+            stringstream sstr;
+            vector<vector<real>> coefT(cnr2);
+            vector<vector<DataSet::node>> svT(total_sv);
+            for(int i=0;i<total_sv;i++)
+            {
+                //cout<<"316"<<endl;
+                for(int j=0;j<n_classes;j++){
+                    ifs >> ftemp;
+                    coefT[j].push_back(ftemp);
+                }
+                //cout<<"325"<<endl;
+                vector<DataSet::node> p = svT[i];
+                //int k = 0;
+                getline(ifs, value);
+                sstr << value;
+                string temp;
+                stringstream stemp;
+                //int k = 0;
+                //cout<<"336"<<endl;
+                int indext;
+                float valuet;
+                DataSet::node nodet(0,0);
+                while (sstr >> temp) {
+                    int ind = temp.find_first_of(":");
+                    stemp << temp.substr(0, ind);
+                    //cout<<"340"<<endl;
+                    stemp >> indext;
+
+                    nodet.index = indext;
+                    stemp.clear();
+                    stemp << temp.substr(ind + 1, value.size());
+                    stemp>>valuet;
+                    nodet.value = valuet;
+
+                    p.push_back(nodet);
+                    stemp.clear();
+                    //k++;
+                    //cout<<"347"<<endl;
+                }
+            }
+            coef = coefT;
+            sv = svT;
+        }//end else if
+
+    }//end while
+    ifs.close();
+    //param = paramT;
+    */
 }
 
 
