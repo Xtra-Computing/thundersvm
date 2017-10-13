@@ -22,8 +22,6 @@ public:
 
     virtual void load_from_file(string path) = 0;
 
-//    real cross_validation()
-
 protected:
     int max2power(int n) const;
 

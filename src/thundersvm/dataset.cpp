@@ -6,9 +6,10 @@
 using std::fstream;
 using std::stringstream;
 
-DataSet::DataSet() : total_count_(0), n_features_(0) {
-}
+DataSet::DataSet() : total_count_(0), n_features_(0) {}
 
+DataSet::DataSet(const DataSet::node2d &instances, int n_features, const vector<real> &y) :
+        instances_(instances), n_features_(n_features), y_(y), total_count_(instances_.size()) {}
 void DataSet::load_from_file(string file_name) {
     y_.clear();
     instances_.clear();
@@ -16,7 +17,7 @@ void DataSet::load_from_file(string file_name) {
     n_features_ = 0;
     fstream file;
     file.open(file_name, fstream::in);
-    CHECK(file.is_open())<<"file "<<file_name<<" not found";
+    CHECK(file.is_open()) << "file " << file_name << " not found";
     string line;
 
     while (getline(file, line)) {
@@ -30,7 +31,7 @@ void DataSet::load_from_file(string file_name) {
         string tuple;
         while (ss >> tuple) {
             CHECK_EQ(sscanf(tuple.c_str(), "%d:%f", &i, &v), 2) << "read error, using [index]:[value] format";
-            this->instances_[total_count_].emplace_back(i,v);
+            this->instances_[total_count_].emplace_back(i, v);
             if (i > this->n_features_) this->n_features_ = i;
         };
         total_count_++;
@@ -73,7 +74,7 @@ void DataSet::group_classes() {
         dataLabel[i] = j;
         //if the label is unseen, add it to label vector.
         if (j == label_.size()) {
-        	//real to int conversion is safe, because group_classes only used in classification
+            //real to int conversion is safe, because group_classes only used in classification
             label_.push_back(int(y_[i]));
             count_.push_back(1);
         }
@@ -100,7 +101,7 @@ size_t DataSet::n_features() const {
     return n_features_;
 }
 
-const DataSet::node2d& DataSet::instances() const {//return all the instances
+const DataSet::node2d &DataSet::instances() const {//return all the instances
     return instances_;
 }
 
@@ -118,8 +119,8 @@ const DataSet::node2d DataSet::instances(int y_i, int y_j) const {//return insta
     node2d two_class_ins;
     node2d i_ins = instances(y_i);
     node2d j_ins = instances(y_j);
-    two_class_ins.insert(two_class_ins.end(),i_ins.begin(), i_ins.end());
-    two_class_ins.insert(two_class_ins.end(),j_ins.begin(), j_ins.end());
+    two_class_ins.insert(two_class_ins.end(), i_ins.begin(), i_ins.end());
+    two_class_ins.insert(two_class_ins.end(), j_ins.begin(), j_ins.end());
     return two_class_ins;
 }
 
@@ -137,7 +138,8 @@ const vector<int> DataSet::original_index(int y_i) const {//index of each instan
     return one_class_idx;
 }
 
-const vector<int> DataSet::original_index(int y_i, int y_j) const {//index of each instance in the original array for two class
+const vector<int>
+DataSet::original_index(int y_i, int y_j) const {//index of each instance in the original array for two class
     vector<int> two_class_idx;
     vector<int> i_idx = original_index(y_i);
     vector<int> j_idx = original_index(y_j);
@@ -149,4 +151,5 @@ const vector<int> DataSet::original_index(int y_i, int y_j) const {//index of ea
 const vector<real> &DataSet::y() const {
     return y_;
 }
+
 

@@ -15,7 +15,10 @@ public:
         real value;
     };
     typedef vector<vector<DataSet::node>> node2d;
+
     DataSet();
+
+    DataSet(const DataSet::node2d &instances, int n_features, const vector<real> &y);
     void load_from_file(string file_name);
 
     void group_classes();
