@@ -14,13 +14,15 @@ using std::map;
 class SVR : public SvmModel {
 public:
 
+    SVR() : SvmModel() {
+        param.svm_type = SvmParam::SVR;
+    }
+
     void train(DataSet dataset, SvmParam param) override;
 
     void save_to_file(string path) override;
 
     void load_from_file(string path) override;
-
-private:
 };
 
 #endif //THUNDERSVM_SVR_H

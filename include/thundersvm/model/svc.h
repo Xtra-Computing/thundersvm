@@ -14,6 +14,10 @@ using std::map;
 class SVC : public SvmModel {
 public:
 
+    SVC() : SvmModel() {
+        param.svm_type = SvmParam::SVC;
+    }
+
     void train(DataSet dataset, SvmParam param) override;
 
     vector<real> predict(const DataSet::node2d &instances, int batch_size) override;

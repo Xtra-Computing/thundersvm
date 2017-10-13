@@ -8,6 +8,10 @@
 #include "thundersvm.h"
 
 struct SvmParam{
+    enum SVM_TYPE {
+        SVC, SVR, ONE_CLASS
+    };
+    SVM_TYPE svm_type;
     real C;
     real gamma;
     real p;
