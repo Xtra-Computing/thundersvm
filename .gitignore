@@ -1,3 +1,6 @@
 .idea
 .git
 .*
+build
+dataset/*
+!dataset/*.sh
