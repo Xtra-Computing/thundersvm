@@ -8,8 +8,8 @@
 
 TEST(CVTest, cv) {
     DataSet dataset;
-//    dataset.load_from_file(DATASET_DIR "test_dataset.txt");
-    dataset.load_from_file(DATASET_DIR "mnist.scale");
+    dataset.load_from_file(DATASET_DIR "test_dataset.txt");
+//    dataset.load_from_file(DATASET_DIR "mnist.scale");
     dataset.group_classes();
     SVC model;
     SvmParam param;
