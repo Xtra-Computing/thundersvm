@@ -56,81 +56,69 @@ vector<real> OneClassSVC::predict(const DataSet::node2d &instances, int batch_si
 }
 
 void OneClassSVC::save_to_file(string path) {
-    ofstream libmod;
-    string str = path + ".model";
-    libmod.open(str.c_str());
-    if (!libmod.is_open()) {
-        cout << "can't open file " << path << endl;
-        //return ret;
-    }
+    ofstream fs_model;
+    string file_name = path + ".model";
+    fs_model.open(file_name.c_str());
+    CHECK(fs_model.is_open()) << "file " << file_name << " not found";
     const SvmParam &param = this->param;
-    const char *sType[] = {"c_svc", "nu_svc", "one_class", "epsilon_svr", "nu_svr", "NULL"};  /* svm_type */
-    const char *kType[] = {"linear", "polynomial", "rbf", "sigmoid", "precomputed", "NULL"};
-    libmod << "svm_type " << sType[param.svm_type] << endl;
-    libmod << "kernel_type " << kType[param.kernel_type] << endl;
+    fs_model << "svm_type " << svm_type_name[param.svm_type] << endl;
+    fs_model << "kernel_type " << kernel_type_name[param.kernel_type] << endl;
     if (param.kernel_type == 1)
-        libmod << "degree " << param.degree << endl;
+        fs_model << "degree " << param.degree << endl;
     if (param.kernel_type == 1 || param.kernel_type == 2 || param.kernel_type == 3)/*1:poly 2:rbf 3:sigmoid*/
-        libmod << "gamma " << param.gamma << endl;
+        fs_model << "gamma " << param.gamma << endl;
     if (param.kernel_type == 1 || param.kernel_type == 3)
-        libmod << "coef0 " << param.coef0 << endl;
+        fs_model << "coef0 " << param.coef0 << endl;
     //unsigned int nr_class = this->dataSet.n_classes();
     unsigned int total_sv = sv.size();
     //libmod << "nr_class " << nr_class << endl;
-    libmod << "total_sv " << total_sv << endl;
-    libmod << "rho";
-    libmod << " " << rho;
-    libmod << endl;
-    libmod << "SV" << endl;
+    fs_model << "total_sv " << total_sv << endl;
+    fs_model << "rho";
+    fs_model << " " << rho;
+    fs_model << endl;
+    fs_model << "SV" << endl;
     vector<real> sv_coef = this->coef;
     vector<vector<DataSet::node>> SV = this->sv;
     for(int i=0;i<total_sv;i++)
     {
-        libmod << setprecision(16) << sv_coef[i]<< " ";
+        fs_model << setprecision(16) << sv_coef[i]<< " ";
 
         vector<DataSet::node> p = SV[sv_index[i]];
         int k = 0;
         if(param.kernel_type == PRECOMPUTED)
-            libmod << "0:" << p[k].value << " ";
+            fs_model << "0:" << p[k].value << " ";
         else
             for(; k < p.size(); k++)
             {
-                libmod << p[k].index << ":" << setprecision(8) << p[k].value << " ";
+                fs_model << p[k].index << ":" << setprecision(8) << p[k].value << " ";
             }
-        libmod << endl;
+        fs_model << endl;
     }
-    libmod.close();
+    fs_model.close();
 }
 
 void OneClassSVC::load_from_file(string path) {
     int total_sv;
     real ftemp;
-    //unsigned int cnr2 = 0;
-    const char *sType[] = {"c_svc", "nu_svc", "one_class", "epsilon_svr", "nu_svr", "NULL"};  
-    const char *kType[] = {"linear", "polynomial", "rbf", "sigmoid", "precomputed", "NULL"};
 
     ifstream ifs;
-    path = path + ".model";
-    ifs.open(path.c_str());//"dataset/a6a.model");
-    if (!ifs.is_open())
-        cout << "can't open file" << endl;
+    string file_name = path + ".model";
+    ifs.open(file_name.c_str());
+    CHECK(ifs.is_open()) << "file " << file_name << " not found";
     string feature;
     while (ifs >> feature) {
-        //cout<<"247"<<endl;
-        // cout<<feature<<endl;
-        //cout<<"feature"<<feature<<endl;
         if (feature == "svm_type") {
             string value;
             ifs >> value;
             for (int i = 0; i < 6; i++) {
-                if (value == sType[i])
+                if (value == svm_type_name[i])
                     param.svm_type = i;
             }
         } else if (feature == "kernel_type") {
             string value;
             ifs >> value;
             for (int i = 0; i < 6; i++) {
-                if (feature == kType[i])
+                if (feature == kernel_type_name[i])
                     param.kernel_type = i;
             }
         } else if (feature == "degree") {
@@ -140,21 +128,10 @@ void OneClassSVC::load_from_file(string path) {
         } else if (feature == "gamma") {
             ifs >> param.gamma;
 
-        }/* else if (feature == "nr_class") {
-            //ifs >> n_classes;
-            //n_binary_models = n_classes * (n_classes - 1) / 2;
-            //cnr2 = n_binary_models;
-            //cout<<"cnr2:"<<cnr2<<endl;
-            //ifs>>n_classes;
-        } */else if (feature == "total_sv") {
+        }else if (feature == "total_sv") {
             ifs >> total_sv;
             //total_sv = n_instances;
         } else if (feature == "rho") {
-            /*
-            vector<real> frho(cnr2, 0);
-            for (int i = 0; i < cnr2; i++)
-                ifs >> frho[i];
-            */
             real frho;
             ifs >> frho;
             rho = frho;
@@ -172,38 +149,25 @@ void OneClassSVC::load_from_file(string path) {
                 stringstream sstr;
                     ifs >> ftemp;
                 coefT[i] = ftemp;
-                    //coefT.push_back(ftemp);
-                //cout<<"ftemp:"<<ftemp<<endl;
-                //}
-                //vector<DataSet::node> p = svT[i];
                 getline(ifs, value);
-                //cout<<"value:"<<value<<endl;
                 sstr << value;
-                //cout<<"sstr:"<<sstr<<endl;
                 string temp;
                 stringstream stemp;
                 int indext;
                 float valuet;
-                //int k = 0;
                 while (sstr >> temp) {
-                    //cout<<"in sstr i :"<<i<<endl;
-                    //if(i == 1)
-                        //cout<<"in sstr"<<endl;
                     int ind = temp.find_first_of(":");
                     stemp << temp.substr(0, ind);
                     stemp >> indext;
-                    //nodet.index = indext;
                     stemp.clear();
                     stemp << temp.substr(ind + 1, value.size());
                     stemp>>valuet;
 
-                    //nodet.value = valuet;
                     DataSet::node nodet(indext, valuet);
                     svT[i].push_back(nodet);
                     stemp.clear();
                     sstr.clear();
                 }
-                //cout<<"p[0].index"<<
             }
             coef = coefT;         
             sv = svT;
@@ -215,7 +179,6 @@ void OneClassSVC::load_from_file(string path) {
     for(int i = 0; i < total_sv; i++)
         sv_indext[i] = i;
     sv_index = sv_indext;
-    //cout<<"sv_index[1]:"<<sv_index[1]<<endl;
     ifs.close();
 }
 
