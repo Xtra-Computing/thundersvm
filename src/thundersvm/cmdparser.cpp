@@ -18,8 +18,6 @@ char svmpredict_output_file[1024];
 char svmpredict_model_file_name[1024];
 char svmscale_file_name[1024];
 
-int cross_validation;
-int nr_fold;
 int predict_probability=0;
 void print_null(const char *s) {};
 static int (*info)(const char *fmt,...) = &printf;
@@ -95,6 +93,8 @@ void CMDParser::init_param()
 	param_cmd.nr_weight = 0;
 	param_cmd.weight_label = NULL;
 	param_cmd.weight = NULL;
+
+	do_cross_validation = false;
 }
 
 void CMDParser::parse_command_line(int argc, char **argv)
@@ -157,7 +157,7 @@ void CMDParser::parse_command_line(int argc, char **argv)
 				i--;
 				break;
 			case 'v':
-				cross_validation = 1;
+				do_cross_validation = true;
 				nr_fold = atoi(argv[i]);
 				if(nr_fold < 2)
 				{

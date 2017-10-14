@@ -16,6 +16,8 @@ public:
 	void init_param();
 
 	struct SvmParam param_cmd;
+	bool do_cross_validation;
+	int nr_fold;
 	char svmtrain_input_file_name[1024];
 	char model_file_name[1024];
 };

@@ -32,7 +32,13 @@ int main(int argc, char **argv) {
         	printf("the svm type is not supported yet!\n");
         	exit(-1);
         }
-        model->train(train_dataset, parser.param_cmd);
+
+        if(parser.do_cross_validation == true){
+        	model->cross_validation(train_dataset, parser.param_cmd, parser.nr_fold);
+        	return 0;
+        }
+        else
+        	model->train(train_dataset, parser.param_cmd);
 
         //perform svm testing
         DataSet test_dataset;
@@ -68,7 +74,8 @@ int main(int argc, char **argv) {
             }
             LOG(INFO) << "n_pos = " << n_pos;
         }
-    }else{
+    }
+    else{
     	printf("unknown task type\n");
     }
     return 0;
