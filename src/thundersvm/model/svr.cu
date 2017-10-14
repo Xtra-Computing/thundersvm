@@ -3,7 +3,6 @@
 //
 #include <iostream>
 #include <iomanip>
-#include <cstring>
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
 #include "thundersvm/model/svr.h"
 using namespace std;
@@ -14,7 +13,7 @@ void SVR::train(DataSet dataset, SvmParam param) {
     DataSet::node2d instances_2(dataset.instances());
     instances_2.insert(instances_2.end(), dataset.instances().begin(), dataset.instances().end());
 
-    KernelMatrix kernelMatrix(instances_2, param.gamma);
+    KernelMatrix kernelMatrix(instances_2, param);
 
     SyncData<real> f_val(n_instances * 2);
     SyncData<int> y(n_instances * 2);
@@ -70,7 +69,7 @@ void SVR::save_to_file(string path) {
 
         vector<DataSet::node> p = SV[sv_index[i]];
         int k = 0;
-        if(param.kernel_type == PRECOMPUTED)
+        if (param.kernel_type == SvmParam::PRECOMPUTED)
             fs_model << "0:" << p[k].value << " ";
         else
             for(; k < p.size(); k++)

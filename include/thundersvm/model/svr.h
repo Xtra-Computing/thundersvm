@@ -15,7 +15,7 @@ class SVR : public SvmModel {
 public:
 
     SVR() : SvmModel() {
-        param.svm_type = SvmParam::SVR;
+        param.svm_type = SvmParam::EPSILON_SVR;
     }
 
     void train(DataSet dataset, SvmParam param) override;

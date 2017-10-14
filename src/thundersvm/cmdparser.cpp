@@ -80,8 +80,8 @@ void HelpInfo_svmscale()
 
 void CMDParser::init_param()
 {
-	param_cmd.svm_type = C_SVC;
-	param_cmd.kernel_type = RBF;
+    param_cmd.svm_type = SvmParam::C_SVC;
+    param_cmd.kernel_type = SvmParam::RBF;
 	param_cmd.degree = 3;
 	param_cmd.gamma = 0;	// 1/num_features
 	param_cmd.coef0 = 0;

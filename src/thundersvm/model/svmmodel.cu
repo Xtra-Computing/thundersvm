@@ -62,11 +62,11 @@ SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData
         }
 
         //local smo
-        size_t smem_size = ws_size * sizeof(real) * 3 + 2 * sizeof(float);
+        size_t smem_size = ws_size * sizeof(real) * 4 + 2 * sizeof(float);
         local_smo << < 1, ws_size, smem_size >> >
                                    (y.device_data(), f_val.device_data(), alpha.device_data(), alpha_diff.device_data(),
-                                           working_set.device_data(), ws_size, C, k_mat_rows.device_data(), n_instances,
-                                           eps, diff_and_bias.device_data());
+                                           working_set.device_data(), ws_size, C, k_mat_rows.device_data(),
+                                           k_mat.diag().device_data(), n_instances, eps, diff_and_bias.device_data());
         LOG_EVERY_N(10, INFO) << "diff=" << diff_and_bias[0];
         if (diff_and_bias[0] < eps) {
             rho = diff_and_bias[1];
@@ -136,7 +136,7 @@ vector<real> SvmModel::predict(const DataSet::node2d &instances, int batch_size)
     sv_index.copy_from(this->sv_index.data(), n_sv);
 
     //compute kernel values
-    KernelMatrix k_mat(sv, param.gamma);
+    KernelMatrix k_mat(sv, param);
 
     auto batch_start = instances.begin();
     auto batch_end = batch_start;
@@ -178,10 +178,13 @@ void SvmModel::record_model(const SyncData<real> &alpha, const SyncData<int> &y,
 }
 
 vector<real> SvmModel::cross_validation(DataSet dataset, SvmParam param, int n_fold) {
-    dataset.group_classes(this->param.svm_type == SvmParam::SVC);
+    dataset.group_classes(this->param.svm_type == SvmParam::C_SVC);//group classes only for classification
+
     vector<real> y_test_all;
     vector<real> y_predict_all;
+
     for (int k = 0; k < n_fold; ++k) {
+        LOG(INFO) << n_fold << " fold cross-validation(" << k + 1 << "/" << n_fold << ")";
         DataSet::node2d x_train, x_test;
         vector<real> y_train, y_test;
         for (int i = 0; i < dataset.n_classes(); ++i) {

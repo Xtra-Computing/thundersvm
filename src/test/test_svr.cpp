@@ -14,6 +14,7 @@ TEST(SVRTest, train) {
     param.C = 10;
     param.p = 0.1;
     param.epsilon = 0.001;
+    param.kernel_type = SvmParam::RBF;
     SvmModel *model = new SVR();
     model->train(dataset, param);
 

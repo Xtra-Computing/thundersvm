@@ -4,7 +4,6 @@
 
 #include <iostream>
 #include <iomanip>
-#include <cstring>
 #include <thundersvm/model/oneclass_svc.h>
 using namespace std;
 
@@ -13,7 +12,7 @@ void OneClassSVC::train(DataSet dataset, SvmParam param) {
     SyncData<real> alpha(n_instances);
     SyncData<real> f_val(n_instances);
 
-    KernelMatrix kernelMatrix(dataset.instances(), param.gamma);
+    KernelMatrix kernelMatrix(dataset.instances(), param);
 
     alpha.mem_set(0);
     int n = static_cast<int>(param.nu * n_instances);
@@ -85,7 +84,7 @@ void OneClassSVC::save_to_file(string path) {
 
         vector<DataSet::node> p = SV[sv_index[i]];
         int k = 0;
-        if(param.kernel_type == PRECOMPUTED)
+        if (param.kernel_type == SvmParam::PRECOMPUTED)
             fs_model << "0:" << p[k].value << " ";
         else
             for(; k < p.size(); k++)

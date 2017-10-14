@@ -35,7 +35,7 @@ void SVC::train(DataSet dataset, SvmParam param) {
                 y[dataset.count()[i] + l] = -1;
                 f_val[dataset.count()[i] + l] = +1;
             }
-            KernelMatrix k_mat(ins, param.gamma);
+            KernelMatrix k_mat(ins, param);
             int ws_size = min(min(max2power(dataset.count()[0]), max2power(dataset.count()[1])) * 2, 1024);
             smo_solver(k_mat, y, alpha, rho, f_val, param.epsilon, param.C, ws_size);
             record_binary_model(k, alpha, y, rho, dataset.original_index(i, j), dataset.instances());
@@ -66,7 +66,7 @@ vector<real> SVC::predict(const DataSet::node2d &instances, int batch_size) {
     rho.copy_from(this->rho.data(), rho.count());
 
     //compute kernel values
-    KernelMatrix k_mat(sv, param.gamma);
+    KernelMatrix k_mat(sv, param);
 
     auto batch_start = instances.begin();
     auto batch_end = batch_start;
@@ -180,7 +180,7 @@ void SVC::save_to_file(string path) {
         for(int j = 0; j < n_binary_models; j++){
             vector<DataSet::node> p = SV[sv_index[j][i]];
             int k = 0;
-            if(param.kernel_type == PRECOMPUTED)
+            if (param.kernel_type == SvmParam::PRECOMPUTED)
                 fs_model << "0:" << p[k].value << " ";
             else
                 for(; k < p.size(); k++)

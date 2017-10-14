@@ -15,7 +15,7 @@ class SVC : public SvmModel {
 public:
 
     SVC() : SvmModel() {
-        param.svm_type = SvmParam::SVC;
+        param.svm_type = SvmParam::C_SVC;
     }
 
     void train(DataSet dataset, SvmParam param) override;

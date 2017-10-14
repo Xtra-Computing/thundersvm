@@ -21,7 +21,7 @@ __device__ int get_block_min(const float *values, int *index) {
 
 __global__ void
 local_smo(const int *label, real *f_values, real *alpha, real *alpha_diff, const int *working_set, int ws_size, float C,
-          const float *k_mat_rows, int row_len, real eps, real *diff_and_bias) {
+          const float *k_mat_rows, const float *k_mat_diag, int row_len, real eps, real *diff_and_bias) {
     //"row_len" equals to the number of instances in the original training dataset.
     //allocate shared memory
     extern __shared__ int shared_mem[];
@@ -30,10 +30,12 @@ local_smo(const int *label, real *f_values, real *alpha, real *alpha_diff, const
     float *f_values_j = &f_values_i[ws_size]; //fvalues of I_low
     float *alpha_i_diff = &f_values_j[ws_size]; //delta alpha_i
     float *alpha_j_diff = &alpha_i_diff[1];
+    float *kd = &alpha_j_diff[1]; // diagonal elements for kernel matrix
 
     //index, f value and alpha for each instance
     int tid = threadIdx.x;
     int wsi = working_set[tid];
+    kd[tid] = k_mat_diag[wsi];
     float y = label[wsi];
     float f = f_values[wsi];
     float a = alpha[wsi];
@@ -76,7 +78,7 @@ local_smo(const int *label, real *f_values, real *alpha, real *alpha_diff, const
 
         //select j2 using second order heuristic
         if (-up_value > -f && ((y > 0 && a > 0) || (y < 0 && a < C))) {
-            float aIJ = 1 + 1 - 2 * kIwsI;
+            float aIJ = kd[i] + kd[tid] - 2 * kIwsI;
             float bIJ = -up_value + f;
             f_values_i[tid] = -bIJ * bIJ / aIJ;
         } else
@@ -87,7 +89,7 @@ local_smo(const int *label, real *f_values, real *alpha, real *alpha_diff, const
         if (tid == i)
             *alpha_i_diff = y > 0 ? C - a : a;
         if (tid == j2)
-            *alpha_j_diff = min(y > 0 ? a : C - a, (-up_value - f_values_j[j2]) / (1 + 1 - 2 * kIwsI));
+            *alpha_j_diff = min(y > 0 ? a : C - a, (-up_value - f_values_j[j2]) / (kd[i] + kd[j2] - 2 * kIwsI));
         __syncthreads();
         float l = min(*alpha_i_diff, *alpha_j_diff);
 
