@@ -110,44 +110,38 @@ vector<real> SVC::predict(const DataSet::node2d &instances, int batch_size) {
 }
 
 void SVC::save_to_file(string path) {
-    ofstream libmod;
+    ofstream fs_model;
     string str = path + ".model";
-    libmod.open(str.c_str());
-    if (!libmod.is_open()) {
-        cout << "can't open file " << path << endl;
-        //return ret;
-    }
-    //cout<<"120"<<endl;
+    fs_model.open(str.c_str());
+    CHECK(fs_model.is_open()) << "file " << path << " not found";
     const SvmParam &param = this->param;
-    const char *sType[] = {"c_svc", "nu_svc", "one_class", "epsilon_svr", "nu_svr", "NULL"};  /* svm_type */
-    const char *kType[] = {"linear", "polynomial", "rbf", "sigmoid", "precomputed", "NULL"};
-    libmod << "svm_type " << sType[param.svm_type] << endl;
-    libmod << "kernel_type " << kType[param.kernel_type] << endl;
+    fs_model << "svm_type " << svm_type_name[param.svm_type] << endl;
+    fs_model << "kernel_type " << kernel_type_name[param.kernel_type] << endl;
     if (param.kernel_type == 1)
-        libmod << "degree " << param.degree << endl;
+        fs_model << "degree " << param.degree << endl;
     if (param.kernel_type == 1 || param.kernel_type == 2 || param.kernel_type == 3)/*1:poly 2:rbf 3:sigmoid*/
-        libmod << "gamma " << param.gamma << endl;
+        fs_model << "gamma " << param.gamma << endl;
     if (param.kernel_type == 1 || param.kernel_type == 3)
-        libmod << "coef0 " << param.coef0 << endl;
+        fs_model << "coef0 " << param.coef0 << endl;
     //unsigned int nr_class = this->dataSet.n_classes();
     //unsigned int total_sv = this->dataSet.total_count();            //not sure
     unsigned int nr_class = n_classes;
     unsigned int total_sv = sv.size();
     //unsigned int total_sv = n_instances;
-    libmod << "nr_class " << nr_class << endl;
-    libmod << "total_sv " << total_sv << endl;
+    fs_model << "nr_class " << nr_class << endl;
+    fs_model << "total_sv " << total_sv << endl;
     vector<real> frho = rho;
-    libmod << "rho";
+    fs_model << "rho";
     for (int i = 0; i < nr_class * (nr_class - 1) / 2; i++) {
-        libmod << " " << frho[i];
+        fs_model << " " << frho[i];
     }
-    libmod << endl;
+    fs_model << endl;
     
     if (param.svm_type == 0) {
-        libmod << "label";
+        fs_model << "label";
         for (int i = 0; i < nr_class; i++)
-            libmod << " " << label[i];
-        libmod << endl;
+            fs_model << " " << label[i];
+        fs_model << endl;
     }
     
     //cout<<"149"<<endl;
@@ -173,39 +167,30 @@ void SVC::save_to_file(string path) {
         libmod << endl;
     }
     */
-    libmod << "SV" << endl;
+    fs_model << "SV" << endl;
     
     vector<vector<real>> sv_coef = this->coef;
     vector<vector<DataSet::node>> SV = this->sv;
-    //cout<<"total_sv:"<<total_sv<<endl;
     for(int i=0;i<total_sv;i++)
     {
-        //cout<<"185"<<endl;
         for(int j = 0; j < n_binary_models; j++){
-            libmod << setprecision(16) << sv_coef[j][i]<< " ";
+            fs_model << setprecision(16) << sv_coef[j][i]<< " ";
 
         }
         for(int j = 0; j < n_binary_models; j++){
             vector<DataSet::node> p = SV[sv_index[j][i]];
-            //cout<<"sv_index j:" <<j<<"sv_index i:"<<i<<endl;
             int k = 0;
-            //cout<<"193"<<endl;
             if(param.kernel_type == PRECOMPUTED)
-                //fprintf(fp,"0:%d ",(int)(p->value));
-                libmod << "0:" << p[k].value << " ";
+                fs_model << "0:" << p[k].value << " ";
             else
                 for(; k < p.size(); k++)
                 {
-                    //fprintf(fp,"%d:%.8g ",p->index,p->value);
-                    //cout<<"218"<<endl;
-                    libmod << p[k].index << ":" << setprecision(8) << p[k].value << " ";
+                    fs_model << p[k].index << ":" << setprecision(8) << p[k].value << " ";
                 }
-            //cout<<"222"<<endl;
-            //fprintf(fp, "\n");
-            libmod << endl;
+            fs_model << endl;
         }
     }
-    libmod.close();
+    fs_model.close();
 
 }
 

@@ -41,6 +41,8 @@ protected:
     DataSet::node2d sv;
     vector<int> sv_index;
     real rho;
+    const char *kernel_type_name[6] = {"linear", "polynomial", "rbf", "sigmoid", "precomputed", "NULL"};
+    const char *svm_type_name[6] = {"c_svc", "nu_svc", "one_class", "epsilon_svr", "nu_svr", "NULL"};  /* svm_type */
 };
 
 #endif //THUNDERSVM_SVMMODEL_H

@@ -1,10 +1,10 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "thundersvm/svmparam.h"
 #include <iostream>
+#include "thundersvm/svmparam.h"
+#include "thundersvm/cmdparser.h"
 using namespace std;
-struct SvmParam param_cmd;
 char *line = NULL;
 int max_line_len = 1024;
 double lower=-1.0,upper=1.0,y_lower,y_upper;
@@ -13,8 +13,6 @@ int y_scaling = 0;
 char *save_filename = NULL;
 char *restore_filename = NULL;
 
-char svmtrain_input_file_name[1024];
-char svmtrain_model_file_name[1024];
 char svmpredict_input_file[1024];
 char svmpredict_output_file[1024];
 char svmpredict_model_file_name[1024];
@@ -27,17 +25,6 @@ void print_null(const char *s) {};
 static int (*info)(const char *fmt,...) = &printf;
 void HelpInfo_svmtrain()
 {
-	/*
-	printf(
-	"Usage: svm-train [options] training_set_file [model_file]\n"
-	"options:\n"
-	"-g gamma : set gamma in kernel function (default 1/num_features)\n"
-	"-c cost : set the parameter C of C-SVC, epsilon-SVR, and nu-SVR (default 1)\n"
-	"-n nu : set the parameter nu of nu-SVC, one-class SVM, and nu-SVR (default 0.5)\n"
-	"-p epsilon : set the epsilon in loss function of epsilon-SVR (default 0.1)\n"
-	);
-	exit(1);
-	*/
 	printf(
 	"Usage: svm-train [options] training_set_file [model_file]\n"
 	"options:\n"
@@ -91,7 +78,7 @@ void HelpInfo_svmscale()
 	exit(1);
 }
 
-void InitParam()
+void CMDParser::init_param()
 {
 	param_cmd.svm_type = C_SVC;
 	param_cmd.kernel_type = RBF;
@@ -110,16 +97,18 @@ void InitParam()
 	param_cmd.weight = NULL;
 }
 
-void parse_command_line(int argc, char **argv)
+void CMDParser::parse_command_line(int argc, char **argv)
 {
 	int i;
 	void (*print_func)(const char*) = NULL;	// default printing to stdout
 
-	InitParam();
-	if(strcmp(argv[1], "svmtrain") == 0){
+	init_param();
+	string bin_name = argv[0];
+	bin_name = bin_name.substr(bin_name.find_last_of("/") + 1);
+	if(bin_name == "thundersvm"){
 		// parse options
 		param_cmd.task_type = svmTrain;
-		for(i = 2; i < argc; i++)
+		for(i = 1; i < argc; i++)
 		{
 			if(argv[i][0] != '-') break;
 			if(++i >= argc)
@@ -195,7 +184,7 @@ void parse_command_line(int argc, char **argv)
 		strcpy(svmtrain_input_file_name, argv[i]);
 
 		if(i<argc-1)
-			strcpy(svmtrain_model_file_name,argv[i+1]);
+			strcpy(model_file_name,argv[i+1]);
 		else
 		{
 			char *p = strrchr(argv[i],'/');
@@ -203,10 +192,10 @@ void parse_command_line(int argc, char **argv)
 				p = argv[i];
 			else
 				++p;
-			sprintf(svmtrain_model_file_name,"%s.model",p);
+			sprintf(model_file_name,"%s.model",p);
 		}
 	}
-	else if(strcmp(argv[1], "svmpredict") == 0)
+	else if(bin_name == "thundersvm_predict")
 	{
 		FILE *input, *output;
 		param_cmd.task_type = svmPredict;
@@ -244,7 +233,7 @@ void parse_command_line(int argc, char **argv)
 		strcpy(svmpredict_output_file, argv[i+2]);
 		strcpy(svmpredict_model_file_name, argv[i+1]);
 	}
-	else if(strcmp(argv[1], "svmscale") == 0)
+	else if(bin_name == "thundersvm_scale")
 	{
 		FILE *fp, *fp_restore = NULL;
 		char *save_filename = NULL;
@@ -283,5 +272,11 @@ void parse_command_line(int argc, char **argv)
 		if(argc != i+1) 
 			HelpInfo_svmscale();
 		strcpy(svmscale_file_name, argv[i]);
+	}
+	else{
+		printf("Usage: thundersvm [options] training_set_file [model_file]\n"
+			    "or: thundersvm_predict [options] test_file model_file output_file\n"
+				"or: thundersvm_scale [options] data_filename\n");
+		exit(0);
 	}
 }
