@@ -3,7 +3,6 @@
 //
 #include <iostream>
 #include <iomanip>
-#include <cstring>
 #include <thundersvm/kernel/smo_kernel.h>
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
 #include <thundersvm/model/svc.h>

@@ -18,6 +18,8 @@ public:
 
     virtual vector<real> predict(const DataSet::node2d &instances, int batch_size);
 
+    virtual vector<real> cross_validation(DataSet dataset, SvmParam param, int n_fold);
+
     virtual void save_to_file(string path) = 0;
 
     virtual void load_from_file(string path) = 0;

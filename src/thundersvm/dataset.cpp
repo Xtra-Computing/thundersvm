@@ -10,6 +10,7 @@ DataSet::DataSet() : total_count_(0), n_features_(0) {}
 
 DataSet::DataSet(const DataSet::node2d &instances, int n_features, const vector<real> &y) :
         instances_(instances), n_features_(n_features), y_(y), total_count_(instances_.size()) {}
+
 void DataSet::load_from_file(string file_name) {
     y_.clear();
     instances_.clear();
@@ -48,48 +49,56 @@ const vector<int> &DataSet::start() const {
 }
 
 size_t DataSet::n_classes() const {
-    return label_.size();
+    return start_.size();
 }
 
 const vector<int> &DataSet::label() const {
     return label_;
 }
 
-void DataSet::group_classes() {
-    start_.clear();
-    count_.clear();
-    label_.clear();
-    perm_.clear();
-    vector<int> dataLabel(y_.size());//temporary labels of all the instances
+void DataSet::group_classes(bool classification) {
+    if (classification) {
+        start_.clear();
+        count_.clear();
+        label_.clear();
+        perm_.clear();
+        vector<int> dataLabel(y_.size());//temporary labels of all the instances
 
-    //get the class labels; count the number of instances in each class.
-    for (int i = 0; i < y_.size(); ++i) {
-        int j;
-        for (j = 0; j < label_.size(); ++j) {
-            if (y_[i] == label_[j]) {
-                count_[j]++;
-                break;
+        //get the class labels; count the number of instances in each class.
+        for (int i = 0; i < y_.size(); ++i) {
+            int j;
+            for (j = 0; j < label_.size(); ++j) {
+                if (y_[i] == label_[j]) {
+                    count_[j]++;
+                    break;
+                }
+            }
+            dataLabel[i] = j;
+            //if the label is unseen, add it to label vector.
+            if (j == label_.size()) {
+                //real to int conversion is safe, because group_classes only used in classification
+                label_.push_back(int(y_[i]));
+                count_.push_back(1);
             }
         }
-        dataLabel[i] = j;
-        //if the label is unseen, add it to label vector.
-        if (j == label_.size()) {
-            //real to int conversion is safe, because group_classes only used in classification
-            label_.push_back(int(y_[i]));
-            count_.push_back(1);
-        }
-    }
 
-    //logically put instances of the same class consecutively.
-    start_.push_back(0);
-    for (int i = 1; i < count_.size(); ++i) {
-        start_.push_back(start_[i - 1] + count_[i - 1]);
-    }
-    vector<int> start_copy(start_);
-    perm_ = vector<int>(y_.size());//index of each instance in the original array
-    for (int i = 0; i < y_.size(); ++i) {
-        perm_[start_copy[dataLabel[i]]] = i;
-        start_copy[dataLabel[i]]++;
+        //logically put instances of the same class consecutively.
+        start_.push_back(0);
+        for (int i = 1; i < count_.size(); ++i) {
+            start_.push_back(start_[i - 1] + count_[i - 1]);
+        }
+        vector<int> start_copy(start_);
+        perm_ = vector<int>(y_.size());//index of each instance in the original array
+        for (int i = 0; i < y_.size(); ++i) {
+            perm_[start_copy[dataLabel[i]]] = i;
+            start_copy[dataLabel[i]]++;
+        }
+    } else {
+        for (int i = 0; i < instances_.size(); ++i) {
+            perm_.push_back(i);
+        }
+        start_.push_back(0);
+        count_.push_back(instances_.size());
     }
 }
 
