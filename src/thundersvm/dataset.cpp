@@ -138,13 +138,7 @@ const vector<int> DataSet::original_index() const {//index of each instance in t
 }
 
 const vector<int> DataSet::original_index(int y_i) const {//index of each instance in the original array for one class
-    int si = start_[y_i];
-    int ci = count_[y_i];
-    vector<int> one_class_idx;
-    for (int i = si; i < si + ci; ++i) {
-        one_class_idx.push_back(perm_[i]);
-    }
-    return one_class_idx;
+    return vector<int>(perm_.begin() + start_[y_i], perm_.begin() + start_[y_i] + count_[y_i]);
 }
 
 const vector<int>

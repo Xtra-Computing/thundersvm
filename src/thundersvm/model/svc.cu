@@ -7,6 +7,7 @@
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
 #include <thundersvm/model/svc.h>
 #include "thrust/sort.h"
+
 using namespace std;
 
 void SVC::train(DataSet dataset, SvmParam param) {
@@ -42,71 +43,19 @@ void SVC::train(DataSet dataset, SvmParam param) {
             k++;
         }
     }
+
+    if (1 == param.probability) {
+        LOG(INFO) << "performing probability train";
+        probA.resize(n_binary_models);
+        probB.resize(n_binary_models);
+        probability_train(dataset);
+    }
 }
 
 vector<real> SVC::predict(const DataSet::node2d &instances, int batch_size) {
-    //prepare device data
-    SyncData<int> sv_start(n_binary_models);
-    SyncData<int> sv_count(n_binary_models);
-    int n_sv = 0;
-    for (int i = 0; i < n_binary_models; ++i) {
-        sv_start[i] = n_sv;
-        sv_count[i] = this->coef[i].size();
-        n_sv += this->coef[i].size();
-    }
-    SyncData<real> coef(n_sv);
-    SyncData<int> sv_index(n_sv);
-    SyncData<real> rho(n_binary_models);
-    for (int i = 0; i < n_binary_models; ++i) {
-        CUDA_CHECK(cudaMemcpy(coef.device_data() + sv_start[i], this->coef[i].data(), sizeof(real) * sv_count[i],
-                              cudaMemcpyHostToDevice));
-        CUDA_CHECK(cudaMemcpy(sv_index.device_data() + sv_start[i], this->sv_index[i].data(), sizeof(int) * sv_count[i],
-                              cudaMemcpyHostToDevice));
-    }
-    rho.copy_from(this->rho.data(), rho.count());
-
-    //compute kernel values
-    KernelMatrix k_mat(sv, param);
-
-    auto batch_start = instances.begin();
-    auto batch_end = batch_start;
-    vector<real> predict_y;
-    while (batch_end != instances.end()) {
-        while (batch_end != instances.end() && batch_end - batch_start < batch_size) batch_end++;
-
-        DataSet::node2d batch_ins(batch_start, batch_end);//get a batch of instances
-        SyncData<real> kernel_values(batch_ins.size() * sv.size());
-        k_mat.get_rows(batch_ins, kernel_values);
-        SyncData<real> dec_values(batch_ins.size() * n_binary_models);
-
-        //sum kernel values and get decision values
-        SAFE_KERNEL_LAUNCH(kernel_sum_kernel_values, kernel_values.device_data(), batch_ins.size(), sv.size(),
-                           n_binary_models, sv_index.device_data(), coef.device_data(), sv_start.device_data(),
-                           sv_count.device_data(), rho.device_data(), dec_values.device_data());
-
-        //predict y by voting among k(k-1)/2 models
-        for (int l = 0; l < batch_ins.size(); ++l) {
-            vector<int> votes(n_binary_models, 0);
-            int k = 0;
-            for (int i = 0; i < n_classes; ++i) {
-                for (int j = i + 1; j < n_classes; ++j) {
-                    if (dec_values[l * n_binary_models + k] > 0)
-                        votes[i]++;
-                    else
-                        votes[j]++;
-                    k++;
-                }
-            }
-            int maxVoteClass = 0;
-            for (int i = 0; i < n_classes; ++i) {
-                if (votes[i] > votes[maxVoteClass])
-                    maxVoteClass = i;
-            }
-            predict_y.push_back((float) this->label[maxVoteClass]);
-        }
-        batch_start += batch_size;
-    }
-    return predict_y;
+    SyncData<real> dec_values(instances.size() * n_binary_models);
+    predict_dec_values(instances, dec_values, batch_size);
+    return predict_label(dec_values, instances.size());
 }
 
 void SVC::save_to_file(string path) {
@@ -136,14 +85,14 @@ void SVC::save_to_file(string path) {
         fs_model << " " << frho[i];
     }
     fs_model << endl;
-    
+
     if (param.svm_type == 0) {
         fs_model << "label";
         for (int i = 0; i < nr_class; i++)
             fs_model << " " << label[i];
         fs_model << endl;
     }
-    
+
     //cout<<"149"<<endl;
     /*
     if (this->probability) // regression has probA only
@@ -168,23 +117,21 @@ void SVC::save_to_file(string path) {
     }
     */
     fs_model << "SV" << endl;
-    
+
     vector<vector<real>> sv_coef = this->coef;
     vector<vector<DataSet::node>> SV = this->sv;
-    for(int i=0;i<total_sv;i++)
-    {
-        for(int j = 0; j < n_binary_models; j++){
-            fs_model << setprecision(16) << sv_coef[j][i]<< " ";
+    for (int i = 0; i < total_sv; i++) {
+        for (int j = 0; j < n_binary_models; j++) {
+            fs_model << setprecision(16) << sv_coef[j][i] << " ";
 
         }
-        for(int j = 0; j < n_binary_models; j++){
+        for (int j = 0; j < n_binary_models; j++) {
             vector<DataSet::node> p = SV[sv_index[j][i]];
             int k = 0;
             if (param.kernel_type == SvmParam::PRECOMPUTED)
                 fs_model << "0:" << p[k].value << " ";
             else
-                for(; k < p.size(); k++)
-                {
+                for (; k < p.size(); k++) {
                     fs_model << p[k].index << ":" << setprecision(8) << p[k].value << " ";
                 }
             fs_model << endl;
@@ -195,8 +142,6 @@ void SVC::save_to_file(string path) {
 }
 
 void SVC::load_from_file(string path) {
-    //SvmParam paramT;
-    //int nr_class = 0;
     /*
     int total_sv;
     float ftemp;
@@ -348,4 +293,208 @@ void SVC::record_binary_model(int k, const SyncData<real> &alpha, const SyncData
     LOG(INFO) << "#SV=" << n_sv;
 }
 
+void SVC::predict_dec_values(const DataSet::node2d &instances, SyncData<real> &dec_values, int batch_size) const {
+    //prepare device data
+    SyncData<int> sv_start(n_binary_models);
+    SyncData<int> sv_count(n_binary_models);
+    int n_sv = 0;
+    for (int i = 0; i < n_binary_models; ++i) {
+        sv_start[i] = n_sv;
+        sv_count[i] = this->coef[i].size();
+        n_sv += this->coef[i].size();
+    }
+    SyncData<real> coef(n_sv);
+    SyncData<int> sv_index(n_sv);
+    SyncData<real> rho(n_binary_models);
+    for (int i = 0; i < n_binary_models; ++i) {
+        CUDA_CHECK(cudaMemcpy(coef.device_data() + sv_start[i], this->coef[i].data(), sizeof(real) * sv_count[i],
+                              cudaMemcpyHostToDevice));
+        CUDA_CHECK(cudaMemcpy(sv_index.device_data() + sv_start[i], this->sv_index[i].data(), sizeof(int) * sv_count[i],
+                              cudaMemcpyHostToDevice));
+    }
+    rho.copy_from(this->rho.data(), rho.count());
 
+    //compute kernel values
+    KernelMatrix k_mat(sv, param);
+
+    auto batch_start = instances.begin();
+    auto batch_end = batch_start;
+    vector<real> predict_y;
+    while (batch_end != instances.end()) {
+        while (batch_end != instances.end() && batch_end - batch_start < batch_size) {
+            batch_end++;
+        }
+
+        DataSet::node2d batch_ins(batch_start, batch_end);//get a batch of instances
+        SyncData<real> kernel_values(batch_ins.size() * sv.size());
+        k_mat.get_rows(batch_ins, kernel_values);
+        SyncData<real> batch_dec_values(batch_ins.size() * n_binary_models);
+        batch_dec_values.set_device_data(
+                &dec_values.device_data()[(batch_start - instances.begin()) * n_binary_models]);
+
+        //sum kernel values and get decision values
+        SAFE_KERNEL_LAUNCH(kernel_sum_kernel_values, kernel_values.device_data(), batch_ins.size(), sv.size(),
+                           n_binary_models, sv_index.device_data(), coef.device_data(), sv_start.device_data(),
+                           sv_count.device_data(), rho.device_data(), batch_dec_values.device_data());
+        batch_start += batch_size;
+    }
+}
+
+vector<real> SVC::predict_label(const SyncData<real> &dec_values, int n_instances) const {
+    vector<real> predict_y;
+    //predict y by voting among k(k-1)/2 models
+    for (int l = 0; l < n_instances; ++l) {
+        vector<int> votes(n_binary_models, 0);
+        int k = 0;
+        for (int i = 0; i < n_classes; ++i) {
+            for (int j = i + 1; j < n_classes; ++j) {
+                if (dec_values[l * n_binary_models + k] > 0)
+                    votes[i]++;
+                else
+                    votes[j]++;
+                k++;
+            }
+        }
+        int maxVoteClass = 0;
+        for (int i = 0; i < n_classes; ++i) {
+            if (votes[i] > votes[maxVoteClass])
+                maxVoteClass = i;
+        }
+        predict_y.push_back((float) this->label[maxVoteClass]);
+    }
+    return predict_y;
+}
+
+void sigmoidTrain(const real *decValues, const int l, const vector<int> &labels, real &A,
+                  real &B) {
+    double prior1 = 0, prior0 = 0;
+    int i;
+
+    for (i = 0; i < l; i++)
+        if (labels[i] > 0)
+            prior1 += 1;
+        else
+            prior0 += 1;
+
+    int max_iter = 100;    // Maximal number of iterations
+    double min_step = 1e-10;    // Minimal step taken in line search
+    double sigma = 1e-12;    // For numerically strict PD of Hessian
+    double eps = 1e-5;
+    double hiTarget = (prior1 + 1.0) / (prior1 + 2.0);
+    double loTarget = 1 / (prior0 + 2.0);
+    double *t = (double *) malloc(sizeof(double) * l);
+    double fApB, p, q, h11, h22, h21, g1, g2, det, dA, dB, gd, stepsize;
+    double newA, newB, newf, d1, d2;
+    int iter;
+
+    // Initial Point and Initial Fun Value
+    A = 0.0;
+    B = log((prior0 + 1.0) / (prior1 + 1.0));
+    double fval = 0.0;
+
+    for (i = 0; i < l; i++) {
+        if (labels[i] > 0)
+            t[i] = hiTarget;
+        else
+            t[i] = loTarget;
+        fApB = decValues[i] * A + B;
+        if (fApB >= 0)
+            fval += t[i] * fApB + log(1 + exp(-fApB));
+        else
+            fval += (t[i] - 1) * fApB + log(1 + exp(fApB));
+    }
+    for (iter = 0; iter < max_iter; iter++) {
+        // Update Gradient and Hessian (use H' = H + sigma I)
+        h11 = sigma; // numerically ensures strict PD
+        h22 = sigma;
+        h21 = 0.0;
+        g1 = 0.0;
+        g2 = 0.0;
+        for (i = 0; i < l; i++) {
+            fApB = decValues[i] * A + B;
+            if (fApB >= 0) {
+                p = exp(-fApB) / (1.0 + exp(-fApB));
+                q = 1.0 / (1.0 + exp(-fApB));
+            } else {
+                p = 1.0 / (1.0 + exp(fApB));
+                q = exp(fApB) / (1.0 + exp(fApB));
+            }
+            d2 = p * q;
+            h11 += decValues[i] * decValues[i] * d2;
+            h22 += d2;
+            h21 += decValues[i] * d2;
+            d1 = t[i] - p;
+            g1 += decValues[i] * d1;
+            g2 += d1;
+        }
+
+        // Stopping Criteria
+        if (fabs(g1) < eps && fabs(g2) < eps)
+            break;
+
+        // Finding Newton direction: -inv(H') * g
+        det = h11 * h22 - h21 * h21;
+        dA = -(h22 * g1 - h21 * g2) / det;
+        dB = -(-h21 * g1 + h11 * g2) / det;
+        gd = g1 * dA + g2 * dB;
+
+        stepsize = 1;        // Line Search
+        while (stepsize >= min_step) {
+            newA = A + stepsize * dA;
+            newB = B + stepsize * dB;
+
+            // New function value
+            newf = 0.0;
+            for (i = 0; i < l; i++) {
+                fApB = decValues[i] * newA + newB;
+                if (fApB >= 0)
+                    newf += t[i] * fApB + log(1 + exp(-fApB));
+                else
+                    newf += (t[i] - 1) * fApB + log(1 + exp(fApB));
+            }
+            // Check sufficient decrease
+            if (newf < fval + 0.0001 * stepsize * gd) {
+                A = newA;
+                B = newB;
+                fval = newf;
+                break;
+            } else
+                stepsize = stepsize / 2.0;
+        }
+
+        if (stepsize < min_step) {
+            printf("Line search fails in two-class probability estimates\n");
+            break;
+        }
+    }
+
+    if (iter >= max_iter)
+        printf(
+                "Reaching maximal iterations in two-class probability estimates\n");
+    free(t);
+}
+
+void SVC::probability_train(const DataSet &dataset) {
+    SyncData<real> dec_values(dataset.total_count() * n_binary_models);
+    predict_dec_values(dataset.instances(), dec_values, 10000);
+    int k = 0;
+    for (int i = 0; i < n_classes; ++i) {
+        for (int j = i + 1; j < n_classes; ++j) {
+            vector<int> ori_idx;
+            vector<int> y;
+            vector<real> dec_values_subproblem;
+            ori_idx = dataset.original_index(i);
+            for (int l = 0; l < dataset.count()[i]; ++l) {
+                y.push_back(+1);
+                dec_values_subproblem.push_back(dec_values[ori_idx[l] * n_binary_models + k]);
+            }
+            ori_idx = dataset.original_index(j);
+            for (int l = 0; l < dataset.count()[j]; ++l) {
+                y.push_back(-1);
+                dec_values_subproblem.push_back(dec_values[ori_idx[l] * n_binary_models + k]);
+            }
+            sigmoidTrain(dec_values_subproblem.data(), dec_values_subproblem.size(), y, probA[k], probB[k]);
+            k++;
+        }
+    }
+}

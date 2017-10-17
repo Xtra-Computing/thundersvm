@@ -21,6 +21,7 @@ protected:
         param.C = C;
         param.epsilon = 0.001;
         param.kernel_type = SvmParam::RBF;
+        param.probability = 1;
         SvmModel *model = new SVC();
 
         model->train(train_dataset, param);
@@ -36,6 +37,7 @@ protected:
         return accuracy;
     }
 };
+
 TEST_F(SVCTest, test_set) {
     EXPECT_NEAR(load_dataset_and_train(DATASET_DIR
                         "test_dataset.txt", DATASET_DIR

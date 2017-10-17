@@ -8,7 +8,6 @@
 #include <thundersvm/model/svr.h>
 #include <thundersvm/model/oneclass_svc.h>
 #include "thundersvm/cmdparser.h"
-#include "thundersvm/dataset.h"
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -22,11 +21,11 @@ int main(int argc, char **argv) {
 	    DataSet train_dataset;
         train_dataset.load_from_file(parser.svmtrain_input_file_name);
         SvmModel *model;
-        if(parser.param_cmd.svm_type == C_SVC)
+        if (parser.param_cmd.svm_type == SvmParam::C_SVC)
         	model = new SVC();
-        else if(parser.param_cmd.svm_type == EPSILON_SVR)
+        else if (parser.param_cmd.svm_type == SvmParam::EPSILON_SVR)
         	model = new SVR();
-        else if(parser.param_cmd.svm_type == ONE_CLASS)
+        else if (parser.param_cmd.svm_type == SvmParam::ONE_CLASS)
         	model = new OneClassSVC();
         else{
         	printf("the svm type is not supported yet!\n");
@@ -46,7 +45,7 @@ int main(int argc, char **argv) {
         test_dataset.load_from_file(parser.svmtrain_input_file_name);
 
         predict_y = model->predict(test_dataset.instances(), 10000);
-        if(parser.param_cmd.svm_type == C_SVC){
+        if (parser.param_cmd.svm_type == SvmParam::C_SVC) {
 			int n_correct = 0;
 			for (int i = 0; i < predict_y.size(); ++i) {
 				if (predict_y[i] == test_dataset.y()[i])
@@ -55,8 +54,7 @@ int main(int argc, char **argv) {
 			float accuracy = n_correct / (float) test_dataset.instances().size();
 			LOG(INFO) << "Accuracy = " << accuracy << "(" << n_correct << "/"
 					  << test_dataset.instances().size() << ")\n";
-        }
-        else if(parser.param_cmd.svm_type == EPSILON_SVR){
+        } else if (parser.param_cmd.svm_type == SvmParam::EPSILON_SVR) {
 			real mse = 0;
 			for (int i = 0; i < predict_y.size(); ++i) {
 				mse += (predict_y[i] - train_dataset.y()[i]) * (predict_y[i] - train_dataset.y()[i]);
@@ -64,8 +62,7 @@ int main(int argc, char **argv) {
 			mse /= predict_y.size();
 
 			LOG(INFO) << "MSE = " << mse;
-        }
-        else if(parser.param_cmd.svm_type == ONE_CLASS){
+        } else if (parser.param_cmd.svm_type == SvmParam::ONE_CLASS) {
             vector<real> predict_y = model->predict(train_dataset.instances(), 100);
             int n_pos = 0;
             for (int i = 0; i < predict_y.size(); ++i) {
