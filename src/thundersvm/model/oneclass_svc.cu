@@ -25,16 +25,19 @@ void OneClassSVC::train(DataSet dataset, SvmParam param) {
 
     //init_f
     //TODO batch, thrust
-    SyncData<int> idx(1);
-    SyncData<real> kernel_row(n_instances);
+    SyncData<int> idx(n);
+    SyncData<real> kernel_row(n_instances * (n + 1));
     f_val.mem_set(0);
     for (int i = 0; i <= n; ++i) {
-        idx[0] = i;
-        kernelMatrix.get_rows(idx, kernel_row);
+        idx[i] = i;
+    }
+    kernelMatrix.get_rows(idx, kernel_row);
+    for (int i = 0; i <= n; ++i) {
         for (int j = 0; j < n_instances; ++j) {
-            f_val[j] += alpha[i] * kernel_row[j];
+            f_val[j] += alpha[i] * kernel_row[i * n_instances + j];
         }
     }
+
 
     SyncData<int> y(n_instances);
     for (int i = 0; i < n_instances; ++i) {
