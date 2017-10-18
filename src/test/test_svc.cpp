@@ -21,7 +21,7 @@ protected:
         param.C = C;
         param.epsilon = 0.001;
         param.kernel_type = SvmParam::RBF;
-        param.probability = 1;
+//        param.probability = 1;
         SvmModel *model = new SVC();
 
         model->train(train_dataset, param);
@@ -44,15 +44,15 @@ TEST_F(SVCTest, test_set) {
                         "test_dataset.txt", 100, 0.5), 0.98, 1e-5);
 }
 
-//TEST_F(SVCTest, a9a) {
-//    EXPECT_NEAR(load_dataset_and_train(DATASET_DIR
-//                        "a9a", DATASET_DIR
-//                        "a9a.t", 100, 0.5), 0.826608, 1e-3);
-//}
-
-TEST_F(SVCTest, mnist) {
-    load_dataset_and_train(DATASET_DIR "mnist.scale", DATASET_DIR "mnist.scale.t", 10, 0.125);
+TEST_F(SVCTest, a9a) {
+    EXPECT_NEAR(load_dataset_and_train(DATASET_DIR
+                        "a9a", DATASET_DIR
+                        "a9a.t", 100, 0.5), 0.826608, 1e-3);
 }
+
+//TEST_F(SVCTest, mnist) {
+//    load_dataset_and_train(DATASET_DIR "mnist.scale", DATASET_DIR "mnist.scale.t", 10, 0.125);
+//}
 
 //TEST_F(SVCTest, realsim) {
 //    EXPECT_NEAR(load_dataset_and_train(DATASET_DIR

@@ -37,6 +37,8 @@ private:
 
     void probability_train(const DataSet &dataset);
 
+    void multiclass_probability(const vector<vector<real>> &r, vector<real> &p) const;
+
     map<int, int> sv_index_map;
     vector<vector<real>> coef; //alpha_i * y_i
     DataSet::node2d sv;
@@ -48,6 +50,7 @@ private:
 
     size_t n_classes;
     size_t n_binary_models;
+
 };
 
 #endif //THUNDERSVM_SVC_H

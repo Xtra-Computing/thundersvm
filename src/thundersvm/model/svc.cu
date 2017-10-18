@@ -340,27 +340,119 @@ void SVC::predict_dec_values(const DataSet::node2d &instances, SyncData<real> &d
     }
 }
 
-vector<real> SVC::predict_label(const SyncData<real> &dec_values, int n_instances) const {
-    vector<real> predict_y;
-    //predict y by voting among k(k-1)/2 models
-    for (int l = 0; l < n_instances; ++l) {
-        vector<int> votes(n_binary_models, 0);
-        int k = 0;
-        for (int i = 0; i < n_classes; ++i) {
-            for (int j = i + 1; j < n_classes; ++j) {
-                if (dec_values[l * n_binary_models + k] > 0)
-                    votes[i]++;
-                else
-                    votes[j]++;
-                k++;
+real sigmoidPredict(real dec_value, real A, real B) {
+    double fApB = dec_value * A + B;
+    // 1-p used later; avoid catastrophic cancellation
+    if (fApB >= 0)
+        return exp(-fApB) / (1.0 + exp(-fApB));
+    else
+        return 1.0 / (1 + exp(fApB));
+}
+
+void SVC::multiclass_probability(const vector<vector<real> > &r, vector<real> &p) const {
+    int nrClass = n_classes;
+    int t, j;
+    int iter = 0, max_iter = max(100, nrClass);
+    double **Q = (double **) malloc(sizeof(double *) * nrClass);
+    double *Qp = (double *) malloc(sizeof(double) * nrClass);
+    double pQp, eps = 0.005 / nrClass;
+
+    for (t = 0; t < nrClass; t++) {
+        p[t] = 1.0 / nrClass;  // Valid if k = 1
+        Q[t] = (double *) malloc(sizeof(double) * nrClass);
+        Q[t][t] = 0;
+        for (j = 0; j < t; j++) {
+            Q[t][t] += r[j][t] * r[j][t];
+            Q[t][j] = Q[j][t];
+        }
+        for (j = t + 1; j < nrClass; j++) {
+            Q[t][t] += r[j][t] * r[j][t];
+            Q[t][j] = -r[j][t] * r[t][j];
+        }
+    }
+    for (iter = 0; iter < max_iter; iter++) {
+        // stopping condition, recalculate QP,pQP for numerical accuracy
+        pQp = 0;
+        for (t = 0; t < nrClass; t++) {
+            Qp[t] = 0;
+            for (j = 0; j < nrClass; j++)
+                Qp[t] += Q[t][j] * p[j];
+            pQp += p[t] * Qp[t];
+        }
+        double max_error = 0;
+        for (t = 0; t < nrClass; t++) {
+            double error = fabs(Qp[t] - pQp);
+            if (error > max_error)
+                max_error = error;
+        }
+        if (max_error < eps)
+            break;
+
+        for (t = 0; t < nrClass; t++) {
+            double diff = (-Qp[t] + pQp) / Q[t][t];
+            p[t] += diff;
+            pQp = (pQp + diff * (diff * Q[t][t] + 2 * Qp[t])) / (1 + diff)
+                  / (1 + diff);
+            for (j = 0; j < nrClass; j++) {
+                Qp[j] = (Qp[j] + diff * Q[t][j]) / (1 + diff);
+                p[j] /= (1 + diff);
             }
         }
-        int maxVoteClass = 0;
-        for (int i = 0; i < n_classes; ++i) {
-            if (votes[i] > votes[maxVoteClass])
-                maxVoteClass = i;
+    }
+    if (iter >= max_iter)
+        printf("Exceeds max_iter in multiclass_prob\n");
+    for (t = 0; t < nrClass; t++)
+        free(Q[t]);
+    free(Q);
+    free(Qp);
+}
+
+vector<real> SVC::predict_label(const SyncData<real> &dec_values, int n_instances) const {
+    vector<real> predict_y;
+    if (0 == param.probability) {
+        //predict y by voting among k(k-1)/2 models
+        for (int l = 0; l < n_instances; ++l) {
+            vector<int> votes(n_binary_models, 0);
+            int k = 0;
+            for (int i = 0; i < n_classes; ++i) {
+                for (int j = i + 1; j < n_classes; ++j) {
+                    if (dec_values[l * n_binary_models + k] > 0)
+                        votes[i]++;
+                    else
+                        votes[j]++;
+                    k++;
+                }
+            }
+            int maxVoteClass = 0;
+            for (int i = 0; i < n_classes; ++i) {
+                if (votes[i] > votes[maxVoteClass])
+                    maxVoteClass = i;
+            }
+            predict_y.push_back((float) this->label[maxVoteClass]);
         }
-        predict_y.push_back((float) this->label[maxVoteClass]);
+    } else {
+        LOG(INFO) << "predict with probability";
+        for (int l = 0; l < n_instances; ++l) {
+            vector<vector<real> > r(n_classes, vector<real>(n_classes));
+            double min_prob = 1e-7;
+            int k = 0;
+            for (int i = 0; i < n_classes; i++)
+                for (int j = i + 1; j < n_classes; j++) {
+                    r[i][j] = min(
+                            max(sigmoidPredict(dec_values[l * n_binary_models + k], probA[k], probB[k]), min_prob),
+                            1 - min_prob);
+                    r[j][i] = 1 - r[i][j];
+                    k++;
+                }
+            vector<real> p(n_classes);
+            multiclass_probability(r, p);
+            int max_prob_class = 0;
+            for (int j = 0; j < n_classes; ++j) {
+                if (p[j] > p[max_prob_class])
+                    max_prob_class = j;
+            }
+            predict_y.push_back((float) this->label[max_prob_class]);
+        }
     }
     return predict_y;
 }
