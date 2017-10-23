@@ -19,16 +19,24 @@ __device__ int get_block_min(const float *values, int *index) {
     return index[0];
 }
 
+__device__ bool is_I_up(float a, float y, float C) {
+    return (y > 0 && a < C) || (y < 0 && a > 0);
+}
+
+__device__ bool is_I_low(float a, float y, float C) {
+    return (y > 0 && a > 0) || (y < 0 && a < C);
+}
+
 __global__ void
-local_smo(const int *label, real *f_values, real *alpha, real *alpha_diff, const int *working_set, int ws_size, float C,
-          const float *k_mat_rows, const float *k_mat_diag, int row_len, real eps, real *diff_and_bias) {
+c_smo_solve_kernel(const int *label, real *f_values, real *alpha, real *alpha_diff, const int *working_set, int ws_size,
+                   float C, const float *k_mat_rows, const float *k_mat_diag, int row_len, real eps,
+                   real *diff_and_bias) {
     //"row_len" equals to the number of instances in the original training dataset.
     //allocate shared memory
     extern __shared__ int shared_mem[];
     int *idx2reduce = shared_mem; //temporary memory for reduction
-    float *f_values_i = (float *) &idx2reduce[ws_size]; //fvalues of I_up.
-    float *f_values_j = &f_values_i[ws_size]; //fvalues of I_low
-    float *alpha_i_diff = &f_values_j[ws_size]; //delta alpha_i
+    float *f_val2reduce = (float *) &idx2reduce[ws_size]; //f values used for reduction.
+    float *alpha_i_diff = &f_val2reduce[ws_size]; //delta alpha_i
     float *alpha_j_diff = &alpha_i_diff[1];
     float *kd = &alpha_j_diff[1]; // diagonal elements for kernel matrix
 
@@ -45,20 +53,21 @@ local_smo(const int *label, real *f_values, real *alpha, real *alpha_diff, const
     int numOfIter = 0;
     while (1) {
         //select fUp and fLow
-        if ((y > 0 && a < C) || (y < 0 && a > 0))
-            f_values_i[tid] = f;
+        if (is_I_up(a, y, C))
+            f_val2reduce[tid] = f;
         else
-            f_values_i[tid] = INFINITY;
-        if ((y > 0 && a > 0) || (y < 0 && a < C))
-            f_values_j[tid] = -f;
-        else
-            f_values_j[tid] = INFINITY;
-        int i = get_block_min(f_values_i, idx2reduce);
-        float up_value = f_values_i[i];
+            f_val2reduce[tid] = INFINITY;
+        int i = get_block_min(f_val2reduce, idx2reduce);
+        float up_value = f_val2reduce[i];
         float kIwsI = k_mat_rows[row_len * i + wsi];//K[i, wsi]
         __syncthreads();
-        int j1 = get_block_min(f_values_j, idx2reduce);
-        float low_value = -f_values_j[j1];
+
+        if (is_I_low(a, y, C))
+            f_val2reduce[tid] = -f;
+        else
+            f_val2reduce[tid] = INFINITY;
+        int j1 = get_block_min(f_val2reduce, idx2reduce);
+        float low_value = -f_val2reduce[j1];
 
         float local_diff = low_value - up_value;
         if (numOfIter == 0) {
@@ -77,19 +86,19 @@ local_smo(const int *label, real *f_values, real *alpha, real *alpha_diff, const
         __syncthreads();
 
         //select j2 using second order heuristic
-        if (-up_value > -f && ((y > 0 && a > 0) || (y < 0 && a < C))) {
+        if (-up_value > -f && (is_I_low(a, y, C))) {
             float aIJ = kd[i] + kd[tid] - 2 * kIwsI;
             float bIJ = -up_value + f;
-            f_values_i[tid] = -bIJ * bIJ / aIJ;
+            f_val2reduce[tid] = -bIJ * bIJ / aIJ;
         } else
-            f_values_i[tid] = INFINITY;
-        int j2 = get_block_min(f_values_i, idx2reduce);
+            f_val2reduce[tid] = INFINITY;
+        int j2 = get_block_min(f_val2reduce, idx2reduce);
 
         //update alpha
         if (tid == i)
             *alpha_i_diff = y > 0 ? C - a : a;
         if (tid == j2)
-            *alpha_j_diff = min(y > 0 ? a : C - a, (-up_value - f_values_j[j2]) / (kd[i] + kd[j2] - 2 * kIwsI));
+            *alpha_j_diff = min(y > 0 ? a : C - a, (-up_value + f) / (kd[i] + kd[j2] - 2 * kIwsI));
         __syncthreads();
         float l = min(*alpha_i_diff, *alpha_j_diff);
 

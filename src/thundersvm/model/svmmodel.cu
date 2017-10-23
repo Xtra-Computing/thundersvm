@@ -62,8 +62,8 @@ SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData
         }
 
         //local smo
-        size_t smem_size = ws_size * sizeof(real) * 4 + 2 * sizeof(float);
-        local_smo << < 1, ws_size, smem_size >> >
+        size_t smem_size = ws_size * sizeof(real) * 3 + 2 * sizeof(float);
+        c_smo_solve_kernel << < 1, ws_size, smem_size >> >
                                    (y.device_data(), f_val.device_data(), alpha.device_data(), alpha_diff.device_data(),
                                            working_set.device_data(), ws_size, C, k_mat_rows.device_data(),
                                            k_mat.diag().device_data(), n_instances, eps, diff_and_bias.device_data());
