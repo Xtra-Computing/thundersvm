@@ -6,6 +6,13 @@
 #include <iomanip>
 #include <thundersvm/model/oneclass_svc.h>
 using namespace std;
+__global__ void init_f_kernel(real *f_val, const real *alpha, const real *kernel_row, int n, int n_instances) {
+    KERNEL_LOOP(i, n_instances) {
+        for (int j = 0; j <= n; ++j) {
+            f_val[i] += alpha[j] * kernel_row[j * n_instances + i];
+        }
+    }
+}
 
 void OneClassSVC::train(DataSet dataset, SvmParam param) {
     int n_instances = dataset.total_count();
@@ -25,25 +32,21 @@ void OneClassSVC::train(DataSet dataset, SvmParam param) {
 
     //init_f
     //TODO batch, thrust
-    SyncData<int> idx(n);
+    SyncData<int> idx(n + 1);
     SyncData<real> kernel_row(n_instances * (n + 1));
     f_val.mem_set(0);
     for (int i = 0; i <= n; ++i) {
         idx[i] = i;
     }
     kernelMatrix.get_rows(idx, kernel_row);
-    for (int i = 0; i <= n; ++i) {
-        for (int j = 0; j < n_instances; ++j) {
-            f_val[j] += alpha[i] * kernel_row[i * n_instances + j];
-        }
-    }
-
+    SAFE_KERNEL_LAUNCH(init_f_kernel, f_val.device_data(), alpha.device_data(), kernel_row.device_data(), n,
+                       n_instances);
 
     SyncData<int> y(n_instances);
     for (int i = 0; i < n_instances; ++i) {
         y[i] = 1;
     }
-    smo_solver(kernelMatrix, y, alpha, rho, f_val, param.epsilon, 1, ws_size);
+    smo_solver(kernelMatrix, y, alpha, rho, f_val, param.epsilon, 1, 4);
 
     record_model(alpha, y, dataset.instances(), param);
 }
