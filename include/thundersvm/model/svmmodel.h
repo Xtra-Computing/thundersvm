@@ -46,6 +46,8 @@ protected:
     real rho;
     const char *kernel_type_name[6] = {"linear", "polynomial", "rbf", "sigmoid", "precomputed", "NULL"};
     const char *svm_type_name[6] = {"c_svc", "nu_svc", "one_class", "epsilon_svr", "nu_svr", "NULL"};  /* svm_type */
+private:
+    void init_f(const SyncData<real> &alpha, const KernelMatrix &k_mat, SyncData<real> &f_val) const;
 };
 
 #endif //THUNDERSVM_SVMMODEL_H

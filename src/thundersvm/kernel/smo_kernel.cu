@@ -192,32 +192,54 @@ nu_smo_solve_kernel(const int *label, real *f_values, real *alpha, real *alpha_d
         }
         __syncthreads();
 
-        //select j2 using second order heuristic
-//        if (-up_value > -f && (is_I_low(a, y, C))) {
-//            float aIJ = kd[i] + kd[tid] - 2 * kIwsI;
-//            float bIJ = -up_value + f;
-//            f_val2reduce[tid] = -bIJ * bIJ / aIJ;
-//        } else
-//            f_val2reduce[tid] = INFINITY;
-//        int j2 = get_block_min(f_val2reduce, f_idx2reduce);
-//
-//        //update alpha
-//        if (tid == i)
-//            *alpha_i_diff = y > 0 ? C - a : a;
-//        if (tid == j2)
-//            *alpha_j_diff = min(y > 0 ? a : C - a, (-up_value + f) / (kd[i] + kd[j2] - 2 * kIwsI));
-//        __syncthreads();
-//        float l = min(*alpha_i_diff, *alpha_j_diff);
-//
-//        if (tid == i)
-//            a += l * y;
-//        if (tid == j2)
-//            a -= l * y;
-//
-//        //update f
-//        float kJ2wsI = k_mat_rows[row_len * j2 + wsi];//K[J2, wsi]
-//        f -= l * (kJ2wsI - kIwsI);
-//        numOfIter++;
+        //select j2p using second order heuristic
+        if (-up_value_p > -f && y > 0 && is_I_low(a, y, C)) {
+            float aIJ = kd[ip] + kd[tid] - 2 * kIpwsI;
+            float bIJ = -up_value_p + f;
+            f_val2reduce[tid] = -bIJ * bIJ / aIJ;
+        } else
+            f_val2reduce[tid] = INFINITY;
+        int j2p = get_block_min(f_val2reduce, f_idx2reduce);
+        float f_val_j2p = f_val2reduce[j2p];
+
+        //select j2n using second order heuristic
+        if (-up_value_n > -f && y < 0 && is_I_low(a, y, C)) {
+            float aIJ = kd[in] + kd[tid] - 2 * kInwsI;
+            float bIJ = -up_value_n + f;
+            f_val2reduce[tid] = -bIJ * bIJ / aIJ;
+        } else
+            f_val2reduce[tid] = INFINITY;
+        int j2n = get_block_min(f_val2reduce, f_idx2reduce);
+
+        int i, j2;
+        float up_value;
+        float kIwsI;
+        if (f_val_j2p < f_val2reduce[j2n]) {
+            i = ip;
+            j2 = j2p;
+            kIwsI = kIpwsI;
+        } else {
+            i = in;
+            j2 = j2n;
+            kIwsI = kInwsI;
+        }
+        //update alpha
+        if (tid == i)
+            *alpha_i_diff = y > 0 ? C - a : a;
+        if (tid == j2)
+            *alpha_j_diff = min(y > 0 ? a : C - a, (-up_value + f) / (kd[i] + kd[j2] - 2 * kIwsI));
+        __syncthreads();
+        float l = min(*alpha_i_diff, *alpha_j_diff);
+
+        if (tid == i)
+            a += l * y;
+        if (tid == j2)
+            a -= l * y;
+
+        //update f
+        float kJ2wsI = k_mat_rows[row_len * j2 + wsi];//K[J2, wsi]
+        f -= l * (kJ2wsI - kIwsI);
+        numOfIter++;
     }
 }
 
@@ -231,5 +253,13 @@ __global__ void update_f(real *f, int ws_size, const real *alpha_diff, const rea
                 sum_diff += d * k_mat_rows[i * n_instances + idx];
         }
         f[idx] -= sum_diff;
+    }
+}
+
+__global__ void init_f_kernel(real *f_val, const real *alpha, const real *kernel_row, int n, int n_instances) {
+    KERNEL_LOOP(i, n_instances) {
+        for (int j = 0; j <= n; ++j) {
+            f_val[i] += alpha[j] * kernel_row[j * n_instances + i];
+        }
     }
 }

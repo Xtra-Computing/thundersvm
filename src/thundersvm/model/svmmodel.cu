@@ -40,6 +40,7 @@ SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData
     for (int i = 0; i < n_instances; ++i) {
         f_idx[i] = i;
     }
+//    init_f(alpha,k_mat,f_val);
     LOG(INFO) << "training start";
     for (int iter = 1;; ++iter) {
         //select working set
@@ -214,18 +215,64 @@ vector<real> SvmModel::cross_validation(DataSet dataset, SvmParam param, int n_f
 real
 SvmModel::calculate_rho(const SyncData<real> &alpha, const SyncData<real> &f_val, const SyncData<int> &y,
                         real C) const {
-    int n_free = 0;
-    real sum_free = 0;
-    real up_value = INFINITY;
-    real low_value = -INFINITY;
-    for (int i = 0; i < alpha.size(); ++i) {
-        if (alpha[i] > 0 && alpha[i] < C) {
-            n_free++;
-            sum_free += f_val[i];
+    if (param.svm_type == SvmParam::C_SVC) {
+        int n_free = 0;
+        real sum_free = 0;
+        real up_value = INFINITY;
+        real low_value = -INFINITY;
+        for (int i = 0; i < alpha.size(); ++i) {
+            if (alpha[i] > 0 && alpha[i] < C) {
+                n_free++;
+                sum_free += f_val[i];
+            }
+            if (is_I_up(alpha[i], y[i], C)) up_value = min(up_value, f_val[i]);
+            if (is_I_low(alpha[i], y[i], C)) low_value = max(low_value, f_val[i]);
         }
-        if (is_I_up(alpha[i], y[i], C) && f_val[i] < up_value) up_value = f_val[i];
-        if (is_I_low(alpha[i], y[i], C) && f_val[i] > low_value) low_value = f_val[i];
+        return 0 != n_free ? sum_free / n_free : -(up_value + low_value) / 2;
+    } else if (param.svm_type == SvmParam::NU_SVC) {
+        int n_free_p = 0, n_free_n = 0;
+        real sum_free_p = 0, sum_free_n = 0;
+        real up_value_p = INFINITY, up_value_n = INFINITY;
+        real low_value_p = -INFINITY, low_value_n = -INFINITY;
+        for (int i = 0; i < alpha.size(); ++i) {
+            if (y[i] > 0) {
+                if (alpha[i] > 0 && alpha[i] < C) {
+                    n_free_p++;
+                    sum_free_p += -f_val[i];
+                }
+                if (is_I_up(alpha[i], y[i], C)) up_value_p = min(up_value_p, -f_val[i]);
+                if (is_I_low(alpha[i], y[i], C)) low_value_p = max(low_value_p, -f_val[i]);
+            } else {
+                if (alpha[i] > 0 && alpha[i] < C) {
+                    n_free_n++;
+                    sum_free_n += -f_val[i];
+                }
+                if (is_I_up(alpha[i], y[i], C)) up_value_n = min(up_value_n, -f_val[i]);
+                if (is_I_low(alpha[i], y[i], C)) low_value_n = max(low_value_n, -f_val[i]);
+            }
+        }
+        real r1 = n_free_p != 0 ? sum_free_p / n_free_p : -(up_value_p + low_value_p) / 2;
+        real r2 = n_free_n != 0 ? sum_free_n / n_free_n : -(up_value_n + low_value_n) / 2;
+        return (r1 - r2) / 2;
     }
-    return 0 != n_free ? sum_free / n_free : -(up_value + low_value) / 2;
+    //should never reach here
+    CHECK(false);
+    return 0;
+}
+
+void SvmModel::init_f(const SyncData<real> &alpha, const KernelMatrix &k_mat, SyncData<real> &f_val) const {
+    vector<int> idx_vec;
+    SyncData<int> idx;
+    for (int i = 0; i < alpha.size(); ++i) {
+        if (alpha[i] != 0) {
+            idx_vec.push_back(i);
+        }
+    }
+    idx.resize(idx_vec.size());
+    idx.copy_from(idx_vec.data(), idx_vec.size());
+    SyncData<real> kernel_rows(idx.size() * k_mat.n_instances());
+    k_mat.get_rows(idx, kernel_rows);
+    SAFE_KERNEL_LAUNCH(init_f_kernel, f_val.device_data(), alpha.device_data(), kernel_rows.device_data(), idx.size(),
+                       k_mat.n_instances());
 }
 

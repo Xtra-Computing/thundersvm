@@ -5,14 +5,9 @@
 #include <iostream>
 #include <iomanip>
 #include <thundersvm/model/oneclass_svc.h>
+#include <thundersvm/kernel/smo_kernel.h>
+
 using namespace std;
-__global__ void init_f_kernel(real *f_val, const real *alpha, const real *kernel_row, int n, int n_instances) {
-    KERNEL_LOOP(i, n_instances) {
-        for (int j = 0; j <= n; ++j) {
-            f_val[i] += alpha[j] * kernel_row[j * n_instances + i];
-        }
-    }
-}
 
 void OneClassSVC::train(DataSet dataset, SvmParam param) {
     int n_instances = dataset.total_count();
