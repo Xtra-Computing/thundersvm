@@ -4,7 +4,7 @@
 #include "thundersvm/syncdata.h"
 
 template<typename T>
-SyncData<T>::SyncData(size_t count):mem(new SyncMem(sizeof(T) * count)), count_(count) {
+SyncData<T>::SyncData(size_t count):mem(new SyncMem(sizeof(T) * count)), size_(count) {
 
 }
 
@@ -41,7 +41,7 @@ T *SyncData<T>::device_data() {
 template<typename T>
 void SyncData<T>::resize(size_t count) {
     this->mem->resize(sizeof(T) * count);
-    this->count_ = count;
+    this->size_ = count;
 }
 
 template<typename T>
@@ -53,7 +53,7 @@ template<typename T>
 void SyncData<T>::log(el::base::type::ostream_t &ostream) const {
     int i;
     ostream << "[";
-    for (i = 0; i < count() - 1 && i < el::base::consts::kMaxLogPerContainer - 1; ++i) {
+    for (i = 0; i < size() - 1 && i < el::base::consts::kMaxLogPerContainer - 1; ++i) {
         ostream << host_data()[i] << ",";
     }
     ostream << host_data()[i];
@@ -62,13 +62,13 @@ void SyncData<T>::log(el::base::type::ostream_t &ostream) const {
 
 template<typename T>
 void SyncData<T>::copy_from(const SyncData<T> &source) {
-    CHECK_EQ(count(), source.count()) << "destination and source count doesn't match";
-    copy_from(source.device_data(), source.count());
+    CHECK_EQ(size(), source.size()) << "destination and source count doesn't match";
+    copy_from(source.device_data(), source.size());
 }
 
 template<typename T>
 void SyncData<T>::mem_set(const T &value) {
-    CUDA_CHECK(cudaMemset(device_data(), value, size()));
+    CUDA_CHECK(cudaMemset(device_data(), value, mem_size()));
 }
 
 template

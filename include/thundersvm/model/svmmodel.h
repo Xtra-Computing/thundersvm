@@ -33,6 +33,9 @@ protected:
     virtual void select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
                                     const SyncData<real> &alpha, real C, SyncData<int> &working_set) const;
 
+    virtual real
+    calculate_rho(const SyncData<real> &alpha, const SyncData<real> &f_val, const SyncData<int> &y, real C) const;
+
     virtual void record_model(const SyncData<real> &alpha, const SyncData<int> &y, const DataSet::node2d &instances,
                               const SvmParam param);
 

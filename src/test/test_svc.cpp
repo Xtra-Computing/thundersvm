@@ -27,7 +27,7 @@ protected:
         model->train(train_dataset, param);
         predict_y = model->predict(test_dataset.instances(), 10000);
         int n_correct = 0;
-        for (int i = 0; i < predict_y.size(); ++i) {
+        for (unsigned i = 0; i < predict_y.size(); ++i) {
             if (predict_y[i] == test_dataset.y()[i])
                 n_correct++;
         }
@@ -50,12 +50,12 @@ TEST_F(SVCTest, a9a) {
                         "a9a.t", 100, 0.5), 0.826608, 1e-3);
 }
 
-//TEST_F(SVCTest, mnist) {
-//    load_dataset_and_train(DATASET_DIR "mnist.scale", DATASET_DIR "mnist.scale.t", 10, 0.125);
-//}
+TEST_F(SVCTest, mnist) {
+    load_dataset_and_train(DATASET_DIR "mnist.scale", DATASET_DIR "mnist.scale.t", 10, 0.125);
+}
 
-//TEST_F(SVCTest, realsim) {
-//    EXPECT_NEAR(load_dataset_and_train(DATASET_DIR
-//                        "real-sim", DATASET_DIR
-//                        "real-sim", 4, 0.5), 0.997276, 1e-3);
-//}
+TEST_F(SVCTest, realsim) {
+    EXPECT_NEAR(load_dataset_and_train(DATASET_DIR
+                        "real-sim", DATASET_DIR
+                        "real-sim", 4, 0.5), 0.997276, 1e-3);
+}

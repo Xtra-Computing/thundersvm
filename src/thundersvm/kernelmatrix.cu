@@ -33,12 +33,12 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
     col_ind_ = new SyncData<int>(csr_col_ind.size());
     row_ptr_ = new SyncData<int>(csr_row_ptr.size());
     //copy data to the three arrays
-    val_->copy_from(csr_val.data(), val_->count());
-    col_ind_->copy_from(csr_col_ind.data(), col_ind_->count());
-    row_ptr_->copy_from(csr_row_ptr.data(), row_ptr_->count());
+    val_->copy_from(csr_val.data(), val_->size());
+    col_ind_->copy_from(csr_col_ind.data(), col_ind_->size());
+    row_ptr_->copy_from(csr_row_ptr.data(), row_ptr_->size());
 
     self_dot_ = new SyncData<real>(n_instances_);
-    self_dot_->copy_from(csr_self_dot.data(), self_dot_->count());
+    self_dot_->copy_from(csr_self_dot.data(), self_dot_->size());
 
     nnz_ = csr_val.size();//number of nonzero
 
@@ -57,11 +57,11 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
         case SvmParam::POLY:
             diag_->copy_from(*self_dot_);
             SAFE_KERNEL_LAUNCH(kernel_poly_kernel, diag_->device_data(), param.gamma, param.coef0, param.degree,
-                               diag_->count());
+                               diag_->size());
             break;
         case SvmParam::SIGMOID:
             diag_->copy_from(*self_dot_);
-            SAFE_KERNEL_LAUNCH(kernel_sigmoid_kernel, diag_->device_data(), param.gamma, param.coef0, diag_->count());
+            SAFE_KERNEL_LAUNCH(kernel_sigmoid_kernel, diag_->device_data(), param.gamma, param.coef0, diag_->size());
         default:
             break;
     }
@@ -84,30 +84,30 @@ KernelMatrix::~KernelMatrix() {
 
 void KernelMatrix::get_rows(const SyncData<int> &idx,
                             SyncData<real> &kernel_rows) const {//compute multiple rows of kernel matrix according to idx
-    CHECK_GE(kernel_rows.count(), idx.count() * n_instances_) << "kernel_rows memory is too small";
+    CHECK_GE(kernel_rows.size(), idx.size() * n_instances_) << "kernel_rows memory is too small";
     get_dot_product(idx, kernel_rows);
     switch (param.kernel_type) {
         case SvmParam::RBF:
         SAFE_KERNEL_LAUNCH(kernel_RBF_kernel, idx.device_data(), self_dot_->device_data(), kernel_rows.device_data(),
-                           idx.count(), n_instances_, param.gamma);
+                           idx.size(), n_instances_, param.gamma);
             break;
         case SvmParam::LINEAR:
             //do nothing
             break;
         case SvmParam::POLY:
         SAFE_KERNEL_LAUNCH(kernel_poly_kernel, kernel_rows.device_data(), param.gamma, param.coef0, param.degree,
-                           kernel_rows.count());
+                           kernel_rows.size());
             break;
         case SvmParam::SIGMOID:
         SAFE_KERNEL_LAUNCH(kernel_sigmoid_kernel, kernel_rows.device_data(), param.gamma, param.coef0,
-                           kernel_rows.count());
+                           kernel_rows.size());
             break;
     }
 }
 
 void KernelMatrix::get_rows(const DataSet::node2d &instances,
                             SyncData<real> &kernel_rows) const {//compute the whole (sub-) kernel matrix of the given instances.
-    CHECK_GE(kernel_rows.count(), instances.size() * n_instances_) << "kernel_rows memory is too small";
+    CHECK_GE(kernel_rows.size(), instances.size() * n_instances_) << "kernel_rows memory is too small";
     get_dot_product(instances, kernel_rows);
 
     //compute self dot
@@ -130,11 +130,11 @@ void KernelMatrix::get_rows(const DataSet::node2d &instances,
             break;
         case SvmParam::POLY:
         SAFE_KERNEL_LAUNCH(kernel_poly_kernel, kernel_rows.device_data(), param.gamma, param.coef0, param.degree,
-                           kernel_rows.count());
+                           kernel_rows.size());
             break;
         case SvmParam::SIGMOID:
         SAFE_KERNEL_LAUNCH(kernel_sigmoid_kernel, kernel_rows.device_data(), param.gamma, param.coef0,
-                           kernel_rows.count());
+                           kernel_rows.size());
             break;
     }
 }
@@ -145,7 +145,7 @@ const SyncData<real> &KernelMatrix::diag() const {
 
 
 void KernelMatrix::dns_csr_mul(const SyncData<real> &dense_mat, int n_rows, SyncData<real> &result) const {
-    CHECK_EQ(dense_mat.count(), n_rows * n_features_) << "dense matrix features doesn't match";
+    CHECK_EQ(dense_mat.size(), n_rows * n_features_) << "dense matrix features doesn't match";
     float one(1);
     float zero(0);
     cusparseScsrmm2(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
@@ -156,12 +156,12 @@ void KernelMatrix::dns_csr_mul(const SyncData<real> &dense_mat, int n_rows, Sync
 }
 
 void KernelMatrix::get_dot_product(const SyncData<int> &idx, SyncData<real> &dot_product) const {
-    SyncData<real> data_rows(idx.count() * n_features_);
+    SyncData<real> data_rows(idx.size() * n_features_);
     data_rows.mem_set(0);
     SAFE_KERNEL_LAUNCH(kernel_get_working_set_ins, val_->device_data(), col_ind_->device_data(),
                        row_ptr_->device_data(),
-                       idx.device_data(), data_rows.device_data(), idx.count());
-    dns_csr_mul(data_rows, idx.count(), dot_product);
+                       idx.device_data(), data_rows.device_data(), idx.size());
+    dns_csr_mul(data_rows, idx.size(), dot_product);
 }
 
 void KernelMatrix::get_dot_product(const DataSet::node2d &instances, SyncData<real> &dot_product) const {

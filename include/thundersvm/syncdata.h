@@ -12,7 +12,8 @@ template<typename T>
 class SyncData : public el::Loggable {
 public:
     explicit SyncData(size_t count);
-    SyncData() : mem(nullptr), count_(0) {};
+
+    SyncData() : mem(nullptr), size_(0) {};
     ~SyncData();
 
     const T *host_data() const;
@@ -49,11 +50,12 @@ public:
 
     void resize(size_t count);
 
-    size_t size() const{//number of bytes
+    size_t mem_size() const {//number of bytes
     	return mem->size();
     }
-    size_t count() const{//number of values
-    	return count_;
+
+    size_t size() const {//number of values
+        return size_;
     }
 
     SyncMem::HEAD head() const{
@@ -67,7 +69,7 @@ private:
     SyncData(const SyncData<T>&);
 
     SyncMem *mem;
-    size_t count_;
+    size_t size_;
 };
 
 #endif //THUNDERSVM_SYNCDATA_H

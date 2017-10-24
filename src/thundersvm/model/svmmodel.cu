@@ -64,18 +64,17 @@ SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData
         //local smo
         size_t smem_size = ws_size * sizeof(real) * 3 + 2 * sizeof(float);
         c_smo_solve_kernel << < 1, ws_size, smem_size >> >
-                                   (y.device_data(), f_val.device_data(), alpha.device_data(), alpha_diff.device_data(),
-                                           working_set.device_data(), ws_size, C, k_mat_rows.device_data(),
-                                           k_mat.diag().device_data(), n_instances, eps, diff_and_bias.device_data());
-        LOG_EVERY_N(10, INFO) << "diff=" << diff_and_bias[0];
-        if (diff_and_bias[0] < eps) {
-            rho = diff_and_bias[1];
-            break;
-        }
-
+                                            (y.device_data(), f_val.device_data(), alpha.device_data(), alpha_diff.device_data(),
+                                                    working_set.device_data(), ws_size, C, k_mat_rows.device_data(),
+                                                    k_mat.diag().device_data(), n_instances, eps, diff_and_bias.device_data());
         //update f
         SAFE_KERNEL_LAUNCH(update_f, f_val.device_data(), ws_size, alpha_diff.device_data(), k_mat_rows.device_data(),
                            n_instances);
+        LOG_EVERY_N(10, INFO) << "diff=" << diff_and_bias[0];
+        if (diff_and_bias[0] < eps) {
+            rho = calculate_rho(alpha, f_val, y, C);
+            break;
+        }
     }
 }
 
@@ -87,7 +86,7 @@ SvmModel::select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_i
     int p_right = n_instances - 1;
     int n_selected = 0;
     const int *index = f_idx2sort.host_data();
-    while (n_selected < working_set.count()) {
+    while (n_selected < working_set.size()) {
         int i;
         if (p_left < n_instances) {
             i = index[p_left];
@@ -164,7 +163,7 @@ vector<real> SvmModel::predict(const DataSet::node2d &instances, int batch_size)
 void SvmModel::record_model(const SyncData<real> &alpha, const SyncData<int> &y, const DataSet::node2d &instances,
                             const SvmParam param) {
     int n_sv = 0;
-    for (int i = 0; i < alpha.count(); ++i) {
+    for (int i = 0; i < alpha.size(); ++i) {
         if (alpha[i] != 0) {
             coef.push_back(alpha[i]);
             sv_index.push_back(sv.size());
@@ -210,5 +209,23 @@ vector<real> SvmModel::cross_validation(DataSet dataset, SvmParam param, int n_f
         y_predict_all.insert(y_predict_all.end(), y_predict.begin(), y_predict.end());
     }
     return vector<real>();
+}
+
+real
+SvmModel::calculate_rho(const SyncData<real> &alpha, const SyncData<real> &f_val, const SyncData<int> &y,
+                        real C) const {
+    int n_free = 0;
+    real sum_free = 0;
+    real up_value = INFINITY;
+    real low_value = -INFINITY;
+    for (int i = 0; i < alpha.size(); ++i) {
+        if (alpha[i] > 0 && alpha[i] < C) {
+            n_free++;
+            sum_free += f_val[i];
+        }
+        if (is_I_up(alpha[i], y[i], C) && f_val[i] < up_value) up_value = f_val[i];
+        if (is_I_low(alpha[i], y[i], C) && f_val[i] > low_value) low_value = f_val[i];
+    }
+    return 0 != n_free ? sum_free / n_free : -(up_value + low_value) / 2;
 }
 

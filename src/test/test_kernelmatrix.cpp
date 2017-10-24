@@ -68,12 +68,12 @@ TEST(KernelMatrixTest, get_rows) {
     DataSet::node2d instances(dataSet.instances().begin(), dataSet.instances().begin() + n_rows);
     kernelMatrix->get_rows(rows, kernel_rows);
 
-    for (unsigned i = 0; i < kernelMatrix->diag().count(); ++i) {
+    for (unsigned i = 0; i < kernelMatrix->diag().size(); ++i) {
         real cpu_kernel = rbf_kernel(dataSet.instances(), i, i, param.gamma);
         real gpu_kernel = kernelMatrix->diag()[i];
         EXPECT_NEAR(gpu_kernel, cpu_kernel, 1e-5) << i;
     }
-    for (unsigned i = 0; i < rows.count(); ++i) {
+    for (unsigned i = 0; i < rows.size(); ++i) {
         for (unsigned j = 0; j < kernelMatrix->n_instances(); ++j) {
             real gpu_kernel = kernel_rows[i * kernelMatrix->n_instances() + j];
             real cpu_kernel = rbf_kernel(dataSet.instances(), rows[i], j, param.gamma);
@@ -100,12 +100,12 @@ TEST(KernelMatrixTest, get_rows) {
     kernelMatrix = new KernelMatrix(dataSet.instances(), param);
     kernelMatrix->get_rows(rows, kernel_rows);
 
-    for (unsigned i = 0; i < kernelMatrix->diag().count(); ++i) {
+    for (unsigned i = 0; i < kernelMatrix->diag().size(); ++i) {
         real cpu_kernel = powf(param.gamma * dot_product(dataSet.instances(), i, i) + param.coef0, param.degree);
         real gpu_kernel = kernelMatrix->diag()[i];
         EXPECT_NEAR(gpu_kernel, cpu_kernel, 1e-5) << i;
     }
-    for (unsigned i = 0; i < rows.count(); ++i) {
+    for (unsigned i = 0; i < rows.size(); ++i) {
         for (unsigned j = 0; j < kernelMatrix->n_instances(); ++j) {
             real gpu_kernel = kernel_rows[i * kernelMatrix->n_instances() + j];
             real cpu_kernel = powf(param.gamma * dot_product(dataSet.instances(), rows[i], j) + param.coef0,
@@ -131,12 +131,12 @@ TEST(KernelMatrixTest, get_rows) {
     kernelMatrix = new KernelMatrix(dataSet.instances(), param);
     kernelMatrix->get_rows(rows, kernel_rows);
 
-    for (unsigned i = 0; i < kernelMatrix->diag().count(); ++i) {
+    for (unsigned i = 0; i < kernelMatrix->diag().size(); ++i) {
         real cpu_kernel = dot_product(dataSet.instances(), i, i);
         real gpu_kernel = kernelMatrix->diag()[i];
         EXPECT_NEAR(gpu_kernel, cpu_kernel, 1e-5) << i;
     }
-    for (unsigned i = 0; i < rows.count(); ++i) {
+    for (unsigned i = 0; i < rows.size(); ++i) {
         for (unsigned j = 0; j < kernelMatrix->n_instances(); ++j) {
             real gpu_kernel = kernel_rows[i * kernelMatrix->n_instances() + j];
             real cpu_kernel = dot_product(dataSet.instances(), rows[i], j);
@@ -163,12 +163,12 @@ TEST(KernelMatrixTest, get_rows) {
     kernelMatrix = new KernelMatrix(dataSet.instances(), param);
     kernelMatrix->get_rows(rows, kernel_rows);
 
-    for (unsigned i = 0; i < kernelMatrix->diag().count(); ++i) {
+    for (unsigned i = 0; i < kernelMatrix->diag().size(); ++i) {
         real cpu_kernel = tanhf(param.gamma * dot_product(dataSet.instances(), i, i) + param.coef0);
         real gpu_kernel = kernelMatrix->diag()[i];
         EXPECT_NEAR(gpu_kernel, cpu_kernel, 1e-5) << i;
     }
-    for (unsigned i = 0; i < rows.count(); ++i) {
+    for (unsigned i = 0; i < rows.size(); ++i) {
         for (unsigned j = 0; j < kernelMatrix->n_instances(); ++j) {
             real gpu_kernel = kernel_rows[i * kernelMatrix->n_instances() + j];
             real cpu_kernel = tanhf(param.gamma * dot_product(dataSet.instances(), rows[i], j) + param.coef0);

@@ -276,7 +276,7 @@ void SVC::load_from_file(string path) {
 void SVC::record_binary_model(int k, const SyncData<real> &alpha, const SyncData<int> &y, real rho,
                               const vector<int> &original_index, const DataSet::node2d &original_instance) {
     int n_sv = 0;
-    for (int i = 0; i < alpha.count(); ++i) {
+    for (int i = 0; i < alpha.size(); ++i) {
         if (alpha[i] != 0) {
             coef[k].push_back(alpha[i] * y[i]);
             if (sv_index_map.find(original_index[i]) == sv_index_map.end()) {
@@ -312,7 +312,7 @@ void SVC::predict_dec_values(const DataSet::node2d &instances, SyncData<real> &d
         CUDA_CHECK(cudaMemcpy(sv_index.device_data() + sv_start[i], this->sv_index[i].data(), sizeof(int) * sv_count[i],
                               cudaMemcpyHostToDevice));
     }
-    rho.copy_from(this->rho.data(), rho.count());
+    rho.copy_from(this->rho.data(), rho.size());
 
     //compute kernel values
     KernelMatrix k_mat(sv, param);
