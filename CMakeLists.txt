@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.8)
+cmake_minimum_required(VERSION 2.8.12)
 set(PROJECT_NAME_STR thundersvm)
 project(${PROJECT_NAME_STR} C CXX)
 
