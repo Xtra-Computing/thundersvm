@@ -29,3 +29,12 @@ wget --no-check-certificate https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datas
 bunzip2 mnist.scale.t.bz2
 fi
 
+if [ ! -f "E2006.train" ]; then
+wget --no-check-certificate https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/regression/E2006.train.bz2
+bunzip2 E2006.train.bz2
+fi
+
+if [ ! -f "E2006.test" ]; then
+wget --no-check-certificate https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/regression/E2006.test.bz2
+bunzip2 E2006.test.bz2
+fi
