@@ -1,0 +1,8 @@
+//
+// Created by jiashuai on 17-10-25.
+//
+
+#ifndef THUNDERSVM_NUSMOSOLVER_H
+#define THUNDERSVM_NUSMOSOLVER_H
+
+#endif //THUNDERSVM_NUSMOSOLVER_H

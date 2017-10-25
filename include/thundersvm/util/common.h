@@ -16,6 +16,10 @@ template<class T>
 static inline T min(T x, T y) { return (x < y) ? x : y; }
 
 #endif
+
+inline int max2power(int n) {
+    return int(pow(2, floor(log2f(float(n)))));
+}
 const int BLOCK_SIZE = 512;
 
 //inline int GET_BLOCKS(const int n) {

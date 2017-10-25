@@ -8,8 +8,8 @@
 TEST(SVRTest, train) {
 
     DataSet dataset;
-//    dataset.load_from_file(DATASET_DIR "test_dataset.txt");
-    dataset.load_from_file(DATASET_DIR "E2006.train");
+    dataset.load_from_file(DATASET_DIR "test_dataset.txt");
+//    dataset.load_from_file(DATASET_DIR "E2006.train");
     SvmParam param;
     param.gamma = 0.25;
     param.C = 10;

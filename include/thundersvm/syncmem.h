@@ -25,7 +25,6 @@ public:
     void to_device();
 
     size_t size() const;
-    void resize(size_t size);
 
     enum HEAD {
         HOST, DEVICE, UNINITIALIZED

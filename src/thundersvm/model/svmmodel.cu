@@ -4,120 +4,8 @@
 
 #include <thundersvm/kernel/smo_kernel.h>
 #include <thrust/sort.h>
-#include <thrust/system/cuda/detail/par.h>
 #include <thundersvm/model/svmmodel.h>
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
-
-int SvmModel::max2power(int n) const {
-    return int(pow(2, floor(log2f(float(n)))));
-}
-
-void
-SvmModel::smo_solver(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho,
-                     SyncData<real> &f_val, real eps, real C, int ws_size) const {
-    uint n_instances = k_mat.n_instances();
-    uint q = ws_size / 2;
-
-    SyncData<int> working_set(ws_size);
-    SyncData<int> working_set_first_half(q);
-    SyncData<int> working_set_last_half(q);
-    working_set_first_half.set_device_data(working_set.device_data());
-    working_set_last_half.set_device_data(&working_set.device_data()[q]);
-    working_set_first_half.set_host_data(working_set.host_data());
-    working_set_last_half.set_host_data(&working_set.host_data()[q]);
-
-    SyncData<int> f_idx(n_instances);
-    SyncData<int> f_idx2sort(n_instances);
-    SyncData<real> f_val2sort(n_instances);
-    SyncData<real> alpha_diff(ws_size);
-    SyncData<real> diff_and_bias(2);
-
-    SyncData<real> k_mat_rows(ws_size * k_mat.n_instances());
-    SyncData<real> k_mat_rows_first_half(q * k_mat.n_instances());
-    SyncData<real> k_mat_rows_last_half(q * k_mat.n_instances());
-    k_mat_rows_first_half.set_device_data(k_mat_rows.device_data());
-    k_mat_rows_last_half.set_device_data(&k_mat_rows.device_data()[q * k_mat.n_instances()]);
-    for (int i = 0; i < n_instances; ++i) {
-        f_idx[i] = i;
-    }
-//    init_f(alpha,k_mat,f_val);
-    LOG(INFO) << "training start";
-    for (int iter = 1;; ++iter) {
-        //select working set
-        f_idx2sort.copy_from(f_idx);
-        f_val2sort.copy_from(f_val);
-        thrust::sort_by_key(thrust::cuda::par, f_val2sort.device_data(), f_val2sort.device_data() + n_instances,
-                            f_idx2sort.device_data(), thrust::less<real>());
-        vector<int> ws_indicator(n_instances, 0);
-        if (1 == iter) {
-            select_working_set(ws_indicator, f_idx2sort, y, alpha, C, working_set);
-            k_mat.get_rows(working_set, k_mat_rows);
-        } else {
-            working_set_first_half.copy_from(working_set_last_half);
-            for (int i = 0; i < q; ++i) {
-                ws_indicator[working_set[i]] = 1;
-            }
-            select_working_set(ws_indicator, f_idx2sort, y, alpha, C, working_set_last_half);
-            k_mat_rows_first_half.copy_from(k_mat_rows_last_half);
-            k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
-        }
-
-        //local smo
-        size_t smem_size = ws_size * sizeof(real) * 3 + 2 * sizeof(float);
-        c_smo_solve_kernel << < 1, ws_size, smem_size >> >
-                                            (y.device_data(), f_val.device_data(), alpha.device_data(), alpha_diff.device_data(),
-                                                    working_set.device_data(), ws_size, C, k_mat_rows.device_data(),
-                                                    k_mat.diag().device_data(), n_instances, eps, diff_and_bias.device_data());
-        //update f
-        SAFE_KERNEL_LAUNCH(update_f, f_val.device_data(), ws_size, alpha_diff.device_data(), k_mat_rows.device_data(),
-                           n_instances);
-        LOG_EVERY_N(10, INFO) << "diff=" << diff_and_bias[0];
-        if (diff_and_bias[0] < eps) {
-            rho = calculate_rho(alpha, f_val, y, C);
-            break;
-        }
-    }
-}
-
-void
-SvmModel::select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
-                             const SyncData<real> &alpha, real C, SyncData<int> &working_set) const {
-    int n_instances = ws_indicator.size();
-    int p_left = 0;
-    int p_right = n_instances - 1;
-    int n_selected = 0;
-    const int *index = f_idx2sort.host_data();
-    while (n_selected < working_set.size()) {
-        int i;
-        if (p_left < n_instances) {
-            i = index[p_left];
-            while (ws_indicator[i] == 1 || !((y[i] > 0 && alpha[i] < C) || (y[i] < 0 && alpha[i] > 0))) {
-                //construct working set of I_up
-                p_left++;
-                if (p_left == n_instances) break;
-                i = index[p_left];
-            }
-            if (p_left < n_instances) {
-                working_set[n_selected++] = i;
-                ws_indicator[i] = 1;
-            }
-        }
-        if (p_right >= 0) {
-            i = index[p_right];
-            while ((ws_indicator[i] == 1 || !((y[i] > 0 && alpha[i] > 0) || (y[i] < 0 && alpha[i] < C)))) {
-                //construct working set of I_low
-                p_right--;
-                if (p_right == -1) break;
-                i = index[p_right];
-            }
-            if (p_right >= 0) {
-                working_set[n_selected++] = i;
-                ws_indicator[i] = 1;
-            }
-        }
-
-    }
-}
 
 vector<real> SvmModel::predict(const DataSet::node2d &instances, int batch_size) {
     //TODO use thrust
@@ -212,67 +100,51 @@ vector<real> SvmModel::cross_validation(DataSet dataset, SvmParam param, int n_f
     return vector<real>();
 }
 
-real
-SvmModel::calculate_rho(const SyncData<real> &alpha, const SyncData<real> &f_val, const SyncData<int> &y,
-                        real C) const {
-    if (param.svm_type == SvmParam::C_SVC) {
-        int n_free = 0;
-        real sum_free = 0;
-        real up_value = INFINITY;
-        real low_value = -INFINITY;
-        for (int i = 0; i < alpha.size(); ++i) {
-            if (alpha[i] > 0 && alpha[i] < C) {
-                n_free++;
-                sum_free += f_val[i];
-            }
-            if (is_I_up(alpha[i], y[i], C)) up_value = min(up_value, f_val[i]);
-            if (is_I_low(alpha[i], y[i], C)) low_value = max(low_value, f_val[i]);
-        }
-        return 0 != n_free ? sum_free / n_free : -(up_value + low_value) / 2;
-    } else if (param.svm_type == SvmParam::NU_SVC) {
-        int n_free_p = 0, n_free_n = 0;
-        real sum_free_p = 0, sum_free_n = 0;
-        real up_value_p = INFINITY, up_value_n = INFINITY;
-        real low_value_p = -INFINITY, low_value_n = -INFINITY;
-        for (int i = 0; i < alpha.size(); ++i) {
-            if (y[i] > 0) {
-                if (alpha[i] > 0 && alpha[i] < C) {
-                    n_free_p++;
-                    sum_free_p += -f_val[i];
-                }
-                if (is_I_up(alpha[i], y[i], C)) up_value_p = min(up_value_p, -f_val[i]);
-                if (is_I_low(alpha[i], y[i], C)) low_value_p = max(low_value_p, -f_val[i]);
-            } else {
-                if (alpha[i] > 0 && alpha[i] < C) {
-                    n_free_n++;
-                    sum_free_n += -f_val[i];
-                }
-                if (is_I_up(alpha[i], y[i], C)) up_value_n = min(up_value_n, -f_val[i]);
-                if (is_I_low(alpha[i], y[i], C)) low_value_n = max(low_value_n, -f_val[i]);
-            }
-        }
-        real r1 = n_free_p != 0 ? sum_free_p / n_free_p : -(up_value_p + low_value_p) / 2;
-        real r2 = n_free_n != 0 ? sum_free_n / n_free_n : -(up_value_n + low_value_n) / 2;
-        return (r1 - r2) / 2;
-    }
-    //should never reach here
-    CHECK(false);
-    return 0;
-}
-
-void SvmModel::init_f(const SyncData<real> &alpha, const KernelMatrix &k_mat, SyncData<real> &f_val) const {
-    vector<int> idx_vec;
-    SyncData<int> idx;
-    for (int i = 0; i < alpha.size(); ++i) {
-        if (alpha[i] != 0) {
-            idx_vec.push_back(i);
-        }
-    }
-    idx.resize(idx_vec.size());
-    idx.copy_from(idx_vec.data(), idx_vec.size());
-    SyncData<real> kernel_rows(idx.size() * k_mat.n_instances());
-    k_mat.get_rows(idx, kernel_rows);
-    SAFE_KERNEL_LAUNCH(init_f_kernel, f_val.device_data(), alpha.device_data(), kernel_rows.device_data(), idx.size(),
-                       k_mat.n_instances());
-}
+//real
+//SvmModel::calculate_rho(const SyncData<real> &alpha, const SyncData<real> &f_val, const SyncData<int> &y,
+//                        real C) const {
+//    if (param.svm_type == SvmParam::C_SVC) {
+//        int n_free = 0;
+//        real sum_free = 0;
+//        real up_value = INFINITY;
+//        real low_value = -INFINITY;
+//        for (int i = 0; i < alpha.size(); ++i) {
+//            if (alpha[i] > 0 && alpha[i] < C) {
+//                n_free++;
+//                sum_free += f_val[i];
+//            }
+//            if (is_I_up(alpha[i], y[i], C)) up_value = min(up_value, f_val[i]);
+//            if (is_I_low(alpha[i], y[i], C)) low_value = max(low_value, f_val[i]);
+//        }
+//        return 0 != n_free ? sum_free / n_free : -(up_value + low_value) / 2;
+//    } else if (param.svm_type == SvmParam::NU_SVC) {
+//        int n_free_p = 0, n_free_n = 0;
+//        real sum_free_p = 0, sum_free_n = 0;
+//        real up_value_p = INFINITY, up_value_n = INFINITY;
+//        real low_value_p = -INFINITY, low_value_n = -INFINITY;
+//        for (int i = 0; i < alpha.size(); ++i) {
+//            if (y[i] > 0) {
+//                if (alpha[i] > 0 && alpha[i] < C) {
+//                    n_free_p++;
+//                    sum_free_p += -f_val[i];
+//                }
+//                if (is_I_up(alpha[i], y[i], C)) up_value_p = min(up_value_p, -f_val[i]);
+//                if (is_I_low(alpha[i], y[i], C)) low_value_p = max(low_value_p, -f_val[i]);
+//            } else {
+//                if (alpha[i] > 0 && alpha[i] < C) {
+//                    n_free_n++;
+//                    sum_free_n += -f_val[i];
+//                }
+//                if (is_I_up(alpha[i], y[i], C)) up_value_n = min(up_value_n, -f_val[i]);
+//                if (is_I_low(alpha[i], y[i], C)) low_value_n = max(low_value_n, -f_val[i]);
+//            }
+//        }
+//        real r1 = n_free_p != 0 ? sum_free_p / n_free_p : -(up_value_p + low_value_p) / 2;
+//        real r2 = n_free_n != 0 ? sum_free_n / n_free_n : -(up_value_n + low_value_n) / 2;
+//        return (r1 - r2) / 2;
+//    }
+//    //should never reach here
+//    CHECK(false);
+//    return 0;
+//}
 

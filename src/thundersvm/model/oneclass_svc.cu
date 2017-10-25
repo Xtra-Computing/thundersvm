@@ -5,7 +5,7 @@
 #include <iostream>
 #include <iomanip>
 #include <thundersvm/model/oneclass_svc.h>
-#include <thundersvm/kernel/smo_kernel.h>
+#include <thundersvm/solver/csmosolver.h>
 
 using namespace std;
 
@@ -30,18 +30,12 @@ void OneClassSVC::train(DataSet dataset, SvmParam param) {
     SyncData<int> idx(n + 1);
     SyncData<real> kernel_row(n_instances * (n + 1));
     f_val.mem_set(0);
-    for (int i = 0; i <= n; ++i) {
-        idx[i] = i;
-    }
-    kernelMatrix.get_rows(idx, kernel_row);
-    SAFE_KERNEL_LAUNCH(init_f_kernel, f_val.device_data(), alpha.device_data(), kernel_row.device_data(), n,
-                       n_instances);
-
     SyncData<int> y(n_instances);
     for (int i = 0; i < n_instances; ++i) {
         y[i] = 1;
     }
-    smo_solver(kernelMatrix, y, alpha, rho, f_val, param.epsilon, 1, 4);
+    CSMOSolver solver;
+    solver.solve(kernelMatrix, y, alpha, rho, f_val, param.epsilon, 1, ws_size);
 
     record_model(alpha, y, dataset.instances(), param);
 }

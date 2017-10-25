@@ -40,7 +40,8 @@ T *SyncData<T>::device_data() {
 
 template<typename T>
 void SyncData<T>::resize(size_t count) {
-    this->mem->resize(sizeof(T) * count);
+    delete mem;
+    mem = new SyncMem(sizeof(T) * count);
     this->size_ = count;
 }
 

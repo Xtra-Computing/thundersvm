@@ -48,12 +48,14 @@ void SyncMem::to_host() {
     switch (head_) {
         case UNINITIALIZED:
             CUDA_CHECK(cudaMallocHost(&host_ptr, size_));
+            CUDA_CHECK(cudaMemset(host_ptr, 0, size_));
             head_ = HOST;
             own_host_data = true;
             break;
         case DEVICE:
             if (nullptr == host_ptr) {
                 CUDA_CHECK(cudaMallocHost(&host_ptr, size_));
+                CUDA_CHECK(cudaMemset(host_ptr, 0, size_));
                 own_host_data = true;
             }
             CUDA_CHECK(cudaMemcpy(host_ptr, device_ptr, size_, cudaMemcpyDeviceToHost));
@@ -67,12 +69,14 @@ void SyncMem::to_device() {
     switch (head_) {
         case UNINITIALIZED:
             CUDA_CHECK(cudaMalloc(&device_ptr, size_));
+            CUDA_CHECK(cudaMemset(device_ptr, 0, size_));
             head_ = DEVICE;
             own_device_data = true;
             break;
         case HOST:
             if (nullptr == device_ptr) {
                 CUDA_CHECK(cudaMalloc(&device_ptr, size_));
+                CUDA_CHECK(cudaMemset(device_ptr, 0, size_));
                 own_device_data = true;
             }
             CUDA_CHECK(cudaMemcpy(device_ptr, host_ptr, size_, cudaMemcpyHostToDevice));
@@ -80,11 +84,6 @@ void SyncMem::to_device() {
             break;
         case DEVICE:;
     }
-}
-
-void SyncMem::resize(size_t size) {
-    this->~SyncMem();
-    this->size_ = size;
 }
 
 void SyncMem::set_host_data(void *data) {

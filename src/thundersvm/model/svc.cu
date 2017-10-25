@@ -6,6 +6,7 @@
 #include <thundersvm/kernel/smo_kernel.h>
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
 #include <thundersvm/model/svc.h>
+#include <thundersvm/solver/csmosolver.h>
 #include "thrust/sort.h"
 
 using namespace std;
@@ -38,7 +39,8 @@ void SVC::train(DataSet dataset, SvmParam param) {
             }
             KernelMatrix k_mat(ins, param);
             int ws_size = min(min(max2power(dataset.count()[0]), max2power(dataset.count()[1])) * 2, 1024);
-            smo_solver(k_mat, y, alpha, rho, f_val, param.epsilon, param.C, ws_size);
+            CSMOSolver solver;
+            solver.solve(k_mat, y, alpha, rho, f_val, param.epsilon, param.C, ws_size);
             record_binary_model(k, alpha, y, rho, dataset.original_index(i, j), dataset.instances());
             k++;
         }
