@@ -1,3 +1,5 @@
+Introduction
+======
 # Support Vector Machines
 
 # Sequential Minimal Optimization

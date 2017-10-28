@@ -16,10 +16,10 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+from recommonmark import transform
+AutoStructify = transform.AutoStructify
 
 # -- General configuration ------------------------------------------------
 
@@ -167,5 +167,10 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
-
-
+github_doc_root = 'https://github.com/rtfd/recommonmark/tree/master/doc/'
+def setup(app):
+	app.add_config_value('recommonmark_config', {
+	'url_resolver': lambda url: github_doc_root + url,
+	'enable_eval_rst': True,
+	}, True)
+	app.add_transform(AutoStructify)
