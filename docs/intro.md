@@ -1,7 +1,7 @@
 # Support Vector Machines
 
 # Sequential Minimal Optimization
-A training example $\boldsymbol{x}_i$ is attached with an integer $y_i \in \{+1, -1\}$ as its label.
+A training example ``$ x_i $`` is attached with an integer $y_i \in \{+1, -1\}$ as its label.
 A positive (negative) example is a training example with the label of $+1$ ($-1$).
 Given a set $\mathcal{X}$ of $n$ training examples,
 the goal of training SVMs is to find a hyperplane that separates the positive and the
