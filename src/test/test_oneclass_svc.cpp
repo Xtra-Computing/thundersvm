@@ -7,10 +7,11 @@
 
 TEST(OneClassSVCTest, train) {
     DataSet dataset;
-    dataset.load_from_file(DATASET_DIR "test_dataset.txt");
+//    dataset.load_from_file(DATASET_DIR "test_dataset.txt");
+    dataset.load_from_file(DATASET_DIR "a1a100");
     SvmParam param;
     param.gamma = 0.5;
-    param.nu = 0.5;
+    param.nu = 0.1;
     param.epsilon = 0.001;
     param.kernel_type = SvmParam::RBF;
     SvmModel *model = new OneClassSVC();

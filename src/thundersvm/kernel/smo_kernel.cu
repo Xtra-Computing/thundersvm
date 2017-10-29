@@ -10,7 +10,7 @@ __device__ int get_block_min(const float *values, int *index) {
     //block size is always the power of 2
     for (int offset = blockDim.x / 2; offset > 0; offset >>= 1) {
         if (tid < offset) {
-            if (values[index[tid + offset]] < values[index[tid]]) {
+            if (values[index[tid + offset]] <= values[index[tid]]) {
                 index[tid] = index[tid + offset];
             }
         }
@@ -141,17 +141,18 @@ nu_smo_solve_kernel(const int *label, real *f_values, real *alpha, real *alpha_d
     int numOfIter = 0;
     while (1) {
         //select I_up (y=+1)
-        if (y > 0 && is_I_up(a, y, C))
+        if (y > 0 && a < C)
             f_val2reduce[tid] = f;
         else
             f_val2reduce[tid] = INFINITY;
+        __syncthreads();
         int ip = get_block_min(f_val2reduce, f_idx2reduce);
         float up_value_p = f_val2reduce[ip];
         float kIpwsI = k_mat_rows[row_len * ip + wsi];//K[i, wsi]
         __syncthreads();
 
         //select I_up (y=-1)
-        if (y < 0 && is_I_up(a, y, C))
+        if (y < 0 && a > 0)
             f_val2reduce[tid] = f;
         else
             f_val2reduce[tid] = INFINITY;
@@ -161,15 +162,16 @@ nu_smo_solve_kernel(const int *label, real *f_values, real *alpha, real *alpha_d
         __syncthreads();
 
         //select I_low (y=+1)
-        if (y > 0 && is_I_low(a, y, C))
+        if (y > 0 && a > 0)
             f_val2reduce[tid] = -f;
         else
             f_val2reduce[tid] = INFINITY;
         int j1p = get_block_min(f_val2reduce, f_idx2reduce);
         float low_value_p = -f_val2reduce[j1p];
+        __syncthreads();
 
         //select I_low (y=-1)
-        if (y < 0 && is_I_low(a, y, C))
+        if (y < 0 && a < C)
             f_val2reduce[tid] = -f;
         else
             f_val2reduce[tid] = INFINITY;
@@ -201,6 +203,7 @@ nu_smo_solve_kernel(const int *label, real *f_values, real *alpha, real *alpha_d
             f_val2reduce[tid] = INFINITY;
         int j2p = get_block_min(f_val2reduce, f_idx2reduce);
         float f_val_j2p = f_val2reduce[j2p];
+        __syncthreads();
 
         //select j2n using second order heuristic
         if (-up_value_n > -f && y < 0 && is_I_low(a, y, C)) {
@@ -217,11 +220,13 @@ nu_smo_solve_kernel(const int *label, real *f_values, real *alpha, real *alpha_d
         if (f_val_j2p < f_val2reduce[j2n]) {
             i = ip;
             j2 = j2p;
+            up_value = up_value_p;
             kIwsI = kIpwsI;
         } else {
             i = in;
             j2 = j2n;
             kIwsI = kInwsI;
+            up_value = up_value_n;
         }
         //update alpha
         if (tid == i)
@@ -249,17 +254,10 @@ __global__ void update_f(real *f, int ws_size, const real *alpha_diff, const rea
         real sum_diff = 0;
         for (int i = 0; i < ws_size; ++i) {
             real d = alpha_diff[i];
-            if (d != 0)
+            if (d != 0) {
                 sum_diff += d * k_mat_rows[i * n_instances + idx];
+            }
         }
         f[idx] -= sum_diff;
-    }
-}
-
-__global__ void init_f_kernel(real *f_val, const real *alpha, const real *kernel_row, int n, int n_instances) {
-    KERNEL_LOOP(i, n_instances) {
-        for (int j = 0; j <= n; ++j) {
-            f_val[i] += alpha[j] * kernel_row[j * n_instances + i];
-        }
     }
 }

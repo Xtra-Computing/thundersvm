@@ -23,5 +23,4 @@ nu_smo_solve_kernel(const int *label, real *f_values, real *alpha, real *alpha_d
                     real *diff_and_bias);
 __global__ void update_f(real *f, int ws_size, const real *alpha_diff, const real *k_mat_rows, int n_instances);
 
-__global__ void init_f_kernel(real *f_val, const real *alpha, const real *kernel_row, int n, int n_instances);
 #endif //THUNDERSVM_SMO_KERNEL_H

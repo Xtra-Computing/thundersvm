@@ -23,26 +23,7 @@ void SVC::train(DataSet dataset, SvmParam param) {
     int k = 0;
     for (int i = 0; i < n_classes; ++i) {
         for (int j = i + 1; j < n_classes; ++j) {
-            DataSet::node2d ins = dataset.instances(i, j);//get instances of class i and j
-            SyncData<int> y(ins.size());
-            SyncData<real> alpha(ins.size());
-            SyncData<real> f_val(ins.size());
-            real rho;
-            alpha.mem_set(0);
-            for (int l = 0; l < dataset.count()[i]; ++l) {
-                y[l] = +1;
-                f_val[l] = -1;
-            }
-            for (int l = 0; l < dataset.count()[j]; ++l) {
-                y[dataset.count()[i] + l] = -1;
-                f_val[dataset.count()[i] + l] = +1;
-            }
-            KernelMatrix k_mat(ins, param);
-            int ws_size = min(min(max2power(dataset.count()[0]), max2power(dataset.count()[1])) * 2, 1024);
-            CSMOSolver solver;
-            solver.solve(k_mat, y, alpha, rho, f_val, param.epsilon, param.C, ws_size);
-            record_binary_model(k, alpha, y, rho, dataset.original_index(i, j), dataset.instances());
-            k++;
+            train_binary(dataset, i, j, k++);
         }
     }
 
@@ -52,6 +33,29 @@ void SVC::train(DataSet dataset, SvmParam param) {
         probB.resize(n_binary_models);
         probability_train(dataset);
     }
+}
+
+void SVC::train_binary(const DataSet &dataset, int i, int j, int k) {
+    DataSet::node2d ins = dataset.instances(i, j);//get instances of class i and j
+    SyncData<int> y(ins.size());
+    SyncData<real> alpha(ins.size());
+    SyncData<real> f_val(ins.size());
+    real rho;
+    alpha.mem_set(0);
+    for (int l = 0; l < dataset.count()[i]; ++l) {
+        y[l] = +1;
+        f_val[l] = -1;
+    }
+    for (int l = 0; l < dataset.count()[j]; ++l) {
+        y[dataset.count()[i] + l] = -1;
+        f_val[dataset.count()[i] + l] = +1;
+    }
+    KernelMatrix k_mat(ins, param);
+    int ws_size = min(min(max2power(dataset.count()[i]), max2power(dataset.count()[j])) * 2, 1024);
+//    int ws_size = 1024;
+    CSMOSolver solver;
+    solver.solve(k_mat, y, alpha, rho, f_val, param.epsilon, param.C, ws_size);
+    record_binary_model(k, alpha, y, rho, dataset.original_index(i, j), dataset.instances());
 }
 
 vector<real> SVC::predict(const DataSet::node2d &instances, int batch_size) {
@@ -592,3 +596,5 @@ void SVC::probability_train(const DataSet &dataset) {
         }
     }
 }
+
+

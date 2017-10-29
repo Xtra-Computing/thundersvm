@@ -33,7 +33,7 @@ void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncDa
     for (int i = 0; i < n_instances; ++i) {
         f_idx[i] = i;
     }
-    init_f(alpha, k_mat, f_val);
+    init_f(alpha, y, k_mat, f_val);
     LOG(INFO) << "training start";
     for (int iter = 1;; ++iter) {
         //select working set
@@ -54,7 +54,6 @@ void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncDa
             k_mat_rows_first_half.copy_from(k_mat_rows_last_half);
             k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
         }
-
         //local smo
         smo_kernel(y.device_data(), f_val.device_data(), alpha.device_data(), alpha_diff.device_data(),
                    working_set.device_data(), ws_size, C, k_mat_rows.device_data(), k_mat.diag().device_data(),
@@ -64,7 +63,7 @@ void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncDa
                            n_instances);
         LOG_EVERY_N(10, INFO) << "diff=" << diff_and_bias[0];
         if (diff_and_bias[0] < eps) {
-            rho = calculate_rho(alpha, f_val, y, C);
+            rho = calculate_rho(f_val, y, alpha, C);
             break;
         }
     }
@@ -81,7 +80,7 @@ void CSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncData<in
         int i;
         if (p_left < n_instances) {
             i = index[p_left];
-            while (ws_indicator[i] == 1 || !((y[i] > 0 && alpha[i] < C) || (y[i] < 0 && alpha[i] > 0))) {
+            while (ws_indicator[i] == 1 || !is_I_up(alpha[i], y[i], C)) {
                 //construct working set of I_up
                 p_left++;
                 if (p_left == n_instances) break;
@@ -94,7 +93,7 @@ void CSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncData<in
         }
         if (p_right >= 0) {
             i = index[p_right];
-            while ((ws_indicator[i] == 1 || !((y[i] > 0 && alpha[i] > 0) || (y[i] < 0 && alpha[i] < C)))) {
+            while (ws_indicator[i] == 1 || !is_I_low(alpha[i], y[i], C)) {
                 //construct working set of I_low
                 p_right--;
                 if (p_right == -1) break;
@@ -109,8 +108,8 @@ void CSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncData<in
     }
 }
 
-real CSMOSolver::calculate_rho(const SyncData<real> &alpha, const SyncData<real> &f_val, const SyncData<int> &y,
-                               real C) const {
+real
+CSMOSolver::calculate_rho(const SyncData<real> &f_val, const SyncData<int> &y, SyncData<real> &alpha, real C) const {
     int n_free = 0;
     real sum_free = 0;
     real up_value = INFINITY;
@@ -123,24 +122,30 @@ real CSMOSolver::calculate_rho(const SyncData<real> &alpha, const SyncData<real>
         if (is_I_up(alpha[i], y[i], C)) up_value = min(up_value, f_val[i]);
         if (is_I_low(alpha[i], y[i], C)) low_value = max(low_value, f_val[i]);
     }
-    return 0 != n_free ? sum_free / n_free : -(up_value + low_value) / 2;
+    return 0 != n_free ? (sum_free / n_free) : (-(up_value + low_value) / 2);
 }
 
-void CSMOSolver::init_f(const SyncData<real> &alpha, const KernelMatrix &k_mat, SyncData<real> &f_val) const {
+void CSMOSolver::init_f(const SyncData<real> &alpha, const SyncData<int> &y, const KernelMatrix &k_mat,
+                        SyncData<real> &f_val) const {
     //TODO initialize with smaller batch to reduce memory usage
     vector<int> idx_vec;
-    SyncData<int> idx;
+    vector<real> alpha_diff_vec;
     for (int i = 0; i < alpha.size(); ++i) {
         if (alpha[i] != 0) {
             idx_vec.push_back(i);
+            alpha_diff_vec.push_back(-alpha[i] * y[i]);
         }
     }
-    idx.resize(idx_vec.size());
-    idx.copy_from(idx_vec.data(), idx_vec.size());
-    SyncData<real> kernel_rows(idx.size() * k_mat.n_instances());
-    k_mat.get_rows(idx, kernel_rows);
-    SAFE_KERNEL_LAUNCH(init_f_kernel, f_val.device_data(), alpha.device_data(), kernel_rows.device_data(), idx.size(),
-                       k_mat.n_instances());
+    if (idx_vec.size() > 0) {
+        SyncData<int> idx(idx_vec.size());
+        SyncData<real> alpha_diff(idx_vec.size());
+        idx.copy_from(idx_vec.data(), idx_vec.size());
+        alpha_diff.copy_from(alpha_diff_vec.data(), idx_vec.size());
+        SyncData<real> kernel_rows(idx.size() * k_mat.n_instances());
+        k_mat.get_rows(idx, kernel_rows);
+        SAFE_KERNEL_LAUNCH(update_f, f_val.device_data(), idx.size(), alpha_diff.device_data(),
+                           kernel_rows.device_data(), k_mat.n_instances());
+    }
 }
 
 void CSMOSolver::smo_kernel(const int *label, real *f_values, real *alpha, real *alpha_diff, const int *working_set,

@@ -14,14 +14,16 @@ public:
                SyncData<real> &f_val, real eps, real C, int ws_size) const;
 
 protected:
-    void init_f(const SyncData<real> &alpha, const KernelMatrix &k_mat, SyncData<real> &f_val) const;
+    void init_f(const SyncData<real> &alpha, const SyncData<int> &y, const KernelMatrix &k_mat,
+                SyncData<real> &f_val) const;
 
-    void select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
-                            const SyncData<real> &alpha, real C, SyncData<int> &working_set) const;
+    virtual void select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
+                                    const SyncData<real> &alpha, real C, SyncData<int> &working_set) const;
 
-    real calculate_rho(const SyncData<real> &alpha, const SyncData<real> &f_val, const SyncData<int> &y, real C) const;
+    virtual real
+    calculate_rho(const SyncData<real> &f_val, const SyncData<int> &y, SyncData<real> &alpha, real C) const;
 
-    void
+    virtual void
     smo_kernel(const int *label, real *f_values, real *alpha, real *alpha_diff, const int *working_set, int ws_size,
                float C, const float *k_mat_rows, const float *k_mat_diag, int row_len, real eps,
                real *diff_and_bias) const;
