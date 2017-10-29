@@ -1,34 +1,7 @@
 # ThunderSVM
-## Usage
-1. clone this repository
-```bash
-git clone git@github.com:zeyiwen/mascot.git
-```
-2. download datasets
-```bash
-cd mascot
-dataset/get_datasets.sh
-```
-
-3. build and test
-```bash
-mkdir build
-cd build
-cmake ..
-make -j runtest
-```
-see if all tests pass
+## Documentations
+The documentations are avaible [here](mascot.readthedocs.io/en/thundersvm/) in Readthedoc.
 
 ## TODO
-- command line parser (3d)
-- save and load models from file (3d)
-- probability estimation (1-2d)
 - integrate with interfaces
 - nu-SVM
-## Completed
-- binary/multi-class classification training/prediction
-- unit test codes
-- SVR
-- one-class SVM
-- cross-validation 
-- various kernels
