@@ -1,8 +1,8 @@
 Introduction
 ======
-# Support Vector Machines
+## Support Vector Machines
 
-# Sequential Minimal Optimization
+## Sequential Minimal Optimization
 A training example ``$ x_i $`` is attached with an integer $y_i \in \{+1, -1\}$ as its label.
 A positive (negative) example is a training example with the label of $+1$ ($-1$).
 Given a set $\mathcal{X}$ of $n$ training examples,

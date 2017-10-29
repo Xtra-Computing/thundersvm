@@ -1,13 +1,8 @@
-ThunderSVM: A Fast GPU-based SVM Library
+ThunderSVM: A Fast SVM Library
 ======================================
+The mission of ThunderSVM is to help users easily and efficiently apply SVMs to solve problems.
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-
-
-Indices and tables
-==================
-
+## Content
+* [Getting Started](get-started.md)
 * [Introduction](intro.md)
+* [How To](how-to.md)
