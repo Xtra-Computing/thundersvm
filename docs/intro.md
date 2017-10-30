@@ -25,16 +25,16 @@ where ``$ F(\boldsymbol{\alpha}) $`` is the objective function; ``$ \boldsymbol{
 
 The goal of the training translates to finding a weight vector ``$ \boldsymbol{\alpha} $`` that maximizes the value of the objective function ``$ F(\boldsymbol{\alpha}) $``. Here, we describe a popular training algorithm, the Sequential Minimal Optimization (SMO) algorithm. It iteratively improves the weight vector until the optimal condition of the SVM is met. The optimal condition is reflected by an _optimality indicator vector_ ``$ \boldsymbol{f} = \langle f_1, f_2, ..., f_n \rangle $`` where ``$ f_i $`` is the optimality indicator for the i-th instance ``$ \boldsymbol{x}_i $`` and ``$ f_i $`` can be obtained using the following equation:``$ f_i = \sum_{j=1}^{n}{\alpha_j y_j K(\boldsymbol{x}_i, \boldsymbol{x}_j) - y_i} $``. In each iteration, the SMO algorithm has the following three steps:
 
-**Step 1**: Search two extreme instances, denoted by ``$ \boldsymbol{x}_{u} $`` and ``$ \boldsymbol{x}_{l} $``, which have the maximum and minimum optimality indicators, respectively. It has been proven~\cite{keerthi2001improvements, fan2005working} that the indexes of ``$ \boldsymbol{x}_{u} $`` and ``$ \boldsymbol{x}_{l} $``, denoted by u and l respectively, can be computed by the following equations.
+**Step 1**: Search two extreme instances, denoted by ``$ \boldsymbol{x}_{u} $`` and ``$ \boldsymbol{x}_{l} $``, which have the maximum and minimum optimality indicators, respectively. It has been proven that the indexes of ``$ \boldsymbol{x}_{u} $`` and ``$ \boldsymbol{x}_{l} $``, denoted by u and l respectively, can be computed by the following equations.
 ```math
-u = \argminl_{i}\{f_i| \boldsymbol{x}_i \in \mathcal{X}_{upper}\}\\
-l = \argmaxl_{i}\{\frac{(f_{u} - f_i)^2}{\eta_i} | f_{u}<f_i, \boldsymbol{x}_i \in \mathcal{X}_{lower}\}
+u = \text{argmin}_{i}\{f_i| \boldsymbol{x}_i \in \mathcal{X}_{upper}\}\\
+l = \text{argmax}_{i}\{\frac{(f_{u} - f_i)^2}{\eta_i} | f_{u}<f_i, \boldsymbol{x}_i \in \mathcal{X}_{lower}\}
 ```
 where
 ```math
 \mathcal{X}_{upper} = \mathcal{X}_1 \cup \mathcal{X}_2 \cup \mathcal{X}_3,\\
 \mathcal{X}_{lower} = \mathcal{X}_1 \cup \mathcal{X}_4 \cup \mathcal{X}_5;\\
-and\\
+\text{and}\\
 \mathcal{X}_{1} = \{\boldsymbol{x}_i| \boldsymbol{x}_i \in \mathcal{X}, 0 < \alpha_i < C\},\\
 \mathcal{X}_{2} = \{\boldsymbol{x}_i| \boldsymbol{x}_i \in \mathcal{X}, y_i = +1, \alpha_i = 0\},\\
 \mathcal{X}_{3} = \{\boldsymbol{x}_i| \boldsymbol{x}_i \in \mathcal{X}, y_i = -1, \alpha_i = C\},\\
