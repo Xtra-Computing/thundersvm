@@ -20,6 +20,19 @@ void SVC::train(DataSet dataset, SvmParam param) {
     sv_index.resize(n_binary_models);
     coef.resize(n_binary_models);
     this->param = param;
+    c_weight = vector<real>(n_classes, 1);
+    for (int i = 0; i < param.nr_weight; ++i) {
+        bool found = false;
+        for (int j = 0; j < n_classes; ++j) {
+            if (param.weight_label[i] == dataset.label()[j]) {
+                found = true;
+                c_weight[j] *= param.weight[i];
+                break;
+            }
+        }
+        if (!found)
+            LOG(WARNING) << "weighted label " << param.weight_label[i] << " not found";
+    }
     int k = 0;
     for (int i = 0; i < n_classes; ++i) {
         for (int j = i + 1; j < n_classes; ++j) {
@@ -52,9 +65,10 @@ void SVC::train_binary(const DataSet &dataset, int i, int j, int k) {
     }
     KernelMatrix k_mat(ins, param);
     int ws_size = min(min(max2power(dataset.count()[i]), max2power(dataset.count()[j])) * 2, 1024);
-//    int ws_size = 1024;
     CSMOSolver solver;
-    solver.solve(k_mat, y, alpha, rho, f_val, param.epsilon, param.C, ws_size);
+    LOG(DEBUG) << c_weight[i];
+    LOG(DEBUG) << c_weight[j];
+    solver.solve(k_mat, y, alpha, rho, f_val, param.epsilon, param.C * c_weight[i], param.C * c_weight[j], ws_size);
     record_binary_model(k, alpha, y, rho, dataset.original_index(i, j), dataset.instances());
 }
 

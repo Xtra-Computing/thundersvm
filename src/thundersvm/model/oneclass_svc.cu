@@ -35,7 +35,7 @@ void OneClassSVC::train(DataSet dataset, SvmParam param) {
         y[i] = 1;
     }
     CSMOSolver solver;
-    solver.solve(kernelMatrix, y, alpha, rho, f_val, param.epsilon, 1, ws_size);
+    solver.solve(kernelMatrix, y, alpha, rho, f_val, param.epsilon, 1, 1, ws_size);
 
     record_model(alpha, y, dataset.instances(), param);
 }

@@ -30,7 +30,7 @@ void SVR::train(DataSet dataset, SvmParam param) {
     alpha_2.mem_set(0);
     int ws_size = min(max2power(n_instances) * 2, 1024);
     CSMOSolver solver;
-    solver.solve(kernelMatrix, y, alpha_2, rho, f_val, param.epsilon, param.C, ws_size);
+    solver.solve(kernelMatrix, y, alpha_2, rho, f_val, param.epsilon, param.C, param.C, ws_size);
     SyncData<real> alpha(n_instances);
     for (int i = 0; i < n_instances; ++i) {
         alpha[i] = alpha_2[i] - alpha_2[i + n_instances];
