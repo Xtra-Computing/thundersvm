@@ -3,13 +3,8 @@ Introduction
 ## Support Vector Machines
 
 ## Sequential Minimal Optimization
-A training example ``$ x_i $`` is attached with an integer $y_i \in \{+1, -1\}$ as its label.
-A positive (negative) example is a training example with the label of $+1$ ($-1$).
-Given a set $\mathcal{X}$ of $n$ training examples,
-the goal of training SVMs is to find a hyperplane that separates the positive and the
-negative examples in $\mathcal{X}$ with the maximum margin and meanwhile,
-with the minimum misclassification error on the training examples.
-The training is equivalent to solving the following optimization problem:
+A training example ``$ \boldsymbol{x}_i $`` is attached with an integer ``$ y_i \in \{+1, -1\} $`` as its label. A positive (negative) example is a training example with the label of +1 (-1). Given a set ``$ \mathcal{X} $`` of n training examples,
+the goal of training SVMs is to find a hyperplane that separates the positive and the negative examples in ``$ \mathcal{X} $`` with the maximum margin and meanwhile, with the minimum misclassification error on the training examples. The training is equivalent to solving the following optimization problem:
 \begin{equation}
 \begin{aligned}
 & \underset{\boldsymbol{w}, \boldsymbol{\xi}, b}{\argminl}
@@ -20,17 +15,9 @@ The training is equivalent to solving the following optimization problem:
 \end{aligned}
 \label{eq:svm}
 \end{equation}
-where $\boldsymbol{w}$ is the normal vector of the hyperplane,
-$C$ is the penalty parameter,
-$\boldsymbol{\xi}$ is the slack variables
-to tolerant some training examples falling in the wrong side of the hyperplane,
-and $b$ is the bias of the hyperplane.
+where ``$ \boldsymbol{w} $`` is the normal vector of the hyperplane, C is the penalty parameter, ``$ \boldsymbol{\xi} $`` is the slack variables to tolerant some training examples falling in the wrong side of the hyperplane, and $b$ is the bias of the hyperplane.
 
-To handle the non-linearly separable data,
-SVMs use a mapping function to map the training examples
-from the original data space to a higher dimensional data space
-where the data may become linearly separable.
-The optimization problem~\ref{eq:svm} can be rewritten to a dual form~\cite{bennett2000duality}
+To handle the non-linearly separable data, SVMs use a mapping function to map the training examples from the original data space to a higher dimensional data space where the data may become linearly separable. The optimization problem~\ref{eq:svm} can be rewritten to a dual form~\cite{bennett2000duality}
 where mapping functions can be replaced by kernel functions~\cite{Boser:1992:TAO:130385.130401}
 which make the mapping easier.
 The optimization problem in the dual form is shown as follows.
@@ -103,13 +90,10 @@ $\text{ \ \ \qquad\ \qquad}\mathcal{X}_{2} = \{\boldsymbol{x}_i| \boldsymbol{x}_
 $\text{ \ \ \qquad\ \qquad}\mathcal{X}_{3} = \{\boldsymbol{x}_i| \boldsymbol{x}_i \in \mathcal{X}, y_i = -1, \alpha_i = C\}$,\\
 $\text{ \ \ \qquad\ \qquad}\mathcal{X}_{4} = \{\boldsymbol{x}_i| \boldsymbol{x}_i \in \mathcal{X}, y_i = +1, \alpha_i = C\}$,\\
 $\text{ \ \ \qquad\ \qquad}\mathcal{X}_{5} = \{\boldsymbol{x}_i| \boldsymbol{x}_i \in \mathcal{X}, y_i = -1, \alpha_i = 0\}$;
-}\\
-and {$\eta_i = K(\boldsymbol{x}_{u}, \boldsymbol{x}_{u}) + K(\boldsymbol{x}_{i}, \boldsymbol{x}_{i}) - 2K(\boldsymbol{x}_{u}, \boldsymbol{x}_{i})$};
-{$f_{u}$} and {$f_{l}$} denote the optimality indicators of {$\boldsymbol{x}_{u}$} and {$\boldsymbol{x}_{l}$}, respectively.
+}
+and ``$ \eta_i = K(\boldsymbol{x}_{u}, \boldsymbol{x}_{u}) + K(\boldsymbol{x}_{i}, \boldsymbol{x}_{i}) - 2K(\boldsymbol{x}_{u}, \boldsymbol{x}_{i}) $``; ``$f_{u} $`` and ``$ f_{l} $`` denote the optimality indicators of ``$ \boldsymbol{x}_{u} $`` and ``$ \boldsymbol{x}_{l} $``, respectively.
 
-
-\textbf{Step 2}: Improve the weights of $\boldsymbol{x}_{u}$ and $\boldsymbol{x}_{l}$,
-denoted by $\alpha_{u}$ and $\alpha_{l}$, by updating them using Equations~\ref{eq:updateAd} and~\ref{eq:updateAu}.
+**Step 2**: Improve the weights of ``$ \boldsymbol{x}_{u} $`` and ``$ \boldsymbol{x}_{l} $``, denoted by ``$ \alpha_{u} $`` and ``$ \alpha_{l} $``, by updating them using Equations~\ref{eq:updateAd} and~\ref{eq:updateAu}.
 \begin{equation}
 \alpha_{l}' = \alpha_{l} + \frac{y_{l}(f_{u} - f_{l})}{\eta}
 \label{eq:updateAd}
@@ -118,12 +102,9 @@ denoted by $\alpha_{u}$ and $\alpha_{l}$, by updating them using Equations~\ref{
 \alpha_{u}' = \alpha_{u} + y_{l} y_{u}(\alpha_{l} - \alpha_{l}')
 \label{eq:updateAu}
 \end{equation}
-where {$\eta = K(\boldsymbol{x}_{u}, \boldsymbol{x}_{u}) + K(\boldsymbol{x}_{l}, \boldsymbol{x}_{l}) - 2K(\boldsymbol{x}_{u}, \boldsymbol{x}_{l})$}.
-To guarantee the update is valid, when $\alpha_{u}'$ or $\alpha_{l}'$ exceeds the domain of $[0, C]$,
-$\alpha_{u}'$ and $\alpha_{l}'$ are adjusted into the domain.
+where ``$ \eta = K(\boldsymbol{x}_{u}, \boldsymbol{x}_{u}) + K(\boldsymbol{x}_{l}, \boldsymbol{x}_{l}) - 2K(\boldsymbol{x}_{u}, \boldsymbol{x}_{l}) $``. To guarantee the update is valid, when ``$ \alpha_{u}' $`` or ``$ \alpha_{l}' $`` exceeds the domain of [0, C], ``$ \alpha_{u}' $`` and ``$ \alpha_{l}' $`` are adjusted into the domain.
 
-\textbf{Step 3}: Update the optimality indicators of all examples.
-The optimality indicator $f_i$ of the example $\boldsymbol{x}_i$ is updated to $f'_i$ using the following formula:
+**Step 3**: Update the optimality indicators of all examples. The optimality indicator ``$ f_i $`` of the example ``$ \boldsymbol{x}_i $`` is updated to ``$ f'_i $`` using the following formula:
 \begin{equation}
 \begin{split}
 f_i' = f_i + (\alpha_{u}' - \alpha_{u})y_{u} K(\boldsymbol{x}_{u}, \boldsymbol{x}_i)\\
@@ -132,11 +113,10 @@ f_i' = f_i + (\alpha_{u}' - \alpha_{u})y_{u} K(\boldsymbol{x}_{u}, \boldsymbol{x
 \end{split}
 \end{equation}
 
-SMO repeats the above steps until the optimal condition is met, i.e., $f_{u} \ge f_{max}$,
+SMO repeats the above steps until the optimal condition is met, i.e., ``$ f_{u} \ge f_{max} $``,
 where
 \begin{equation}
 f_{max} = max\{f_i | \boldsymbol{x}_i \in \mathcal{X}_{lower}\}
 \label{eq:real_max_f}
 \end{equation}
-After the optimal condition is met, we obtain the $\boldsymbol{\alpha}$ values which corresponding to the optimal hyperplane
-and the SVM with these $\boldsymbol{\alpha}$ values is considered \textit{trained}.
+After the optimal condition is met, we obtain the ``$ \boldsymbol{\alpha} $`` values which corresponding to the optimal hyperplane and the SVM with these ``$ \boldsymbol{\alpha} $`` values is considered trained.
