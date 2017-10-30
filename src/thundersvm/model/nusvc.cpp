@@ -30,8 +30,7 @@ void NuSVC::train_binary(const DataSet &dataset, int i, int j, int k) {
 
     KernelMatrix k_mat(ins, param);
     int ws_size = min(min(max2power(dataset.count()[i]), max2power(dataset.count()[j])) * 2, 1024);
-    ws_size = 1024;
-    NuSMOSolver solver;
+    NuSMOSolver solver(false);
     solver.solve(k_mat, y, alpha, rho, f_val, param.epsilon, 1, ws_size);
     record_binary_model(k, alpha, y, rho, dataset.original_index(i, j), dataset.instances());
 }

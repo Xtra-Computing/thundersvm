@@ -1,23 +1,23 @@
-//
-// Created by jiashuai on 17-10-5.
-//
-#include <gtest/gtest.h>
+#include <src/test/gtest/src/googletest/googletest/include/gtest/gtest.h>
+#include <thundersvm/dataset.h>
 #include <dataset.h>
+#include <thundersvm/model/svmmodel.h>
 #include <thundersvm/model/nusvr.h>
 
-TEST(SVRTest, train) {
+//
+// Created by jiashuai on 17-10-30.
+//
+TEST(NuSVRTest, train) {
 
     DataSet dataset;
     dataset.load_from_file(DATASET_DIR "test_dataset.txt");
-//    dataset.load_from_file(DATASET_DIR "E2006.train");
     SvmParam param;
     param.gamma = 0.25;
     param.C = 10;
-    param.p = 0.1;
     param.epsilon = 0.001;
     param.nu = 0.5;
     param.kernel_type = SvmParam::RBF;
-    SvmModel *model = new SVR();
+    SvmModel *model = new NuSVR();
     model->train(dataset, param);
 
     vector<real> predict_y;
@@ -29,5 +29,4 @@ TEST(SVRTest, train) {
     mse /= predict_y.size();
 
     LOG(INFO) << "MSE = " << mse;
-    EXPECT_NEAR(mse, 0.03097, 1e-5);
 }

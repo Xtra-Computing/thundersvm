@@ -29,11 +29,13 @@ NuSMOSolver::calculate_rho(const SyncData<real> &f_val, const SyncData<int> &y, 
     }
     real r1 = n_free_p != 0 ? sum_free_p / n_free_p : (-(up_value_p + low_value_p) / 2);
     real r2 = n_free_n != 0 ? sum_free_n / n_free_n : (-(up_value_n + low_value_n) / 2);
-    real r = (r1 + r2) / 2;
-    for (int i = 0; i < alpha.size(); ++i) {
-        alpha[i] /= r;//TODO parallel
+    real rho = (r1 - r2) / 2;
+    //not scale for svr, scale for nu-svc
+    if (!for_svr) {
+        real r = (r1 + r2) / 2;
+        scale_alpha_rho(alpha, rho, r);
     }
-    return (r1 - r2) / 2 / r;
+    return rho;
 }
 
 void NuSMOSolver::smo_kernel(const int *label, real *f_values, real *alpha, real *alpha_diff, const int *working_set,
@@ -110,4 +112,11 @@ void NuSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncData<i
             }
         }
     }
+}
+
+void NuSMOSolver::scale_alpha_rho(SyncData<real> &alpha, real &rho, real r) const {
+    for (int i = 0; i < alpha.size(); ++i) {
+        alpha[i] /= r;//TODO parallel
+    }
+    rho /= r;
 }
