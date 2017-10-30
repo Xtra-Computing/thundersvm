@@ -101,8 +101,6 @@ void CMDParser::init_param() {
 
 void CMDParser::parse_command_line(int argc, char **argv) {
     int i;
-    void (*print_func)(const char *) = NULL;    // default printing to stdout
-
     init_param();
     string bin_name = argv[0];
     bin_name = bin_name.substr(bin_name.find_last_of("/") + 1);
@@ -152,7 +150,7 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                     param_cmd.probability = atoi(argv[i]);
                     break;
                 case 'q':
-                    print_func = &print_null;
+//                    print_func = &print_null;
                     i--;
                     break;
                 case 'v':
@@ -223,48 +221,6 @@ void CMDParser::parse_command_line(int argc, char **argv) {
         strcpy(svmpredict_input_file, argv[i]);
         strcpy(svmpredict_output_file, argv[i + 2]);
         strcpy(svmpredict_model_file_name, argv[i + 1]);
-    } else if (bin_name == "thundersvm_scale") {
-        FILE *fp, *fp_restore = NULL;
-        char *save_filename = NULL;
-        char *restore_filename = NULL;
-        for (i = 2; i < argc; i++) {
-            if (argv[i][0] != '-') break;
-            i++;
-            switch (argv[i - 1][1]) {
-                case 'l':
-                    lower = atof(argv[i]);
-                    break;
-                case 'u':
-                    upper = atof(argv[i]);
-                    break;
-                case 'y':
-                    y_lower = atof(argv[i]);
-                    ++i;
-                    y_upper = atof(argv[i]);
-                    y_scaling = 1;
-                    break;
-                case 's':
-                    save_filename = argv[i];
-                    break;
-                case 'r':
-                    restore_filename = argv[i];
-                    break;
-                default:
-                    fprintf(stderr, "unknown option\n");
-                    HelpInfo_svmscale();
-            }
-        }
-        if (!(upper > lower) || (y_scaling && !(y_upper > y_lower))) {
-            fprintf(stderr, "inconsistent lower/upper specification\n");
-            exit(1);
-        }
-        if (restore_filename && save_filename) {
-            fprintf(stderr, "cannot use -r and -s simultaneously\n");
-            exit(1);
-        }
-        if (argc != i + 1)
-            HelpInfo_svmscale();
-        strcpy(svmscale_file_name, argv[i]);
     } else {
         printf("Usage: thundersvm [options] training_set_file [model_file]\n"
                        "or: thundersvm_predict [options] test_file model_file output_file\n"

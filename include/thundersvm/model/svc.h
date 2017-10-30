@@ -46,6 +46,7 @@ private:
     vector<int> label;
     vector<real> probA;
     vector<real> probB;
+    vector<real> c_weight;
 
     size_t n_classes;
     size_t n_binary_models;

@@ -51,7 +51,7 @@ protected:
 TEST_F(NuSVCTest, a9a) {
     EXPECT_NEAR(load_dataset_and_train(DATASET_DIR
                         "a9a", DATASET_DIR
-                        "a9a.t", 100, 0.5, 0.2), 0.826608, 1e-3);
+                        "a9a.t", 100, 0.5, 0.1), 0.826608, 1e-3);
 }
 //TEST_F(NuSVCTest, a1a1024) {
 //    EXPECT_NEAR(load_dataset_and_train(DATASET_DIR

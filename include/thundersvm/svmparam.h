@@ -15,7 +15,7 @@ struct SvmParam{
 //		LINEAR, RBF, POLYNOMIAL, SIGMOID
 //	};
 
-	SvmParam() : C(1), p(0.1), epsilon(0.001), nu(0.5), kernel_type(RBF), probability(0) {}
+    SvmParam() : C(1), p(0.1), epsilon(0.001), nu(0.5), kernel_type(RBF), probability(0), nr_weight(0) {}
     enum {
         C_SVC, NU_SVC, ONE_CLASS, EPSILON_SVR, NU_SVR
     };    /* svm_type */

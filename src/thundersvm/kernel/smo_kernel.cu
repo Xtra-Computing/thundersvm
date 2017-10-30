@@ -19,21 +19,15 @@ __device__ int get_block_min(const float *values, int *index) {
     return index[0];
 }
 
-__host__ __device__
-
-bool is_I_up(float a, float y, float Cp, float Cn) {
+__host__ __device__ bool is_I_up(float a, float y, float Cp, float Cn) {
     return (y > 0 && a < Cp) || (y < 0 && a > 0);
 }
 
-__host__ __device__
-
-bool is_I_low(float a, float y, float Cp, float Cn) {
+__host__ __device__ bool is_I_low(float a, float y, float Cp, float Cn) {
     return (y > 0 && a > 0) || (y < 0 && a < Cn);
 }
 
-__host__ __device__
-
-bool is_free(float a, float y, float Cp, float Cn) {
+__host__ __device__ bool is_free(float a, float y, float Cp, float Cn) {
     return a > 0 && (y > 0 ? a < Cp : a < Cn);
 }
 
@@ -204,7 +198,7 @@ nu_smo_solve_kernel(const int *label, real *f_values, real *alpha, real *alpha_d
         __syncthreads();
 
         //select j2p using second order heuristic
-        if (-up_value_p > -f && y > 0 && is_I_low(a, y, C, 0)) {
+        if (-up_value_p > -f && y > 0 && a > 0) {
             float aIJ = kd[ip] + kd[tid] - 2 * kIpwsI;
             float bIJ = -up_value_p + f;
             f_val2reduce[tid] = -bIJ * bIJ / aIJ;
@@ -215,7 +209,7 @@ nu_smo_solve_kernel(const int *label, real *f_values, real *alpha, real *alpha_d
         __syncthreads();
 
         //select j2n using second order heuristic
-        if (-up_value_n > -f && y < 0 && is_I_low(a, y, C, 0)) {
+        if (-up_value_n > -f && y < 0 && a < C) {
             float aIJ = kd[in] + kd[tid] - 2 * kInwsI;
             float bIJ = -up_value_n + f;
             f_val2reduce[tid] = -bIJ * bIJ / aIJ;

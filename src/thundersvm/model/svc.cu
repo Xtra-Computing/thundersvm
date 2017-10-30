@@ -66,8 +66,6 @@ void SVC::train_binary(const DataSet &dataset, int i, int j, int k) {
     KernelMatrix k_mat(ins, param);
     int ws_size = min(min(max2power(dataset.count()[i]), max2power(dataset.count()[j])) * 2, 1024);
     CSMOSolver solver;
-    LOG(DEBUG) << c_weight[i];
-    LOG(DEBUG) << c_weight[j];
     solver.solve(k_mat, y, alpha, rho, f_val, param.epsilon, param.C * c_weight[i], param.C * c_weight[j], ws_size);
     record_binary_model(k, alpha, y, rho, dataset.original_index(i, j), dataset.instances());
 }
