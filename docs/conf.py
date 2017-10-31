@@ -49,8 +49,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'ThunderSVM'
-copyright = u'2017, Zeyi Wen'
-author = u'Zeyi Wen'
+copyright = u'2017, ThunderSVM Developers'
+author = u'ThunderSVM Developers'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
