@@ -76,90 +76,90 @@ vector<real> SVC::predict(const DataSet::node2d &instances, int batch_size) {
     return predict_label(dec_values, instances.size());
 }
 
-void SVC::save_to_file(string path) {
-    ofstream fs_model;
-    string str = path + ".model";
-    fs_model.open(str.c_str());
-    CHECK(fs_model.is_open()) << "file " << path << " not found";
-    const SvmParam &param = this->param;
-    fs_model << "svm_type " << svm_type_name[param.svm_type] << endl;
-    fs_model << "kernel_type " << kernel_type_name[param.kernel_type] << endl;
-    if (param.kernel_type == 1)
-        fs_model << "degree " << param.degree << endl;
-    if (param.kernel_type == 1 || param.kernel_type == 2 || param.kernel_type == 3)/*1:poly 2:rbf 3:sigmoid*/
-        fs_model << "gamma " << param.gamma << endl;
-    if (param.kernel_type == 1 || param.kernel_type == 3)
-        fs_model << "coef0 " << param.coef0 << endl;
-    //unsigned int nr_class = this->dataSet.n_classes();
-    //unsigned int total_sv = this->dataSet.total_count();            //not sure
-    unsigned int nr_class = n_classes;
-    unsigned int total_sv = sv.size();
-    //unsigned int total_sv = n_instances;
-    fs_model << "nr_class " << nr_class << endl;
-    fs_model << "total_sv " << total_sv << endl;
-    vector<real> frho = rho;
-    fs_model << "rho";
-    for (int i = 0; i < nr_class * (nr_class - 1) / 2; i++) {
-        fs_model << " " << frho[i];
-    }
-    fs_model << endl;
+//void SVC::save_to_file(string path) {
+//    ofstream fs_model;
+//    string str = path + ".model";
+//    fs_model.open(str.c_str());
+//    CHECK(fs_model.is_open()) << "file " << path << " not found";
+//    const SvmParam &param = this->param;
+//    fs_model << "svm_type " << svm_type_name[param.svm_type] << endl;
+//    fs_model << "kernel_type " << kernel_type_name[param.kernel_type] << endl;
+//    if (param.kernel_type == 1)
+//        fs_model << "degree " << param.degree << endl;
+//    if (param.kernel_type == 1 || param.kernel_type == 2 || param.kernel_type == 3)/*1:poly 2:rbf 3:sigmoid*/
+//        fs_model << "gamma " << param.gamma << endl;
+//    if (param.kernel_type == 1 || param.kernel_type == 3)
+//        fs_model << "coef0 " << param.coef0 << endl;
+//    //unsigned int nr_class = this->dataSet.n_classes();
+//    //unsigned int total_sv = this->dataSet.total_count();            //not sure
+//    unsigned int nr_class = n_classes;
+//    unsigned int total_sv = sv.size();
+//    //unsigned int total_sv = n_instances;
+//    fs_model << "nr_class " << nr_class << endl;
+//    fs_model << "total_sv " << total_sv << endl;
+//    vector<real> frho = rho;
+//    fs_model << "rho";
+//    for (int i = 0; i < nr_class * (nr_class - 1) / 2; i++) {
+//        fs_model << " " << frho[i];
+//    }
+//    fs_model << endl;
+//
+//    if (param.svm_type == 0) {
+//        fs_model << "label";
+//        for (int i = 0; i < nr_class; i++)
+//            fs_model << " " << label[i];
+//        fs_model << endl;
+//    }
+//
+//    //cout<<"149"<<endl;
+//    /*
+//    if (this->probability) // regression has probA only
+//    {
+//        libmod << "probA";
+//        for (int i = 0; i < nr_class * (nr_class - 1) / 2; i++)
+//            libmod << " " << probA[i];
+//        libmod << endl;
+//        libmod << "probB";
+//        for (int i = 0; i < nr_class * (nr_class - 1) / 2; i++)
+//            libmod << " " << probB[i];
+//        libmod << endl;
+//    }
+//    */
+//    /*
+//    if (param.svm_type == 0)//c-svm
+//    {
+//        libmod << "nr_sv";
+//        for (int i = 0; i < nr_class; i++)
+//            libmod << " " << this->dataSet.count()[i];
+//        libmod << endl;
+//    }
+//    */
+//    fs_model << "SV" << endl;
+//
+//    vector<vector<real>> sv_coef = this->coef;
+//    vector<vector<DataSet::node>> SV = this->sv;
+//    for (int i = 0; i < total_sv; i++) {
+//        for (int j = 0; j < n_binary_models; j++) {
+//            fs_model << setprecision(16) << sv_coef[j][i] << " ";
+//
+//        }
+//        for (int j = 0; j < n_binary_models; j++) {
+//            vector<DataSet::node> p = SV[sv_index[j][i]];
+//            int k = 0;
+//            if (param.kernel_type == SvmParam::PRECOMPUTED)
+//                fs_model << "0:" << p[k].value << " ";
+//            else
+//                for (; k < p.size(); k++) {
+//                    fs_model << p[k].index << ":" << setprecision(8) << p[k].value << " ";
+//                }
+//            fs_model << endl;
+//        }
+//    }
+//    fs_model.close();
+//
+//}
 
-    if (param.svm_type == 0) {
-        fs_model << "label";
-        for (int i = 0; i < nr_class; i++)
-            fs_model << " " << label[i];
-        fs_model << endl;
-    }
-
-    //cout<<"149"<<endl;
-    /*
-    if (this->probability) // regression has probA only
-    {
-        libmod << "probA";
-        for (int i = 0; i < nr_class * (nr_class - 1) / 2; i++)
-            libmod << " " << probA[i];
-        libmod << endl;
-        libmod << "probB";
-        for (int i = 0; i < nr_class * (nr_class - 1) / 2; i++)
-            libmod << " " << probB[i];
-        libmod << endl;
-    }
-    */
-    /*
-    if (param.svm_type == 0)//c-svm
-    {
-        libmod << "nr_sv";
-        for (int i = 0; i < nr_class; i++)
-            libmod << " " << this->dataSet.count()[i];
-        libmod << endl;
-    }
-    */
-    fs_model << "SV" << endl;
-
-    vector<vector<real>> sv_coef = this->coef;
-    vector<vector<DataSet::node>> SV = this->sv;
-    for (int i = 0; i < total_sv; i++) {
-        for (int j = 0; j < n_binary_models; j++) {
-            fs_model << setprecision(16) << sv_coef[j][i] << " ";
-
-        }
-        for (int j = 0; j < n_binary_models; j++) {
-            vector<DataSet::node> p = SV[sv_index[j][i]];
-            int k = 0;
-            if (param.kernel_type == SvmParam::PRECOMPUTED)
-                fs_model << "0:" << p[k].value << " ";
-            else
-                for (; k < p.size(); k++) {
-                    fs_model << p[k].index << ":" << setprecision(8) << p[k].value << " ";
-                }
-            fs_model << endl;
-        }
-    }
-    fs_model.close();
-
-}
-
-void SVC::load_from_file(string path) {
+//void SVC::load_from_file(string path) {
     /*
     int total_sv;
     float ftemp;
@@ -288,7 +288,7 @@ void SVC::load_from_file(string path) {
     ifs.close();
     //param = paramT;
     */
-}
+//}
 
 
 void SVC::record_binary_model(int k, const SyncData<real> &alpha, const SyncData<int> &y, real rho,

@@ -6,6 +6,17 @@
 #include <thrust/sort.h>
 #include <thundersvm/model/svmmodel.h>
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
+#include <iomanip>
+
+using std::ofstream;
+using std::endl;
+using std::setprecision;
+using std::ifstream;
+using std::stringstream;
+
+const char *SvmParam::kernel_type_name[6] = {"linear", "polynomial", "rbf", "sigmoid", "precomputed", "NULL"};
+const char *SvmParam::svm_type_name[6] = {"c_svc", "nu_svc", "one_class", "epsilon_svr", "nu_svr",
+                                          "NULL"};  /* svm_type */
 
 vector<real> SvmModel::predict(const DataSet::node2d &instances, int batch_size) {
     //TODO use thrust
@@ -98,5 +109,98 @@ vector<real> SvmModel::cross_validation(DataSet dataset, SvmParam param, int n_f
         y_predict_all.insert(y_predict_all.end(), y_predict.begin(), y_predict.end());
     }
     return vector<real>();
+}
+
+void SvmModel::save_to_file(string path) {
+    ofstream fs_model;
+    fs_model.open(path.c_str());
+    CHECK(fs_model.is_open()) << "create file " << path << "failed";
+    const SvmParam &param = this->param;
+    fs_model << "svm_type " << SvmParam::svm_type_name[param.svm_type] << endl;
+    fs_model << "kernel_type " << SvmParam::kernel_type_name[param.kernel_type] << endl;
+    if (param.kernel_type == SvmParam::POLY)
+        fs_model << "degree " << param.degree << endl;
+    if (param.kernel_type == SvmParam::POLY
+        || param.kernel_type == SvmParam::RBF
+        || param.kernel_type == SvmParam::SIGMOID)
+        fs_model << "gamma " << param.gamma << endl;
+    if (param.kernel_type == SvmParam::POLY || param.kernel_type == SvmParam::SIGMOID)
+        fs_model << "coef0 " << param.coef0 << endl;
+    fs_model << "nr_class " << 2 << endl;
+    fs_model << "total_sv " << sv.size() << endl;
+    fs_model << "rho " << rho << endl;
+    fs_model << "SV " << endl;
+    vector<real> sv_coef = this->coef;
+    vector<vector<DataSet::node>> SV = this->sv;
+    for (int i = 0; i < sv.size(); i++) {
+        fs_model << setprecision(16) << sv_coef[i] << " ";
+
+        vector<DataSet::node> p = SV[sv_index[i]];
+        int k = 0;
+//        if (param.kernel_type == SvmParam::PRECOMPUTED)
+//            fs_model << "0:" << p[k].value << " ";
+//        else
+        for (; k < p.size(); k++) {
+            fs_model << p[k].index << ":" << setprecision(8) << p[k].value << " ";
+        }
+        fs_model << endl;
+    }
+    fs_model.close();
+}
+
+void SvmModel::load_from_file(string path) {
+    int total_sv;
+    ifstream ifs;
+    ifs.open(path.c_str());
+    CHECK(ifs.is_open()) << "file " << path << " not found";
+    string feature;
+    while (ifs >> feature) {
+        if (feature == "svm_type") {
+            string value;
+            ifs >> value;
+            for (int i = 0; i < 6; i++) {
+                if (value == SvmParam::svm_type_name[i])
+                    param.svm_type = static_cast<SvmParam::SVM_TYPE>(i);
+            }
+        } else if (feature == "kernel_type") {
+            string value;
+            ifs >> value;
+            for (int i = 0; i < 6; i++) {
+                if (feature == SvmParam::kernel_type_name[i])
+                    param.kernel_type = static_cast<SvmParam::KERNEL_TYPE>(i);
+            }
+        } else if (feature == "degree") {
+            ifs >> param.degree;
+        } else if (feature == "coef0") {
+            ifs >> param.coef0;
+        } else if (feature == "gamma") {
+            ifs >> param.gamma;
+
+        } else if (feature == "total_sv") {
+            ifs >> total_sv;
+        } else if (feature == "rho") {
+            ifs >> rho;
+        } else if (feature == "SV") {
+            string line;
+            getline(ifs, line);
+            for (int i = 0; i < total_sv; i++) {
+                getline(ifs, line);
+                stringstream ss(line);
+                coef.emplace_back();
+                ss >> coef.back();
+                sv.emplace_back();//reserve space for an instance
+                string tuple;
+                while (ss >> tuple) {
+                    sv.back().emplace_back(0, 0);
+                    CHECK_EQ(sscanf(tuple.c_str(), "%d:%f", &sv.back().back().index, &sv.back().back().value), 2)
+                        << "error when loading model file";
+                };
+            }//end else if
+            sv_index.clear();
+            for (int i = 0; i < total_sv; i++)
+                sv_index.push_back(i);
+            ifs.close();
+        }
+    }
 }
 
