@@ -22,10 +22,10 @@ command line options:
 * -c: set the parameter C of C-SVC, ``$ \epsilon $``-SVR, and ``$ \nu $``-SVR (default=1)
 * -n: set the parameter ``$ \nu $`` of ``$ \nu $``-SVC, one-class SVM, and ``$ \nu $``-SVR (default=0.5)
 * -p: set the ``$ \epsilon $`` in loss function of ``$ \epsilon $``-SVR (default=0.1)
-* <span style="color:red">-m: set cache memory size in MB (default=100)</span>
+* _-m: set cache memory size in MB (default=100)_
 * -e: set tolerance of termination criterion (default=0.001)
-* <span style="color:red">-h: whether to use the shrinking heuristics, 0 or 1 (default=1)</span>
+* _-h: whether to use the shrinking heuristics, 0 or 1 (default=1)_
 * -b: whether to train probabilistic SVC or SVR, 0 or 1 (default=0)
 * -wi: for weighted C-SVC, set the parameter C of class i to ``$ wi \times C $`` (default=1)
 
-The options in red are not applicable for GPUs, and the alternative optimizations are implemented with automatically setting working set size.
+The options in italic are not applicable for GPUs, and the alternative optimizations are implemented with automatically setting working set size.

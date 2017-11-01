@@ -13,6 +13,7 @@ pip install sphinx
 ```bash
 pip install recommonmark
 ```
+Note that ```recommonmark``` has a bug when working with Sphinx in some platforms, so you may need to hack into transform.py to fix the problem by yourself. You can find the instruction of hacking in [this link](https://github.com/sphinx-doc/sphinx/issues/3800).
 
 * Install Sphinx theme
 ```bash

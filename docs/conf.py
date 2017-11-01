@@ -18,6 +18,7 @@
 #
 # sys.path.insert(0, os.path.abspath('.'))
 
+import recommonmark
 from recommonmark import transform
 AutoStructify = transform.AutoStructify
 
@@ -35,13 +36,14 @@ extensions = ['sphinx.ext.mathjax']
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
+# The suffix(es) of source filenames.
+# You can specify multiple suffix as a list of string:
+#
+
 source_parsers = {
    '.md': 'recommonmark.parser.CommonMarkParser',
 }
 
-# The suffix(es) of source filenames.
-# You can specify multiple suffix as a list of string:
-#
 source_suffix = ['.rst', '.md']
 
 # The master toctree document.
