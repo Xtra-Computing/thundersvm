@@ -6,7 +6,7 @@
 #define THUNDERSVM_SMO_KERNEL_H
 
 #include <thundersvm/clion_cuda.h>
-#include <thundersvm/thundersvm.h>
+#include <thundersvm/thundersvm-train.h>
 
 __host__ __device__
 

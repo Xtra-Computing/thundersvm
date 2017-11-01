@@ -5,7 +5,7 @@
 #ifndef THUNDERSVM_KERNELMATRIX_KERNEL_H
 #define THUNDERSVM_KERNELMATRIX_KERNEL_H
 
-#include "thundersvm/thundersvm.h"
+#include "thundersvm/thundersvm-train.h"
 #include "thundersvm/clion_cuda.h"
 
 __global__ void

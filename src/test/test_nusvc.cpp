@@ -59,12 +59,11 @@ TEST_F(NuSVCTest, a9a) {
 //                        "a1a1024", 100, 0.5), 0.826608, 1e-3);
 //}
 //
-//TEST_F(SVCTest, mnist) {
-//    load_dataset_and_train(DATASET_DIR "mnist.scale", DATASET_DIR "mnist.scale.t", 10, 0.125);
+//TEST_F(NuSVCTest, mnist) {
+//    load_dataset_and_train(DATASET_DIR "mnist.scale", DATASET_DIR "mnist.scale.t", 10, 0.125, 0.1);
 //}
 //
-//TEST_F(SVCTest, realsim) {
-//    EXPECT_NEAR(load_dataset_and_train(DATASET_DIR
-//                        "real-sim", DATASET_DIR
-//                        "real-sim", 4, 0.5), 0.997276, 1e-3);
-//
+TEST_F(NuSVCTest, realsim) {
+    load_dataset_and_train(DATASET_DIR "real-sim", DATASET_DIR "real-sim", 4, 0.5, 0.1);
+}
+

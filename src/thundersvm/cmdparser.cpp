@@ -5,25 +5,10 @@
 #include "thundersvm/svmparam.h"
 #include "thundersvm/cmdparser.h"
 
-using namespace std;
-char *line = NULL;
-int max_line_len = 1024;
-double lower = -1.0, upper = 1.0, y_lower, y_upper;
-int y_scaling = 0;
-
 char *save_filename = NULL;
 char *restore_filename = NULL;
 
-char svmpredict_input_file[1024];
-char svmpredict_output_file[1024];
-char svmpredict_model_file_name[1024];
 char svmscale_file_name[1024];
-
-int predict_probability = 0;
-
-void print_null(const char *s) {};
-
-static int (*info)(const char *fmt, ...) = &printf;
 
 void HelpInfo_svmtrain() {
     printf(
@@ -53,6 +38,7 @@ void HelpInfo_svmtrain() {
                     "-b probability_estimates : whether to train a SVC or SVR model for probability estimates, 0 or 1 (default 0)\n"
                     "-wi weight : set the parameter C of class i to weight*C, for C-SVC (default 1)\n"
                     "-v n: n-fold cross validation mode\n"
+                    "-u n: specify which gpu to use (default 0)\n"
     );
     exit(1);
 }
@@ -66,47 +52,13 @@ void HelpInfo_svmpredict() {
     exit(1);
 }
 
-void HelpInfo_svmscale() {
-    printf(
-            "Usage: svm-scale [options] data_filename\n"
-                    "options:\n"
-                    "-l lower : x scaling lower limit (default -1)\n"
-                    "-u upper : x scaling upper limit (default +1)\n"
-                    "-y y_lower y_upper : y scaling limits (default: no y scaling)\n"
-                    "-s save_filename : save scaling parameters to save_filename\n"
-                    "-r restore_filename : restore scaling parameters from restore_filename\n"
-    );
-    exit(1);
-}
-
-void CMDParser::init_param() {
-    param_cmd.svm_type = SvmParam::C_SVC;
-    param_cmd.kernel_type = SvmParam::RBF;
-    param_cmd.degree = 3;
-    param_cmd.gamma = 0;    // 1/num_features
-    param_cmd.coef0 = 0;
-    param_cmd.nu = 0.5;
-    param_cmd.cache_size = 100;
-    param_cmd.C = 1;
-    param_cmd.epsilon = 1e-3;
-    param_cmd.p = 0.1;
-    param_cmd.shrinking = 1;
-    param_cmd.probability = 0;
-    param_cmd.nr_weight = 0;
-    param_cmd.weight_label = NULL;
-    param_cmd.weight = NULL;
-
-    do_cross_validation = false;
-}
-
 void CMDParser::parse_command_line(int argc, char **argv) {
     int i;
-    init_param();
     string bin_name = argv[0];
     bin_name = bin_name.substr(bin_name.find_last_of("/") + 1);
-    if (bin_name == "thundersvm") {
+    if (bin_name == "thundersvm-train") {
         // parse options
-        param_cmd.task_type = svmTrain;
+        param_cmd.task_type = SvmParam::SVM_TRAIN;
         for (i = 1; i < argc; i++) {
             if (argv[i][0] != '-') break;
             if (++i >= argc)
@@ -114,10 +66,10 @@ void CMDParser::parse_command_line(int argc, char **argv) {
             switch (argv[i - 1][1]) {
 
                 case 's':
-                    param_cmd.svm_type = atoi(argv[i]);
+                    param_cmd.svm_type = static_cast<SvmParam::SVM_TYPE>(atoi(argv[i]));
                     break;
                 case 't':
-                    param_cmd.kernel_type = atoi(argv[i]);
+                    param_cmd.kernel_type = static_cast<SvmParam::KERNEL_TYPE>(atoi(argv[i]));
                     break;
                 case 'd':
                     param_cmd.degree = atoi(argv[i]);
@@ -132,7 +84,8 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                     param_cmd.nu = atof(argv[i]);
                     break;
                 case 'm':
-                    param_cmd.cache_size = atof(argv[i]);
+//                    param_cmd.cache_size = atof(argv[i]);
+                    LOG(WARNING) << "setting cache size is not supported";
                     break;
                 case 'c':
                     param_cmd.C = atof(argv[i]);
@@ -144,13 +97,15 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                     param_cmd.p = atof(argv[i]);
                     break;
                 case 'h':
-                    param_cmd.shrinking = atoi(argv[i]);
+//                    param_cmd.shrinking = atoi(argv[i]);
+                    LOG(WARNING) << "shrinking is not supported";
                     break;
                 case 'b':
                     param_cmd.probability = atoi(argv[i]);
                     break;
                 case 'q':
 //                    print_func = &print_null;
+                    //todo disable logging
                     i--;
                     break;
                 case 'v':
@@ -164,10 +119,12 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                 case 'w':
                     ++param_cmd.nr_weight;
                     param_cmd.weight_label = (int *) realloc(param_cmd.weight_label, sizeof(int) * param_cmd.nr_weight);
-                    param_cmd.weight = (double *) realloc(param_cmd.weight, sizeof(double) * param_cmd.nr_weight);
+                    param_cmd.weight = (real *) realloc(param_cmd.weight, sizeof(double) * param_cmd.nr_weight);
                     param_cmd.weight_label[param_cmd.nr_weight - 1] = atoi(&argv[i - 1][2]);
                     param_cmd.weight[param_cmd.nr_weight - 1] = atof(argv[i]);
                     break;
+                case 'u':
+                    gpu_id = atoi(argv[i]);
                 default:
                     fprintf(stderr, "Unknown option: -%c\n", argv[i - 1][1]);
                     HelpInfo_svmtrain();
@@ -189,15 +146,15 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                 ++p;
             sprintf(model_file_name, "%s.model", p);
         }
-    } else if (bin_name == "thundersvm_predict") {
+    } else if (bin_name == "thundersvm-predict") {
         FILE *input, *output;
-        param_cmd.task_type = svmPredict;
-        for (i = 2; i < argc; i++) {
+        param_cmd.task_type = SvmParam::SVM_PREDICT;
+        for (i = 1; i < argc; i++) {
             if (argv[i][0] != '-') break;
             i++;
             switch (argv[i - 1][1]) {
                 case 'b':
-                    predict_probability = atoi(argv[i]);
+//                    predict_probability = atoi(argv[i]);
                     break;
                 default:
                     fprintf(stderr, "Unknown option: -%c\n", argv[i - 1][1]);

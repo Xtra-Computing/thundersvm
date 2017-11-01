@@ -18,9 +18,9 @@ public:
 
     vector<real> predict(const DataSet::node2d &instances, int batch_size) override;
 
-    void save_to_file(string path) override;
+//    void save_to_file(string path) override;
 
-    void load_from_file(string path) override;
+//    void load_from_file(string path) override;
 
 protected:
     virtual void train_binary(const DataSet &dataset, int i, int j, int k);
