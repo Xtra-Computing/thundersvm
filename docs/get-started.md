@@ -44,3 +44,5 @@ Instructions available in [How To](how-to.md) page.
 ./thundersvm -s 0 -t 2 -g 0.125 -c 10 mnist.scale svm.model
 ```
 The meaning of each option can be found in the [parameters](parameters.md) page. Then you will see ThunderSVM automatically choose multi-class SVMs as the training algorithm. The training takes a while to complete. Once completed, you can see the training error is xx%.
+
+The usage of other SVM algorithms (such as SVM regression) are similar to the above example. The key different is the selection of the options.
