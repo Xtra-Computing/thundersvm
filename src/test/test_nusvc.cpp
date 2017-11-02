@@ -3,7 +3,7 @@
 #include <thundersvm/svmparam.h>
 #include <thundersvm/model/svmmodel.h>
 #include <thundersvm/model/nusvc.h>
-#include <dataset.h>
+#include <config.h>
 
 //
 // Created by jiashuai on 17-10-30.
@@ -46,16 +46,11 @@ protected:
 //    load_dataset_and_train(DATASET_DIR "test_dataset.txt", DATASET_DIR "test_dataset.txt", 100, 0.5, 0.1);
 //}
 
-//TEST_F(NuSVCTest, a9a) {
-//    EXPECT_NEAR(load_dataset_and_train(DATASET_DIR
-//                        "a9a", DATASET_DIR
-//                        "a9a.t", 100, 0.5, 0.1), 0.826608, 1e-3);
-//}
-//TEST_F(NuSVCTest, a1a1024) {
-//    EXPECT_NEAR(load_dataset_and_train(DATASET_DIR
-//                        "a1a1024", DATASET_DIR
-//                        "a1a1024", 100, 0.5), 0.826608, 1e-3);
-//}
+TEST_F(NuSVCTest, a9a) {
+    EXPECT_NEAR(load_dataset_and_train(DATASET_DIR
+                        "a9a", DATASET_DIR
+                        "a9a.t", 100, 0.5, 0.1), 0.826608, 1e-3);
+}
 //
 //TEST_F(NuSVCTest, mnist) {
 //    load_dataset_and_train(DATASET_DIR "mnist.scale", DATASET_DIR "mnist.scale.t", 10, 0.125, 0.1);

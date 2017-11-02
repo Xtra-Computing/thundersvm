@@ -130,12 +130,10 @@ void SvmModel::save_to_file(string path) {
     fs_model << "total_sv " << sv.size() << endl;
     fs_model << "rho " << rho << endl;
     fs_model << "SV " << endl;
-    vector<real> sv_coef = this->coef;
-    vector<vector<DataSet::node>> SV = this->sv;
     for (int i = 0; i < sv.size(); i++) {
-        fs_model << setprecision(16) << sv_coef[i] << " ";
+        fs_model << setprecision(16) << coef[i] << " ";
 
-        vector<DataSet::node> p = SV[sv_index[i]];
+        vector<DataSet::node> p = sv[sv_index[i]];
         int k = 0;
 //        if (param.kernel_type == SvmParam::PRECOMPUTED)
 //            fs_model << "0:" << p[k].value << " ";

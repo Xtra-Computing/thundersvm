@@ -1,6 +1,7 @@
 .idea
 .git
 .*
+!.gitignore
 build
 dataset/*
 !dataset/*.sh

@@ -26,13 +26,13 @@ set(COMMON_INCLUDES ${PROJECT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR})
 set(LINK_LIBRARY ${CUDA_cusparse_LIBRARY})
 
 set(DATASET_DIR ${PROJECT_SOURCE_DIR}/dataset/)
-configure_file(include/test/dataset.h.in dataset.h)
+configure_file(include/thundersvm/config.h.in config.h)
 
 include_directories(${COMMON_INCLUDES})
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/thundersvm)
 
 
-set(PROJECT_TEST_NAME ${PROJECT_NAME}_test)
+set(PROJECT_TEST_NAME ${PROJECT_NAME}-test)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/test)
 add_custom_target(runtest
         COMMAND ${PROJECT_TEST_NAME})

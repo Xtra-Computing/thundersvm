@@ -3,7 +3,7 @@
 //
 #include "gtest/gtest.h"
 #include "thundersvm/kernelmatrix.h"
-#include <dataset.h>
+#include <config.h>
 real rbf_kernel(const DataSet::node2d &instances, int x, int y, real gamma) {
     real sum = 0;
     auto i = instances[x].begin();

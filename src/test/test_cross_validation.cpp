@@ -2,7 +2,7 @@
 // Created by jiashuai on 17-10-13.
 //
 #include <gtest/gtest.h>
-#include <dataset.h>
+#include <config.h>
 #include <thundersvm/model/svc.h>
 #include <thundersvm/model/svr.h>
 

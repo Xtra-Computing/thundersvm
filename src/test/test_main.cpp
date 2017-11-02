@@ -8,6 +8,7 @@ INITIALIZE_EASYLOGGINGPP
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Format, "%datetime %level %fbase:%line : %msg");
-    cudaSetDevice(0);
+    el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
+    cudaSetDevice(1);
     return RUN_ALL_TESTS();
 }

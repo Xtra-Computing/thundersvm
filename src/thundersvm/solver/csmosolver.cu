@@ -61,12 +61,16 @@ void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncDa
         //update f
         SAFE_KERNEL_LAUNCH(update_f, f_val.device_data(), ws_size, alpha_diff.device_data(), k_mat_rows.device_data(),
                            n_instances);
-        LOG_EVERY_N(10, INFO) << "diff=" << diff_and_bias[0];
+        if (iter % 10 == 0) {
+            printf(".");
+            std::cout.flush();
+        }
         if (diff_and_bias[0] < eps) {
             rho = calculate_rho(f_val, y, alpha, Cp, Cn);
             break;
         }
     }
+    printf("\n");
 }
 
 void CSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,

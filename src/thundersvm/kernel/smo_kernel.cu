@@ -185,14 +185,14 @@ nu_smo_solve_kernel(const int *label, real *f_values, real *alpha, real *alpha_d
 
         if (numOfIter == 0) {
             local_eps = max(eps, 0.1f * local_diff);
+            if (tid == 0) {
+                diff_and_bias[0] = local_diff;
+            }
         }
 
         if (local_diff < local_eps) {
             alpha[wsi] = a;
             alpha_diff[tid] = -(a - aold) * y;
-            if (tid == 0) {
-                diff_and_bias[0] = local_diff;
-            }
             break;
         }
         __syncthreads();

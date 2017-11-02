@@ -3,7 +3,7 @@
 //
 #include <gtest/gtest.h>
 #include <thundersvm/model/oneclass_svc.h>
-#include <dataset.h>
+#include <config.h>
 
 TEST(OneClassSVCTest, train) {
     DataSet dataset;

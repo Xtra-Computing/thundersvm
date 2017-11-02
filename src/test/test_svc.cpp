@@ -3,7 +3,7 @@
 //
 #include <thundersvm/model/svc.h>
 #include "gtest/gtest.h"
-#include "dataset.h"
+#include "config.h"
 
 class SVCTest : public ::testing::Test {
 protected:

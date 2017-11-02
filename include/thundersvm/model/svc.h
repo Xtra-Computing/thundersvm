@@ -24,7 +24,8 @@ public:
 
 protected:
     virtual void train_binary(const DataSet &dataset, int i, int j, int k);
-    void record_binary_model(int k, const SyncData<real> &alpha, const SyncData<int> &y, real rho,
+
+    virtual void record_binary_model(int k, const SyncData<real> &alpha, const SyncData<int> &y, real rho,
                              const vector<int> &original_index, const DataSet::node2d &original_instance);
 
 private:
