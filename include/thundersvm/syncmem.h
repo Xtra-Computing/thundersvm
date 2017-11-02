@@ -5,7 +5,7 @@
 #ifndef THUNDERSVM_SYNCMEM_H
 #define THUNDERSVM_SYNCMEM_H
 
-#include "thundersvm-train.h"
+#include "thundersvm.h"
 
 class SyncMem {
 public:

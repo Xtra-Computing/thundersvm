@@ -123,6 +123,7 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                     break;
                 case 'u':
                     gpu_id = atoi(argv[i]);
+                    break;
                 default:
                     fprintf(stderr, "Unknown option: -%c\n", argv[i - 1][1]);
                     HelpInfo_svmtrain();
@@ -154,6 +155,9 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                 case 'b':
 //                    predict_probability = atoi(argv[i]);
                     break;
+                case 'u':
+                    gpu_id = atoi(argv[i]);
+                    break;
                 default:
                     fprintf(stderr, "Unknown option: -%c\n", argv[i - 1][1]);
                     HelpInfo_svmpredict();
@@ -176,10 +180,12 @@ void CMDParser::parse_command_line(int argc, char **argv) {
         strcpy(svmpredict_input_file, argv[i]);
         strcpy(svmpredict_output_file, argv[i + 2]);
         strcpy(svmpredict_model_file_name, argv[i + 1]);
-    } else {
-        printf("Usage: thundersvm [options] training_set_file [model_file]\n"
-                       "or: thundersvm_predict [options] test_file model_file output_file\n"
-                       "or: thundersvm_scale [options] data_filename\n");
-        exit(0);
     }
+//    else {
+//
+//        printf("Usage: thundersvm [options] training_set_file [model_file]\n"
+//                       "or: thundersvm_predict [options] test_file model_file output_file\n"
+//                       "or: thundersvm_scale [options] data_filename\n");
+//        exit(0);
+//    }
 }

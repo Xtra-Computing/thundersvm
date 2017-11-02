@@ -8,6 +8,7 @@
 #include <thundersvm/thundersvm.h>
 
 class Metric {
+public:
     virtual string name() = 0;
 
     virtual real score(const vector<real> &predict_y, const vector<real> &ground_truth_y) = 0;

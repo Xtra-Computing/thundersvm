@@ -5,7 +5,7 @@
 #ifndef THUNDERSVM_SVR_H
 #define THUNDERSVM_SVR_H
 
-#include "thundersvm/thundersvm-train.h"
+#include "thundersvm/thundersvm.h"
 #include "svmmodel.h"
 #include <map>
 
