@@ -5,7 +5,7 @@
 #ifndef THUNDERSVM_SVMPARAM_H
 #define THUNDERSVM_SVMPARAM_H
 
-#include "thundersvm-train.h"
+#include "thundersvm.h"
 
 struct SvmParam {
     SvmParam() {

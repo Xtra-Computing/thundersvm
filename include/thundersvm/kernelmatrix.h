@@ -6,7 +6,7 @@
 #define THUNDERSVM_KERNELMATRIX_H
 
 #include <cusparse.h>
-#include "thundersvm-train.h"
+#include "thundersvm.h"
 #include "syncdata.h"
 #include "dataset.h"
 #include "svmparam.h"

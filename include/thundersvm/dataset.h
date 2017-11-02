@@ -5,7 +5,7 @@
 #ifndef THUNDERSVM_DATASET_H
 #define THUNDERSVM_DATASET_H
 
-#include "thundersvm-train.h"
+#include "thundersvm.h"
 #include "syncdata.h"
 class DataSet {
 public:

@@ -5,7 +5,7 @@
 #ifndef THUNDERSVM_CSMOSOLVER_H
 #define THUNDERSVM_CSMOSOLVER_H
 
-#include <thundersvm/thundersvm-train.h>
+#include <thundersvm/thundersvm.h>
 #include <thundersvm/kernelmatrix.h>
 
 class CSMOSolver {

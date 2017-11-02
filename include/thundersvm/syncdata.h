@@ -5,7 +5,7 @@
 #ifndef THUNDERSVM_SYNCDATA_H
 #define THUNDERSVM_SYNCDATA_H
 
-#include "thundersvm-train.h"
+#include "thundersvm.h"
 #include "syncmem.h"
 
 template<typename T>

@@ -6,8 +6,6 @@
 #include <thundersvm/model/oneclass_svc.h>
 #include <thundersvm/solver/csmosolver.h>
 
-using namespace std;
-
 void OneClassSVC::train(DataSet dataset, SvmParam param) {
     int n_instances = dataset.total_count();
     SyncData<real> alpha(n_instances);
