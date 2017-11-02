@@ -27,5 +27,7 @@ command line options:
 * _-h: whether to use the shrinking heuristics, 0 or 1 (default=1)_
 * -b: whether to train probabilistic SVC or SVR, 0 or 1 (default=0)
 * -wi: for weighted C-SVC, set the parameter C of class i to ``$ wi \times C $`` (default=1)
+* -v n: n-fold cross validation mode
+* -u n: specify which gpu to use (default=0)
 
 The options in italic are not applicable for GPUs, and the alternative optimizations are implemented with automatically setting working set size.
