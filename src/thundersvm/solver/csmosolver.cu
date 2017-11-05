@@ -157,8 +157,9 @@ void CSMOSolver::smo_kernel(const int *label, real *f_values, real *alpha, real 
                             int ws_size, float Cp, float Cn, const float *k_mat_rows, const float *k_mat_diag,
                             int row_len, real eps, real *diff_and_bias) const {
     size_t smem_size = ws_size * sizeof(real) * 3 + 2 * sizeof(float);
+    int max_iter = max(100000, ws_size > INT_MAX / 100 ? INT_MAX : 100 * ws_size);
     c_smo_solve_kernel << < 1, ws_size, smem_size >> >
                                         (label, f_values, alpha, alpha_diff,
                                                 working_set, ws_size, Cp, Cn, k_mat_rows,
-                                                k_mat_diag, row_len, eps, diff_and_bias);
+                                                k_mat_diag, row_len, eps, diff_and_bias, max_iter);
 }

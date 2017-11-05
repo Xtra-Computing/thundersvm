@@ -43,7 +43,6 @@ int main(int argc, char **argv) {
 
     if (parser.do_cross_validation) {
         model->cross_validation(train_dataset, parser.param_cmd, parser.nr_fold);
-        return 0;
     } else {
         model->train(train_dataset, parser.param_cmd);
         model->save_to_file(parser.model_file_name);

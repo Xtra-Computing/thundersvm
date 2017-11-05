@@ -34,7 +34,7 @@ __host__ __device__ bool is_free(float a, float y, float Cp, float Cn) {
 __global__ void
 c_smo_solve_kernel(const int *label, real *f_values, real *alpha, real *alpha_diff, const int *working_set, int ws_size,
                    float Cp, float Cn, const float *k_mat_rows, const float *k_mat_diag, int row_len, real eps,
-                   real *diff_and_bias) {
+                   real *diff_and_bias, int max_iter) {
     //"row_len" equals to the number of instances in the original training dataset.
     //allocate shared memory
     extern __shared__ int shared_mem[];
@@ -114,6 +114,7 @@ c_smo_solve_kernel(const int *label, real *f_values, real *alpha, real *alpha_di
         float kJ2wsI = k_mat_rows[row_len * j2 + wsi];//K[J2, wsi]
         f -= l * (kJ2wsI - kIwsI);
         numOfIter++;
+        if (numOfIter > max_iter) break;
     }
 }
 
@@ -121,7 +122,7 @@ c_smo_solve_kernel(const int *label, real *f_values, real *alpha, real *alpha_di
 __global__ void
 nu_smo_solve_kernel(const int *label, real *f_values, real *alpha, real *alpha_diff, const int *working_set,
                     int ws_size, float C, const float *k_mat_rows, const float *k_mat_diag, int row_len, real eps,
-                    real *diff_and_bias) {
+                    real *diff_and_bias, int max_iter) {
     //"row_len" equals to the number of instances in the original training dataset.
     //allocate shared memory
     extern __shared__ int shared_mem[];
@@ -248,6 +249,7 @@ nu_smo_solve_kernel(const int *label, real *f_values, real *alpha, real *alpha_d
         float kJ2wsI = k_mat_rows[row_len * j2 + wsi];//K[J2, wsi]
         f -= l * (kJ2wsI - kIwsI);
         numOfIter++;
+        if (numOfIter > max_iter) break;
     }
 }
 
