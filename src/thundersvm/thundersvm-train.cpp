@@ -39,6 +39,21 @@ int main(int argc, char **argv) {
             break;
     }
 
+    //todo add this to check_parameter method
+    if (parser.param_cmd.svm_type == SvmParam::NU_SVC) {
+        train_dataset.group_classes();
+        for (int i = 0; i < train_dataset.n_classes(); ++i) {
+            int n1 = train_dataset.count()[i];
+            for (int j = i + 1; j < train_dataset.n_classes(); ++j) {
+                int n2 = train_dataset.count()[j];
+                if (parser.param_cmd.nu * (n1 + n2) / 2 > min(n1, n2)) {
+                    printf("specified nu is infeasible\n");
+                    return 1;
+                }
+            }
+        }
+    }
+
     CUDA_CHECK(cudaSetDevice(parser.gpu_id));
 
     if (parser.do_cross_validation) {

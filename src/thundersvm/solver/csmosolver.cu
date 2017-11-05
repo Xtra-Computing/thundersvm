@@ -132,7 +132,8 @@ CSMOSolver::calculate_rho(const SyncData <real> &f_val, const SyncData<int> &y, 
 
 void CSMOSolver::init_f(const SyncData<real> &alpha, const SyncData<int> &y, const KernelMatrix &k_mat,
                         SyncData<real> &f_val) const {
-    //TODO initialize with smaller batch to reduce memory usage
+    //todo auto set batch size
+    int batch_size = 100;
     vector<int> idx_vec;
     vector<real> alpha_diff_vec;
     for (int i = 0; i < alpha.size(); ++i) {
@@ -140,16 +141,18 @@ void CSMOSolver::init_f(const SyncData<real> &alpha, const SyncData<int> &y, con
             idx_vec.push_back(i);
             alpha_diff_vec.push_back(-alpha[i] * y[i]);
         }
-    }
-    if (idx_vec.size() > 0) {
-        SyncData<int> idx(idx_vec.size());
-        SyncData<real> alpha_diff(idx_vec.size());
-        idx.copy_from(idx_vec.data(), idx_vec.size());
-        alpha_diff.copy_from(alpha_diff_vec.data(), idx_vec.size());
-        SyncData<real> kernel_rows(idx.size() * k_mat.n_instances());
-        k_mat.get_rows(idx, kernel_rows);
-        SAFE_KERNEL_LAUNCH(update_f, f_val.device_data(), idx.size(), alpha_diff.device_data(),
-                           kernel_rows.device_data(), k_mat.n_instances());
+        if (idx_vec.size() > batch_size || (i == alpha.size() - 1 && idx_vec.size() > 0)) {
+            SyncData<int> idx(idx_vec.size());
+            SyncData<real> alpha_diff(idx_vec.size());
+            idx.copy_from(idx_vec.data(), idx_vec.size());
+            alpha_diff.copy_from(alpha_diff_vec.data(), idx_vec.size());
+            SyncData<real> kernel_rows(idx.size() * k_mat.n_instances());
+            k_mat.get_rows(idx, kernel_rows);
+            SAFE_KERNEL_LAUNCH(update_f, f_val.device_data(), idx.size(), alpha_diff.device_data(),
+                               kernel_rows.device_data(), k_mat.n_instances());
+            idx_vec.clear();
+            alpha_diff_vec.clear();
+        }
     }
 }
 
