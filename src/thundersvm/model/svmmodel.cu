@@ -108,7 +108,9 @@ vector<real> SvmModel::cross_validation(DataSet dataset, SvmParam param, int n_f
         y_test_all.insert(y_test_all.end(), y_test.begin(), y_test.end());
         y_predict_all.insert(y_predict_all.end(), y_predict.begin(), y_predict.end());
     }
-    return vector<real>();
+	vector<real> test_predict=y_test_all;
+	test_predict.insert(test_predict.end(), y_predict_all.begin(), y_predict_all.end());
+    return test_predict; 
 }
 
 void SvmModel::save_to_file(string path) {

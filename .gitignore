@@ -5,3 +5,4 @@
 build
 dataset/*
 !dataset/*.sh
+*tags
