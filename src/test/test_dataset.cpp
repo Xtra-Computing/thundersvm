@@ -10,7 +10,7 @@ TEST(SvmProblemTest, load_dataset){
     dataSet.group_classes();
     dataSet.load_from_file(DATASET_DIR "test_dataset.txt");
     dataSet.group_classes();
-    EXPECT_EQ(dataSet.total_count(), 150);
+    EXPECT_EQ(dataSet.n_instances(), 150);
     EXPECT_EQ(dataSet.n_features(), 4);
     EXPECT_EQ(dataSet.count()[0],49);
     EXPECT_EQ(dataSet.count()[1],50);

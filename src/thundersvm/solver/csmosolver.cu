@@ -35,14 +35,14 @@ void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncDa
     }
     init_f(alpha, y, k_mat, f_val);
     LOG(INFO) << "training start";
-    for (int iter = 1;; ++iter) {
+    for (int iter = 0;; ++iter) {
         //select working set
         f_idx2sort.copy_from(f_idx);
         f_val2sort.copy_from(f_val);
         thrust::sort_by_key(thrust::cuda::par, f_val2sort.device_data(), f_val2sort.device_data() + n_instances,
                             f_idx2sort.device_data(), thrust::less<real>());
         vector<int> ws_indicator(n_instances, 0);
-        if (1 == iter) {
+        if (0 == iter) {
             select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set);
             k_mat.get_rows(working_set, k_mat_rows);
         } else {

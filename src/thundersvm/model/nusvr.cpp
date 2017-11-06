@@ -4,8 +4,9 @@
 #include <thundersvm/model/nusvr.h>
 #include <thundersvm/solver/nusmosolver.h>
 
-void NuSVR::train(DataSet dataset, SvmParam param) {
-    int n_instances = dataset.total_count();
+void NuSVR::train(const DataSet &dataset, SvmParam param) {
+    model_setup(dataset, param);
+    int n_instances = dataset.n_instances();
 
     //duplicate instances
     DataSet::node2d instances_2(dataset.instances());
@@ -28,10 +29,6 @@ void NuSVR::train(DataSet dataset, SvmParam param) {
 
     int ws_size = min(max2power(n_instances) * 2, 1024);
     NuSMOSolver solver(true);
-    solver.solve(kernelMatrix, y, alpha_2, rho, f_val, param.epsilon, param.C, param.C, ws_size);
-    SyncData<real> alpha(n_instances);
-    for (int i = 0; i < n_instances; ++i) {
-        alpha[i] = alpha_2[i] - alpha_2[i + n_instances];
-    }
-    record_model(alpha, y, dataset.instances(), param);
+    solver.solve(kernelMatrix, y, alpha_2, rho[0], f_val, param.epsilon, param.C, param.C, ws_size);
+    save_svr_coef(alpha_2, dataset.instances());
 }

@@ -36,22 +36,50 @@ kernel_RBF_kernel(const int *self_dot0_idx, const real *self_dot1, real *dot_pro
     }
 }
 
-__global__ void kernel_sum_kernel_values(const real *k_mat, int n_instances, int n_sv_unique, int n_bin_models,
-                                         const int *sv_index, const real *coef, const int *sv_start,
-                                         const int *sv_count,
-                                         const real *rho, real *dec_values) {//compute decision values for n_instances
-    KERNEL_LOOP(idx, n_instances * n_bin_models) {
-        //one iteration uses a binary svm model to predict a decision value of an instance.
-        int ins_id = idx / n_bin_models;
-        int model_id = idx % n_bin_models;
-        real sum = 0;
-        const real *kernel_row = k_mat + ins_id * n_sv_unique;//kernel values of this instance
-        int si = sv_start[model_id];
-        int ci = sv_count[model_id];
-        for (int i = 0; i < ci; ++i) {//TODO: improve by parallelism
-            sum += coef[si + i] * kernel_row[sv_index[si + i]];//sv_index maps uncompressed sv idx to compressed sv idx.
+//__global__ void kernel_sum_kernel_values(const real *k_mat, int n_instances, int n_sv_unique, int n_bin_models,
+//                                         const int *sv_index, const real *coef, const int *sv_start,
+//                                         const int *sv_count,
+//                                         const real *rho, real *dec_values) {//compute decision values for n_instances
+//    KERNEL_LOOP(idx, n_instances * n_bin_models) {
+//        //one iteration uses a binary svm model to predict a decision value of an instance.
+//        int ins_id = idx / n_bin_models;
+//        int model_id = idx % n_bin_models;
+//        real sum = 0;
+//        const real *kernel_row = k_mat + ins_id * n_sv_unique;//kernel values of this instance
+//        int si = sv_start[model_id];
+//        int ci = sv_count[model_id];
+//        for (int i = 0; i < ci; ++i) {//TODO: improve by parallelism
+//            sum += coef[si + i] * kernel_row[sv_index[si + i]];//sv_index maps uncompressed sv idx to compressed sv idx.
+//        }
+//        dec_values[idx] = sum - rho[model_id];
+//    }
+//}
+__global__ void
+kernel_sum_kernel_values(const real *coef, int ld, const int *sv_start, const int *sv_count, const real *rho,
+                         const real *k_mat, real *dec_values, int n_classes, int n_instances) {
+    KERNEL_LOOP(idx, n_instances) {
+        int k = 0;
+        int n_binary_models = n_classes * (n_classes - 1) / 2;
+        for (int i = 0; i < n_classes; ++i) {
+            for (int j = i + 1; j < n_classes; ++j) {
+                int si = sv_start[i];
+                int sj = sv_start[j];
+                int ci = sv_count[i];
+                int cj = sv_count[j];
+                const real *coef1 = &coef[(j - 1) * ld];
+                const real *coef2 = &coef[i * ld];
+                const real *k_values = &k_mat[idx * ld];
+                real sum = 0;
+                for (int l = 0; l < ci; ++l) {
+                    sum += coef1[si + l] * k_values[si + l];
+                }
+                for (int l = 0; l < cj; ++l) {
+                    sum += coef2[sj + l] * k_values[sj + l];
+                }
+                dec_values[idx * n_binary_models + k] = sum - rho[k];
+                k++;
+            }
         }
-        dec_values[idx] = sum - rho[model_id];
     }
 }
 

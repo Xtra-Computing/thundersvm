@@ -22,7 +22,7 @@ public:
     void load_from_file(string file_name);
 
     void group_classes(bool classification = true);
-    size_t total_count() const;
+    size_t n_instances() const;
     size_t n_features() const;
     size_t n_classes() const;
 

@@ -9,7 +9,7 @@
 
 class NuSVC : public SVC {
 protected:
-    void train_binary(const DataSet &dataset, int i, int j, int k) override;
+    void train_binary(const DataSet &dataset, int i, int j, SyncData<real> &alpha, real &rho) override;
 };
 
 #endif //THUNDERSVM_NUSVC_H

@@ -4,14 +4,13 @@
 #include <thundersvm/model/nusvc.h>
 #include <thundersvm/solver/nusmosolver.h>
 
-void NuSVC::train_binary(const DataSet &dataset, int i, int j, int k) {
+void NuSVC::train_binary(const DataSet &dataset, int i, int j, SyncData<real> &alpha, real &rho) {
     DataSet::node2d ins = dataset.instances(i, j);//get instances of class i and j
     int n_pos = dataset.count()[i];
     int n_neg = dataset.count()[j];
     SyncData<int> y(ins.size());
-    SyncData<real> alpha(ins.size());
+    alpha.resize(ins.size());
     SyncData<real> f_val(ins.size());
-    real rho;
     alpha.mem_set(0);
     f_val.mem_set(0);
     real sum_pos = param.nu * ins.size() / 2;
@@ -32,6 +31,14 @@ void NuSVC::train_binary(const DataSet &dataset, int i, int j, int k) {
     int ws_size = min(min(max2power(dataset.count()[i]), max2power(dataset.count()[j])) * 2, 1024);
     NuSMOSolver solver(false);
     solver.solve(k_mat, y, alpha, rho, f_val, param.epsilon, 1, 1, ws_size);
-    record_binary_model(k, alpha, y, rho, dataset.original_index(i, j), dataset.instances());
+
+    //todo these codes are identical to svc
+    LOG(INFO)<<"rho = "<<rho;
+    int n_sv = 0;
+    for (int l = 0; l < alpha.size(); ++l) {
+        alpha[l] *= y[l];
+        if (alpha[l] != 0) n_sv++;
+    }
+    LOG(INFO)<<"#sv = "<<n_sv;
 }
 

@@ -23,9 +23,11 @@ __global__ void kernel_poly_kernel(real *dot_product, real gamma, real coef0, in
 
 __global__ void kernel_sigmoid_kernel(real *dot_product, real gamma, real coef0, int mn);
 
-__global__ void kernel_sum_kernel_values(const real *k_mat, int n_instances, int n_sv_unique, int n_bin_models,
-                                         const int *sv_index, const real *coef,
-                                         const int *sv_start, const int *sv_count,
-                                         const real *rho, real *dec_values);
+//__global__ void kernel_sum_kernel_values(const real *k_mat, int n_instances, int n_sv_unique, int n_bin_models,
+//                                         const int *sv_index, const real *coef,
+//                                         const int *sv_start, const int *sv_count,
+//                                         const real *rho, real *dec_values);
+__global__ void kernel_sum_kernel_values(const real *coef, int ld, const int *sv_start, const int *sv_count, const real *rho,
+                                         const real *k_mat, real *dec_values, int n_classes, int n_instances);
 
 #endif //THUNDERSVM_KERNELMATRIX_KERNEL_H

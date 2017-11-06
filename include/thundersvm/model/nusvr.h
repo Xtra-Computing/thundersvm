@@ -9,7 +9,7 @@
 
 class NuSVR : public SVR {
 public:
-    void train(DataSet dataset, SvmParam param) override;
+    void train(const DataSet &dataset, SvmParam param) override;
 
 };
 

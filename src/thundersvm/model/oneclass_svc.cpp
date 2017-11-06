@@ -6,8 +6,9 @@
 #include <thundersvm/model/oneclass_svc.h>
 #include <thundersvm/solver/csmosolver.h>
 
-void OneClassSVC::train(DataSet dataset, SvmParam param) {
-    int n_instances = dataset.total_count();
+void OneClassSVC::train(const DataSet &dataset, SvmParam param) {
+    model_setup(dataset, param);
+    int n_instances = dataset.n_instances();
     SyncData<real> alpha(n_instances);
     SyncData<real> f_val(n_instances);
 
@@ -29,9 +30,22 @@ void OneClassSVC::train(DataSet dataset, SvmParam param) {
         y[i] = 1;
     }
     CSMOSolver solver;
-    solver.solve(kernelMatrix, y, alpha, rho, f_val, param.epsilon, 1, 1, ws_size);
+    solver.solve(kernelMatrix, y, alpha, rho[0], f_val, param.epsilon, 1, 1, ws_size);
 
-    record_model(alpha, y, dataset.instances(), param);
+    //todo these codes are similar to svr, try to combine them
+    LOG(INFO) << "rho = " << rho[0];
+    vector<real> coef_vec;
+    for (int i = 0; i < n_instances; ++i) {
+        if (alpha[i] != 0) {
+            sv.push_back(dataset.instances()[i]);
+            coef_vec.push_back(alpha[i]);
+        }
+    }
+    LOG(INFO) << "#sv = " << sv.size();
+    n_sv[0] = sv.size();
+    n_sv[1] = 0;
+    coef.resize(coef_vec.size());
+    coef.copy_from(coef_vec.data(), coef_vec.size());
 }
 
 vector<real> OneClassSVC::predict(const DataSet::node2d &instances, int batch_size) {
