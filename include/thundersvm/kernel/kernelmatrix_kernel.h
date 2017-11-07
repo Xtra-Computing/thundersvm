@@ -6,28 +6,33 @@
 #define THUNDERSVM_KERNELMATRIX_KERNEL_H
 
 #include "thundersvm/thundersvm.h"
-#include "thundersvm/clion_cuda.h"
+#include <thundersvm/clion_cuda.h>
+#include <thundersvm/syncdata.h>
 
-__global__ void
-kernel_get_working_set_ins(const real *val, const int *col_ind, const int *row_ptr, const int *data_row_idx,
-                           real *data_rows,
-                           int m);
+namespace svm_kernel {
+    void get_working_set_ins(const SyncData<real> &val, const SyncData<int> &col_ind, const SyncData<int> &row_ptr,
+                             const SyncData<int> &data_row_idx, SyncData<real> &data_rows, int m);
 
-__global__ void
-kernel_RBF_kernel(const real *self_dot0, const real *self_dot1, real *dot_product, int m, int n, real gamma);
+    void
+    RBF_kernel(const SyncData<real> &self_dot0, const SyncData<real> &self_dot1, SyncData<real> &dot_product, int m,
+               int n,
+               real gamma);
 
-__global__ void
-kernel_RBF_kernel(const int *self_dot0_idx, const real *self_dot1, real *dot_product, int m, int n, real gamma);
+    void
+    RBF_kernel(const SyncData<int> &self_dot0_idx, const SyncData<real> &self_dot1, SyncData<real> &dot_product, int m,
+               int n, real gamma);
 
-__global__ void kernel_poly_kernel(real *dot_product, real gamma, real coef0, int degree, int mn);
+    void poly_kernel(SyncData<real> &dot_product, real gamma, real coef0, int degree, int mn);
 
-__global__ void kernel_sigmoid_kernel(real *dot_product, real gamma, real coef0, int mn);
+    void sigmoid_kernel(SyncData<real> &dot_product, real gamma, real coef0, int mn);
 
-//__global__ void kernel_sum_kernel_values(const real *k_mat, int n_instances, int n_sv_unique, int n_bin_models,
-//                                         const int *sv_index, const real *coef,
-//                                         const int *sv_start, const int *sv_count,
-//                                         const real *rho, real *dec_values);
-__global__ void kernel_sum_kernel_values(const real *coef, int ld, const int *sv_start, const int *sv_count, const real *rho,
-                                         const real *k_mat, real *dec_values, int n_classes, int n_instances);
+    void sum_kernel_values(const SyncData<real> &coef, int total_sv, const SyncData<int> &sv_start,
+                           const SyncData<int> &sv_count, const SyncData<real> &rho, const SyncData<real> &k_mat,
+                           SyncData<real> &dec_values, int n_classes, int n_instances);
 
+    void dns_csr_mul(int m, int n, int k, const SyncData<real> &dense_mat, const SyncData<real> &csr_val,
+                     const SyncData<int> &csr_row_ptr, const SyncData<int> &csr_col_ind, int nnz,
+                     SyncData<real> &result);
+}
 #endif //THUNDERSVM_KERNELMATRIX_KERNEL_H
+

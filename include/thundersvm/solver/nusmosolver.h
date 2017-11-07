@@ -15,10 +15,10 @@ protected:
     calculate_rho(const SyncData<real> &f_val, const SyncData<int> &y, SyncData<real> &alpha, real Cp,
                   real Cn) const override;
 
-    void
-    smo_kernel(const int *label, real *f_values, real *alpha, real *alpha_diff, const int *working_set,
-               int ws_size, float Cp, float Cn, const float *k_mat_rows, const float *k_mat_diag,
-               int row_len, real eps, real *diff_and_bias) const override;
+    void smo_kernel(const SyncData<int> &y, SyncData<real> &f_val, SyncData<real> &alpha, SyncData<real> &alpha_diff,
+                    const SyncData<int> &working_set, real Cp, real Cn, const SyncData<real> &k_mat_rows,
+                    const SyncData<real> &k_mat_diag, int row_len, real eps, SyncData<real> &diff,
+                    int max_iter) const override;
 
     void select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
                             const SyncData<real> &alpha, real Cp, real Cn, SyncData<int> &working_set) const override;

@@ -13,6 +13,7 @@ using std::endl;
 using std::setprecision;
 using std::ifstream;
 using std::stringstream;
+using svm_kernel::sum_kernel_values;
 
 const char *SvmParam::kernel_type_name[6] = {"linear", "polynomial", "rbf", "sigmoid", "precomputed", "NULL"};
 const char *SvmParam::svm_type_name[6] = {"c_svc", "nu_svc", "one_class", "epsilon_svr", "nu_svr",
@@ -89,10 +90,8 @@ void SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncData<rea
         batch_dec_values.set_device_data(
                 &dec_values.device_data()[(batch_start - instances.begin()) * n_binary_models]);
         //sum kernel values and get decision values
-        SAFE_KERNEL_LAUNCH(kernel_sum_kernel_values, coef.device_data(), sv.size(), sv_start.device_data(),
-                           n_sv.device_data(),
-                           rho.device_data(), kernel_values.device_data(), batch_dec_values.device_data(), n_classes,
-                           batch_ins.size());
+        sum_kernel_values(coef, sv.size(), sv_start, n_sv, rho, kernel_values, batch_dec_values, n_classes,
+                          batch_ins.size());
         batch_start += batch_size;
     }
 }

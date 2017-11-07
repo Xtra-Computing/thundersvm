@@ -4,7 +4,6 @@
 #include <iostream>
 #include <iomanip>
 #include <thundersvm/kernel/smo_kernel.h>
-#include <thundersvm/kernel/kernelmatrix_kernel.h>
 #include <thundersvm/model/svc.h>
 #include <thundersvm/solver/csmosolver.h>
 #include "thrust/sort.h"
@@ -238,7 +237,7 @@ vector<real> SVC::predict_label(const SyncData<real> &dec_values, int n_instance
         LOG(INFO) << "predict with probability";
         for (int l = 0; l < n_instances; ++l) {
             vector<vector<real> > r(n_classes, vector<real>(n_classes));
-            double min_prob = 1e-7;
+            real min_prob = 1e-7;
             int k = 0;
             for (int i = 0; i < n_classes; i++)
                 for (int j = i + 1; j < n_classes; j++) {

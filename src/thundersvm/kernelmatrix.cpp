@@ -5,6 +5,7 @@
 #include "thundersvm/kernelmatrix.h"
 #include "thundersvm/kernel/kernelmatrix_kernel.h"
 
+using namespace svm_kernel;
 KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
     n_instances_ = instances.size();
     n_features_ = 0;
@@ -29,57 +30,42 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
     }
 
     //three arrays (on GPU/CPU) for csr representation
-    val_ = new SyncData<real>(csr_val.size());
-    col_ind_ = new SyncData<int>(csr_col_ind.size());
-    row_ptr_ = new SyncData<int>(csr_row_ptr.size());
+    val_.resize(csr_val.size());
+    col_ind_.resize(csr_col_ind.size());
+    row_ptr_.resize(csr_row_ptr.size());
     //copy data to the three arrays
-    val_->copy_from(csr_val.data(), val_->size());
-    col_ind_->copy_from(csr_col_ind.data(), col_ind_->size());
-    row_ptr_->copy_from(csr_row_ptr.data(), row_ptr_->size());
+    val_.copy_from(csr_val.data(), val_.size());
+    col_ind_.copy_from(csr_col_ind.data(), col_ind_.size());
+    row_ptr_.copy_from(csr_row_ptr.data(), row_ptr_.size());
 
-    self_dot_ = new SyncData<real>(n_instances_);
-    self_dot_->copy_from(csr_self_dot.data(), self_dot_->size());
+    self_dot_.resize(n_instances_);
+    self_dot_.copy_from(csr_self_dot.data(), self_dot_.size());
 
     nnz_ = csr_val.size();//number of nonzero
 
     //pre-compute diagonal elements
 
-    diag_ = new SyncData<real>(n_instances_);
+    diag_.resize(n_instances_);
     switch (param.kernel_type) {
         case SvmParam::RBF:
             for (int i = 0; i < n_instances_; ++i) {
-                diag_->host_data()[i] = 1;//rbf kernel
+                diag_.host_data()[i] = 1;//rbf kernel
             }
             break;
         case SvmParam::LINEAR:
-            diag_->copy_from(*self_dot_);
+            diag_.copy_from(self_dot_);
             break;
         case SvmParam::POLY:
-            diag_->copy_from(*self_dot_);
-            SAFE_KERNEL_LAUNCH(kernel_poly_kernel, diag_->device_data(), param.gamma, param.coef0, param.degree,
-                               diag_->size());
+            diag_.copy_from(self_dot_);
+            poly_kernel(diag_, param.gamma, param.coef0, param.degree, diag_.size());
             break;
         case SvmParam::SIGMOID:
-            diag_->copy_from(*self_dot_);
-            SAFE_KERNEL_LAUNCH(kernel_sigmoid_kernel, diag_->device_data(), param.gamma, param.coef0, diag_->size());
+            diag_.copy_from(self_dot_);
+            sigmoid_kernel(diag_, param.gamma, param.coef0, diag_.size());
         default:
             break;
     }
 
-    cusparseCreate(&handle);
-    cusparseCreateMatDescr(&descr);
-    cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);
-    cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
-}
-
-KernelMatrix::~KernelMatrix() {
-    cusparseDestroy(handle);
-    cusparseDestroyMatDescr(descr);
-    delete val_;
-    delete col_ind_;
-    delete row_ptr_;
-    delete self_dot_;
-    delete diag_;
 }
 
 void KernelMatrix::get_rows(const SyncData<int> &idx,
@@ -88,19 +74,16 @@ void KernelMatrix::get_rows(const SyncData<int> &idx,
     get_dot_product(idx, kernel_rows);
     switch (param.kernel_type) {
         case SvmParam::RBF:
-        SAFE_KERNEL_LAUNCH(kernel_RBF_kernel, idx.device_data(), self_dot_->device_data(), kernel_rows.device_data(),
-                           idx.size(), n_instances_, param.gamma);
+            RBF_kernel(idx, self_dot_, kernel_rows, idx.size(), n_instances_, param.gamma);
             break;
         case SvmParam::LINEAR:
             //do nothing
             break;
         case SvmParam::POLY:
-        SAFE_KERNEL_LAUNCH(kernel_poly_kernel, kernel_rows.device_data(), param.gamma, param.coef0, param.degree,
-                           kernel_rows.size());
+            poly_kernel(kernel_rows, param.gamma, param.coef0, param.degree, kernel_rows.size());
             break;
         case SvmParam::SIGMOID:
-        SAFE_KERNEL_LAUNCH(kernel_sigmoid_kernel, kernel_rows.device_data(), param.gamma, param.coef0,
-                           kernel_rows.size());
+            sigmoid_kernel(kernel_rows, param.gamma, param.coef0, kernel_rows.size());
             break;
     }
 }
@@ -122,45 +105,34 @@ void KernelMatrix::get_rows(const DataSet::node2d &instances,
     }
     switch (param.kernel_type) {
         case SvmParam::RBF:
-        SAFE_KERNEL_LAUNCH(kernel_RBF_kernel, self_dot.device_data(), this->self_dot_->device_data(),
-                           kernel_rows.device_data(), instances.size(), n_instances_, param.gamma);
+            RBF_kernel(self_dot, self_dot_, kernel_rows, instances.size(), n_instances_, param.gamma);
             break;
         case SvmParam::LINEAR:
             //do nothing
             break;
         case SvmParam::POLY:
-        SAFE_KERNEL_LAUNCH(kernel_poly_kernel, kernel_rows.device_data(), param.gamma, param.coef0, param.degree,
-                           kernel_rows.size());
+            poly_kernel(kernel_rows, param.gamma, param.coef0, param.degree, kernel_rows.size());
             break;
         case SvmParam::SIGMOID:
-        SAFE_KERNEL_LAUNCH(kernel_sigmoid_kernel, kernel_rows.device_data(), param.gamma, param.coef0,
-                           kernel_rows.size());
+            sigmoid_kernel(kernel_rows, param.gamma, param.coef0, kernel_rows.size());
             break;
     }
 }
 
 const SyncData<real> &KernelMatrix::diag() const {
-    return *this->diag_;
+    return this->diag_;
 }
 
 
 void KernelMatrix::dns_csr_mul(const SyncData<real> &dense_mat, int n_rows, SyncData<real> &result) const {
     CHECK_EQ(dense_mat.size(), n_rows * n_features_) << "dense matrix features doesn't match";
-    float one(1);
-    float zero(0);
-    cusparseScsrmm2(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
-                    n_instances_, n_rows, n_features_, nnz_, &one, descr, val_->device_data(), row_ptr_->device_data(),
-                    col_ind_->device_data(),
-                    dense_mat.device_data(), n_rows, &zero, result.device_data(), n_instances_);
-    //cusparseScsrmm return row-major matrix, so no transpose is needed
+    svm_kernel::dns_csr_mul(n_instances_, n_rows, n_features_, dense_mat, val_, row_ptr_, col_ind_, nnz_, result);
 }
 
 void KernelMatrix::get_dot_product(const SyncData<int> &idx, SyncData<real> &dot_product) const {
     SyncData<real> data_rows(idx.size() * n_features_);
     data_rows.mem_set(0);
-    SAFE_KERNEL_LAUNCH(kernel_get_working_set_ins, val_->device_data(), col_ind_->device_data(),
-                       row_ptr_->device_data(),
-                       idx.device_data(), data_rows.device_data(), idx.size());
+    get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size());
     dns_csr_mul(data_rows, idx.size(), dot_product);
 }
 

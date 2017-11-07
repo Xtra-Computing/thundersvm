@@ -22,5 +22,5 @@ TEST(OneClassSVCTest, train) {
         if (predict_y[i] > 0)
             n_pos++;
     }
-    EXPECT_EQ(n_pos, 36);
+    EXPECT_EQ(n_pos, 136);
 }

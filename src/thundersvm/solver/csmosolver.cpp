@@ -2,12 +2,11 @@
 // Created by jiashuai on 17-10-25.
 //
 #include <thundersvm/solver/csmosolver.h>
-#include <thrust/sort.h>
-#include <thrust/system/cuda/detail/par.h>
 #include <thundersvm/kernel/smo_kernel.h>
 
+using namespace svm_kernel;
 void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho,
-                       SyncData <real> &f_val, real eps, real Cp, real Cn, int ws_size) const {
+                       SyncData<real> &f_val, real eps, real Cp, real Cn, int ws_size) const {
     uint n_instances = k_mat.n_instances();
     uint q = ws_size / 2;
 
@@ -23,7 +22,7 @@ void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncDa
     SyncData<int> f_idx2sort(n_instances);
     SyncData<real> f_val2sort(n_instances);
     SyncData<real> alpha_diff(ws_size);
-    SyncData<real> diff_and_bias(2);
+    SyncData<real> diff(1);
 
     SyncData<real> k_mat_rows(ws_size * k_mat.n_instances());
     SyncData<real> k_mat_rows_first_half(q * k_mat.n_instances());
@@ -35,12 +34,12 @@ void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncDa
     }
     init_f(alpha, y, k_mat, f_val);
     LOG(INFO) << "training start";
+    int max_iter = max(100000, ws_size > INT_MAX / 100 ? INT_MAX : 100 * ws_size);
     for (int iter = 0;; ++iter) {
         //select working set
         f_idx2sort.copy_from(f_idx);
         f_val2sort.copy_from(f_val);
-        thrust::sort_by_key(thrust::cuda::par, f_val2sort.device_data(), f_val2sort.device_data() + n_instances,
-                            f_idx2sort.device_data(), thrust::less<real>());
+        sort_f(f_val2sort, f_idx2sort);
         vector<int> ws_indicator(n_instances, 0);
         if (0 == iter) {
             select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set);
@@ -55,17 +54,15 @@ void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncDa
             k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
         }
         //local smo
-        smo_kernel(y.device_data(), f_val.device_data(), alpha.device_data(), alpha_diff.device_data(),
-                   working_set.device_data(), ws_size, Cp, Cn, k_mat_rows.device_data(), k_mat.diag().device_data(),
-                   n_instances, eps, diff_and_bias.device_data());
+        smo_kernel(y, f_val, alpha, alpha_diff, working_set, Cp, Cn, k_mat_rows, k_mat.diag(), n_instances, eps, diff,
+                   max_iter);
         //update f
-        SAFE_KERNEL_LAUNCH(update_f, f_val.device_data(), ws_size, alpha_diff.device_data(), k_mat_rows.device_data(),
-                           n_instances);
+        update_f(f_val, alpha_diff, k_mat_rows, k_mat.n_instances());
         if (iter % 10 == 0) {
             printf(".");
             std::cout.flush();
         }
-        if (diff_and_bias[0] < eps) {
+        if (diff[0] < eps) {
             rho = calculate_rho(f_val, y, alpha, Cp, Cn);
             break;
         }
@@ -74,7 +71,7 @@ void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncDa
 }
 
 void CSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
-                                    const SyncData <real> &alpha, real Cp, real Cn, SyncData<int> &working_set) const {
+                                    const SyncData<real> &alpha, real Cp, real Cn, SyncData<int> &working_set) const {
     int n_instances = ws_indicator.size();
     int p_left = 0;
     int p_right = n_instances - 1;
@@ -113,7 +110,7 @@ void CSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncData<in
 }
 
 real
-CSMOSolver::calculate_rho(const SyncData <real> &f_val, const SyncData<int> &y, SyncData <real> &alpha, real Cp,
+CSMOSolver::calculate_rho(const SyncData<real> &f_val, const SyncData<int> &y, SyncData<real> &alpha, real Cp,
                           real Cn) const {
     int n_free = 0;
     real sum_free = 0;
@@ -148,21 +145,18 @@ void CSMOSolver::init_f(const SyncData<real> &alpha, const SyncData<int> &y, con
             alpha_diff.copy_from(alpha_diff_vec.data(), idx_vec.size());
             SyncData<real> kernel_rows(idx.size() * k_mat.n_instances());
             k_mat.get_rows(idx, kernel_rows);
-            SAFE_KERNEL_LAUNCH(update_f, f_val.device_data(), idx.size(), alpha_diff.device_data(),
-                               kernel_rows.device_data(), k_mat.n_instances());
+            update_f(f_val, alpha_diff, kernel_rows, k_mat.n_instances());
             idx_vec.clear();
             alpha_diff_vec.clear();
         }
     }
 }
 
-void CSMOSolver::smo_kernel(const int *label, real *f_values, real *alpha, real *alpha_diff, const int *working_set,
-                            int ws_size, float Cp, float Cn, const float *k_mat_rows, const float *k_mat_diag,
-                            int row_len, real eps, real *diff_and_bias) const {
-    size_t smem_size = ws_size * sizeof(real) * 3 + 2 * sizeof(float);
-    int max_iter = max(100000, ws_size > INT_MAX / 100 ? INT_MAX : 100 * ws_size);
-    c_smo_solve_kernel << < 1, ws_size, smem_size >> >
-                                        (label, f_values, alpha, alpha_diff,
-                                                working_set, ws_size, Cp, Cn, k_mat_rows,
-                                                k_mat_diag, row_len, eps, diff_and_bias, max_iter);
+void
+CSMOSolver::smo_kernel(const SyncData<int> &y, SyncData<real> &f_val, SyncData<real> &alpha, SyncData<real> &alpha_diff,
+                       const SyncData<int> &working_set, real Cp, real Cn, const SyncData<real> &k_mat_rows,
+                       const SyncData<real> &k_mat_diag, int row_len, real eps, SyncData<real> &diff,
+                       int max_iter) const {
+    c_smo_solve(y, f_val, alpha, alpha_diff, working_set, Cp, Cn, k_mat_rows, k_mat_diag, row_len, eps, diff, max_iter);
 }
+
