@@ -54,7 +54,9 @@ int main(int argc, char **argv) {
         }
     }
 
+#ifdef USE_CUDA
     CUDA_CHECK(cudaSetDevice(parser.gpu_id));
+#endif
 
     vector<real> predict_y, test_y;
     if (parser.do_cross_validation) {

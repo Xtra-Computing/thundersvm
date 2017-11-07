@@ -3,7 +3,6 @@
 //
 
 #include <thundersvm/kernel/smo_kernel.h>
-#include <thrust/sort.h>
 #include <thundersvm/model/svmmodel.h>
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
 #include <iomanip>

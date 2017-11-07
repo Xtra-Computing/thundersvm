@@ -6,7 +6,6 @@
 #include <thundersvm/kernel/smo_kernel.h>
 #include <thundersvm/model/svc.h>
 #include <thundersvm/solver/csmosolver.h>
-#include "thrust/sort.h"
 
 using std::ofstream;
 using std::endl;

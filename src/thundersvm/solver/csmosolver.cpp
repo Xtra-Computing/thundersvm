@@ -13,8 +13,10 @@ void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncDa
     SyncData<int> working_set(ws_size);
     SyncData<int> working_set_first_half(q);
     SyncData<int> working_set_last_half(q);
+#ifdef USE_CUDA
     working_set_first_half.set_device_data(working_set.device_data());
     working_set_last_half.set_device_data(&working_set.device_data()[q]);
+#endif
     working_set_first_half.set_host_data(working_set.host_data());
     working_set_last_half.set_host_data(&working_set.host_data()[q]);
 
@@ -27,8 +29,13 @@ void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncDa
     SyncData<real> k_mat_rows(ws_size * k_mat.n_instances());
     SyncData<real> k_mat_rows_first_half(q * k_mat.n_instances());
     SyncData<real> k_mat_rows_last_half(q * k_mat.n_instances());
+#ifdef USE_CUDA
     k_mat_rows_first_half.set_device_data(k_mat_rows.device_data());
     k_mat_rows_last_half.set_device_data(&k_mat_rows.device_data()[q * k_mat.n_instances()]);
+#else
+    k_mat_rows_first_half.set_host_data(k_mat_rows.host_data());
+    k_mat_rows_last_half.set_host_data(&k_mat_rows.host_data()[q * k_mat.n_instances()]);
+#endif
     for (int i = 0; i < n_instances; ++i) {
         f_idx[i] = i;
     }

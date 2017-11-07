@@ -22,9 +22,6 @@ inline int max2power(int n) {
 }
 const int BLOCK_SIZE = 512;
 
-//inline int GET_BLOCKS(const int n) {
-//    return (n - 1) / BLOCK_SIZE + 1;
-//}
 const int NUM_BLOCKS = 32 * 56;
 
 #define KERNEL_LOOP(i, n) \
@@ -32,4 +29,24 @@ const int NUM_BLOCKS = 32 * 56;
        i < (n); \
        i += blockDim.x * gridDim.x)
 
+#ifdef USE_CUDA
+
+#include "cuda_runtime_api.h"
+
+#define CUDA_CHECK(condition) \
+  /* Code block avoids redefinition of cudaError_t error */ \
+  do { \
+    cudaError_t error = condition; \
+    CHECK_EQ(error, cudaSuccess) << " " << cudaGetErrorString(error); \
+  } while (0)
+#define SAFE_KERNEL_LAUNCH(kernel_name, ...)\
+    kernel_name<<<NUM_BLOCKS,BLOCK_SIZE>>>(__VA_ARGS__);\
+    CUDA_CHECK(cudaPeekAtLastError())
+#else
+#define __host__
+#define __device__
+#endif
+
+#define NO_GPU \
+LOG(FATAL)<<"Cannot use GPU when compiling without GPU"
 #endif //THUNDERSVM_COMMON_H
