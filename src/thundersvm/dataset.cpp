@@ -102,7 +102,7 @@ void DataSet::group_classes(bool classification) {
     }
 }
 
-size_t DataSet::total_count() const {//return the total number of instances
+size_t DataSet::n_instances() const {//return the total number of instances
     return total_count_;
 }
 

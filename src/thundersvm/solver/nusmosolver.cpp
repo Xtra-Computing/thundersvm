@@ -4,8 +4,10 @@
 #include <thundersvm/solver/nusmosolver.h>
 #include <thundersvm/kernel/smo_kernel.h>
 
+using namespace svm_kernel;
+
 real
-NuSMOSolver::calculate_rho(const SyncData <real> &f_val, const SyncData<int> &y, SyncData <real> &alpha, real Cp,
+NuSMOSolver::calculate_rho(const SyncData<real> &f_val, const SyncData<int> &y, SyncData<real> &alpha, real Cp,
                            real Cn) const {
     int n_free_p = 0, n_free_n = 0;
     real sum_free_p = 0, sum_free_n = 0;
@@ -39,20 +41,8 @@ NuSMOSolver::calculate_rho(const SyncData <real> &f_val, const SyncData<int> &y,
     return rho;
 }
 
-void NuSMOSolver::smo_kernel(const int *label, real *f_values, real *alpha, real *alpha_diff, const int *working_set,
-                             int ws_size, float Cp, float Cn, const float *k_mat_rows, const float *k_mat_diag,
-                             int row_len, real eps, real *diff_and_bias) const {
-    //Cn is not used but for compatibility with c-svc
-    int max_iter = max(100000, ws_size > INT_MAX / 100 ? INT_MAX : 100 * ws_size);
-    size_t smem_size = ws_size * sizeof(real) * 3 + 2 * sizeof(float);
-    nu_smo_solve_kernel << < 1, ws_size, smem_size >> >
-                                         (label, f_values, alpha, alpha_diff,
-                                                 working_set, ws_size, Cp, k_mat_rows,
-                                                 k_mat_diag, row_len, eps, diff_and_bias, max_iter);
-}
-
 void NuSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
-                                     const SyncData <real> &alpha, real Cp, real Cn, SyncData<int> &working_set) const {
+                                     const SyncData<real> &alpha, real Cp, real Cn, SyncData<int> &working_set) const {
     int n_instances = ws_indicator.size();
     int p_left_p = 0;
     int p_left_n = 0;
@@ -122,4 +112,12 @@ void NuSMOSolver::scale_alpha_rho(SyncData<real> &alpha, real &rho, real r) cons
         alpha[i] /= r;//TODO parallel
     }
     rho /= r;
+}
+
+void NuSMOSolver::smo_kernel(const SyncData<int> &y, SyncData<real> &f_val, SyncData<real> &alpha,
+                             SyncData<real> &alpha_diff, const SyncData<int> &working_set, real Cp, real Cn,
+                             const SyncData<real> &k_mat_rows, const SyncData<real> &k_mat_diag, int row_len, real eps,
+                             SyncData<real> &diff, int max_iter) const {
+    //Cn is not used but for compatibility with c-svc
+    nu_smo_solve(y, f_val, alpha, alpha_diff, working_set, Cp, k_mat_rows, k_mat_diag, row_len, eps, diff, max_iter);
 }

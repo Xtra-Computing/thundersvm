@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
             break;
     }
 
-    //todo add this to check_parameter method
+	//todo add this to check_parameter method
     if (parser.param_cmd.svm_type == SvmParam::NU_SVC) {
         train_dataset.group_classes();
         for (int i = 0; i < train_dataset.n_classes(); ++i) {
@@ -54,19 +54,24 @@ int main(int argc, char **argv) {
         }
     }
 
+#ifdef USE_CUDA
     CUDA_CHECK(cudaSetDevice(parser.gpu_id));
+#endif
 
+    vector<real> predict_y, test_y;
     if (parser.do_cross_validation) {
-        model->cross_validation(train_dataset, parser.param_cmd, parser.nr_fold);
+       vector<real> test_predict = model->cross_validation(train_dataset, parser.param_cmd, parser.nr_fold);
+	   uint dataset_size = test_predict.size() / 2;
+	   test_y.insert(test_y.end(), test_predict.begin(), test_predict.begin() + dataset_size);
+	   predict_y.insert(predict_y.end(), test_predict.begin() + dataset_size, test_predict.end());
     } else {
         model->train(train_dataset, parser.param_cmd);
         model->save_to_file(parser.model_file_name);
+    	predict_y = model->predict(train_dataset.instances(), 10000);
+		test_y = train_dataset.y();
     }
 
     //perform svm testing
-    vector<real> predict_y;
-
-    predict_y = model->predict(train_dataset.instances(), 10000);
     Metric *metric = nullptr;
     switch (parser.param_cmd.svm_type) {
         case SvmParam::C_SVC:
@@ -83,7 +88,7 @@ int main(int argc, char **argv) {
         }
     }
     if (metric) {
-        LOG(INFO) << metric->name() << " = " << metric->score(predict_y, train_dataset.y());
+        LOG(INFO) << metric->name() << " = " << metric->score(predict_y, test_y); 
     }
     return 0;
 }

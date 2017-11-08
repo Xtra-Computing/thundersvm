@@ -41,7 +41,9 @@ int main(int argc, char **argv) {
         metric = new MSE();
     }
 
+#ifdef USE_CUDA
     CUDA_CHECK(cudaSetDevice(parser.gpu_id));
+#endif
 
     model->load_from_file(parser.svmpredict_model_file_name);
     file.close();

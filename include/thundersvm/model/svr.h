@@ -13,7 +13,10 @@ using std::map;
 
 class SVR : public SvmModel {
 public:
-    void train(DataSet dataset, SvmParam param) override;
+    void train(const DataSet &dataset, SvmParam param) override;
+
+protected:
+    void save_svr_coef(const SyncData<real> &alpha_2, const DataSet::node2d &instances);
 };
 
 #endif //THUNDERSVM_SVR_H
