@@ -52,7 +52,6 @@ void SyncData<T>::copy_from(const T *source, size_t count) {
 #else
     memcpy(mem->host_data(), source, sizeof(T) * count);
 #endif
->>>>>>> upstream/master
 }
 
 
@@ -75,7 +74,6 @@ void SyncData<T>::copy_from(const SyncData<T> &source) {
 #else
     copy_from(source.host_data(), source.size());
 #endif
->>>>>>> upstream/master
 }
 
 template<typename T>

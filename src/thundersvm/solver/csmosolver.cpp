@@ -3,8 +3,8 @@
 //
 #include <thundersvm/solver/csmosolver.h>
 #include <thundersvm/kernel/smo_kernel.h>
-#include <iostream>
-using namespace std;
+//#include <iostream>
+//using namespace std;
 
 using namespace svm_kernel;
 void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho,
