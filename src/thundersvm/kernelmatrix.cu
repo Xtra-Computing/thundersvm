@@ -4,7 +4,7 @@
 #include <thundersvm/svmparam.h>
 #include "thundersvm/kernelmatrix.h"
 #include "thundersvm/kernel/kernelmatrix_kernel.h"
-
+#include "thundersvm/kernelmatrix_kernel_openmp.h"
 KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
     n_instances_ = instances.size();
     n_features_ = 0;
@@ -56,12 +56,17 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
             break;
         case SvmParam::POLY:
             diag_->copy_from(*self_dot_);
-            SAFE_KERNEL_LAUNCH(kernel_poly_kernel, diag_->device_data(), param.gamma, param.coef0, param.degree,
+            /*
+	    SAFE_KERNEL_LAUNCH(kernel_poly_kernel, diag_->device_data(), param.gamma, param.coef0, param.degree,
+                               diag_->size());
+            */
+	    kernel_poly_kernel_openmp(diag_->host_data(), param.gamma, param.coef0, param.degree,
                                diag_->size());
             break;
         case SvmParam::SIGMOID:
             diag_->copy_from(*self_dot_);
-            SAFE_KERNEL_LAUNCH(kernel_sigmoid_kernel, diag_->device_data(), param.gamma, param.coef0, diag_->size());
+            //SAFE_KERNEL_LAUNCH(kernel_sigmoid_kernel, diag_->device_data(), param.gamma, param.coef0, diag_->size());
+       	    kernel_sigmoid_kernel_openmp(diag_->host_data(), param.gamma, param.coef0, diag_->size());
         default:
             break;
     }
@@ -88,18 +93,37 @@ void KernelMatrix::get_rows(const SyncData<int> &idx,
     get_dot_product(idx, kernel_rows);
     switch (param.kernel_type) {
         case SvmParam::RBF:
-        SAFE_KERNEL_LAUNCH(kernel_RBF_kernel, idx.device_data(), self_dot_->device_data(), kernel_rows.device_data(),
+				       
+	SAFE_KERNEL_LAUNCH(kernel_RBF_kernel, idx.device_data(), self_dot_->device_data(), kernel_rows.device_data(),
                            idx.size(), n_instances_, param.gamma);
-            break;
+        
+	/*
+	kernel_RBF_kernel_openmp(idx.host_data(), self_dot_->host_data(), kernel_rows.host_data(),
+                           idx.size(), n_instances_, param.gamma);
+        */
+	/*	
+	kernel_RBF_kernel_openmp(idx.device_data(), self_dot_->device_data(), kernel_rows.device_data(),
+                           idx.size(), n_instances_, param.gamma);
+        */
+
+		 break;
         case SvmParam::LINEAR:
             //do nothing
             break;
         case SvmParam::POLY:
-        SAFE_KERNEL_LAUNCH(kernel_poly_kernel, kernel_rows.device_data(), param.gamma, param.coef0, param.degree,
+        /*
+	SAFE_KERNEL_LAUNCH(kernel_poly_kernel, kernel_rows.device_data(), param.gamma, param.coef0, param.degree,
+                           kernel_rows.size());
+        */
+	kernel_poly_kernel_openmp(kernel_rows.host_data(), param.gamma, param.coef0, param.degree,
                            kernel_rows.size());
             break;
         case SvmParam::SIGMOID:
-        SAFE_KERNEL_LAUNCH(kernel_sigmoid_kernel, kernel_rows.device_data(), param.gamma, param.coef0,
+        /*
+	SAFE_KERNEL_LAUNCH(kernel_sigmoid_kernel, kernel_rows.device_data(), param.gamma, param.coef0,
+                           kernel_rows.size());
+        */
+	kernel_sigmoid_kernel_openmp(kernel_rows.host_data(), param.gamma, param.coef0,
                            kernel_rows.size());
             break;
     }
@@ -122,18 +146,36 @@ void KernelMatrix::get_rows(const DataSet::node2d &instances,
     }
     switch (param.kernel_type) {
         case SvmParam::RBF:
+		
         SAFE_KERNEL_LAUNCH(kernel_RBF_kernel, self_dot.device_data(), this->self_dot_->device_data(),
                            kernel_rows.device_data(), instances.size(), n_instances_, param.gamma);
-            break;
-        case SvmParam::LINEAR:
+        
+	/*	
+        kernel_RBF_kernel_openmp(self_dot.host_data(), this->self_dot_->host_data(),
+                           kernel_rows.host_data(), instances.size(), n_instances_, param.gamma);
+ 	*/
+	/*
+	kernel_RBF_kernel_openmp(self_dot.device_data(), this->self_dot_->device_data(),
+                           kernel_rows.device_data(), instances.size(), n_instances_, param.gamma);
+ 	*/
+	    break;
+	case SvmParam::LINEAR:
             //do nothing
             break;
         case SvmParam::POLY:
-        SAFE_KERNEL_LAUNCH(kernel_poly_kernel, kernel_rows.device_data(), param.gamma, param.coef0, param.degree,
+        /*
+	SAFE_KERNEL_LAUNCH(kernel_poly_kernel, kernel_rows.device_data(), param.gamma, param.coef0, param.degree,
+                           kernel_rows.size());
+        */
+	kernel_poly_kernel_openmp(kernel_rows.host_data(), param.gamma, param.coef0, param.degree,
                            kernel_rows.size());
             break;
         case SvmParam::SIGMOID:
-        SAFE_KERNEL_LAUNCH(kernel_sigmoid_kernel, kernel_rows.device_data(), param.gamma, param.coef0,
+        /*
+	SAFE_KERNEL_LAUNCH(kernel_sigmoid_kernel, kernel_rows.device_data(), param.gamma, param.coef0,
+                           kernel_rows.size());
+        */ 
+	kernel_sigmoid_kernel_openmp(kernel_rows.host_data(), param.gamma, param.coef0,
                            kernel_rows.size());
             break;
     }
@@ -158,9 +200,14 @@ void KernelMatrix::dns_csr_mul(const SyncData<real> &dense_mat, int n_rows, Sync
 void KernelMatrix::get_dot_product(const SyncData<int> &idx, SyncData<real> &dot_product) const {
     SyncData<real> data_rows(idx.size() * n_features_);
     data_rows.mem_set(0);
+    /*
     SAFE_KERNEL_LAUNCH(kernel_get_working_set_ins, val_->device_data(), col_ind_->device_data(),
                        row_ptr_->device_data(),
                        idx.device_data(), data_rows.device_data(), idx.size());
+    */
+    kernel_get_working_set_ins_openmp(val_->host_data(), col_ind_->host_data(),
+                       row_ptr_->host_data(),
+                       idx.host_data(), data_rows.host_data(), idx.size());
     dns_csr_mul(data_rows, idx.size(), dot_product);
 }
 

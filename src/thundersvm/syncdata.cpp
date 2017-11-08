@@ -48,7 +48,9 @@ void SyncData<T>::resize(size_t count) {
 template<typename T>
 void SyncData<T>::copy_from(const T *source, size_t count) {
     CUDA_CHECK(cudaMemcpy(mem->device_data(), source, sizeof(T) * count, cudaMemcpyDefault));
+    //CUDA_CHECK(cudaMemcpy(mem->host_data(), source, sizeof(T) * count, cudaMemcpyDefault));
 }
+
 
 template<typename T>
 void SyncData<T>::log(el::base::type::ostream_t &ostream) const {
@@ -65,6 +67,7 @@ template<typename T>
 void SyncData<T>::copy_from(const SyncData<T> &source) {
     CHECK_EQ(size(), source.size()) << "destination and source count doesn't match";
     copy_from(source.device_data(), source.size());
+//    copy_from(source.host_data(), source.size());
 }
 
 template<typename T>

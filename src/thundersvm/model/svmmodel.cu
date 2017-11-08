@@ -7,7 +7,7 @@
 #include <thundersvm/model/svmmodel.h>
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
 #include <iomanip>
-
+#include <thundersvm/kernelmatrix_kernel_openmp.h>
 using std::ofstream;
 using std::endl;
 using std::setprecision;
@@ -48,10 +48,17 @@ vector<real> SvmModel::predict(const DataSet::node2d &instances, int batch_size)
         SyncData<real> dec_values(batch_ins.size());
 
         //sum kernel values and get decision values
-        SAFE_KERNEL_LAUNCH(kernel_sum_kernel_values, kernel_values.device_data(), batch_ins.size(), sv.size(),
+       	/* 
+	SAFE_KERNEL_LAUNCH(kernel_sum_kernel_values, kernel_values.device_data(), batch_ins.size(), sv.size(),
                            1, sv_index.device_data(), coef.device_data(), sv_start.device_data(),
                            sv_count.device_data(), rho.device_data(), dec_values.device_data());
+	*/
+	
+	kernel_sum_kernel_values_openmp(kernel_values.host_data(), batch_ins.size(), sv.size(),
+                           1, sv_index.host_data(), coef.host_data(), sv_start.host_data(),
+                           sv_count.host_data(), rho.host_data(), dec_values.host_data());
 
+	
         for (int i = 0; i < batch_ins.size(); ++i) {
             predict_y.push_back(dec_values[i]);
         }

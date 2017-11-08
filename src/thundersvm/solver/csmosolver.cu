@@ -5,7 +5,8 @@
 #include <thrust/sort.h>
 #include <thrust/system/cuda/detail/par.h>
 #include <thundersvm/kernel/smo_kernel.h>
-
+#include <iostream>
+using namespace std;
 void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho,
                        SyncData <real> &f_val, real eps, real Cp, real Cn, int ws_size) const {
     uint n_instances = k_mat.n_instances();
@@ -30,6 +31,8 @@ void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncDa
     SyncData<real> k_mat_rows_last_half(q * k_mat.n_instances());
     k_mat_rows_first_half.set_device_data(k_mat_rows.device_data());
     k_mat_rows_last_half.set_device_data(&k_mat_rows.device_data()[q * k_mat.n_instances()]);
+    k_mat_rows_first_half.set_host_data(k_mat_rows.host_data());
+    k_mat_rows_last_half.set_host_data(&k_mat_rows.host_data()[q * k_mat.n_instances()]);
     for (int i = 0; i < n_instances; ++i) {
         f_idx[i] = i;
     }
@@ -45,7 +48,10 @@ void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncDa
         if (1 == iter) {
             select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set);
             k_mat.get_rows(working_set, k_mat_rows);
-        } else {
+	    //cout<<"iter = 1"<<endl;
+       	    //cout<<"kmat[0]"<<k_mat_rows[0]<<endl;
+	    } else {
+	    //cout<<"iter != 1"<<endl;
             working_set_first_half.copy_from(working_set_last_half);
             for (int i = 0; i < q; ++i) {
                 ws_indicator[working_set[i]] = 1;
@@ -53,7 +59,8 @@ void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncDa
             select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set_last_half);
             k_mat_rows_first_half.copy_from(k_mat_rows_last_half);
             k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
-        }
+            //cout<<"kmatlast[0]"<<k_mat_rows_last_half[0]<<endl;
+	    }
         //local smo
         smo_kernel(y.device_data(), f_val.device_data(), alpha.device_data(), alpha_diff.device_data(),
                    working_set.device_data(), ws_size, Cp, Cn, k_mat_rows.device_data(), k_mat.diag().device_data(),
@@ -66,7 +73,8 @@ void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncDa
             std::cout.flush();
         }
         if (diff_and_bias[0] < eps) {
-            rho = calculate_rho(f_val, y, alpha, Cp, Cn);
+            cout<<"before cal rho"<<endl;
+	    rho = calculate_rho(f_val, y, alpha, Cp, Cn);
             break;
         }
     }

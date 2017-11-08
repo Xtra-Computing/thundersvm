@@ -8,7 +8,7 @@
 #include <thundersvm/model/svc.h>
 #include <thundersvm/solver/csmosolver.h>
 #include "thrust/sort.h"
-
+#include <thundersvm/kernelmatrix_kernel_openmp.h>
 using namespace std;
 
 void SVC::train(DataSet dataset, SvmParam param) {
@@ -347,14 +347,32 @@ void SVC::predict_dec_values(const DataSet::node2d &instances, SyncData<real> &d
         SyncData<real> kernel_values(batch_ins.size() * sv.size());
         k_mat.get_rows(batch_ins, kernel_values);
         SyncData<real> batch_dec_values(batch_ins.size() * n_binary_models);
-        batch_dec_values.set_device_data(
+        
+	batch_dec_values.set_device_data(
                 &dec_values.device_data()[(batch_start - instances.begin()) * n_binary_models]);
+	
+	
+	batch_dec_values.set_host_data(
+                &dec_values.host_data()[(batch_start - instances.begin()) * n_binary_models]);
+	
 
         //sum kernel values and get decision values
-        SAFE_KERNEL_LAUNCH(kernel_sum_kernel_values, kernel_values.device_data(), batch_ins.size(), sv.size(),
+     	/* 
+	SAFE_KERNEL_LAUNCH(kernel_sum_kernel_values, kernel_values.device_data(), batch_ins.size(), sv.size(),
                            n_binary_models, sv_index.device_data(), coef.device_data(), sv_start.device_data(),
                            sv_count.device_data(), rho.device_data(), batch_dec_values.device_data());
-        batch_start += batch_size;
+        */
+	/*	
+	SAFE_KERNEL_LAUNCH(kernel_sum_kernel_values, kernel_values.host_data(), batch_ins.size(), sv.size(),
+                           n_binary_models, sv_index.host_data(), coef.host_data(), sv_start.host_data(),
+                           sv_count.host_data(), rho.host_data(), batch_dec_values.host_data());
+	*/ 
+	
+	kernel_sum_kernel_values_openmp(kernel_values.host_data(), batch_ins.size(), sv.size(),
+                           n_binary_models, sv_index.host_data(), coef.host_data(), sv_start.host_data(),
+                           sv_count.host_data(), rho.host_data(), batch_dec_values.host_data());
+        
+	batch_start += batch_size;
     }
 }
 
