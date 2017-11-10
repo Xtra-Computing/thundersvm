@@ -91,7 +91,7 @@ void SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncData<rea
         //sum kernel values and get decision values
         sum_kernel_values(coef, sv.size(), sv_start, n_sv, rho, kernel_values, batch_dec_values, n_classes,
                           batch_ins.size());
-        batch_start += batch_size;
+	batch_start += batch_size;
     }
 }
 

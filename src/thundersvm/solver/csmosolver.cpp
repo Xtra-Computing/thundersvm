@@ -3,6 +3,7 @@
 //
 #include <thundersvm/solver/csmosolver.h>
 #include <thundersvm/kernel/smo_kernel.h>
+#include <limits.h>
 //#include <iostream>
 //using namespace std;
 
