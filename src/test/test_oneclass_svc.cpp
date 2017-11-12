@@ -13,10 +13,13 @@ TEST(OneClassSVCTest, train) {
     param.nu = 0.1;
     param.epsilon = 0.001;
     param.kernel_type = SvmParam::RBF;
+    param.svm_type = SvmParam::ONE_CLASS;
     SvmModel *model = new OneClassSVC();
     model->train(dataset, param);
-
-    vector<real> predict_y = model->predict(dataset.instances(), 100);
+    model->save_to_file(DATASET_DIR "test_dataset.txt.model");
+    SvmModel *new_model = new OneClassSVC();
+    new_model->load_from_file(DATASET_DIR "test_dataset.txt.model");
+    vector<real> predict_y = new_model->predict(dataset.instances(), 100);
     int n_pos = 0;
     for (int i = 0; i < predict_y.size(); ++i) {
         if (predict_y[i] > 0)

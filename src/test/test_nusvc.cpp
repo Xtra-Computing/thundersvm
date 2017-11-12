@@ -25,11 +25,14 @@ protected:
         param.epsilon = 0.001;
         param.nu = nu;
         param.kernel_type = SvmParam::RBF;
+	param.svm_type = SvmParam::NU_SVC;
 //        param.probability = 1;
         SvmModel *model = new NuSVC();
-
         model->train(train_dataset, param);
-        predict_y = model->predict(test_dataset.instances(), 10000);
+        model->save_to_file(train_filename+".model");
+        SvmModel *new_model = new NuSVC();
+        new_model->load_from_file(train_filename+".model");
+	predict_y = new_model->predict(test_dataset.instances(), 10000);
         int n_correct = 0;
         for (unsigned i = 0; i < predict_y.size(); ++i) {
             if (predict_y[i] == test_dataset.y()[i])

@@ -126,6 +126,7 @@ void SvmModel::save_to_file(string path) {
         fs_model << rho[i] << " ";
     }
     fs_model << endl;
+    std::cout<<"before label"<<std::endl;
     if (param.svm_type == SvmParam::NU_SVC || param.svm_type == SvmParam::C_SVC) {
         fs_model << "label ";
         for (int i = 0; i < n_classes; ++i) {
@@ -139,6 +140,7 @@ void SvmModel::save_to_file(string path) {
         fs_model<< endl;
     }
     //todo save probA and probB
+    std::cout<<"before sv"<<std::endl;
     fs_model << "SV " << endl;
     for (int i = 0; i < sv.size(); i++) {
         for (int j = 0; j < n_classes - 1; ++j) {
