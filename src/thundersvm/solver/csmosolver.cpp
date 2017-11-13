@@ -3,6 +3,7 @@
 //
 #include <thundersvm/solver/csmosolver.h>
 #include <thundersvm/kernel/smo_kernel.h>
+#include <climits>
 
 using namespace svm_kernel;
 
@@ -66,7 +67,7 @@ void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncDa
                    max_iter);
         //update f
         update_f(f_val, alpha_diff, k_mat_rows, k_mat.n_instances());
-        if (iter % 1 == 0) {
+        if (iter % 10 == 0) {
             printf(".");
             std::cout.flush();
         }
