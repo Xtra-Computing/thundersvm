@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.12)
 set(PROJECT_NAME_STR thundersvm)
 project(${PROJECT_NAME_STR} C CXX)
 
-set(USE_CUDA ON CACHE BOOL "Compile with CUDA")
+set(USE_CUDA OFF CACHE BOOL "Compile with CUDA")
 
 find_package(Threads REQUIRED)
 find_package(OpenMP)
@@ -26,7 +26,7 @@ if (USE_CUDA)
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -std=c++11 -Wno-deprecated-gpu-targets)
     set(LINK_LIBRARY ${CUDA_cusparse_LIBRARY})
 else ()
-    include_directories(/home/qinbin/eigen_mod)
+    include_directories(${PROJECT_SOURCE_DIR}/eigen)
     message("Compile without CUDA")
 endif ()
 
