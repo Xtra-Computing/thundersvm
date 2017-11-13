@@ -3,7 +3,6 @@
 #include <thundersvm/svmparam.h>
 #include <thundersvm/model/svmmodel.h>
 #include <thundersvm/model/nusvc.h>
-#include <config.h>
 
 //
 // Created by jiashuai on 17-10-30.
@@ -15,9 +14,10 @@ protected:
     DataSet train_dataset;
     DataSet test_dataset;
     SvmParam param;
-    vector<real> predict_y;
+    vector<float_type> predict_y;
 
-    float load_dataset_and_train(string train_filename, string test_filename, real C, real gamma, real nu) {
+    float
+    load_dataset_and_train(string train_filename, string test_filename, float_type C, float_type gamma, float_type nu) {
         train_dataset.load_from_file(train_filename);
         test_dataset.load_from_file(test_filename);
         param.gamma = gamma;

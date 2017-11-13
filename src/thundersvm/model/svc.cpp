@@ -21,7 +21,7 @@ void SVC::model_setup(const DataSet &dataset, SvmParam &param) {
     SvmModel::model_setup(dataset, param);
 
     //calculate class weight for each class
-    c_weight = vector<real>(n_classes, 1);
+    c_weight = vector<float_type>(n_classes, 1);
     for (int i = 0; i < param.nr_weight; ++i) {
         bool found = false;
         for (int j = 0; j < n_classes; ++j) {
@@ -42,7 +42,7 @@ void SVC::train(const DataSet &dataset, SvmParam param) {
     dataset_.group_classes();
     model_setup(dataset_, param);
 
-    vector<SyncData<real>> alpha(n_binary_models);
+    vector<SyncData<float_type>> alpha(n_binary_models);
     vector<bool> is_sv(dataset_.n_instances(), false);
 
     int k = 0;
@@ -109,11 +109,11 @@ void SVC::train(const DataSet &dataset, SvmParam param) {
     }
 }
 
-void SVC::train_binary(const DataSet &dataset, int i, int j, SyncData<real> &alpha, real &rho) {
+void SVC::train_binary(const DataSet &dataset, int i, int j, SyncData<float_type> &alpha, float_type &rho) {
     DataSet::node2d ins = dataset.instances(i, j);//get instances of class i and j
     SyncData<int> y(ins.size());
     alpha.resize(ins.size());
-    SyncData<real> f_val(ins.size());
+    SyncData<float_type> f_val(ins.size());
     alpha.mem_set(0);
     for (int l = 0; l < dataset.count()[i]; ++l) {
         y[l] = +1;
@@ -124,7 +124,7 @@ void SVC::train_binary(const DataSet &dataset, int i, int j, SyncData<real> &alp
         f_val[dataset.count()[i] + l] = +1;
     }
     KernelMatrix k_mat(ins, param);
-    int ws_size = min(min(max2power(dataset.count()[i]), max2power(dataset.count()[j])) * 2, 1024);
+    int ws_size = min(max2power(ins.size()), 1024);
     CSMOSolver solver;
     solver.solve(k_mat, y, alpha, rho, f_val, param.epsilon, param.C * c_weight[i], param.C * c_weight[j], ws_size);
     LOG(INFO)<<"rho = "<<rho;
@@ -136,13 +136,13 @@ void SVC::train_binary(const DataSet &dataset, int i, int j, SyncData<real> &alp
     LOG(INFO)<<"#sv = "<<n_sv;
 }
 
-vector<real> SVC::predict(const DataSet::node2d &instances, int batch_size) {
-    SyncData<real> dec_values(instances.size() * n_binary_models);
+vector<float_type> SVC::predict(const DataSet::node2d &instances, int batch_size) {
+    SyncData<float_type> dec_values(instances.size() * n_binary_models);
     predict_dec_values(instances, dec_values, batch_size);
     return predict_label(dec_values, instances.size());
 }
 
-real sigmoidPredict(real dec_value, real A, real B) {
+float_type sigmoidPredict(float_type dec_value, float_type A, float_type B) {
     double fApB = dec_value * A + B;
     // 1-p used later; avoid catastrophic cancellation
     if (fApB >= 0)
@@ -151,7 +151,7 @@ real sigmoidPredict(real dec_value, real A, real B) {
         return 1.0 / (1 + exp(fApB));
 }
 
-void SVC::multiclass_probability(const vector<vector<real> > &r, vector<real> &p) const {
+void SVC::multiclass_probability(const vector<vector<float_type> > &r, vector<float_type> &p) const {
     int nrClass = n_classes;
     int t, j;
     int iter = 0, max_iter = max(100, nrClass);
@@ -209,8 +209,8 @@ void SVC::multiclass_probability(const vector<vector<real> > &r, vector<real> &p
     free(Qp);
 }
 
-vector<real> SVC::predict_label(const SyncData<real> &dec_values, int n_instances) const {
-    vector<real> predict_y;
+vector<float_type> SVC::predict_label(const SyncData<float_type> &dec_values, int n_instances) const {
+    vector<float_type> predict_y;
     if (0 == param.probability) {
         //predict y by voting among k(k-1)/2 models
         for (int l = 0; l < n_instances; ++l) {
@@ -235,8 +235,8 @@ vector<real> SVC::predict_label(const SyncData<real> &dec_values, int n_instance
     } else {
         LOG(INFO) << "predict with probability";
         for (int l = 0; l < n_instances; ++l) {
-            vector<vector<real> > r(n_classes, vector<real>(n_classes));
-            real min_prob = 1e-7;
+            vector<vector<float_type> > r(n_classes, vector<float_type>(n_classes));
+            float_type min_prob = 1e-7;
             int k = 0;
             for (int i = 0; i < n_classes; i++)
                 for (int j = i + 1; j < n_classes; j++) {
@@ -246,7 +246,7 @@ vector<real> SVC::predict_label(const SyncData<real> &dec_values, int n_instance
                     r[j][i] = 1 - r[i][j];
                     k++;
                 }
-            vector<real> p(n_classes);
+            vector<float_type> p(n_classes);
             multiclass_probability(r, p);
             int max_prob_class = 0;
             for (int j = 0; j < n_classes; ++j) {
@@ -259,8 +259,8 @@ vector<real> SVC::predict_label(const SyncData<real> &dec_values, int n_instance
     return predict_y;
 }
 
-void sigmoidTrain(const real *decValues, const int l, const vector<int> &labels, real &A,
-                  real &B) {
+void sigmoidTrain(const float_type *decValues, const int l, const vector<int> &labels, float_type &A,
+                  float_type &B) {
     double prior1 = 0, prior0 = 0;
     int i;
 
@@ -369,14 +369,14 @@ void sigmoidTrain(const real *decValues, const int l, const vector<int> &labels,
 }
 
 void SVC::probability_train(const DataSet &dataset) {
-    SyncData<real> dec_values(dataset.n_instances() * n_binary_models);
+    SyncData<float_type> dec_values(dataset.n_instances() * n_binary_models);
     predict_dec_values(dataset.instances(), dec_values, 10000);
     int k = 0;
     for (int i = 0; i < n_classes; ++i) {
         for (int j = i + 1; j < n_classes; ++j) {
             vector<int> ori_idx;
             vector<int> y;
-            vector<real> dec_values_subproblem;
+            vector<float_type> dec_values_subproblem;
             ori_idx = dataset.original_index(i);
             for (int l = 0; l < dataset.count()[i]; ++l) {
                 y.push_back(+1);

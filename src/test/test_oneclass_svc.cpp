@@ -3,7 +3,6 @@
 //
 #include <gtest/gtest.h>
 #include <thundersvm/model/oneclass_svc.h>
-#include <config.h>
 
 TEST(OneClassSVCTest, train) {
     DataSet dataset;
@@ -19,7 +18,7 @@ TEST(OneClassSVCTest, train) {
     model->save_to_file(DATASET_DIR "test_dataset.txt.model");
     SvmModel *new_model = new OneClassSVC();
     new_model->load_from_file(DATASET_DIR "test_dataset.txt.model");
-    vector<real> predict_y = new_model->predict(dataset.instances(), 100);
+    vector<float_type> predict_y = new_model->predict(dataset.instances(), 100);
     int n_pos = 0;
     for (int i = 0; i < predict_y.size(); ++i) {
         if (predict_y[i] > 0)

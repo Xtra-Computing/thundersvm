@@ -5,7 +5,9 @@
 #ifndef THUNDERSVM_CLION_CUDA_H
 #define THUNDERSVM_CLION_CUDA_H
 
+#include <config.h>
 #ifdef __JETBRAINS_IDE__
+#ifdef USE_CUDA
 #include "math.h"
 #define __CUDACC__ 1
 #define __host__
@@ -280,5 +282,6 @@ extern uint3 blockIdx;
 extern dim3 blockDim;
 extern uint3 threadIdx;
 extern int warpsize;
+#endif
 #endif
 #endif //THUNDERSVM_CLION_CUDA_H

@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 #include <thundersvm/dataset.h>
-#include <config.h>
 #include <thundersvm/model/svmmodel.h>
 #include <thundersvm/model/nusvr.h>
 
@@ -23,9 +22,9 @@ TEST(NuSVRTest, train) {
     model->save_to_file(DATASET_DIR "test_dataset.txt.model2");
     SvmModel *new_model = new NuSVR();
     new_model->load_from_file(DATASET_DIR "test_dataset.txt.model2");
-    vector<real> predict_y;
+    vector<float_type> predict_y;
     predict_y = new_model->predict(dataset.instances(), 100);
-    real mse = 0;
+    float_type mse = 0;
     for (int i = 0; i < predict_y.size(); ++i) {
         mse += (predict_y[i] - dataset.y()[i]) * (predict_y[i] - dataset.y()[i]);
     }

@@ -9,8 +9,8 @@
 void OneClassSVC::train(const DataSet &dataset, SvmParam param) {
     model_setup(dataset, param);
     int n_instances = dataset.n_instances();
-    SyncData<real> alpha(n_instances);
-    SyncData<real> f_val(n_instances);
+    SyncData<float_type> alpha(n_instances);
+    SyncData<float_type> f_val(n_instances);
 
     KernelMatrix kernelMatrix(dataset.instances(), param);
 
@@ -21,7 +21,7 @@ void OneClassSVC::train(const DataSet &dataset, SvmParam param) {
     }
     if (n < n_instances)
         alpha[n] = param.nu * n_instances - n;
-    int ws_size = min(min(max2power(n), max2power(n_instances - n)) * 2, 1024);
+    int ws_size = min(max2power(n_instances), 1024);
 
     //TODO batch, thrust
     f_val.mem_set(0);
@@ -34,7 +34,7 @@ void OneClassSVC::train(const DataSet &dataset, SvmParam param) {
 
     //todo these codes are similar to svr, try to combine them
     LOG(INFO) << "rho = " << rho[0];
-    vector<real> coef_vec;
+    vector<float_type> coef_vec;
     for (int i = 0; i < n_instances; ++i) {
         if (alpha[i] != 0) {
             sv.push_back(dataset.instances()[i]);
@@ -48,9 +48,9 @@ void OneClassSVC::train(const DataSet &dataset, SvmParam param) {
     coef.copy_from(coef_vec.data(), coef_vec.size());
 }
 
-vector<real> OneClassSVC::predict(const DataSet::node2d &instances, int batch_size) {
-    vector<real> dec_values = SvmModel::predict(instances, batch_size);
-    vector<real> predict_y;
+vector<float_type> OneClassSVC::predict(const DataSet::node2d &instances, int batch_size) {
+    vector<float_type> dec_values = SvmModel::predict(instances, batch_size);
+    vector<float_type> predict_y;
     for (int i = 0; i < dec_values.size(); ++i) {
         predict_y.push_back(dec_values[i] > 0 ? 1 : -1);
     }

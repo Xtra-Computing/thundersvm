@@ -7,7 +7,7 @@ string Accuracy::name() {
     return "Accuracy";
 }
 
-real Accuracy::score(const vector<real> &predict_y, const vector<real> &ground_truth_y) {
+float_type Accuracy::score(const vector<float_type> &predict_y, const vector<float_type> &ground_truth_y) {
     int n_correct = 0;
     for (int i = 0; i < predict_y.size(); ++i) {
         if (predict_y[i] == ground_truth_y[i])
@@ -21,8 +21,8 @@ string MSE::name() {
     return "Mean Squared Error";
 }
 
-real MSE::score(const vector<real> &predict_y, const vector<real> &ground_truth_y) {
-    real mse = 0;
+float_type MSE::score(const vector<float_type> &predict_y, const vector<float_type> &ground_truth_y) {
+    float_type mse = 0;
     for (int i = 0; i < predict_y.size(); ++i) {
         mse += (predict_y[i] - ground_truth_y[i]) * (predict_y[i] - ground_truth_y[i]);
     }

@@ -2,8 +2,7 @@
 // Created by jiashuai on 17-9-21.
 //
 #include <thundersvm/model/svc.h>
-#include "gtest/gtest.h"
-#include "config.h"
+#include <gtest/gtest.h>
 
 class SVCTest : public ::testing::Test {
 protected:
@@ -12,9 +11,9 @@ protected:
     DataSet train_dataset;
     DataSet test_dataset;
     SvmParam param;
-    vector<real> predict_y;
+    vector<float_type> predict_y;
 
-    float load_dataset_and_train(string train_filename, string test_filename, real C, real gamma) {
+    float load_dataset_and_train(string train_filename, string test_filename, float_type C, float_type gamma) {
         train_dataset.load_from_file(train_filename);
         test_dataset.load_from_file(test_filename);
         param.gamma = gamma;
@@ -45,16 +44,16 @@ TEST_F(SVCTest, test_set) {
                         "test_dataset.txt", DATASET_DIR
                         "test_dataset.txt", 100, 0.5), 0.98, 1e-5);
 }
-//
+
 //TEST_F(SVCTest, a9a) {
 //    EXPECT_NEAR(load_dataset_and_train(DATASET_DIR
 //                        "a9a", DATASET_DIR
 //                        "a9a.t", 100, 0.5), 0.826608, 1e-3);
 //}
-//
-//TEST_F(SVCTest, mnist) {
-//    load_dataset_and_train(DATASET_DIR "mnist.scale", DATASET_DIR "mnist.scale.t", 10, 0.125);
-//}
+
+TEST_F(SVCTest, mnist) {
+    load_dataset_and_train(DATASET_DIR "mnist.scale", DATASET_DIR "mnist.scale.t", 10, 0.125);
+}
 //
 //TEST_F(SVCTest, realsim) {
 //    EXPECT_NEAR(load_dataset_and_train(DATASET_DIR

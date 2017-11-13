@@ -6,7 +6,6 @@
 #include <thundersvm/model/svmmodel.h>
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
 #include <iomanip>
-#include <thundersvm/kernelmatrix_kernel_openmp.h>
 using std::ofstream;
 using std::endl;
 using std::setprecision;
@@ -26,16 +25,16 @@ void SvmModel::model_setup(const DataSet &dataset, SvmParam &param) {
     this->param = param;
 }
 
-vector<real> SvmModel::cross_validation(DataSet dataset, SvmParam param, int n_fold) {
+vector<float_type> SvmModel::cross_validation(DataSet dataset, SvmParam param, int n_fold) {
     dataset.group_classes(this->param.svm_type == SvmParam::C_SVC);//group classes only for classification
 
-    vector<real> y_test_all;
-    vector<real> y_predict_all;
+    vector<float_type> y_test_all;
+    vector<float_type> y_predict_all;
 
     for (int k = 0; k < n_fold; ++k) {
         LOG(INFO) << n_fold << " fold cross-validation(" << k + 1 << "/" << n_fold << ")";
         DataSet::node2d x_train, x_test;
-        vector<real> y_train, y_test;
+        vector<float_type> y_train, y_test;
         for (int i = 0; i < dataset.n_classes(); ++i) {
             int fold_test_count = dataset.count()[i] / n_fold;
             vector<int> class_idx = dataset.original_index(i);
@@ -54,17 +53,18 @@ vector<real> SvmModel::cross_validation(DataSet dataset, SvmParam param, int n_f
         }
         DataSet train_dataset(x_train, dataset.n_features(), y_train);
         this->train(train_dataset, param);
-        vector<real> y_predict = this->predict(x_test, 1000);
+        vector<float_type> y_predict = this->predict(x_test, 1000);
         y_test_all.insert(y_test_all.end(), y_test.begin(), y_test.end());
         y_predict_all.insert(y_predict_all.end(), y_predict.begin(), y_predict.end());
     }
-    vector<real> test_predict = y_test_all;
+    vector<float_type> test_predict = y_test_all;
     test_predict.insert(test_predict.end(), y_predict_all.begin(), y_predict_all.end());
     return test_predict;
 }
 
 
-void SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncData<real> &dec_values, int batch_size) const {
+void
+SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncData<float_type> &dec_values, int batch_size) const {
     SyncData<int> sv_start(n_classes);//start position of SVs in each class
     sv_start[0] = 0;
     for (int i = 1; i < n_classes; ++i) {
@@ -76,18 +76,23 @@ void SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncData<rea
 
     auto batch_start = instances.begin();
     auto batch_end = batch_start;
-    vector<real> predict_y;
+    vector<float_type> predict_y;
     while (batch_end != instances.end()) {
         while (batch_end != instances.end() && batch_end - batch_start < batch_size) {
             batch_end++;
         }
 
         DataSet::node2d batch_ins(batch_start, batch_end);//get a batch of instances
-        SyncData<real> kernel_values(batch_ins.size() * sv.size());
+        SyncData<float_type> kernel_values(batch_ins.size() * sv.size());
         k_mat.get_rows(batch_ins, kernel_values);
-        SyncData<real> batch_dec_values(batch_ins.size() * n_binary_models);
+        SyncData<float_type> batch_dec_values(batch_ins.size() * n_binary_models);
+#ifdef USE_CUDA
         batch_dec_values.set_device_data(
                 &dec_values.device_data()[(batch_start - instances.begin()) * n_binary_models]);
+#else
+        batch_dec_values.set_host_data(
+                &dec_values.host_data()[(batch_start - instances.begin()) * n_binary_models]);
+#endif
         //sum kernel values and get decision values
         sum_kernel_values(coef, sv.size(), sv_start, n_sv, rho, kernel_values, batch_dec_values, n_classes,
                           batch_ins.size());
@@ -95,10 +100,10 @@ void SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncData<rea
     }
 }
 
-vector<real> SvmModel::predict(const DataSet::node2d &instances, int batch_size) {
-    SyncData<real> dec_values(instances.size() * n_binary_models);
+vector<float_type> SvmModel::predict(const DataSet::node2d &instances, int batch_size) {
+    SyncData<float_type> dec_values(instances.size() * n_binary_models);
     predict_dec_values(instances, dec_values, batch_size);
-    vector<real> dec_values_vec(dec_values.size());
+    vector<float_type> dec_values_vec(dec_values.size());
     memcpy(dec_values_vec.data(), dec_values.host_data(), dec_values.mem_size());
     return dec_values_vec;
 }
@@ -126,7 +131,6 @@ void SvmModel::save_to_file(string path) {
         fs_model << rho[i] << " ";
     }
     fs_model << endl;
-    std::cout<<"before label"<<std::endl;
     if (param.svm_type == SvmParam::NU_SVC || param.svm_type == SvmParam::C_SVC) {
         fs_model << "label ";
         for (int i = 0; i < n_classes; ++i) {
@@ -140,7 +144,6 @@ void SvmModel::save_to_file(string path) {
         fs_model<< endl;
     }
     //todo save probA and probB
-    std::cout<<"before sv"<<std::endl;
     fs_model << "SV " << endl;
     for (int i = 0; i < sv.size(); i++) {
         for (int j = 0; j < n_classes - 1; ++j) {

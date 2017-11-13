@@ -56,7 +56,6 @@ void CMDParser::parse_command_line(int argc, char **argv) {
     bin_name = bin_name.substr(bin_name.find_last_of("/") + 1);
     if (bin_name == "thundersvm-train") {
         // parse options
-        param_cmd.task_type = SvmParam::SVM_TRAIN;
         for (i = 1; i < argc; i++) {
             if (argv[i][0] != '-') break;
             if (++i >= argc)
@@ -117,7 +116,7 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                 case 'w':
                     ++param_cmd.nr_weight;
                     param_cmd.weight_label = (int *) realloc(param_cmd.weight_label, sizeof(int) * param_cmd.nr_weight);
-                    param_cmd.weight = (real *) realloc(param_cmd.weight, sizeof(double) * param_cmd.nr_weight);
+                    param_cmd.weight = (float_type *) realloc(param_cmd.weight, sizeof(double) * param_cmd.nr_weight);
                     param_cmd.weight_label[param_cmd.nr_weight - 1] = atoi(&argv[i - 1][2]);
                     param_cmd.weight[param_cmd.nr_weight - 1] = atof(argv[i]);
                     break;
@@ -147,7 +146,6 @@ void CMDParser::parse_command_line(int argc, char **argv) {
         }
     } else if (bin_name == "thundersvm-predict") {
         FILE *input, *output;
-        param_cmd.task_type = SvmParam::SVM_PREDICT;
         for (i = 1; i < argc; i++) {
             if (argv[i][0] != '-') break;
             i++;

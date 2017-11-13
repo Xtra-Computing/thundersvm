@@ -24,10 +24,6 @@ const int BLOCK_SIZE = 512;
 
 const int NUM_BLOCKS = 32 * 56;
 
-#define KERNEL_LOOP(i, n) \
-  for (int i = blockIdx.x * blockDim.x + threadIdx.x; \
-       i < (n); \
-       i += blockDim.x * gridDim.x)
 
 #ifdef USE_CUDA
 
@@ -42,9 +38,17 @@ const int NUM_BLOCKS = 32 * 56;
 #define SAFE_KERNEL_LAUNCH(kernel_name, ...)\
     kernel_name<<<NUM_BLOCKS,BLOCK_SIZE>>>(__VA_ARGS__);\
     CUDA_CHECK(cudaPeekAtLastError())
+#define KERNEL_LOOP(i, n) \
+  for (int i = blockIdx.x * blockDim.x + threadIdx.x; \
+       i < (n); \
+       i += blockDim.x * gridDim.x)
 #else
 #define __host__
 #define __device__
+#define KERNEL_LOOP(i, n) \
+  for (int i = 0; \
+       i < (n); \
+       i++)
 #endif
 
 #define NO_GPU \

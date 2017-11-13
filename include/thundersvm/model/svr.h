@@ -16,7 +16,7 @@ public:
     void train(const DataSet &dataset, SvmParam param) override;
 
 protected:
-    void save_svr_coef(const SyncData<real> &alpha_2, const DataSet::node2d &instances);
+    void save_svr_coef(const SyncData<float_type> &alpha_2, const DataSet::node2d &instances);
 };
 
 #endif //THUNDERSVM_SVR_H

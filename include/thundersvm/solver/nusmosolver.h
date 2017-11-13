@@ -11,19 +11,22 @@ class NuSMOSolver : public CSMOSolver {
 public:
     explicit NuSMOSolver(bool for_svr) : for_svr(for_svr) {};
 protected:
-    real
-    calculate_rho(const SyncData<real> &f_val, const SyncData<int> &y, SyncData<real> &alpha, real Cp,
-                  real Cn) const override;
+    float_type
+    calculate_rho(const SyncData<float_type> &f_val, const SyncData<int> &y, SyncData<float_type> &alpha, float_type Cp,
+                  float_type Cn) const override;
 
-    void smo_kernel(const SyncData<int> &y, SyncData<real> &f_val, SyncData<real> &alpha, SyncData<real> &alpha_diff,
-                    const SyncData<int> &working_set, real Cp, real Cn, const SyncData<real> &k_mat_rows,
-                    const SyncData<real> &k_mat_diag, int row_len, real eps, SyncData<real> &diff,
+    void smo_kernel(const SyncData<int> &y, SyncData<float_type> &f_val, SyncData<float_type> &alpha,
+                    SyncData<float_type> &alpha_diff,
+                    const SyncData<int> &working_set, float_type Cp, float_type Cn,
+                    const SyncData<float_type> &k_mat_rows,
+                    const SyncData<float_type> &k_mat_diag, int row_len, float_type eps, SyncData<float_type> &diff,
                     int max_iter) const override;
 
     void select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
-                            const SyncData<real> &alpha, real Cp, real Cn, SyncData<int> &working_set) const override;
+                            const SyncData<float_type> &alpha, float_type Cp, float_type Cn,
+                            SyncData<int> &working_set) const override;
 
-    void scale_alpha_rho(SyncData<real> &alpha, real &rho, real r) const;
+    void scale_alpha_rho(SyncData<float_type> &alpha, float_type &rho, float_type r) const;
 
 private:
     bool for_svr;

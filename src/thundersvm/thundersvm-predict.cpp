@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
     DataSet predict_dataset;
     predict_dataset.load_from_file(parser.svmpredict_input_file);
 
-    vector<real> predict_y;
+    vector<float_type> predict_y;
     predict_y = model->predict(predict_dataset.instances(), 10000);
     for (int i = 0; i < predict_y.size(); ++i) {
         file << predict_y[i] << std::endl;

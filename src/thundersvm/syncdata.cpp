@@ -89,4 +89,4 @@ template
 class SyncData<int>;
 
 template
-class SyncData<real>;
+class SyncData<float_type>;

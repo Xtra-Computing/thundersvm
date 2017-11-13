@@ -25,10 +25,12 @@ namespace svm_kernel {
 
 
     __global__ void
-    c_smo_solve_kernel(const int *label, real *f_val, real *alpha, real *alpha_diff, const int *working_set,
+    c_smo_solve_kernel(const int *label, float_type *f_val, float_type *alpha, float_type *alpha_diff,
+                       const int *working_set,
                        int ws_size,
-                       float Cp, float Cn, const float *k_mat_rows, const float *k_mat_diag, int row_len, real eps,
-                       real *diff, int max_iter) {
+                       float Cp, float Cn, const float *k_mat_rows, const float *k_mat_diag, int row_len,
+                       float_type eps,
+                       float_type *diff, int max_iter) {
         //"row_len" equals to the number of instances in the original training dataset.
         //allocate shared memory
         extern __shared__ int shared_mem[];
@@ -114,9 +116,11 @@ namespace svm_kernel {
 
 
     __global__ void
-    nu_smo_solve_kernel(const int *label, real *f_values, real *alpha, real *alpha_diff, const int *working_set,
-                        int ws_size, float C, const float *k_mat_rows, const float *k_mat_diag, int row_len, real eps,
-                        real *diff, int max_iter) {
+    nu_smo_solve_kernel(const int *label, float_type *f_values, float_type *alpha, float_type *alpha_diff,
+                        const int *working_set,
+                        int ws_size, float C, const float *k_mat_rows, const float *k_mat_diag, int row_len,
+                        float_type eps,
+                        float_type *diff, int max_iter) {
         //"row_len" equals to the number of instances in the original training dataset.
         //allocate shared memory
         extern __shared__ int shared_mem[];
@@ -248,22 +252,26 @@ namespace svm_kernel {
     }
 
     void
-    c_smo_solve(const SyncData<int> &y, SyncData<real> &f_val, SyncData<real> &alpha, SyncData<real> &alpha_diff,
-                const SyncData<int> &working_set, real Cp, real Cn, const SyncData<real> &k_mat_rows,
-                const SyncData<real> &k_mat_diag, int row_len, real eps, SyncData<real> &diff, int max_iter) {
+    c_smo_solve(const SyncData<int> &y, SyncData<float_type> &f_val, SyncData<float_type> &alpha,
+                SyncData<float_type> &alpha_diff,
+                const SyncData<int> &working_set, float_type Cp, float_type Cn, const SyncData<float_type> &k_mat_rows,
+                const SyncData<float_type> &k_mat_diag, int row_len, float_type eps, SyncData<float_type> &diff,
+                int max_iter) {
         size_t ws_size = working_set.size();
-        size_t smem_size = ws_size * sizeof(real) * 3 + 2 * sizeof(float);
+        size_t smem_size = ws_size * sizeof(float_type) * 3 + 2 * sizeof(float);
         c_smo_solve_kernel << < 1, ws_size, smem_size >> >
                                             (y.device_data(), f_val.device_data(), alpha.device_data(), alpha_diff.device_data(),
                                                     working_set.device_data(), ws_size, Cp, Cn, k_mat_rows.device_data(), k_mat_diag.device_data(),
                                                     row_len, eps, diff.device_data(), max_iter);
     }
 
-    void nu_smo_solve(const SyncData<int> &y, SyncData<real> &f_val, SyncData<real> &alpha, SyncData<real> &alpha_diff,
-                      const SyncData<int> &working_set, real C, const SyncData<real> &k_mat_rows,
-                      const SyncData<real> &k_mat_diag, int row_len, real eps, SyncData<real> &diff, int max_iter) {
+    void nu_smo_solve(const SyncData<int> &y, SyncData<float_type> &f_val, SyncData<float_type> &alpha,
+                      SyncData<float_type> &alpha_diff,
+                      const SyncData<int> &working_set, float_type C, const SyncData<float_type> &k_mat_rows,
+                      const SyncData<float_type> &k_mat_diag, int row_len, float_type eps, SyncData<float_type> &diff,
+                      int max_iter) {
         size_t ws_size = working_set.size();
-        size_t smem_size = ws_size * sizeof(real) * 3 + 2 * sizeof(float);
+        size_t smem_size = ws_size * sizeof(float_type) * 3 + 2 * sizeof(float);
         nu_smo_solve_kernel << < 1, ws_size, smem_size >> >
                                              (y.device_data(), f_val.device_data(), alpha.device_data(), alpha_diff.device_data(),
                                                      working_set.device_data(), ws_size, C, k_mat_rows.device_data(), k_mat_diag.device_data(),
@@ -271,12 +279,13 @@ namespace svm_kernel {
     }
 
     __global__ void
-    update_f_kernel(real *f, int ws_size, const real *alpha_diff, const real *k_mat_rows, int n_instances) {
+    update_f_kernel(float_type *f, int ws_size, const float_type *alpha_diff, const float_type *k_mat_rows,
+                    int n_instances) {
         //"n_instances" equals to the number of rows of the whole kernel matrix for both SVC and SVR.
         KERNEL_LOOP(idx, n_instances) {//one thread to update multiple fvalues.
-            real sum_diff = 0;
+            float_type sum_diff = 0;
             for (int i = 0; i < ws_size; ++i) {
-                real d = alpha_diff[i];
+                float_type d = alpha_diff[i];
                 if (d != 0) {
                     sum_diff += d * k_mat_rows[i * n_instances + idx];
                 }
@@ -286,13 +295,14 @@ namespace svm_kernel {
     }
 
     void
-    update_f(SyncData<real> &f, const SyncData<real> &alpha_diff, const SyncData<real> &k_mat_rows, int n_instances) {
+    update_f(SyncData<float_type> &f, const SyncData<float_type> &alpha_diff, const SyncData<float_type> &k_mat_rows,
+             int n_instances) {
         SAFE_KERNEL_LAUNCH(update_f_kernel, f.device_data(), alpha_diff.size(), alpha_diff.device_data(),
                            k_mat_rows.device_data(), n_instances);
     }
 
-    void sort_f(SyncData<real> &f_val2sort, SyncData<int> &f_idx2sort) {
+    void sort_f(SyncData<float_type> &f_val2sort, SyncData<int> &f_idx2sort) {
         thrust::sort_by_key(thrust::cuda::par, f_val2sort.device_data(), f_val2sort.device_data() + f_val2sort.size(),
-                            f_idx2sort.device_data(), thrust::less<real>());
+                            f_idx2sort.device_data(), thrust::less<float_type>());
     }
 }

@@ -13,10 +13,12 @@
 class KernelMatrix{
 public:
     explicit KernelMatrix(const DataSet::node2d &instances, SvmParam param);
-    void get_rows(const SyncData<int> &idx, SyncData<real> &kernel_rows) const;
-    void get_rows(const DataSet::node2d &instances, SyncData<real> &kernel_rows) const;
 
-    const SyncData<real> &diag() const;
+    void get_rows(const SyncData<int> &idx, SyncData<float_type> &kernel_rows) const;
+
+    void get_rows(const DataSet::node2d &instances, SyncData<float_type> &kernel_rows) const;
+
+    const SyncData<float_type> &diag() const;
 
     size_t n_instances() const { return n_instances_; };//number of instances
     size_t n_features() const { return n_features_; };//number of features
@@ -26,20 +28,20 @@ private:
 
     KernelMatrix(const KernelMatrix &);
 
-    SyncData<real> val_;
+    SyncData<float_type> val_;
     SyncData<int> col_ind_;
     SyncData<int> row_ptr_;
-    SyncData<real> diag_;
-    SyncData<real> self_dot_;
+    SyncData<float_type> diag_;
+    SyncData<float_type> self_dot_;
     size_t nnz_;
     size_t n_instances_;
     size_t n_features_;
     SvmParam param;
 
-    void dns_csr_mul(const SyncData<real> &dense_mat, int n_rows, SyncData<real> &result) const;
+    void dns_csr_mul(const SyncData<float_type> &dense_mat, int n_rows, SyncData<float_type> &result) const;
 
-    void get_dot_product(const SyncData<int> &idx, SyncData<real> &dot_product) const;
+    void get_dot_product(const SyncData<int> &idx, SyncData<float_type> &dot_product) const;
 
-    void get_dot_product(const DataSet::node2d &instances, SyncData<real> &dot_product) const;
+    void get_dot_product(const DataSet::node2d &instances, SyncData<float_type> &dot_product) const;
 };
 #endif //THUNDERSVM_KERNELMATRIX_H

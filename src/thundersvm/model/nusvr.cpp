@@ -14,11 +14,11 @@ void NuSVR::train(const DataSet &dataset, SvmParam param) {
 
     KernelMatrix kernelMatrix(instances_2, param);
 
-    SyncData<real> f_val(n_instances * 2);
+    SyncData<float_type> f_val(n_instances * 2);
     SyncData<int> y(n_instances * 2);
 
-    SyncData<real> alpha_2(n_instances * 2);
-    real sum = param.C * param.nu * n_instances / 2;
+    SyncData<float_type> alpha_2(n_instances * 2);
+    float_type sum = param.C * param.nu * n_instances / 2;
     for (int i = 0; i < n_instances; ++i) {
         alpha_2[i] = alpha_2[i + n_instances] = min(sum, param.C);
         sum -= alpha_2[i];

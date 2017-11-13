@@ -11,7 +11,7 @@ class OneClassSVC : public SvmModel {
 public:
     void train(const DataSet &dataset, SvmParam param) override;
 
-    vector<real> predict(const DataSet::node2d &instances, int batch_size) override;
+    vector<float_type> predict(const DataSet::node2d &instances, int batch_size) override;
 
 };
 

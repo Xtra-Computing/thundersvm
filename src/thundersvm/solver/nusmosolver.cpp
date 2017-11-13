@@ -6,13 +6,14 @@
 
 using namespace svm_kernel;
 
-real
-NuSMOSolver::calculate_rho(const SyncData<real> &f_val, const SyncData<int> &y, SyncData<real> &alpha, real Cp,
-                           real Cn) const {
+float_type
+NuSMOSolver::calculate_rho(const SyncData<float_type> &f_val, const SyncData<int> &y, SyncData<float_type> &alpha,
+                           float_type Cp,
+                           float_type Cn) const {
     int n_free_p = 0, n_free_n = 0;
-    real sum_free_p = 0, sum_free_n = 0;
-    real up_value_p = INFINITY, up_value_n = INFINITY;
-    real low_value_p = -INFINITY, low_value_n = -INFINITY;
+    float_type sum_free_p = 0, sum_free_n = 0;
+    float_type up_value_p = INFINITY, up_value_n = INFINITY;
+    float_type low_value_p = -INFINITY, low_value_n = -INFINITY;
     for (int i = 0; i < alpha.size(); ++i) {
         if (y[i] > 0) {
             if (alpha[i] > 0 && alpha[i] < Cp) {
@@ -30,19 +31,20 @@ NuSMOSolver::calculate_rho(const SyncData<real> &f_val, const SyncData<int> &y, 
             if (is_I_low(alpha[i], y[i], Cp, Cn)) low_value_n = max(low_value_n, -f_val[i]);
         }
     }
-    real r1 = n_free_p != 0 ? sum_free_p / n_free_p : (-(up_value_p + low_value_p) / 2);
-    real r2 = n_free_n != 0 ? sum_free_n / n_free_n : (-(up_value_n + low_value_n) / 2);
-    real rho = (r1 - r2) / 2;
+    float_type r1 = n_free_p != 0 ? sum_free_p / n_free_p : (-(up_value_p + low_value_p) / 2);
+    float_type r2 = n_free_n != 0 ? sum_free_n / n_free_n : (-(up_value_n + low_value_n) / 2);
+    float_type rho = (r1 - r2) / 2;
     //not scale for svr, scale for nu-svc
     if (!for_svr) {
-        real r = (r1 + r2) / 2;
+        float_type r = (r1 + r2) / 2;
         scale_alpha_rho(alpha, rho, r);
     }
     return rho;
 }
 
 void NuSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
-                                     const SyncData<real> &alpha, real Cp, real Cn, SyncData<int> &working_set) const {
+                                     const SyncData<float_type> &alpha, float_type Cp, float_type Cn,
+                                     SyncData<int> &working_set) const {
     int n_instances = ws_indicator.size();
     int p_left_p = 0;
     int p_left_n = 0;
@@ -107,17 +109,19 @@ void NuSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncData<i
     }
 }
 
-void NuSMOSolver::scale_alpha_rho(SyncData<real> &alpha, real &rho, real r) const {
+void NuSMOSolver::scale_alpha_rho(SyncData<float_type> &alpha, float_type &rho, float_type r) const {
     for (int i = 0; i < alpha.size(); ++i) {
         alpha[i] /= r;//TODO parallel
     }
     rho /= r;
 }
 
-void NuSMOSolver::smo_kernel(const SyncData<int> &y, SyncData<real> &f_val, SyncData<real> &alpha,
-                             SyncData<real> &alpha_diff, const SyncData<int> &working_set, real Cp, real Cn,
-                             const SyncData<real> &k_mat_rows, const SyncData<real> &k_mat_diag, int row_len, real eps,
-                             SyncData<real> &diff, int max_iter) const {
+void NuSMOSolver::smo_kernel(const SyncData<int> &y, SyncData<float_type> &f_val, SyncData<float_type> &alpha,
+                             SyncData<float_type> &alpha_diff, const SyncData<int> &working_set, float_type Cp,
+                             float_type Cn,
+                             const SyncData<float_type> &k_mat_rows, const SyncData<float_type> &k_mat_diag,
+                             int row_len, float_type eps,
+                             SyncData<float_type> &diff, int max_iter) const {
     //Cn is not used but for compatibility with c-svc
     nu_smo_solve(y, f_val, alpha, alpha_diff, working_set, Cp, k_mat_rows, k_mat_diag, row_len, eps, diff, max_iter);
 }

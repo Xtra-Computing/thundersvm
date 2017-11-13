@@ -10,15 +10,15 @@
 class DataSet {
 public:
     struct node{
-        node(int index, real value):index(index), value(value){}
+        node(int index, float_type value) : index(index), value(value) {}
         int index;
-        real value;
+        float_type value;
     };
     typedef vector<vector<DataSet::node>> node2d;
 
     DataSet();
 
-    DataSet(const DataSet::node2d &instances, int n_features, const vector<real> &y);
+    DataSet(const DataSet::node2d &instances, int n_features, const vector<float_type> &y);
     void load_from_file(string file_name);
 
     void group_classes(bool classification = true);
@@ -32,7 +32,7 @@ public:
 
     const vector<int> &label() const;
 
-    const vector<real> &y() const;
+    const vector<float_type> &y() const;
     const node2d & instances() const;
     const node2d instances(int y_i) const;
     const node2d instances(int y_i, int y_j) const;
@@ -41,7 +41,7 @@ public:
     const vector<int> original_index(int y_i, int y_j) const;
 
 private:
-    vector<real> y_;
+    vector<float_type> y_;
     node2d instances_;
     size_t total_count_;
     size_t n_features_;

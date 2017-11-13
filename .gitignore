@@ -1,9 +1,7 @@
-.idea
-.git
 .*
 !.gitignore
+!.gitmodules
 build
 dataset/*
 !dataset/*.sh
 !dataset/test_dataset.txt
-*tags

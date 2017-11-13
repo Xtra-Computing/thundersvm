@@ -4,7 +4,6 @@
 #include <thundersvm/svmparam.h>
 #include "thundersvm/kernelmatrix.h"
 #include "thundersvm/kernel/kernelmatrix_kernel.h"
-#include "thundersvm/kernelmatrix_kernel_openmp.h"
 
 using namespace svm_kernel;
 KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
@@ -13,13 +12,13 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
     this->param = param;
 
     //three arrays for csr representation
-    vector<real> csr_val;
+    vector<float_type> csr_val;
     vector<int> csr_col_ind;//index of each value of all the instances
     vector<int> csr_row_ptr(1, 0);//the start positions of the instances
 
-    vector<real> csr_self_dot;
+    vector<float_type> csr_self_dot;
     for (int i = 0; i < n_instances_; ++i) {//convert libsvm format to csr format
-        real self_dot = 0;
+        float_type self_dot = 0;
         for (int j = 0; j < instances[i].size(); ++j) {
             csr_val.push_back(instances[i][j].value);
             self_dot += instances[i][j].value * instances[i][j].value;
@@ -70,7 +69,7 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
 }
 
 void KernelMatrix::get_rows(const SyncData<int> &idx,
-                            SyncData<real> &kernel_rows) const {//compute multiple rows of kernel matrix according to idx
+                            SyncData<float_type> &kernel_rows) const {//compute multiple rows of kernel matrix according to idx
     CHECK_GE(kernel_rows.size(), idx.size() * n_instances_) << "kernel_rows memory is too small";
     get_dot_product(idx, kernel_rows);
     switch (param.kernel_type) {
@@ -90,15 +89,15 @@ void KernelMatrix::get_rows(const SyncData<int> &idx,
 }
 
 void KernelMatrix::get_rows(const DataSet::node2d &instances,
-                            SyncData<real> &kernel_rows) const {//compute the whole (sub-) kernel matrix of the given instances.
+                            SyncData<float_type> &kernel_rows) const {//compute the whole (sub-) kernel matrix of the given instances.
     CHECK_GE(kernel_rows.size(), instances.size() * n_instances_) << "kernel_rows memory is too small";
     get_dot_product(instances, kernel_rows);
 
     //compute self dot
     //TODO use thrust
-    SyncData<real> self_dot(instances.size());
+    SyncData<float_type> self_dot(instances.size());
     for (int i = 0; i < instances.size(); ++i) {
-        real sum = 0;
+        float_type sum = 0;
         for (int j = 0; j < instances[i].size(); ++j) {
             sum += instances[i][j].value * instances[i][j].value;
         }
@@ -120,28 +119,28 @@ void KernelMatrix::get_rows(const DataSet::node2d &instances,
     }
 }
 
-const SyncData<real> &KernelMatrix::diag() const {
+const SyncData<float_type> &KernelMatrix::diag() const {
     return this->diag_;
 }
 
 
-void KernelMatrix::dns_csr_mul(const SyncData<real> &dense_mat, int n_rows, SyncData<real> &result) const {
+void KernelMatrix::dns_csr_mul(const SyncData<float_type> &dense_mat, int n_rows, SyncData<float_type> &result) const {
     CHECK_EQ(dense_mat.size(), n_rows * n_features_) << "dense matrix features doesn't match";
     svm_kernel::dns_csr_mul(n_instances_, n_rows, n_features_, dense_mat, val_, row_ptr_, col_ind_, nnz_, result);
 }
 
-void KernelMatrix::get_dot_product(const SyncData<int> &idx, SyncData<real> &dot_product) const {
-    SyncData<real> data_rows(idx.size() * n_features_);
+void KernelMatrix::get_dot_product(const SyncData<int> &idx, SyncData<float_type> &dot_product) const {
+    SyncData<float_type> data_rows(idx.size() * n_features_);
     data_rows.mem_set(0);
     get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size());
     dns_csr_mul(data_rows, idx.size(), dot_product);
 }
 
-void KernelMatrix::get_dot_product(const DataSet::node2d &instances, SyncData<real> &dot_product) const {
-    SyncData<real> dense_ins(instances.size() * n_features_);
+void KernelMatrix::get_dot_product(const DataSet::node2d &instances, SyncData<float_type> &dot_product) const {
+    SyncData<float_type> dense_ins(instances.size() * n_features_);
     dense_ins.mem_set(0);
     for (int i = 0; i < instances.size(); ++i) {
-        real sum = 0;
+        float_type sum = 0;
         for (int j = 0; j < instances[i].size(); ++j) {
             CHECK_LE(instances[i][j].index, n_features_)
                 << "the number of features in testing set is larger than training set";

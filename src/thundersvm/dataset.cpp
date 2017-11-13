@@ -8,7 +8,7 @@ using std::stringstream;
 
 DataSet::DataSet() : total_count_(0), n_features_(0) {}
 
-DataSet::DataSet(const DataSet::node2d &instances, int n_features, const vector<real> &y) :
+DataSet::DataSet(const DataSet::node2d &instances, int n_features, const vector<float_type> &y) :
         instances_(instances), n_features_(n_features), y_(y), total_count_(instances_.size()) {}
 
 void DataSet::load_from_file(string file_name) {
@@ -22,9 +22,9 @@ void DataSet::load_from_file(string file_name) {
     string line;
 
     while (getline(file, line)) {
-        real y;
+        float_type y;
         int i;
-        real v;
+        float_type v;
         stringstream ss(line);
         ss >> y;
         this->y_.push_back(y);
@@ -151,7 +151,7 @@ DataSet::original_index(int y_i, int y_j) const {//index of each instance in the
     return two_class_idx;
 }
 
-const vector<real> &DataSet::y() const {
+const vector<float_type> &DataSet::y() const {
     return y_;
 }
 

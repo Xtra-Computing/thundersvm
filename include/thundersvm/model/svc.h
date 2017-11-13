@@ -16,22 +16,22 @@ public:
 
     void train(const DataSet &dataset, SvmParam param) override;
 
-    vector<real> predict(const DataSet::node2d &instances, int batch_size) override;
+    vector<float_type> predict(const DataSet::node2d &instances, int batch_size) override;
 
 protected:
-    virtual void train_binary(const DataSet &dataset, int i, int j, SyncData<real> &alpha, real &rho);
+    virtual void train_binary(const DataSet &dataset, int i, int j, SyncData<float_type> &alpha, float_type &rho);
 
     void model_setup(const DataSet &dataset, SvmParam &param) override;
 
 private:
 
-    vector<real> predict_label(const SyncData<real> &dec_values, int n_instances) const;
+    vector<float_type> predict_label(const SyncData<float_type> &dec_values, int n_instances) const;
 
     void probability_train(const DataSet &dataset);
 
-    void multiclass_probability(const vector<vector<real>> &r, vector<real> &p) const;
+    void multiclass_probability(const vector<vector<float_type>> &r, vector<float_type> &p) const;
 
-    vector<real> c_weight;
+    vector<float_type> c_weight;
 
 
 };

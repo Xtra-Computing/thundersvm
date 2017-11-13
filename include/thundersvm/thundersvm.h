@@ -13,5 +13,5 @@
 
 using std::string;
 using std::vector;
-typedef float real;
+typedef float float_type;
 #endif //THUNDERSVM_THUNDERSVM_H
