@@ -4,6 +4,7 @@
 #include <thundersvm/svmparam.h>
 #include "thundersvm/kernelmatrix.h"
 #include "thundersvm/kernel/kernelmatrix_kernel.h"
+#include "thundersvm/kernelmatrix_kernel_openmp.h"
 
 using namespace svm_kernel;
 KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {

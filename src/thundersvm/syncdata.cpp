@@ -54,6 +54,7 @@ void SyncData<T>::copy_from(const T *source, size_t count) {
 #endif
 }
 
+
 template<typename T>
 void SyncData<T>::log(el::base::type::ostream_t &ostream) const {
     int i;

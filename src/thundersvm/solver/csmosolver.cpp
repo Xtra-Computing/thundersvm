@@ -3,6 +3,9 @@
 //
 #include <thundersvm/solver/csmosolver.h>
 #include <thundersvm/kernel/smo_kernel.h>
+#include <limits.h>
+//#include <iostream>
+//using namespace std;
 
 using namespace svm_kernel;
 void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<real> &alpha, real &rho,
@@ -51,7 +54,10 @@ void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncDa
         if (0 == iter) {
             select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set);
             k_mat.get_rows(working_set, k_mat_rows);
-        } else {
+	    //cout<<"iter = 1"<<endl;
+       	    //cout<<"kmat[0]"<<k_mat_rows[0]<<endl;
+	    } else {
+	    //cout<<"iter != 1"<<endl;
             working_set_first_half.copy_from(working_set_last_half);
             for (int i = 0; i < q; ++i) {
                 ws_indicator[working_set[i]] = 1;
@@ -59,7 +65,8 @@ void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncDa
             select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set_last_half);
             k_mat_rows_first_half.copy_from(k_mat_rows_last_half);
             k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
-        }
+            //cout<<"kmatlast[0]"<<k_mat_rows_last_half[0]<<endl;
+	    }
         //local smo
         smo_kernel(y, f_val, alpha, alpha_diff, working_set, Cp, Cn, k_mat_rows, k_mat.diag(), n_instances, eps, diff,
                    max_iter);

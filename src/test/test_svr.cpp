@@ -17,11 +17,14 @@ TEST(SVRTest, train) {
     param.epsilon = 0.001;
     param.nu = 0.5;
     param.kernel_type = SvmParam::RBF;
+    param.svm_type = SvmParam::EPSILON_SVR;
     SvmModel *model = new SVR();
     model->train(dataset, param);
-
+    model->save_to_file(DATASET_DIR "test_dataset.txt.model");
+    SvmModel *new_model = new SVR();
+    new_model->load_from_file(DATASET_DIR "test_dataset.txt.model");
     vector<real> predict_y;
-    predict_y = model->predict(dataset.instances(), 100);
+    predict_y = new_model->predict(dataset.instances(), 100);
     real mse = 0;
     for (int i = 0; i < predict_y.size(); ++i) {
         mse += (predict_y[i] - dataset.y()[i]) * (predict_y[i] - dataset.y()[i]);

@@ -6,7 +6,7 @@
 #include <thundersvm/model/svmmodel.h>
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
 #include <iomanip>
-
+#include <thundersvm/kernelmatrix_kernel_openmp.h>
 using std::ofstream;
 using std::endl;
 using std::setprecision;
@@ -91,7 +91,7 @@ void SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncData<rea
         //sum kernel values and get decision values
         sum_kernel_values(coef, sv.size(), sv_start, n_sv, rho, kernel_values, batch_dec_values, n_classes,
                           batch_ins.size());
-        batch_start += batch_size;
+	batch_start += batch_size;
     }
 }
 
@@ -126,6 +126,7 @@ void SvmModel::save_to_file(string path) {
         fs_model << rho[i] << " ";
     }
     fs_model << endl;
+    std::cout<<"before label"<<std::endl;
     if (param.svm_type == SvmParam::NU_SVC || param.svm_type == SvmParam::C_SVC) {
         fs_model << "label ";
         for (int i = 0; i < n_classes; ++i) {
@@ -139,6 +140,7 @@ void SvmModel::save_to_file(string path) {
         fs_model<< endl;
     }
     //todo save probA and probB
+    std::cout<<"before sv"<<std::endl;
     fs_model << "SV " << endl;
     for (int i = 0; i < sv.size(); i++) {
         for (int j = 0; j < n_classes - 1; ++j) {
