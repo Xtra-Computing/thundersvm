@@ -4,7 +4,7 @@
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
-
+#include <iostream>
 namespace svm_kernel {
     void
     get_working_set_ins(const SyncData<float_type> &val, const SyncData<int> &col_ind, const SyncData<int> &row_ptr,
@@ -94,7 +94,7 @@ namespace svm_kernel {
     void dns_csr_mul(int m, int n, int k, const SyncData<float_type> &dense_mat, const SyncData<float_type> &csr_val,
                      const SyncData<int> &csr_row_ptr, const SyncData<int> &csr_col_ind, int nnz,
                      SyncData<float_type> &result) {
-        /*
+        /* 
         for(int row = 0; row < m; row ++){
             int nz_value_num = csr_row_ptr[row + 1] - csr_row_ptr[row];
             if(nz_value_num != 0){
@@ -108,13 +108,17 @@ namespace svm_kernel {
             }
         }
         */
-        Eigen::Map<const Eigen::MatrixXf> denseMat(dense_mat.host_data(), n, k);
+	Eigen::Map<const Eigen::MatrixXf> denseMat(dense_mat.host_data(), n, k);
         Eigen::Map<const Eigen::SparseMatrix<float, Eigen::RowMajor>> sparseMat(m, k, nnz, csr_row_ptr.host_data(),
                                                                                 csr_col_ind.host_data(),
                                                                                 csr_val.host_data());
-        Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> retMat = denseMat * sparseMat.transpose();
-        Eigen::Map < Eigen::Matrix < float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor > > (result.host_data(),
-                retMat.rows(),
-                retMat.cols()) = retMat;
+        Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> dense_tran = denseMat.transpose();
+	//std::cout<<"before mul"<<std::endl;
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> retMat = sparseMat * dense_tran;
+	//std::cout<<"after mul"<<std::endl;
+	Eigen::Map < Eigen::Matrix < float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor > > (result.host_data(),
+                retMat.cols(),
+                retMat.rows()) = retMat.transpose();
+    	
     }
 }
