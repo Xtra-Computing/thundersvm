@@ -163,7 +163,7 @@ void CMDParser::parse_command_line(int argc, char **argv) {
         }
         if (i >= argc - 2)
             HelpInfo_svmpredict();
-
+        /*
         input = fopen(argv[i], "r");
         if (input == NULL) {
             fprintf(stderr, "can't open input file %s\n", argv[i]);
@@ -175,6 +175,7 @@ void CMDParser::parse_command_line(int argc, char **argv) {
             fprintf(stderr, "can't open output file %s\n", argv[i + 2]);
             exit(1);
         }
+        */
         strcpy(svmpredict_input_file, argv[i]);
         strcpy(svmpredict_output_file, argv[i + 2]);
         strcpy(svmpredict_model_file_name, argv[i + 1]);
