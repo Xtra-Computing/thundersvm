@@ -144,7 +144,18 @@ void SvmModel::save_to_file(string path) {
         }
         fs_model<< endl;
     }
-    //todo save probA and probB
+    if (param.probability) {
+        fs_model << "probA ";
+        for (int i = 0; i < n_binary_models; ++i) {
+            fs_model << probA[i] << " ";
+        }
+        fs_model << endl;
+        fs_model << "probB ";
+        for (int i = 0; i < n_binary_models; ++i) {
+            fs_model << probB[i] << " ";
+        }
+        fs_model << endl;
+    }
     fs_model << "SV " << endl;
     for (int i = 0; i < sv.size(); i++) {
         for (int j = 0; j < n_classes - 1; ++j) {
@@ -210,6 +221,15 @@ void SvmModel::load_from_file(string path) {
         } else if (feature == "nr_sv") {
             for (int i = 0; i < n_classes; ++i) {
                 ifs >> n_sv[i];
+            }
+        } else if (feature == "probA") {
+            param.probability = true;
+            for (int i = 0; i < n_binary_models; ++i) {
+                ifs >> probA[i];
+            }
+        } else if (feature == "probB") {
+            for (int i = 0; i < n_binary_models; ++i) {
+                ifs >> probB[i];
             }
         } else if (feature == "SV") {
             sv.clear();
