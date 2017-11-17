@@ -8,6 +8,7 @@
 #include <thundersvm/model/nusvr.h>
 #include <thundersvm/util/metric.h>
 #include "thundersvm/cmdparser.h"
+#include <iostream>
 
 INITIALIZE_EASYLOGGINGPP
 extern "C" {
@@ -76,10 +77,10 @@ extern "C" {
         } else {
             model->train(train_dataset, parser.param_cmd);
             model->save_to_file(model_file_path);
-        	predict_y = model->predict(train_dataset.instances(), 10000);
-    		test_y = train_dataset.y();
+        	//predict_y = model->predict(train_dataset.instances(), 10000);
+    		//test_y = train_dataset.y();
         }
-
+	/*
         //perform svm testing
         Metric *metric = nullptr;
         switch (parser.param_cmd.svm_type) {
@@ -99,6 +100,7 @@ extern "C" {
         if (metric) {
             LOG(INFO) << metric->name() << " = " << metric->score(predict_y, test_y); 
         }
+	*/
         return;
     }
 
@@ -140,15 +142,14 @@ extern "C" {
         CUDA_CHECK(cudaSetDevice(parser.gpu_id));
     #endif
 
-        model->load_from_file(predict_file_path);
+        model->load_from_file(model_file_path);
         file.close();
         file.open(output_file_path);
         DataSet predict_dataset;
         predict_dataset.load_from_file(predict_file_path);
-
         vector<float_type> predict_y;
         predict_y = model->predict(predict_dataset.instances(), 10000);
-        for (int i = 0; i < predict_y.size(); ++i) {
+	for (int i = 0; i < predict_y.size(); ++i) {
             file << predict_y[i] << std::endl;
         }
         file.close();
