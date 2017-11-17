@@ -75,3 +75,7 @@ Instructions available in [How To](how-to.md) page.
 ./thundersvm -s 3 -t 2 -g 3.8 -c 1000 abalone_scale svm.model
 ```
 The meaning of each option can be found in the [parameters](parameters.md) page. 
+
+### Python Interface
+ThunderSVM provides python interface. Go to the python subdirectory and type python. Put your dataset file in dataset subdirectory. Here is an example to call ThunderSVM functions.
+
