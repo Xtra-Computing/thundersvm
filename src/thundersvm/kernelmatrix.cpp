@@ -142,10 +142,12 @@ void KernelMatrix::get_dot_product(const DataSet::node2d &instances, SyncData<fl
     for (int i = 0; i < instances.size(); ++i) {
         float_type sum = 0;
         for (int j = 0; j < instances[i].size(); ++j) {
-            CHECK_LE(instances[i][j].index, n_features_)
-                << "the number of features in testing set is larger than training set";
-            dense_ins[(instances[i][j].index - 1) * instances.size() + i] = instances[i][j].value;
-            sum += instances[i][j].value * instances[i][j].value;
+            if (instances[i][j].index < n_features_) {
+                dense_ins[(instances[i][j].index - 1) * instances.size() + i] = instances[i][j].value;
+                sum += instances[i][j].value * instances[i][j].value;
+            } else {
+//                LOG(WARNING)<<"the number of features in testing set is larger than training set";
+            }
         }
     }
     dns_csr_mul(dense_ins, instances.size(), dot_product);

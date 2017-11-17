@@ -58,17 +58,13 @@ int main(int argc, char **argv) {
     CUDA_CHECK(cudaSetDevice(parser.gpu_id));
 #endif
 
-    vector<float_type> predict_y, test_y;
+    vector<float_type> predict_y;
     if (parser.do_cross_validation) {
-        vector<float_type> test_predict = model->cross_validation(train_dataset, parser.param_cmd, parser.nr_fold);
-	   uint dataset_size = test_predict.size() / 2;
-	   test_y.insert(test_y.end(), test_predict.begin(), test_predict.begin() + dataset_size);
-	   predict_y.insert(predict_y.end(), test_predict.begin() + dataset_size, test_predict.end());
+        predict_y = model->cross_validation(train_dataset, parser.param_cmd, parser.nr_fold);
     } else {
         model->train(train_dataset, parser.param_cmd);
         model->save_to_file(parser.model_file_name);
     	predict_y = model->predict(train_dataset.instances(), 10000);
-		test_y = train_dataset.y();
     }
 
     //perform svm testing
@@ -88,8 +84,9 @@ int main(int argc, char **argv) {
         }
     }
     if (metric) {
-        LOG(INFO) << metric->name() << " = " << metric->score(predict_y, test_y); 
+        LOG(INFO) << metric->name() << " = " << metric->score(predict_y, train_dataset.y());
     }
-    return 0;
+    delete model;
+    delete metric;
 }
 

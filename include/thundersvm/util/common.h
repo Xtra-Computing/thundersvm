@@ -35,7 +35,7 @@ const int NUM_BLOCKS = 32 * 56;
     cudaError_t error = condition; \
     CHECK_EQ(error, cudaSuccess) << " " << cudaGetErrorString(error); \
   } while (0)
-#define SAFE_KERNEL_LAUNCH(kernel_name, ...)\
+#define SAFE_KERNEL_LAUNCH(kernel_name, ...) \
     kernel_name<<<NUM_BLOCKS,BLOCK_SIZE>>>(__VA_ARGS__);\
     CUDA_CHECK(cudaPeekAtLastError())
 #define KERNEL_LOOP(i, n) \
