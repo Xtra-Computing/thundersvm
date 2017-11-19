@@ -142,7 +142,7 @@ void KernelMatrix::get_dot_product(const DataSet::node2d &instances, SyncData<fl
     for (int i = 0; i < instances.size(); ++i) {
         float_type sum = 0;
         for (int j = 0; j < instances[i].size(); ++j) {
-            if (instances[i][j].index < n_features_) {
+            if (instances[i][j].index - 1 < n_features_) {
                 dense_ins[(instances[i][j].index - 1) * instances.size() + i] = instances[i][j].value;
                 sum += instances[i][j].value * instances[i][j].value;
             } else {
