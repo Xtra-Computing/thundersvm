@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.8.12)
-set(PROJECT_NAME_STR thundersvm)
-project(${PROJECT_NAME_STR} C CXX)
 
+cmake_policy(SET CMP0048 NEW)
+
+project(ThunderSVM VERSION 0.1.0 LANGUAGES C CXX)
 set(USE_CUDA ON CACHE BOOL "Compile with CUDA")
 set(USE_EIGEN OFF CACHE BOOL "Compile with Eigen")
 
@@ -57,4 +58,3 @@ set(PROJECT_TEST_NAME ${PROJECT_NAME}-test)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/test)
 add_custom_target(runtest
         COMMAND ${PROJECT_TEST_NAME})
-
