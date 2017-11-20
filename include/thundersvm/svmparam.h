@@ -44,7 +44,7 @@ struct SvmParam {
     int *weight_label;    /* for C_SVC */
     float_type *weight;        /* for C_SVC */
 //    int shrinking;    /* use the shrinking heuristics */
-    bool probability; /* do probability estimates */
+    int probability; /* do probability estimates */
     static const char *kernel_type_name[6];
     static const char *svm_type_name[6];  /* svm_type */
 };

@@ -18,6 +18,8 @@ public:
 
     virtual vector<float_type> predict(const DataSet::node2d &instances, int batch_size);
 
+    void predict_dec_values(const DataSet::node2d &instances, SyncData<float_type> &dec_values, int batch_size) const;
+
     virtual vector<float_type> cross_validation(DataSet dataset, SvmParam param, int n_fold);
 
     virtual void save_to_file(string path);
@@ -28,7 +30,6 @@ protected:
 
     virtual void model_setup(const DataSet &dataset, SvmParam &param);
 
-    void predict_dec_values(const DataSet::node2d &instances, SyncData<float_type> &dec_values, int batch_size) const;
 
     SvmParam param;
     SyncData<float_type> coef;

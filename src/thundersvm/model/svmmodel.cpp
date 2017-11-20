@@ -144,7 +144,7 @@ void SvmModel::save_to_file(string path) {
         }
         fs_model<< endl;
     }
-    if (param.probability) {
+    if (param.probability == 1) {
         fs_model << "probA ";
         for (int i = 0; i < n_binary_models; ++i) {
             fs_model << probA[i] << " ";
@@ -223,11 +223,13 @@ void SvmModel::load_from_file(string path) {
                 ifs >> n_sv[i];
             }
         } else if (feature == "probA") {
-            param.probability = true;
+            param.probability = 1;
+            probA = vector<float_type>(n_binary_models);
             for (int i = 0; i < n_binary_models; ++i) {
                 ifs >> probA[i];
             }
         } else if (feature == "probB") {
+            probB = vector<float_type>(n_binary_models);
             for (int i = 0; i < n_binary_models; ++i) {
                 ifs >> probB[i];
             }
