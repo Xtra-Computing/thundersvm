@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.12)
 
 cmake_policy(SET CMP0048 NEW)
 
-project(ThunderSVM VERSION 0.1.0 LANGUAGES C CXX)
+project(thundersvm VERSION 0.1.0 LANGUAGES C CXX)
 set(USE_CUDA ON CACHE BOOL "Compile with CUDA")
 set(USE_EIGEN OFF CACHE BOOL "Compile with Eigen")
 
