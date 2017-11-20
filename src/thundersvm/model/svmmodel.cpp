@@ -40,7 +40,11 @@ vector<float_type> SvmModel::cross_validation(DataSet dataset, SvmParam param, i
             vector<int> class_idx = dataset.original_index(i);
             auto idx_begin = class_idx.begin() + fold_test_count * k;
             auto idx_end = idx_begin;
-            while (idx_end != class_idx.end() && idx_end - idx_begin < fold_test_count) idx_end++;
+            if (k == n_fold - 1) {
+                idx_end = class_idx.end();
+            } else {
+                while (idx_end != class_idx.end() && idx_end - idx_begin < fold_test_count) idx_end++;
+            }
             for (int j: vector<int>(idx_begin, idx_end)) {
                 x_test.push_back(dataset.instances()[j]);
                 y_test.push_back(dataset.y()[j]);
