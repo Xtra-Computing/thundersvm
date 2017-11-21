@@ -80,6 +80,8 @@ The meaning of each option can be found in the [parameters](parameters.md) page.
 ThunderSVM provides python interface. Go to the python subdirectory and type python. Put your dataset file in dataset subdirectory. Here is an example to call ThunderSVM functions.
 ```bash
 >>>from svm import *
->>>svm_train('-s 1 -t 2 -g 0.5 -c 100 -n 0.1 -e 0.001 test_dataset.txt test_dataset.txt.model')
->>>svm_predict('test_dataset.txt test_dataset.txt.model test_dataset.txt.out')
+>>>y,x = svm_read_problem('mnist.scale')
+>>>svm_train(y, x, 'mnist.scale.model', '-s 0 -t 2 -g 0.125 -c 10 -e 0.001')
+>>>y,x = svm_read_problem('mnist.scale.t')
+>>>svm_predict(y, x, 'mnist.scale.model', 'mnist.scale.out')
 ```
