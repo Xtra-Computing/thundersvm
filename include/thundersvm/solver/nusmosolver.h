@@ -7,6 +7,9 @@
 
 #include "csmosolver.h"
 
+/**
+ * @brief Nu-SMO solver for NuSVC, NuSVR
+ */
 class NuSMOSolver : public CSMOSolver {
 public:
     explicit NuSMOSolver(bool for_svr) : for_svr(for_svr) {};

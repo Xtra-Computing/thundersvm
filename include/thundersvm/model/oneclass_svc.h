@@ -7,6 +7,9 @@
 
 #include "svmmodel.h"
 
+/**
+ * @brief Support Vector Machine for outlier detection (density estimation)
+ */
 class OneClassSVC : public SvmModel {
 public:
     void train(const DataSet &dataset, SvmParam param) override;
