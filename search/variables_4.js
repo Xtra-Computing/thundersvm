@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['rho',['rho',['../classSvmModel.html#afe87f9afa263752b14d6325ec8d21802',1,'SvmModel']]]
+  ['proba',['probA',['../classSvmModel.html#a94a23c8ef9f0bbc7fd98f8b625cebd1f',1,'SvmModel']]],
+  ['probb',['probB',['../classSvmModel.html#a1005e41d97b9fa9a0f614c25f1141196',1,'SvmModel']]]
 ];
