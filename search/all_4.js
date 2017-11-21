@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['metric',['Metric',['../classMetric.html',1,'']]],
-  ['mse',['MSE',['../classMSE.html',1,'']]]
+  ['load_5ffrom_5ffile',['load_from_file',['../classSvmModel.html#aaccc1a69f41e3e7f343fdf573fca156c',1,'SvmModel']]]
 ];

@@ -12,6 +12,12 @@
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    extensions: ["tex2jax.js"],
+    jax: ["input/TeX","output/HTML-CSS"],
+});
+</script><script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
@@ -66,25 +72,25 @@ $(function() {
 
 <p>This is the complete list of members for <a class="el" href="classNuSVR.html">NuSVR</a>, including all inherited members.</p>
 <table class="directory">
-  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>coef</b> (defined in <a class="el" href="classSvmModel.html">SvmModel</a>)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">protected</span></td></tr>
-  <tr bgcolor="#f0f0f0"><td class="entry"><b>cross_validation</b>(DataSet dataset, SvmParam param, int n_fold) (defined in <a class="el" href="classSvmModel.html">SvmModel</a>)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">virtual</span></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classSvmModel.html#a7da1abb3acdb3984ee3c59f98005b993">coef</a></td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">protected</span></td></tr>
+  <tr><td class="entry"><a class="el" href="classSvmModel.html#a270f882523e8b25926bc33eb84bb1d74">cross_validation</a>(DataSet dataset, SvmParam param, int n_fold)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">virtual</span></td></tr>
   <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>label</b> (defined in <a class="el" href="classSvmModel.html">SvmModel</a>)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">protected</span></td></tr>
-  <tr bgcolor="#f0f0f0"><td class="entry"><b>load_from_file</b>(string path) (defined in <a class="el" href="classSvmModel.html">SvmModel</a>)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">virtual</span></td></tr>
-  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>model_setup</b>(const DataSet &amp;dataset, SvmParam &amp;param) (defined in <a class="el" href="classSvmModel.html">SvmModel</a>)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">protected</span><span class="mlabel">virtual</span></td></tr>
+  <tr><td class="entry"><a class="el" href="classSvmModel.html#aaccc1a69f41e3e7f343fdf573fca156c">load_from_file</a>(string path)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">virtual</span></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classSvmModel.html#ac396718768c84e5336ceba93420f6c51">model_setup</a>(const DataSet &amp;dataset, SvmParam &amp;param)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">protected</span><span class="mlabel">virtual</span></td></tr>
   <tr bgcolor="#f0f0f0"><td class="entry"><b>n_binary_models</b> (defined in <a class="el" href="classSvmModel.html">SvmModel</a>)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">protected</span></td></tr>
   <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>n_classes</b> (defined in <a class="el" href="classSvmModel.html">SvmModel</a>)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">protected</span></td></tr>
   <tr bgcolor="#f0f0f0"><td class="entry"><b>n_sv</b> (defined in <a class="el" href="classSvmModel.html">SvmModel</a>)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">protected</span></td></tr>
   <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>n_total_sv</b> (defined in <a class="el" href="classSvmModel.html">SvmModel</a>)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">protected</span></td></tr>
   <tr bgcolor="#f0f0f0"><td class="entry"><b>param</b> (defined in <a class="el" href="classSvmModel.html">SvmModel</a>)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">protected</span></td></tr>
-  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>predict</b>(const DataSet::node2d &amp;instances, int batch_size) (defined in <a class="el" href="classSvmModel.html">SvmModel</a>)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">virtual</span></td></tr>
-  <tr bgcolor="#f0f0f0"><td class="entry"><b>predict_dec_values</b>(const DataSet::node2d &amp;instances, SyncData&lt; float_type &gt; &amp;dec_values, int batch_size) const (defined in <a class="el" href="classSvmModel.html">SvmModel</a>)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classSvmModel.html#a176b44e12c91f3cf97d388646735f8d9">predict</a>(const DataSet::node2d &amp;instances, int batch_size)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">virtual</span></td></tr>
+  <tr><td class="entry"><a class="el" href="classSvmModel.html#a3c866fc4628a6985a1b8527e65df9e2d">predict_dec_values</a>(const DataSet::node2d &amp;instances, SyncData&lt; float_type &gt; &amp;dec_values, int batch_size) const</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"></td></tr>
   <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>probA</b> (defined in <a class="el" href="classSvmModel.html">SvmModel</a>)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">protected</span></td></tr>
   <tr bgcolor="#f0f0f0"><td class="entry"><b>probB</b> (defined in <a class="el" href="classSvmModel.html">SvmModel</a>)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">protected</span></td></tr>
   <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>rho</b> (defined in <a class="el" href="classSvmModel.html">SvmModel</a>)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">protected</span></td></tr>
   <tr bgcolor="#f0f0f0"><td class="entry"><b>save_svr_coef</b>(const SyncData&lt; float_type &gt; &amp;alpha_2, const DataSet::node2d &amp;instances) (defined in <a class="el" href="classSVR.html">SVR</a>)</td><td class="entry"><a class="el" href="classSVR.html">SVR</a></td><td class="entry"><span class="mlabel">protected</span></td></tr>
-  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>save_to_file</b>(string path) (defined in <a class="el" href="classSvmModel.html">SvmModel</a>)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">virtual</span></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classSvmModel.html#a83ca37174114b2b52d504d8a999e9aa2">save_to_file</a>(string path)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">virtual</span></td></tr>
   <tr bgcolor="#f0f0f0"><td class="entry"><b>sv</b> (defined in <a class="el" href="classSvmModel.html">SvmModel</a>)</td><td class="entry"><a class="el" href="classSvmModel.html">SvmModel</a></td><td class="entry"><span class="mlabel">protected</span></td></tr>
-  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>train</b>(const DataSet &amp;dataset, SvmParam param) override (defined in <a class="el" href="classNuSVR.html">NuSVR</a>)</td><td class="entry"><a class="el" href="classNuSVR.html">NuSVR</a></td><td class="entry"><span class="mlabel">virtual</span></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classNuSVR.html#aa270427dcdbf18eaf5f0e2ad01576f80">train</a>(const DataSet &amp;dataset, SvmParam param) override</td><td class="entry"><a class="el" href="classNuSVR.html">NuSVR</a></td><td class="entry"><span class="mlabel">virtual</span></td></tr>
 </table></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

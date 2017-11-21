@@ -12,6 +12,12 @@
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    extensions: ["tex2jax.js"],
+    jax: ["input/TeX","output/HTML-CSS"],
+});
+</script><script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
@@ -68,6 +74,11 @@ $(function() {
 <div class="title">SvmModel Class Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>Abstract class for different SVM models.  
+ <a href="classSvmModel.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="svmmodel_8h_source.html">svmmodel.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for SvmModel:</div>
 <div class="dyncontent">
@@ -84,29 +95,22 @@ Inheritance diagram for SvmModel:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:af40e7c4fa2e9939f5d7306bf9ca4cb3e"><td class="memItemLeft" align="right" valign="top"><a id="af40e7c4fa2e9939f5d7306bf9ca4cb3e"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>train</b> (const <a class="el" href="classDataSet.html">DataSet</a> &amp;dataset, <a class="el" href="structSvmParam.html">SvmParam</a> param)=0</td></tr>
+<tr class="memitem:af40e7c4fa2e9939f5d7306bf9ca4cb3e"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#af40e7c4fa2e9939f5d7306bf9ca4cb3e">train</a> (const <a class="el" href="classDataSet.html">DataSet</a> &amp;dataset, <a class="el" href="structSvmParam.html">SvmParam</a> param)=0</td></tr>
 <tr class="separator:af40e7c4fa2e9939f5d7306bf9ca4cb3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a176b44e12c91f3cf97d388646735f8d9"><td class="memItemLeft" align="right" valign="top"><a id="a176b44e12c91f3cf97d388646735f8d9"></a>
-virtual vector&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>predict</b> (const DataSet::node2d &amp;instances, int batch_size)</td></tr>
+<tr class="memitem:a176b44e12c91f3cf97d388646735f8d9"><td class="memItemLeft" align="right" valign="top">virtual vector&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a176b44e12c91f3cf97d388646735f8d9">predict</a> (const DataSet::node2d &amp;instances, int batch_size)</td></tr>
 <tr class="separator:a176b44e12c91f3cf97d388646735f8d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3c866fc4628a6985a1b8527e65df9e2d"><td class="memItemLeft" align="right" valign="top"><a id="a3c866fc4628a6985a1b8527e65df9e2d"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>predict_dec_values</b> (const DataSet::node2d &amp;instances, <a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt; &amp;dec_values, int batch_size) const</td></tr>
+<tr class="memitem:a3c866fc4628a6985a1b8527e65df9e2d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a3c866fc4628a6985a1b8527e65df9e2d">predict_dec_values</a> (const DataSet::node2d &amp;instances, <a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt; &amp;dec_values, int batch_size) const</td></tr>
 <tr class="separator:a3c866fc4628a6985a1b8527e65df9e2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a270f882523e8b25926bc33eb84bb1d74"><td class="memItemLeft" align="right" valign="top"><a id="a270f882523e8b25926bc33eb84bb1d74"></a>
-virtual vector&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>cross_validation</b> (<a class="el" href="classDataSet.html">DataSet</a> dataset, <a class="el" href="structSvmParam.html">SvmParam</a> param, int n_fold)</td></tr>
+<tr class="memitem:a270f882523e8b25926bc33eb84bb1d74"><td class="memItemLeft" align="right" valign="top">virtual vector&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a270f882523e8b25926bc33eb84bb1d74">cross_validation</a> (<a class="el" href="classDataSet.html">DataSet</a> dataset, <a class="el" href="structSvmParam.html">SvmParam</a> param, int n_fold)</td></tr>
 <tr class="separator:a270f882523e8b25926bc33eb84bb1d74"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a83ca37174114b2b52d504d8a999e9aa2"><td class="memItemLeft" align="right" valign="top"><a id="a83ca37174114b2b52d504d8a999e9aa2"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>save_to_file</b> (string path)</td></tr>
+<tr class="memitem:a83ca37174114b2b52d504d8a999e9aa2"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a83ca37174114b2b52d504d8a999e9aa2">save_to_file</a> (string path)</td></tr>
 <tr class="separator:a83ca37174114b2b52d504d8a999e9aa2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaccc1a69f41e3e7f343fdf573fca156c"><td class="memItemLeft" align="right" valign="top"><a id="aaccc1a69f41e3e7f343fdf573fca156c"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>load_from_file</b> (string path)</td></tr>
+<tr class="memitem:aaccc1a69f41e3e7f343fdf573fca156c"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#aaccc1a69f41e3e7f343fdf573fca156c">load_from_file</a> (string path)</td></tr>
 <tr class="separator:aaccc1a69f41e3e7f343fdf573fca156c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:ac396718768c84e5336ceba93420f6c51"><td class="memItemLeft" align="right" valign="top"><a id="ac396718768c84e5336ceba93420f6c51"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>model_setup</b> (const <a class="el" href="classDataSet.html">DataSet</a> &amp;dataset, <a class="el" href="structSvmParam.html">SvmParam</a> &amp;param)</td></tr>
+<tr class="memitem:ac396718768c84e5336ceba93420f6c51"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#ac396718768c84e5336ceba93420f6c51">model_setup</a> (const <a class="el" href="classDataSet.html">DataSet</a> &amp;dataset, <a class="el" href="structSvmParam.html">SvmParam</a> &amp;param)</td></tr>
 <tr class="separator:ac396718768c84e5336ceba93420f6c51"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
@@ -114,8 +118,7 @@ Protected Attributes</h2></td></tr>
 <tr class="memitem:ae82b6144d705eb6655e9c2f83b4da46a"><td class="memItemLeft" align="right" valign="top"><a id="ae82b6144d705eb6655e9c2f83b4da46a"></a>
 <a class="el" href="structSvmParam.html">SvmParam</a>&#160;</td><td class="memItemRight" valign="bottom"><b>param</b></td></tr>
 <tr class="separator:ae82b6144d705eb6655e9c2f83b4da46a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7da1abb3acdb3984ee3c59f98005b993"><td class="memItemLeft" align="right" valign="top"><a id="a7da1abb3acdb3984ee3c59f98005b993"></a>
-<a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>coef</b></td></tr>
+<tr class="memitem:a7da1abb3acdb3984ee3c59f98005b993"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a7da1abb3acdb3984ee3c59f98005b993">coef</a></td></tr>
 <tr class="separator:a7da1abb3acdb3984ee3c59f98005b993"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:affdbfed8346886355fb1918ec650fc6f"><td class="memItemLeft" align="right" valign="top"><a id="affdbfed8346886355fb1918ec650fc6f"></a>
 DataSet::node2d&#160;</td><td class="memItemRight" valign="bottom"><b>sv</b></td></tr>
@@ -145,6 +148,326 @@ vector&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><b
 vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>label</b></td></tr>
 <tr class="separator:ab2b83f30e82b06180ba0b024f67ab9aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Abstract class for different SVM models. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a270f882523e8b25926bc33eb84bb1d74"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a270f882523e8b25926bc33eb84bb1d74">&#9670;&nbsp;</a></span>cross_validation()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">vector&lt; float_type &gt; SvmModel::cross_validation </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classDataSet.html">DataSet</a>&#160;</td>
+          <td class="paramname"><em>dataset</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSvmParam.html">SvmParam</a>&#160;</td>
+          <td class="paramname"><em>param</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_fold</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>performing cross-validation. In \(k\)-fold cross_validation, dataset is spilt into \(k\) equal size parts. Then each part is used as testing set, while the remaining \(k-1\) parts are used as training set. The whole dataset will be predicted after \(k\) training and testing. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dataset</td><td>training dataset </td></tr>
+    <tr><td class="paramname">param</td><td>param for cross-validation </td></tr>
+    <tr><td class="paramname">n_fold</td><td>the number of fold in cross-validation </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the same structure as <a class="el" href="classSvmModel.html#a176b44e12c91f3cf97d388646735f8d9">predict()</a> </dd></dl>
+
+</div>
+</div>
+<a id="aaccc1a69f41e3e7f343fdf573fca156c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaccc1a69f41e3e7f343fdf573fca156c">&#9670;&nbsp;</a></span>load_from_file()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SvmModel::load_from_file </td>
+          <td>(</td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>load <a class="el" href="classSvmModel.html" title="Abstract class for different SVM models. ">SvmModel</a> from a file, the file format is the same as LIBSVM. before call this function, one must read the first line of the model file, which contains svm_type. Then construct right <a class="el" href="classSvmModel.html" title="Abstract class for different SVM models. ">SvmModel</a> (<a class="el" href="classSVC.html">SVC</a>, <a class="el" href="classSVR.html">SVR</a>, ...), since <a class="el" href="classSvmModel.html" title="Abstract class for different SVM models. ">SvmModel</a> is an abstract class. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td>path and filename of saved model file </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ac396718768c84e5336ceba93420f6c51"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac396718768c84e5336ceba93420f6c51">&#9670;&nbsp;</a></span>model_setup()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SvmModel::model_setup </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classDataSet.html">DataSet</a> &amp;&#160;</td>
+          <td class="paramname"><em>dataset</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSvmParam.html">SvmParam</a> &amp;&#160;</td>
+          <td class="paramname"><em>param</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>called at the begining of <a class="el" href="classSvmModel.html#af40e7c4fa2e9939f5d7306bf9ca4cb3e">train()</a>, do initialization </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dataset</td><td></td></tr>
+    <tr><td class="paramname">param</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Reimplemented in <a class="el" href="classSVC.html#a13d3980a3ca844601f03cd5f862d7a8f">SVC</a>.</p>
+
+</div>
+</div>
+<a id="a176b44e12c91f3cf97d388646735f8d9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a176b44e12c91f3cf97d388646735f8d9">&#9670;&nbsp;</a></span>predict()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">vector&lt; float_type &gt; SvmModel::predict </td>
+          <td>(</td>
+          <td class="paramtype">const DataSet::node2d &amp;&#160;</td>
+          <td class="paramname"><em>instances</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>batch_size</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>predict label given instances. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">instances</td><td>instances used </td></tr>
+    <tr><td class="paramname">batch_size</td><td>the number of instances to predict parallel, higher value needs more memory </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>label (<a class="el" href="classSVC.html">SVC</a>, <a class="el" href="classNuSVC.html">NuSVC</a>), real number (<a class="el" href="classSVR.html">SVR</a>, <a class="el" href="classNuSVR.html">NuSVR</a>), {-1,+1} (<a class="el" href="classOneClassSVC.html">OneClassSVC</a>) </dd></dl>
+
+<p>Reimplemented in <a class="el" href="classSVC.html#ad2382cd5a2a1a84c7bcb4668ccc68ba1">SVC</a>, and <a class="el" href="classOneClassSVC.html#adebb04652fb4d0c57ea204bc42cd72ca">OneClassSVC</a>.</p>
+
+</div>
+</div>
+<a id="a3c866fc4628a6985a1b8527e65df9e2d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3c866fc4628a6985a1b8527e65df9e2d">&#9670;&nbsp;</a></span>predict_dec_values()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SvmModel::predict_dec_values </td>
+          <td>(</td>
+          <td class="paramtype">const DataSet::node2d &amp;&#160;</td>
+          <td class="paramname"><em>instances</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt; &amp;&#160;</td>
+          <td class="paramname"><em>dec_values</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>batch_size</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>predict decision values. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">instances</td><td>instances used </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">dec_values</td><td>decision values predicted </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">batch_size</td><td>the number of instances to predict parallel, higher value needs more memory </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a83ca37174114b2b52d504d8a999e9aa2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a83ca37174114b2b52d504d8a999e9aa2">&#9670;&nbsp;</a></span>save_to_file()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SvmModel::save_to_file </td>
+          <td>(</td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>save <a class="el" href="classSvmModel.html" title="Abstract class for different SVM models. ">SvmModel</a> to a file, the file format is the same as LIBSVM </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td>path and filename of the model file to save </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="af40e7c4fa2e9939f5d7306bf9ca4cb3e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af40e7c4fa2e9939f5d7306bf9ca4cb3e">&#9670;&nbsp;</a></span>train()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void SvmModel::train </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classDataSet.html">DataSet</a> &amp;&#160;</td>
+          <td class="paramname"><em>dataset</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSvmParam.html">SvmParam</a>&#160;</td>
+          <td class="paramname"><em>param</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>train model given dataset and param. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dataset</td><td>training dataset </td></tr>
+    <tr><td class="paramname">param</td><td>param for training </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Implemented in <a class="el" href="classSVC.html#a09e383ada1451e353ec0ea55ea890258">SVC</a>, <a class="el" href="classSVR.html#a20620cffb15439a7f28d0e4b7007aea5">SVR</a>, <a class="el" href="classNuSVR.html#aa270427dcdbf18eaf5f0e2ad01576f80">NuSVR</a>, and <a class="el" href="classOneClassSVC.html#a6ac79cf09897683edda04ca2cde536f4">OneClassSVC</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a7da1abb3acdb3984ee3c59f98005b993"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7da1abb3acdb3984ee3c59f98005b993">&#9670;&nbsp;</a></span>coef</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classSyncData.html">SyncData</a>&lt;float_type&gt; SvmModel::coef</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>coefficients for each support vector, the structure is the same as LIBSVM. For one-vs-one multi-class decomposition, \(k\) is the number of classes, and \(N_{sv}\) is the number of support vectors. The size of coef is \( (k-1)\times N_{sv}\). </p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/thundersvm/model/<a class="el" href="svmmodel_8h_source.html">svmmodel.h</a></li>
 <li>src/thundersvm/model/svmmodel.cpp</li>

@@ -12,6 +12,12 @@
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    extensions: ["tex2jax.js"],
+    jax: ["input/TeX","output/HTML-CSS"],
+});
+</script><script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
@@ -73,7 +79,7 @@ Inheritance diagram for NuSVC:</div>
   <img src="classNuSVC.png" usemap="#NuSVC_map" alt=""/>
   <map id="NuSVC_map" name="NuSVC_map">
 <area href="classSVC.html" alt="SVC" shape="rect" coords="0,56,71,80"/>
-<area href="classSvmModel.html" alt="SvmModel" shape="rect" coords="0,0,71,24"/>
+<area href="classSvmModel.html" title="Abstract class for different SVM models. " alt="SvmModel" shape="rect" coords="0,0,71,24"/>
 </map>
  </div></div>
 <table class="memberdecls">
@@ -83,38 +89,30 @@ Protected Member Functions</h2></td></tr>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>train_binary</b> (const <a class="el" href="classDataSet.html">DataSet</a> &amp;dataset, int i, int j, <a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt; &amp;alpha, float_type &amp;rho) override</td></tr>
 <tr class="separator:acdd27cd8b37a8b63cebbf2e473dee10b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_methods_classSVC"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_classSVC')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="classSVC.html">SVC</a></td></tr>
-<tr class="memitem:a13d3980a3ca844601f03cd5f862d7a8f inherit pro_methods_classSVC"><td class="memItemLeft" align="right" valign="top"><a id="a13d3980a3ca844601f03cd5f862d7a8f"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>model_setup</b> (const <a class="el" href="classDataSet.html">DataSet</a> &amp;dataset, <a class="el" href="structSvmParam.html">SvmParam</a> &amp;param) override</td></tr>
+<tr class="memitem:a13d3980a3ca844601f03cd5f862d7a8f inherit pro_methods_classSVC"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSVC.html#a13d3980a3ca844601f03cd5f862d7a8f">model_setup</a> (const <a class="el" href="classDataSet.html">DataSet</a> &amp;dataset, <a class="el" href="structSvmParam.html">SvmParam</a> &amp;param) override</td></tr>
 <tr class="separator:a13d3980a3ca844601f03cd5f862d7a8f inherit pro_methods_classSVC"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
 <tr class="inherit_header pub_methods_classSVC"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classSVC')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classSVC.html">SVC</a></td></tr>
-<tr class="memitem:a09e383ada1451e353ec0ea55ea890258 inherit pub_methods_classSVC"><td class="memItemLeft" align="right" valign="top"><a id="a09e383ada1451e353ec0ea55ea890258"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>train</b> (const <a class="el" href="classDataSet.html">DataSet</a> &amp;dataset, <a class="el" href="structSvmParam.html">SvmParam</a> param) override</td></tr>
+<tr class="memitem:a09e383ada1451e353ec0ea55ea890258 inherit pub_methods_classSVC"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSVC.html#a09e383ada1451e353ec0ea55ea890258">train</a> (const <a class="el" href="classDataSet.html">DataSet</a> &amp;dataset, <a class="el" href="structSvmParam.html">SvmParam</a> param) override</td></tr>
 <tr class="separator:a09e383ada1451e353ec0ea55ea890258 inherit pub_methods_classSVC"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad2382cd5a2a1a84c7bcb4668ccc68ba1 inherit pub_methods_classSVC"><td class="memItemLeft" align="right" valign="top"><a id="ad2382cd5a2a1a84c7bcb4668ccc68ba1"></a>
-vector&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>predict</b> (const DataSet::node2d &amp;instances, int batch_size) override</td></tr>
+<tr class="memitem:ad2382cd5a2a1a84c7bcb4668ccc68ba1 inherit pub_methods_classSVC"><td class="memItemLeft" align="right" valign="top">vector&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSVC.html#ad2382cd5a2a1a84c7bcb4668ccc68ba1">predict</a> (const DataSet::node2d &amp;instances, int batch_size) override</td></tr>
 <tr class="separator:ad2382cd5a2a1a84c7bcb4668ccc68ba1 inherit pub_methods_classSVC"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classSvmModel"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classSvmModel')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classSvmModel.html">SvmModel</a></td></tr>
-<tr class="memitem:a3c866fc4628a6985a1b8527e65df9e2d inherit pub_methods_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="a3c866fc4628a6985a1b8527e65df9e2d"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>predict_dec_values</b> (const DataSet::node2d &amp;instances, <a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt; &amp;dec_values, int batch_size) const</td></tr>
+<tr class="memitem:a3c866fc4628a6985a1b8527e65df9e2d inherit pub_methods_classSvmModel"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a3c866fc4628a6985a1b8527e65df9e2d">predict_dec_values</a> (const DataSet::node2d &amp;instances, <a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt; &amp;dec_values, int batch_size) const</td></tr>
 <tr class="separator:a3c866fc4628a6985a1b8527e65df9e2d inherit pub_methods_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a270f882523e8b25926bc33eb84bb1d74 inherit pub_methods_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="a270f882523e8b25926bc33eb84bb1d74"></a>
-virtual vector&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>cross_validation</b> (<a class="el" href="classDataSet.html">DataSet</a> dataset, <a class="el" href="structSvmParam.html">SvmParam</a> param, int n_fold)</td></tr>
+<tr class="memitem:a270f882523e8b25926bc33eb84bb1d74 inherit pub_methods_classSvmModel"><td class="memItemLeft" align="right" valign="top">virtual vector&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a270f882523e8b25926bc33eb84bb1d74">cross_validation</a> (<a class="el" href="classDataSet.html">DataSet</a> dataset, <a class="el" href="structSvmParam.html">SvmParam</a> param, int n_fold)</td></tr>
 <tr class="separator:a270f882523e8b25926bc33eb84bb1d74 inherit pub_methods_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a83ca37174114b2b52d504d8a999e9aa2 inherit pub_methods_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="a83ca37174114b2b52d504d8a999e9aa2"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>save_to_file</b> (string path)</td></tr>
+<tr class="memitem:a83ca37174114b2b52d504d8a999e9aa2 inherit pub_methods_classSvmModel"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a83ca37174114b2b52d504d8a999e9aa2">save_to_file</a> (string path)</td></tr>
 <tr class="separator:a83ca37174114b2b52d504d8a999e9aa2 inherit pub_methods_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaccc1a69f41e3e7f343fdf573fca156c inherit pub_methods_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="aaccc1a69f41e3e7f343fdf573fca156c"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>load_from_file</b> (string path)</td></tr>
+<tr class="memitem:aaccc1a69f41e3e7f343fdf573fca156c inherit pub_methods_classSvmModel"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#aaccc1a69f41e3e7f343fdf573fca156c">load_from_file</a> (string path)</td></tr>
 <tr class="separator:aaccc1a69f41e3e7f343fdf573fca156c inherit pub_methods_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_attribs_classSvmModel"><td colspan="2" onclick="javascript:toggleInherit('pro_attribs_classSvmModel')"><img src="closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="classSvmModel.html">SvmModel</a></td></tr>
 <tr class="memitem:ae82b6144d705eb6655e9c2f83b4da46a inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="ae82b6144d705eb6655e9c2f83b4da46a"></a>
 <a class="el" href="structSvmParam.html">SvmParam</a>&#160;</td><td class="memItemRight" valign="bottom"><b>param</b></td></tr>
 <tr class="separator:ae82b6144d705eb6655e9c2f83b4da46a inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7da1abb3acdb3984ee3c59f98005b993 inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="a7da1abb3acdb3984ee3c59f98005b993"></a>
-<a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>coef</b></td></tr>
+<tr class="memitem:a7da1abb3acdb3984ee3c59f98005b993 inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a7da1abb3acdb3984ee3c59f98005b993">coef</a></td></tr>
 <tr class="separator:a7da1abb3acdb3984ee3c59f98005b993 inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:affdbfed8346886355fb1918ec650fc6f inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="affdbfed8346886355fb1918ec650fc6f"></a>
 DataSet::node2d&#160;</td><td class="memItemRight" valign="bottom"><b>sv</b></td></tr>
