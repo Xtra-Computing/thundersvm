@@ -68,11 +68,18 @@ $(function() {
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pro-methods">Protected Member Functions</a> &#124;
+<a href="#pri-methods">Private Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classSVC-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">SVC Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>Support Vector Machine for classification.  
+ <a href="classSVC.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="svc_8h_source.html">svc.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for SVC:</div>
 <div class="dyncontent">
@@ -80,7 +87,7 @@ Inheritance diagram for SVC:</div>
   <img src="classSVC.png" usemap="#SVC_map" alt=""/>
   <map id="SVC_map" name="SVC_map">
 <area href="classSvmModel.html" title="Abstract class for different SVM models. " alt="SvmModel" shape="rect" coords="0,0,71,24"/>
-<area href="classNuSVC.html" alt="NuSVC" shape="rect" coords="0,112,71,136"/>
+<area href="classNuSVC.html" title="Nu-Support Vector Machine for classification. " alt="NuSVC" shape="rect" coords="0,112,71,136"/>
 </map>
  </div></div>
 <table class="memberdecls">
@@ -102,11 +109,24 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:ab3d0f6f3db7500cb2a431bd5ea3ad04e"><td class="memItemLeft" align="right" valign="top"><a id="ab3d0f6f3db7500cb2a431bd5ea3ad04e"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>train_binary</b> (const <a class="el" href="classDataSet.html">DataSet</a> &amp;dataset, int i, int j, <a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt; &amp;alpha, float_type &amp;rho)</td></tr>
+<tr class="memitem:ab3d0f6f3db7500cb2a431bd5ea3ad04e"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSVC.html#ab3d0f6f3db7500cb2a431bd5ea3ad04e">train_binary</a> (const <a class="el" href="classDataSet.html">DataSet</a> &amp;dataset, int i, int j, <a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt; &amp;alpha, float_type &amp;<a class="el" href="classSvmModel.html#afe87f9afa263752b14d6325ec8d21802">rho</a>)</td></tr>
 <tr class="separator:ab3d0f6f3db7500cb2a431bd5ea3ad04e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a13d3980a3ca844601f03cd5f862d7a8f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSVC.html#a13d3980a3ca844601f03cd5f862d7a8f">model_setup</a> (const <a class="el" href="classDataSet.html">DataSet</a> &amp;dataset, <a class="el" href="structSvmParam.html">SvmParam</a> &amp;param) override</td></tr>
 <tr class="separator:a13d3980a3ca844601f03cd5f862d7a8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
+Private Member Functions</h2></td></tr>
+<tr class="memitem:a51c92f821d30e7db2858547412a3dd9c"><td class="memItemLeft" align="right" valign="top">vector&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSVC.html#a51c92f821d30e7db2858547412a3dd9c">predict_label</a> (const <a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt; &amp;dec_values, int n_instances) const</td></tr>
+<tr class="separator:a51c92f821d30e7db2858547412a3dd9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed39be779eeab7b556da98f23514f475"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSVC.html#aed39be779eeab7b556da98f23514f475">probability_train</a> (const <a class="el" href="classDataSet.html">DataSet</a> &amp;dataset)</td></tr>
+<tr class="separator:aed39be779eeab7b556da98f23514f475"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa710ceec54d0f64ae2df08b8388cc7c6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSVC.html#aa710ceec54d0f64ae2df08b8388cc7c6">multiclass_probability</a> (const vector&lt; vector&lt; float_type &gt;&gt; &amp;r, vector&lt; float_type &gt; &amp;p) const</td></tr>
+<tr class="separator:aa710ceec54d0f64ae2df08b8388cc7c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:a0fa1492b9efb26f82f690f5963cbf0c2"><td class="memItemLeft" align="right" valign="top">vector&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSVC.html#a0fa1492b9efb26f82f690f5963cbf0c2">c_weight</a></td></tr>
+<tr class="separator:a0fa1492b9efb26f82f690f5963cbf0c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
@@ -116,35 +136,44 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:ae82b6144d705eb6655e9c2f83b4da46a inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7da1abb3acdb3984ee3c59f98005b993 inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a7da1abb3acdb3984ee3c59f98005b993">coef</a></td></tr>
 <tr class="separator:a7da1abb3acdb3984ee3c59f98005b993 inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:affdbfed8346886355fb1918ec650fc6f inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="affdbfed8346886355fb1918ec650fc6f"></a>
-DataSet::node2d&#160;</td><td class="memItemRight" valign="bottom"><b>sv</b></td></tr>
+<tr class="memitem:affdbfed8346886355fb1918ec650fc6f inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top">DataSet::node2d&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#affdbfed8346886355fb1918ec650fc6f">sv</a></td></tr>
 <tr class="separator:affdbfed8346886355fb1918ec650fc6f inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a04e8f4891c6343d4f4cdd27eae8da11c inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="a04e8f4891c6343d4f4cdd27eae8da11c"></a>
-<a class="el" href="classSyncData.html">SyncData</a>&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>n_sv</b></td></tr>
+<a class="el" href="classSyncData.html">SyncData</a>&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a04e8f4891c6343d4f4cdd27eae8da11c">n_sv</a></td></tr>
+<tr class="memdesc:a04e8f4891c6343d4f4cdd27eae8da11c inherit pro_attribs_classSvmModel"><td class="mdescLeft">&#160;</td><td class="mdescRight">the number of support vectors for each class <br /></td></tr>
 <tr class="separator:a04e8f4891c6343d4f4cdd27eae8da11c inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a65739b8edd2f325128c9f7f7cb4e662d inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="a65739b8edd2f325128c9f7f7cb4e662d"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a65739b8edd2f325128c9f7f7cb4e662d">n_total_sv</a></td></tr>
+<tr class="memdesc:a65739b8edd2f325128c9f7f7cb4e662d inherit pro_attribs_classSvmModel"><td class="mdescLeft">&#160;</td><td class="mdescRight">the number of support vectors for all classes <br /></td></tr>
+<tr class="separator:a65739b8edd2f325128c9f7f7cb4e662d inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afe87f9afa263752b14d6325ec8d21802 inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="afe87f9afa263752b14d6325ec8d21802"></a>
-<a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>rho</b></td></tr>
+<a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#afe87f9afa263752b14d6325ec8d21802">rho</a></td></tr>
+<tr class="memdesc:afe87f9afa263752b14d6325ec8d21802 inherit pro_attribs_classSvmModel"><td class="mdescLeft">&#160;</td><td class="mdescRight">the bias term for each binary model <br /></td></tr>
 <tr class="separator:afe87f9afa263752b14d6325ec8d21802 inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8cc74e6ec369fb0e8b15a39668d7371d inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="a8cc74e6ec369fb0e8b15a39668d7371d"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>n_classes</b> = 2</td></tr>
+int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a8cc74e6ec369fb0e8b15a39668d7371d">n_classes</a> = 2</td></tr>
+<tr class="memdesc:a8cc74e6ec369fb0e8b15a39668d7371d inherit pro_attribs_classSvmModel"><td class="mdescLeft">&#160;</td><td class="mdescRight">the number of classes <br /></td></tr>
 <tr class="separator:a8cc74e6ec369fb0e8b15a39668d7371d inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a418cbd9cc351fcb7d4778e5884024e57 inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="a418cbd9cc351fcb7d4778e5884024e57"></a>
-size_t&#160;</td><td class="memItemRight" valign="bottom"><b>n_binary_models</b></td></tr>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a418cbd9cc351fcb7d4778e5884024e57">n_binary_models</a></td></tr>
+<tr class="memdesc:a418cbd9cc351fcb7d4778e5884024e57 inherit pro_attribs_classSvmModel"><td class="mdescLeft">&#160;</td><td class="mdescRight">the number of binary models, equal to \(k(k-1)/2\), where \(k\) is the number of classes <br /></td></tr>
 <tr class="separator:a418cbd9cc351fcb7d4778e5884024e57 inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a65739b8edd2f325128c9f7f7cb4e662d inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="a65739b8edd2f325128c9f7f7cb4e662d"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>n_total_sv</b></td></tr>
-<tr class="separator:a65739b8edd2f325128c9f7f7cb4e662d inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a94a23c8ef9f0bbc7fd98f8b625cebd1f inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="a94a23c8ef9f0bbc7fd98f8b625cebd1f"></a>
-vector&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>probA</b></td></tr>
+vector&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a94a23c8ef9f0bbc7fd98f8b625cebd1f">probA</a></td></tr>
+<tr class="memdesc:a94a23c8ef9f0bbc7fd98f8b625cebd1f inherit pro_attribs_classSvmModel"><td class="mdescLeft">&#160;</td><td class="mdescRight">be used to predict probability for each binary model <br /></td></tr>
 <tr class="separator:a94a23c8ef9f0bbc7fd98f8b625cebd1f inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1005e41d97b9fa9a0f614c25f1141196 inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="a1005e41d97b9fa9a0f614c25f1141196"></a>
-vector&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>probB</b></td></tr>
+vector&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a1005e41d97b9fa9a0f614c25f1141196">probB</a></td></tr>
+<tr class="memdesc:a1005e41d97b9fa9a0f614c25f1141196 inherit pro_attribs_classSvmModel"><td class="mdescLeft">&#160;</td><td class="mdescRight">be used to predict probability for each binary model <br /></td></tr>
 <tr class="separator:a1005e41d97b9fa9a0f614c25f1141196 inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab2b83f30e82b06180ba0b024f67ab9aa inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="ab2b83f30e82b06180ba0b024f67ab9aa"></a>
-vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>label</b></td></tr>
+vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#ab2b83f30e82b06180ba0b024f67ab9aa">label</a></td></tr>
+<tr class="memdesc:ab2b83f30e82b06180ba0b024f67ab9aa inherit pro_attribs_classSvmModel"><td class="mdescLeft">&#160;</td><td class="mdescRight">only for <a class="el" href="classSVC.html" title="Support Vector Machine for classification. ">SVC</a>, maps logical label (0,1,2,...) to real label in dataset (maybe 2,4,5,...) <br /></td></tr>
 <tr class="separator:ab2b83f30e82b06180ba0b024f67ab9aa inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Support Vector Machine for classification. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a13d3980a3ca844601f03cd5f862d7a8f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a13d3980a3ca844601f03cd5f862d7a8f">&#9670;&nbsp;</a></span>model_setup()</h2>
 
@@ -190,6 +219,49 @@ vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>label<
 
 </div>
 </div>
+<a id="aa710ceec54d0f64ae2df08b8388cc7c6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa710ceec54d0f64ae2df08b8388cc7c6">&#9670;&nbsp;</a></span>multiclass_probability()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SVC::multiclass_probability </td>
+          <td>(</td>
+          <td class="paramtype">const vector&lt; vector&lt; float_type &gt;&gt; &amp;&#160;</td>
+          <td class="paramname"><em>r</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">vector&lt; float_type &gt; &amp;&#160;</td>
+          <td class="paramname"><em>p</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>transform n_binary_models binary probabilities in to probabilities of each class </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">r</td><td>n_binary_models binary probabilities </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">p</td><td>probabilities for each class </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="ad2382cd5a2a1a84c7bcb4668ccc68ba1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad2382cd5a2a1a84c7bcb4668ccc68ba1">&#9670;&nbsp;</a></span>predict()</h2>
 
@@ -230,9 +302,85 @@ vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>label<
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>label (<a class="el" href="classSVC.html">SVC</a>, <a class="el" href="classNuSVC.html">NuSVC</a>), real number (<a class="el" href="classSVR.html">SVR</a>, <a class="el" href="classNuSVR.html">NuSVR</a>), {-1,+1} (<a class="el" href="classOneClassSVC.html">OneClassSVC</a>) </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>label (<a class="el" href="classSVC.html" title="Support Vector Machine for classification. ">SVC</a>, <a class="el" href="classNuSVC.html" title="Nu-Support Vector Machine for classification. ">NuSVC</a>), real number (<a class="el" href="classSVR.html">SVR</a>, <a class="el" href="classNuSVR.html" title="-Support Vector Machine for regression ">NuSVR</a>), {-1,+1} (<a class="el" href="classOneClassSVC.html" title="Support Vector Machine for outlier detection (density estimation) ">OneClassSVC</a>) </dd></dl>
 
 <p>Reimplemented from <a class="el" href="classSvmModel.html#a176b44e12c91f3cf97d388646735f8d9">SvmModel</a>.</p>
+
+</div>
+</div>
+<a id="a51c92f821d30e7db2858547412a3dd9c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a51c92f821d30e7db2858547412a3dd9c">&#9670;&nbsp;</a></span>predict_label()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">vector&lt; float_type &gt; SVC::predict_label </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt; &amp;&#160;</td>
+          <td class="paramname"><em>dec_values</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n_instances</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>predict final labels using voting. \(SVM_{i,j}\) will vote for class i if its decision value greater than 0, otherwise it will vote for class j. The final label will be the one with the most votes. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dec_values</td><td>decision values for each instance and each binary model </td></tr>
+    <tr><td class="paramname">n_instances</td><td>the number of instances to be predicted </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>final labels of each instances </dd></dl>
+
+</div>
+</div>
+<a id="aed39be779eeab7b556da98f23514f475"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aed39be779eeab7b556da98f23514f475">&#9670;&nbsp;</a></span>probability_train()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SVC::probability_train </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classDataSet.html">DataSet</a> &amp;&#160;</td>
+          <td class="paramname"><em>dataset</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>perform probability training. If param.probability equals to 1, <a class="el" href="classSVC.html#aed39be779eeab7b556da98f23514f475">probability_train()</a> will be called to train probA and probB and the model will be able to produce probability outputs. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dataset</td><td>training dataset, should be already grouped using group_classes(). </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -278,6 +426,96 @@ vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>label<
 </dl>
 
 <p>Implements <a class="el" href="classSvmModel.html#af40e7c4fa2e9939f5d7306bf9ca4cb3e">SvmModel</a>.</p>
+
+</div>
+</div>
+<a id="ab3d0f6f3db7500cb2a431bd5ea3ad04e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab3d0f6f3db7500cb2a431bd5ea3ad04e">&#9670;&nbsp;</a></span>train_binary()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SVC::train_binary </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classDataSet.html">DataSet</a> &amp;&#160;</td>
+          <td class="paramname"><em>dataset</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>i</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>j</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt; &amp;&#160;</td>
+          <td class="paramname"><em>alpha</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float_type &amp;&#160;</td>
+          <td class="paramname"><em>rho</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>train a binary <a class="el" href="classSVC.html" title="Support Vector Machine for classification. ">SVC</a> model \(SVM_{i,j}\) for class i and class j. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">dataset</td><td>original dataset </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">i</td><td></td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">j</td><td></td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">alpha</td><td>optimization variables \(\boldsymbol{\alpha}\) in dual problem, should be initialized with the same size of the number of instances in this binary problem </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">rho</td><td>bias term \(b\) in dual problem </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Reimplemented in <a class="el" href="classNuSVC.html#acdd27cd8b37a8b63cebbf2e473dee10b">NuSVC</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a0fa1492b9efb26f82f690f5963cbf0c2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0fa1492b9efb26f82f690f5963cbf0c2">&#9670;&nbsp;</a></span>c_weight</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">vector&lt;float_type&gt; SVC::c_weight</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>class weight for each class, the final \(C_{i}\) of class i will be \(C*\text{c_weight}[i]\) </p>
 
 </div>
 </div>
