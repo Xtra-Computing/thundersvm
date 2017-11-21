@@ -11,11 +11,19 @@
 
 using std::map;
 
+/**
+ * Support Vector Machine for regression
+ */
 class SVR : public SvmModel {
 public:
     void train(const DataSet &dataset, SvmParam param) override;
 
 protected:
+    /**
+     * save \f$\boldsymbel{\alpha}\f$ into coef.
+     * @param alpha_2
+     * @param instances
+     */
     void save_svr_coef(const SyncData<float_type> &alpha_2, const DataSet::node2d &instances);
 };
 

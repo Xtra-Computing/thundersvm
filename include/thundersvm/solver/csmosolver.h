@@ -8,6 +8,9 @@
 #include <thundersvm/thundersvm.h>
 #include <thundersvm/kernelmatrix.h>
 
+/**
+ * @brief C-SMO solver for SVC, SVR and OneClassSVC
+ */
 class CSMOSolver {
 public:
     void solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<float_type> &alpha, float_type &rho,

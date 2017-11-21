@@ -7,6 +7,9 @@
 
 #include "svr.h"
 
+/**
+ * @brief-Support Vector Machine for regression
+ */
 class NuSVR : public SVR {
 public:
     void train(const DataSet &dataset, SvmParam param) override;
