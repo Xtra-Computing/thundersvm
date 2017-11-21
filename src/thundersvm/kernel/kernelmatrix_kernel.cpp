@@ -5,6 +5,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <iostream>
+#include <fstream>
 namespace svm_kernel {
     void
     get_working_set_ins(const SyncData<float_type> &val, const SyncData<int> &col_ind, const SyncData<int> &row_ptr,
@@ -109,16 +110,14 @@ namespace svm_kernel {
         }
         */
 	Eigen::Map<const Eigen::MatrixXf> denseMat(dense_mat.host_data(), n, k);
-        Eigen::Map<const Eigen::SparseMatrix<float, Eigen::RowMajor>> sparseMat(m, k, nnz, csr_row_ptr.host_data(),
+	Eigen::Map<const Eigen::SparseMatrix<float, Eigen::RowMajor>> sparseMat(m, k, nnz, csr_row_ptr.host_data(),
                                                                                 csr_col_ind.host_data(),
                                                                                 csr_val.host_data());
-        Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> dense_tran = denseMat.transpose();
-	//std::cout<<"before mul"<<std::endl;
-	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> retMat = sparseMat * dense_tran;
-	//std::cout<<"after mul"<<std::endl;
-	Eigen::Map < Eigen::Matrix < float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor > > (result.host_data(),
-                retMat.cols(),
-                retMat.rows()) = retMat.transpose();
+    Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> dense_tran = denseMat.transpose();
+	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> retMat = sparseMat * dense_tran;
+	Eigen::Map < Eigen::Matrix < float, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor > > (result.host_data(),
+                retMat.rows(),
+                retMat.cols()) = retMat;
     	
     }
 }

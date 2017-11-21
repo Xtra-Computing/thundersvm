@@ -20,7 +20,7 @@ public:
 
     DataSet(const DataSet::node2d &instances, int n_features, const vector<float_type> &y);
     void load_from_file(string file_name);
-
+    void load_from_python(float *y, char **x, int len);
     void group_classes(bool classification = true);
     size_t n_instances() const;
     size_t n_features() const;

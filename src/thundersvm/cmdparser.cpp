@@ -180,6 +180,8 @@ void CMDParser::parse_command_line(int argc, char **argv) {
         strcpy(svmpredict_output_file, argv[i + 2]);
         strcpy(svmpredict_model_file_name, argv[i + 1]);
     }
+
+
 //    else {
 //
 //        printf("Usage: thundersvm [options] training_set_file [model_file]\n"
@@ -187,4 +189,85 @@ void CMDParser::parse_command_line(int argc, char **argv) {
 //                       "or: thundersvm_scale [options] data_filename\n");
 //        exit(0);
 //    }
+}
+
+void CMDParser::parse_python(int argc, char **argv) {
+    int i;
+    //string bin_name = argv[0];
+    //bin_name = bin_name.substr(bin_name.find_last_of("/") + 1);
+    for (i = 0; i < argc; i++) {
+        if (argv[i][0] != '-') break;
+        if (++i >= argc)
+            HelpInfo_svmtrain();
+        switch (argv[i - 1][1]) {
+
+            case 's':
+                param_cmd.svm_type = static_cast<SvmParam::SVM_TYPE>(atoi(argv[i]));
+                break;
+            case 't':
+                param_cmd.kernel_type = static_cast<SvmParam::KERNEL_TYPE>(atoi(argv[i]));
+                break;
+            case 'd':
+                param_cmd.degree = atoi(argv[i]);
+                break;
+            case 'g':
+                param_cmd.gamma = atof(argv[i]);
+                break;
+            case 'r':
+                param_cmd.coef0 = atof(argv[i]);
+                break;
+            case 'n':
+                param_cmd.nu = atof(argv[i]);
+                break;
+            case 'm':
+//                    param_cmd.cache_size = atof(argv[i]);
+                LOG(WARNING) << "setting cache size is not supported";
+                break;
+            case 'c':
+                param_cmd.C = atof(argv[i]);
+                break;
+            case 'e':
+                param_cmd.epsilon = atof(argv[i]);
+                break;
+            case 'p':
+                param_cmd.p = atof(argv[i]);
+                break;
+            case 'h':
+//                    param_cmd.shrinking = atoi(argv[i]);
+                LOG(WARNING) << "shrinking is not supported";
+                break;
+            case 'b':
+                param_cmd.probability = atoi(argv[i]);
+                break;
+            case 'q':
+//                    print_func = &print_null;
+                //todo disable logging
+                i--;
+                break;
+            case 'v':
+                do_cross_validation = true;
+                nr_fold = atoi(argv[i]);
+                if (nr_fold < 2) {
+                    fprintf(stderr, "n-fold cross validation: n must >= 2\n");
+                    HelpInfo_svmtrain();
+                }
+                break;
+            case 'w':
+                ++param_cmd.nr_weight;
+                param_cmd.weight_label = (int *) realloc(param_cmd.weight_label, sizeof(int) * param_cmd.nr_weight);
+                param_cmd.weight = (float_type *) realloc(param_cmd.weight, sizeof(double) * param_cmd.nr_weight);
+                param_cmd.weight_label[param_cmd.nr_weight - 1] = atoi(&argv[i - 1][2]);
+                param_cmd.weight[param_cmd.nr_weight - 1] = atof(argv[i]);
+                break;
+            case 'u':
+                gpu_id = atoi(argv[i]);
+                break;
+            default:
+                fprintf(stderr, "Unknown option: -%c\n", argv[i - 1][1]);
+                HelpInfo_svmtrain();
+        }
+    }
+
+    if (i > argc)
+        HelpInfo_svmtrain();
 }

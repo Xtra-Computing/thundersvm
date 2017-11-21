@@ -14,7 +14,7 @@ class CMDParser{
 public:
     CMDParser() : do_cross_validation(false), nr_fold(0), gpu_id(0) {};
 	void parse_command_line(int argc, char **argv);
-
+    void parse_python(int argc, char **argv);
     SvmParam param_cmd;
 	bool do_cross_validation;
 	int nr_fold;

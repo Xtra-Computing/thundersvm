@@ -39,7 +39,27 @@ void DataSet::load_from_file(string file_name) {
     }
     file.close();
 }
-
+void DataSet::load_from_python(float *y, char **x, int len){
+    y_.clear();
+    instances_.clear();
+    total_count_ = 0;
+    n_features_ = 0;
+    for(int i = 0; i < len; i++){
+        int ind;
+        float_type v;
+        string line = x[i];
+        stringstream ss(line);
+        y_.push_back(y[i]);
+        instances_.emplace_back();
+        string tuple;
+        while(ss >> tuple){
+            CHECK_EQ(sscanf(tuple.c_str(), "%d:%f", &ind, &v), 2) << "read error, using [index]:[value] format";
+            instances_[total_count_].emplace_back(ind, v);
+            if(ind > n_features_) n_features_ = ind;
+        };
+        total_count_++;
+    }
+}
 const vector<int> &DataSet::count() const {//return the number of instances of each class
     return count_;
 }
