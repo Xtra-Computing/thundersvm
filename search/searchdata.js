@@ -3,8 +3,8 @@ var indexSectionsWithContent =
   0: "acdklmnoprst",
   1: "acdkmnos",
   2: "clmpst",
-  3: "cklnprs",
-  4: "ks"
+  3: "clnprs",
+  4: "t"
 };
 
 var indexSectionNames =
@@ -13,7 +13,7 @@ var indexSectionNames =
   1: "classes",
   2: "functions",
   3: "variables",
-  4: "enums"
+  4: "pages"
 };
 
 var indexSectionLabels =
@@ -22,6 +22,6 @@ var indexSectionLabels =
   1: "Classes",
   2: "Functions",
   3: "Variables",
-  4: "Enumerations"
+  4: "Pages"
 };
 

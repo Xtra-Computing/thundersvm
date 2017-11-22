@@ -4,7 +4,6 @@ var searchData=
   ['save_5fto_5ffile',['save_to_file',['../classSvmModel.html#a83ca37174114b2b52d504d8a999e9aa2',1,'SvmModel']]],
   ['sv',['sv',['../classSvmModel.html#affdbfed8346886355fb1918ec650fc6f',1,'SvmModel']]],
   ['svc',['SVC',['../classSVC.html',1,'']]],
-  ['svm_5ftype',['svm_type',['../structSvmParam.html#abe80bccac6a81031d5ed6cfaea65f525',1,'SvmParam::svm_type()'],['../structSvmParam.html#a5cfe1f6df84cf842b3928f0c790aabff',1,'SvmParam::SVM_TYPE()']]],
   ['svmmodel',['SvmModel',['../classSvmModel.html',1,'']]],
   ['svmparam',['SvmParam',['../structSvmParam.html',1,'']]],
   ['svr',['SVR',['../classSVR.html',1,'']]],
