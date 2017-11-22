@@ -2,7 +2,9 @@
 [![Build Status](https://travis-ci.org/zeyiwen/thundersvm.svg?branch=master)](https://travis-ci.org/zeyiwen/thundersvm)
 
 <div align="center">
-<img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/overall.png" width="50%" height="50%" align=left/>
+<img src="https://github.com/zeyiwen/thundersvm/raw/master/logo.png" width="200" height="200" align=left/>
+<img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/lang-logo.png" width="200" height="200" align=left/>
+<img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/overall.png" width="200" height="200" align=left/>
 </div>
 
 ## Overview
