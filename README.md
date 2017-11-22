@@ -11,6 +11,10 @@ The mission of ThunderSVM is to help users easily and efficiently apply SVMs to 
 
 ## Contents
 - [Getting Started](https://github.com/zeyiwen/thundersvm/tree/improve-doc#getting-started)
+- [Advanced](https://github.com/zeyiwen/thundersvm/tree/improve-doc#advanced)
+- [Working without GPUs](https://github.com/zeyiwen/thundersvm/tree/improve-doc#working-without-gpus)
+- [Documentations](https://github.com/zeyiwen/thundersvm/tree/improve-doc#documentations)
+- [API Reference](https://github.com/zeyiwen/thundersvm/tree/improve-doc#api-reference)
 ## Getting Started
 ### Prerequisites
 * [CUDA](https://developer.nvidia.com/cuda-downloads)
@@ -52,7 +56,7 @@ Now ThunderSVM will work solely on CPUs and does not rely on CUDA.
 ## Documentations
 [Documentations](http://thundersvm.readthedocs.io)
 ## API Reference
-[API Reference(doxygen)](http://zeyiwen.github.io/thundersvm/)
+[API Reference (doxygen)](http://zeyiwen.github.io/thundersvm/)
 ## TODO
 - integrate with interfaces
 
