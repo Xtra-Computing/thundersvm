@@ -13,8 +13,4 @@ The mission of ThunderSVM is to help users easily and efficiently apply SVMs to 
 * [Parameters](parameters.md)
 * [How To](how-to.md)
 * [FAQ](faq.md)
-
-## Related websites
-* [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/)
-* [SVM<sup>light</sup>](http://svmlight.joachims.org/)
-* [OHD-SVM](https://github.com/OrcusCZ/OHD-SVM)
+* [Related Websites](related-website.md)
