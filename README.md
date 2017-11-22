@@ -1,9 +1,10 @@
+#ThunderSVM
 [![Build Status](https://travis-ci.org/zeyiwen/thundersvm.svg?branch=master)](https://travis-ci.org/zeyiwen/thundersvm)
 
-<div align="center"><img src="https://github.com/zeyiwen/thundersvm/raw/improve-doc/logo.png" width = "30%" height = "30%" align=left/>
+<div align="center"><img src="https://github.com/zeyiwen/thundersvm/raw/improve-doc/logo.png" align=left/>
 </div>
 
-# Overview
+## Overview
 The mission of ThunderSVM is to help users easily and efficiently apply SVMs to solve problems. Some key features of ThunderSVM are as follows.
 * Support one-class, binary and multi-class SVM classification, SVM regression, and SVMs with probability outputs.
 * Have Python, R and Matlab interfaces.
@@ -27,13 +28,29 @@ mkdir build && cd build && cmake .. && make -j
 bin\thundersvm-train -c 100 -g 0.5 ../dataset/test_dataset.txt
 bin\thundersvm-predict ../dataset/test_dataset.txt test_dataset.model test_dataset.predict
 ```
-### Run Tests
-```bash
-make runtest
-```
+You will see `Accuracy = 0.98` after successful running.
 
-## API
-[API Reference](http://zeyiwen.github.io/thundersvm/)
+## Advanced
+## Working without GPUs
+If you don't have GPUs, ThunderSVM can work with CPU only.
+### Get Eigen Library
+ThunderSVM uses [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) for matrix calculation. To use Eigen, just 
+initialize the submodule. 
+```bash
+# in thundersvm root directory
+git submodule init eigen && git submodule update
+```
+### Build without GPUs
+```bash
+# in thundersvm root directory
+mkdir build && cd build && cmake -DUSE_CUDA=OFF -DUSE_EIGEN=ON .. && make -j
+```
+Now ThunderSVM will work solely on CPUs and does not rely on CUDA.
+
+## Documentations
+[Documentations](http://thundersvm.readthedocs.io)
+## API Reference
+[API Reference(doxygen)](http://zeyiwen.github.io/thundersvm/)
 ## TODO
 - integrate with interfaces
 
