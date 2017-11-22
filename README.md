@@ -1,12 +1,13 @@
 # ThunderSVM
 [![Build Status](https://travis-ci.org/zeyiwen/thundersvm.svg?branch=master)](https://travis-ci.org/zeyiwen/thundersvm)
 
-<img src="https://github.com/zeyiwen/thundersvm/raw/improve-doc/logo.png" width = "30%" height = "30%" align=left />
-The mission of ThunderSVM is to help users easily and efficiently apply SVMs to solve problems. Some key features of ThunderSVM are as follows.
 
+<div align="center"><img width="65" height="75" src="https://raw.githubusercontent.com/mzlogin/mzlogin.github.io/master/images/posts/markdown/demo.png"/></div>
+
+# Overview
+The mission of ThunderSVM is to help users easily and efficiently apply SVMs to solve problems. Some key features of ThunderSVM are as follows.
 * Support one-class, binary and multi-class SVM classification, SVM regression, and SVMs with probability outputs.
 * Have Python, R and Matlab interfaces.
-
 
 ## Getting Started
 ### Prerequisites
