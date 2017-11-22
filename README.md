@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.org/zeyiwen/thundersvm.svg?branch=master)](https://travis-ci.org/zeyiwen/thundersvm)
+
+![logo](https://github.com/zeyiwen/thundersvm/raw/improve-doc/logo.png)
 ## Overview
 The mission of ThunderSVM is to help users easily and efficiently apply SVMs to solve problems. Some key features of ThunderSVM are as follows.
 
