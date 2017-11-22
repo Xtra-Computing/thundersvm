@@ -54,6 +54,12 @@ git submodule init eigen && git submodule update
 mkdir build && cd build && cmake -DUSE_CUDA=OFF -DUSE_EIGEN=ON .. && make -j
 ```
 Now ThunderSVM will work solely on CPUs and does not rely on CUDA.
+
+## Related websites
+* [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/)
+* [SVM<sup>light</sup>](http://svmlight.joachims.org/)
+* [OHD-SVM](https://github.com/OrcusCZ/OHD-SVM)
+
 ## TODO
 - integrate with interfaces
 
