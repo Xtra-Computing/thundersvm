@@ -63,3 +63,7 @@ Now ThunderSVM will work solely on CPUs and does not rely on CUDA.
 ## TODO
 - integrate with interfaces
 
+## Related websites
+* [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/)
+* [SVM<sup>light</sup>](http://svmlight.joachims.org/)
+* [OHD-SVM](https://github.com/OrcusCZ/OHD-SVM)
