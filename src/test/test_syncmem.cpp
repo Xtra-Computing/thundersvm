@@ -3,13 +3,14 @@
 //
 #include "gtest/gtest.h"
 #include "thundersvm/syncmem.h"
+
 TEST(SyncMemTest, host_allocate){
     SyncMem syncMem(100);
     EXPECT_NE(syncMem.host_data(), nullptr);
     EXPECT_EQ(syncMem.head(), SyncMem::HEAD::HOST);
     EXPECT_EQ(syncMem.size(), 100);
 }
-
+#ifdef USE_CUDA
 TEST(SyncMemTest, device_allocate){
     SyncMem syncMem(100);
     EXPECT_NE(syncMem.device_data(), nullptr);
@@ -35,4 +36,6 @@ TEST(SyncMemTest, host_to_device){
         EXPECT_EQ(data[i] , i);
     }
 }
+
+#endif
 

@@ -3,6 +3,7 @@
 //
 #include "gtest/gtest.h"
 #include "thundersvm/syncdata.h"
+
 TEST(SyncDataTest, host_allocate){
     SyncData<int> syncData(100);
     EXPECT_NE(syncData.host_data(), nullptr);
@@ -14,6 +15,7 @@ TEST(SyncDataTest, host_allocate){
     EXPECT_EQ(syncData.size(), 20);
 }
 
+#ifdef USE_CUDA
 TEST(SyncDataTest, device_allocate){
     SyncData<int> syncData(100);
     EXPECT_NE(syncData.device_data(), nullptr);
@@ -50,3 +52,5 @@ TEST(SyncDataTest, host_to_device){
         EXPECT_EQ(syncData1[i], i);
     }
 }
+
+#endif

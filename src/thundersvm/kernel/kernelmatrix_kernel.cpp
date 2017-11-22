@@ -1,6 +1,9 @@
 //
 // Created by jiashuai on 17-11-7.
 //
+#include <config.h>
+
+#ifndef USE_CUDA
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
@@ -121,3 +124,4 @@ namespace svm_kernel {
     	
     }
 }
+#endif

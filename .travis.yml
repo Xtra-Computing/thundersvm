@@ -1,0 +1,9 @@
+language: cpp
+compiler:
+  - gcc
+before_script:
+  - sudo apt-get install libeigen3-dev
+  - mkdir build
+  - cd build
+  - cmake -DUSE_CUDA=OFF -DUSE_EIGEN=ON ..
+script: make -j runtest

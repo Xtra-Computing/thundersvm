@@ -4,7 +4,9 @@
 #include <thrust/sort.h>
 #include <thrust/system/cuda/detail/par.h>
 #include "thundersvm/kernel/smo_kernel.h"
+#include <config.h>
 
+#ifdef USE_CUDA
 namespace svm_kernel {
 
     __device__ int get_block_min(const float *values, int *index) {
@@ -306,3 +308,4 @@ namespace svm_kernel {
                             f_idx2sort.device_data(), thrust::less<float_type>());
     }
 }
+#endif

@@ -2,7 +2,9 @@
 //
 // Created by jiashuai on 17-11-7.
 //
+#include <config.h>
 
+#ifndef USE_CUDA
 #include <thundersvm/kernel/smo_kernel.h>
 
 namespace svm_kernel {
@@ -315,4 +317,5 @@ namespace svm_kernel {
         }
     }
 }
+#endif
 
