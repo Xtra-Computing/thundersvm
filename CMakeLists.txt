@@ -16,7 +16,6 @@ find_package(Threads REQUIRED)
 #mkl_sequential
 #mkl_core
 #)
-
 if (USE_CUDA)
     message("Compile with CUDA")
     find_package(CUDA REQUIRED QUIET)
@@ -24,11 +23,7 @@ if (USE_CUDA)
     set(LINK_LIBRARY ${CUDA_cusparse_LIBRARY})
 else ()
     message("Compile without CUDA")
-    find_package(OpenMP)
-    if (OPENMP_FOUND)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    endif ()
+    find_package(OpenMP REQUIRED)
 endif ()
 
 if (USE_EIGEN)

@@ -1,8 +1,13 @@
 .*
 !.gitignore
 !.gitmodules
-build
+!.travis.yml
+*build*
 dataset/*
 !dataset/*.sh
 !dataset/test_dataset.txt
 html
+latex
+logs
+*.pyc
+

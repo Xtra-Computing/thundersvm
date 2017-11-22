@@ -1,8 +1,8 @@
-ThunderSVM: A Fast SVM Library
+ThunderSVM: An Open-Source SVM Library on GPUs and CPUs
 ======================================
 The mission of ThunderSVM is to help users easily and efficiently apply SVMs to solve problems. Some key features of ThunderSVM are as follows.
 
-* Support one-class, binary and multi-class SVM classification, SVM regression, and SVMs with probability outputs.
+* Support one-class SVMs, binary and multi-class SVM classification (SVC), SVM regression (SVR), and SVMs with probability outputs.
 * Have Python, R and Matlab interfaces.
 
 <center><img src="_static/overall.png" alt="performance" style="width: 400px;"></center>
@@ -13,3 +13,8 @@ The mission of ThunderSVM is to help users easily and efficiently apply SVMs to 
 * [Parameters](parameters.md)
 * [How To](how-to.md)
 * [FAQ](faq.md)
+
+## Related websites
+* [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/)
+* [SVM<sup>light</sup>](http://svmlight.joachims.org/)
+* [OHD-SVM](https://github.com/OrcusCZ/OHD-SVM)
