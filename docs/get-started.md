@@ -9,11 +9,11 @@ Here we provide a quick start tutorial for users to install and test ThunderSVM.
 ## Installation
 * Clone ThunderSVM repository
 ```bash
-git clone --recursive git@github.com:zeyiwen/mascot.git
+git clone --recursive git@github.com:zeyiwen/thundersvm.git
 ```
 * Download testing datasets
 ```bash
-cd mascot
+cd thundersvm
 dataset/get_datasets.sh
 ```
 * Build binary for testing
@@ -83,5 +83,5 @@ ThunderSVM provides python interface. Go to the python subdirectory and type pyt
 >>>y,x = svm_read_problem('mnist.scale')
 >>>svm_train(y, x, 'mnist.scale.model', '-s 0 -t 2 -g 0.125 -c 10 -e 0.001')
 >>>y,x = svm_read_problem('mnist.scale.t')
->>>svm_predict(y, x, 'mnist.scale.model', 'mnist.scale.out')
+>>>y = svm_predict(x, 'mnist.scale.model', 'mnist.scale.out')
 ```
