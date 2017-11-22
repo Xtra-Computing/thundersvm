@@ -1,7 +1,8 @@
 # ThunderSVM
 [![Build Status](https://travis-ci.org/zeyiwen/thundersvm.svg?branch=master)](https://travis-ci.org/zeyiwen/thundersvm)
 
-<div align="center"><img src="https://github.com/zeyiwen/thundersvm/raw/master/logo.png" align=left/>
+<div align="center">
+<img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/overall.png" width="50%" height="50%" align=left/>
 </div>
 
 ## Overview
@@ -13,8 +14,8 @@ The mission of ThunderSVM is to help users easily and efficiently apply SVMs to 
 - [Getting Started](https://github.com/zeyiwen/thundersvm/tree/improve-doc#getting-started)
 - [Advanced](https://github.com/zeyiwen/thundersvm/tree/improve-doc#advanced)
 - [Working without GPUs](https://github.com/zeyiwen/thundersvm/tree/improve-doc#working-without-gpus)
-- [Documentations](https://github.com/zeyiwen/thundersvm/tree/improve-doc#documentations)
-- [API Reference](https://github.com/zeyiwen/thundersvm/tree/improve-doc#api-reference)
+- [Documentations](http://thundersvm.readthedocs.io)
+- [API Reference (doxygen)](http://zeyiwen.github.io/thundersvm/)
 ## Getting Started
 ### Prerequisites
 * [CUDA](https://developer.nvidia.com/cuda-downloads)
@@ -52,11 +53,6 @@ git submodule init eigen && git submodule update
 mkdir build && cd build && cmake -DUSE_CUDA=OFF -DUSE_EIGEN=ON .. && make -j
 ```
 Now ThunderSVM will work solely on CPUs and does not rely on CUDA.
-
-## Documentations
-[Documentations](http://thundersvm.readthedocs.io)
-## API Reference
-[API Reference (doxygen)](http://zeyiwen.github.io/thundersvm/)
 ## TODO
 - integrate with interfaces
 
