@@ -1,7 +1,7 @@
-#ThunderSVM
+# ThunderSVM
 [![Build Status](https://travis-ci.org/zeyiwen/thundersvm.svg?branch=master)](https://travis-ci.org/zeyiwen/thundersvm)
 
-<div align="center"><img src="https://github.com/zeyiwen/thundersvm/raw/improve-doc/logo.png" align=left/>
+<div align="center"><img src="https://github.com/zeyiwen/thundersvm/raw/master/logo.png" align=left/>
 </div>
 
 ## Overview
@@ -9,6 +9,8 @@ The mission of ThunderSVM is to help users easily and efficiently apply SVMs to 
 * Support one-class, binary and multi-class SVM classification, SVM regression, and SVMs with probability outputs.
 * Have Python, R and Matlab interfaces.
 
+## Contents
+- [Getting Started](https://github.com/zeyiwen/thundersvm/tree/improve-doc#getting-started)
 ## Getting Started
 ### Prerequisites
 * [CUDA](https://developer.nvidia.com/cuda-downloads)
