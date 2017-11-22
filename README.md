@@ -7,9 +7,9 @@
 </div>
 
 ## Overview
-The mission of ThunderSVM is to help users easily and efficiently apply SVMs to solve problems. Some key features of ThunderSVM are as follows.
-* Support one-class, binary and multi-class SVM classification, SVM regression, and SVMs with probability outputs.
-* Have Python, R and Matlab interfaces.
+The mission of ThunderSVM is to help users easily and efficiently apply SVMs to solve problems. GPU blabla.. Some key features of ThunderSVM are as follows.
+* Support one-class, binary and multi-class SVM classification, SVM regression, and SVMs with probability outputs (the same functionality as LibSVM)
+* Have Python, R and Matlab interfaces (entirely compatible with LibSVM)
 
 ## Contents
 - [Getting Started](https://github.com/zeyiwen/thundersvm/tree/improve-doc#getting-started)
@@ -17,11 +17,13 @@ The mission of ThunderSVM is to help users easily and efficiently apply SVMs to 
 - [Working without GPUs](https://github.com/zeyiwen/thundersvm/tree/improve-doc#working-without-gpus)
 - [Documentations](http://thundersvm.readthedocs.io)
 - [API Reference (doxygen)](http://zeyiwen.github.io/thundersvm/)
+
 ## Getting Started
 ### Prerequisites
+* Operating system: 
 * [CUDA](https://developer.nvidia.com/cuda-downloads)
-* cmake > 2.8
-* gcc > 4.8
+* cmake 2.8 or above
+* gcc 4.8 or above
 ### Download
 ```bash
 git clone git@github.com:zeyiwen/thundersvm.git
@@ -59,6 +61,11 @@ Now ThunderSVM will work solely on CPUs and does not rely on CUDA.
 * [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/)
 * [SVM<sup>light</sup>](http://svmlight.joachims.org/)
 * [OHD-SVM](https://github.com/OrcusCZ/OHD-SVM)
+* [NVIDIA Machine Learning](http://www.nvidia.com/object/machine-learning.html). 
 
 ## TODO
 - integrate with interfaces
+
+## Acknowlegement 
+* NVIDIA: We acknowledge NVIDIA for their hardware donations.
+* This project is hosted by NUS, collaborating with Prof. Jian Chen (xxxx).
