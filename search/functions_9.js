@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['predict',['predict',['../classOneClassSVC.html#adebb04652fb4d0c57ea204bc42cd72ca',1,'OneClassSVC::predict()'],['../classSVC.html#ad2382cd5a2a1a84c7bcb4668ccc68ba1',1,'SVC::predict()'],['../classSvmModel.html#a176b44e12c91f3cf97d388646735f8d9',1,'SvmModel::predict()']]],
-  ['predict_5fdec_5fvalues',['predict_dec_values',['../classSvmModel.html#a3c866fc4628a6985a1b8527e65df9e2d',1,'SvmModel']]]
+  ['operator_5b_5d',['operator[]',['../classSyncData.html#ab990be0185a539f57585d1a2df748c65',1,'SyncData']]],
+  ['original_5findex',['original_index',['../classDataSet.html#a257baa42bf328e199f5d37a513a33c63',1,'DataSet']]]
 ];

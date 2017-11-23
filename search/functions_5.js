@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['load_5ffrom_5ffile',['load_from_file',['../classSvmModel.html#aaccc1a69f41e3e7f343fdf573fca156c',1,'SvmModel']]]
+  ['kernelmatrix',['KernelMatrix',['../classKernelMatrix.html#a0795d5bcf9773f9dad28049968b1e17f',1,'KernelMatrix']]]
 ];

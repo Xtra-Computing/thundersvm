@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['label',['label',['../classSvmModel.html#ab2b83f30e82b06180ba0b024f67ab9aa',1,'SvmModel']]],
-  ['load_5ffrom_5ffile',['load_from_file',['../classSvmModel.html#aaccc1a69f41e3e7f343fdf573fca156c',1,'SvmModel']]]
+  ['instances',['instances',['../classDataSet.html#a8bf43d2a554479e04d7ff855a93e13f0',1,'DataSet::instances(int y_i) const'],['../classDataSet.html#aa2c63b1035ce6de7f8e38d26631d5608',1,'DataSet::instances(int y_i, int y_j) const']]]
 ];

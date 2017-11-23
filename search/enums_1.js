@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['svm_5ftype',['SVM_TYPE',['../structSvmParam.html#a5cfe1f6df84cf842b3928f0c790aabff',1,'SvmParam']]]
+  ['kernel_5ftype',['KERNEL_TYPE',['../structSvmParam.html#a9b57fab7ce96bba08d7f2003247f82fb',1,'SvmParam']]]
 ];

@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['resize',['resize',['../classSyncData.html#a61d09ff9847adc1210f7047993a3a7f1',1,'SyncData']]],
-  ['rho',['rho',['../classSvmModel.html#afe87f9afa263752b14d6325ec8d21802',1,'SvmModel']]]
+  ['oneclasssvc',['OneClassSVC',['../classOneClassSVC.html',1,'']]],
+  ['operator_5b_5d',['operator[]',['../classSyncData.html#ab990be0185a539f57585d1a2df748c65',1,'SyncData']]],
+  ['original_5findex',['original_index',['../classDataSet.html#a257baa42bf328e199f5d37a513a33c63',1,'DataSet']]]
 ];

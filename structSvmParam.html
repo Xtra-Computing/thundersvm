@@ -74,10 +74,15 @@ $(function() {
 <div class="title">SvmParam Struct Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>params for ThunderSVM  
+ <a href="structSvmParam.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="svmparam_8h_source.html">svmparam.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a5cfe1f6df84cf842b3928f0c790aabff"><td class="memItemLeft" align="right" valign="top"><a id="a5cfe1f6df84cf842b3928f0c790aabff"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>SVM_TYPE</b> { <br />
+<tr class="memitem:a5cfe1f6df84cf842b3928f0c790aabff"><td class="memItemLeft" align="right" valign="top"><a id="a5cfe1f6df84cf842b3928f0c790aabff"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSvmParam.html#a5cfe1f6df84cf842b3928f0c790aabff">SVM_TYPE</a> { <br />
 &#160;&#160;<b>C_SVC</b>, 
 <b>NU_SVC</b>, 
 <b>ONE_CLASS</b>, 
@@ -85,55 +90,68 @@ Public Types</h2></td></tr>
 <br />
 &#160;&#160;<b>NU_SVR</b>
 <br />
- }</td></tr>
+ }<tr class="memdesc:a5cfe1f6df84cf842b3928f0c790aabff"><td class="mdescLeft">&#160;</td><td class="mdescRight">SVM type. <br /></td></tr>
+</td></tr>
 <tr class="separator:a5cfe1f6df84cf842b3928f0c790aabff"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9b57fab7ce96bba08d7f2003247f82fb"><td class="memItemLeft" align="right" valign="top"><a id="a9b57fab7ce96bba08d7f2003247f82fb"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>KERNEL_TYPE</b> { <b>LINEAR</b>, 
+<tr class="memitem:a9b57fab7ce96bba08d7f2003247f82fb"><td class="memItemLeft" align="right" valign="top"><a id="a9b57fab7ce96bba08d7f2003247f82fb"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSvmParam.html#a9b57fab7ce96bba08d7f2003247f82fb">KERNEL_TYPE</a> { <b>LINEAR</b>, 
 <b>POLY</b>, 
 <b>RBF</b>, 
 <b>SIGMOID</b>
- }</td></tr>
+ }<tr class="memdesc:a9b57fab7ce96bba08d7f2003247f82fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">kernel function type <br /></td></tr>
+</td></tr>
 <tr class="separator:a9b57fab7ce96bba08d7f2003247f82fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:abe80bccac6a81031d5ed6cfaea65f525"><td class="memItemLeft" align="right" valign="top"><a id="abe80bccac6a81031d5ed6cfaea65f525"></a>
-SVM_TYPE&#160;</td><td class="memItemRight" valign="bottom"><b>svm_type</b></td></tr>
+<a class="el" href="structSvmParam.html#a5cfe1f6df84cf842b3928f0c790aabff">SVM_TYPE</a>&#160;</td><td class="memItemRight" valign="bottom"><b>svm_type</b></td></tr>
 <tr class="separator:abe80bccac6a81031d5ed6cfaea65f525"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad9d96e76b4d3f2aedc4ac62e3767794b"><td class="memItemLeft" align="right" valign="top"><a id="ad9d96e76b4d3f2aedc4ac62e3767794b"></a>
-KERNEL_TYPE&#160;</td><td class="memItemRight" valign="bottom"><b>kernel_type</b></td></tr>
+<a class="el" href="structSvmParam.html#a9b57fab7ce96bba08d7f2003247f82fb">KERNEL_TYPE</a>&#160;</td><td class="memItemRight" valign="bottom"><b>kernel_type</b></td></tr>
 <tr class="separator:ad9d96e76b4d3f2aedc4ac62e3767794b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a763382df95d4c9e7546418716b410c10"><td class="memItemLeft" align="right" valign="top"><a id="a763382df95d4c9e7546418716b410c10"></a>
-float_type&#160;</td><td class="memItemRight" valign="bottom"><b>C</b></td></tr>
+float_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSvmParam.html#a763382df95d4c9e7546418716b410c10">C</a></td></tr>
+<tr class="memdesc:a763382df95d4c9e7546418716b410c10"><td class="mdescLeft">&#160;</td><td class="mdescRight">regularization parameter <br /></td></tr>
 <tr class="separator:a763382df95d4c9e7546418716b410c10"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4a31e10eaf6c61ed669d04fa73da70b8"><td class="memItemLeft" align="right" valign="top"><a id="a4a31e10eaf6c61ed669d04fa73da70b8"></a>
-float_type&#160;</td><td class="memItemRight" valign="bottom"><b>gamma</b></td></tr>
+float_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSvmParam.html#a4a31e10eaf6c61ed669d04fa73da70b8">gamma</a></td></tr>
+<tr class="memdesc:a4a31e10eaf6c61ed669d04fa73da70b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">for RBF kernel <br /></td></tr>
 <tr class="separator:a4a31e10eaf6c61ed669d04fa73da70b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a311833006dfd72477f4ad0b6b989ccbd"><td class="memItemLeft" align="right" valign="top"><a id="a311833006dfd72477f4ad0b6b989ccbd"></a>
-float_type&#160;</td><td class="memItemRight" valign="bottom"><b>p</b></td></tr>
+float_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSvmParam.html#a311833006dfd72477f4ad0b6b989ccbd">p</a></td></tr>
+<tr class="memdesc:a311833006dfd72477f4ad0b6b989ccbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">for regression <br /></td></tr>
 <tr class="separator:a311833006dfd72477f4ad0b6b989ccbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af810781542a981db01fc00f7f39726be"><td class="memItemLeft" align="right" valign="top"><a id="af810781542a981db01fc00f7f39726be"></a>
-float_type&#160;</td><td class="memItemRight" valign="bottom"><b>nu</b></td></tr>
+float_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSvmParam.html#af810781542a981db01fc00f7f39726be">nu</a></td></tr>
+<tr class="memdesc:af810781542a981db01fc00f7f39726be"><td class="mdescLeft">&#160;</td><td class="mdescRight">for \(\nu\)-SVM <br /></td></tr>
 <tr class="separator:af810781542a981db01fc00f7f39726be"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae0678be9ff2a3788d5d9f3c751c9ff6f"><td class="memItemLeft" align="right" valign="top"><a id="ae0678be9ff2a3788d5d9f3c751c9ff6f"></a>
-float_type&#160;</td><td class="memItemRight" valign="bottom"><b>epsilon</b></td></tr>
+float_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSvmParam.html#ae0678be9ff2a3788d5d9f3c751c9ff6f">epsilon</a></td></tr>
+<tr class="memdesc:ae0678be9ff2a3788d5d9f3c751c9ff6f"><td class="mdescLeft">&#160;</td><td class="mdescRight">stopping criteria <br /></td></tr>
 <tr class="separator:ae0678be9ff2a3788d5d9f3c751c9ff6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a63bcb2d45ce7039430f3a44cc5a1650c"><td class="memItemLeft" align="right" valign="top"><a id="a63bcb2d45ce7039430f3a44cc5a1650c"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>degree</b></td></tr>
+int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSvmParam.html#a63bcb2d45ce7039430f3a44cc5a1650c">degree</a></td></tr>
+<tr class="memdesc:a63bcb2d45ce7039430f3a44cc5a1650c"><td class="mdescLeft">&#160;</td><td class="mdescRight">degree for polynomial kernel <br /></td></tr>
 <tr class="separator:a63bcb2d45ce7039430f3a44cc5a1650c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a90b510243adf9abba35a9f83ec7f1f48"><td class="memItemLeft" align="right" valign="top"><a id="a90b510243adf9abba35a9f83ec7f1f48"></a>
-float_type&#160;</td><td class="memItemRight" valign="bottom"><b>coef0</b></td></tr>
+float_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSvmParam.html#a90b510243adf9abba35a9f83ec7f1f48">coef0</a></td></tr>
+<tr class="memdesc:a90b510243adf9abba35a9f83ec7f1f48"><td class="mdescLeft">&#160;</td><td class="mdescRight">for polynomial/sigmoid kernel <br /></td></tr>
 <tr class="separator:a90b510243adf9abba35a9f83ec7f1f48"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a42a7fbf5d0134a0673692e4b42750aa0"><td class="memItemLeft" align="right" valign="top"><a id="a42a7fbf5d0134a0673692e4b42750aa0"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>nr_weight</b></td></tr>
+int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSvmParam.html#a42a7fbf5d0134a0673692e4b42750aa0">nr_weight</a></td></tr>
+<tr class="memdesc:a42a7fbf5d0134a0673692e4b42750aa0"><td class="mdescLeft">&#160;</td><td class="mdescRight">for <a class="el" href="classSVC.html" title="Support Vector Machine for classification. ">SVC</a> <br /></td></tr>
 <tr class="separator:a42a7fbf5d0134a0673692e4b42750aa0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa4a07e9c61d0c6b649b736fbd622ab8d"><td class="memItemLeft" align="right" valign="top"><a id="aa4a07e9c61d0c6b649b736fbd622ab8d"></a>
-int *&#160;</td><td class="memItemRight" valign="bottom"><b>weight_label</b></td></tr>
+int *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSvmParam.html#aa4a07e9c61d0c6b649b736fbd622ab8d">weight_label</a></td></tr>
+<tr class="memdesc:aa4a07e9c61d0c6b649b736fbd622ab8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">for <a class="el" href="classSVC.html" title="Support Vector Machine for classification. ">SVC</a> <br /></td></tr>
 <tr class="separator:aa4a07e9c61d0c6b649b736fbd622ab8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6ab3ce12483043b9d60fbf15edfce3bc"><td class="memItemLeft" align="right" valign="top"><a id="a6ab3ce12483043b9d60fbf15edfce3bc"></a>
-float_type *&#160;</td><td class="memItemRight" valign="bottom"><b>weight</b></td></tr>
+float_type *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSvmParam.html#a6ab3ce12483043b9d60fbf15edfce3bc">weight</a></td></tr>
+<tr class="memdesc:a6ab3ce12483043b9d60fbf15edfce3bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">for <a class="el" href="classSVC.html" title="Support Vector Machine for classification. ">SVC</a> <br /></td></tr>
 <tr class="separator:a6ab3ce12483043b9d60fbf15edfce3bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aab26c0f269c64bfb2f1bab9de44fcc01"><td class="memItemLeft" align="right" valign="top"><a id="aab26c0f269c64bfb2f1bab9de44fcc01"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>probability</b></td></tr>
+int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSvmParam.html#aab26c0f269c64bfb2f1bab9de44fcc01">probability</a></td></tr>
+<tr class="memdesc:aab26c0f269c64bfb2f1bab9de44fcc01"><td class="mdescLeft">&#160;</td><td class="mdescRight">do probability estimates <br /></td></tr>
 <tr class="separator:aab26c0f269c64bfb2f1bab9de44fcc01"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
@@ -144,7 +162,9 @@ static const char *&#160;</td><td class="memItemRight" valign="bottom"><b>kernel
 <tr class="memitem:a87538873b0a531dc4fb3c455550e155a"><td class="memItemLeft" align="right" valign="top">static const char *&#160;</td><td class="memItemRight" valign="bottom"><b>svm_type_name</b> [6]</td></tr>
 <tr class="separator:a87538873b0a531dc4fb3c455550e155a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>params for ThunderSVM </p>
+</div><h2 class="groupheader">Member Data Documentation</h2>
 <a id="a87538873b0a531dc4fb3c455550e155a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a87538873b0a531dc4fb3c455550e155a">&#9670;&nbsp;</a></span>svm_type_name</h2>
 

@@ -1,7 +1,11 @@
 var searchData=
 [
-  ['to_5fdevice',['to_device',['../classthunder_1_1SyncMem.html#a2a08a3b2dc5bb058f89a646c216f5927',1,'thunder::SyncMem']]],
-  ['to_5fhost',['to_host',['../classthunder_1_1SyncMem.html#a80ff5a4df5c5ffeaba265e00307f3b38',1,'thunder::SyncMem']]],
-  ['train',['train',['../classNuSVR.html#aa270427dcdbf18eaf5f0e2ad01576f80',1,'NuSVR::train()'],['../classOneClassSVC.html#a6ac79cf09897683edda04ca2cde536f4',1,'OneClassSVC::train()'],['../classSVC.html#a09e383ada1451e353ec0ea55ea890258',1,'SVC::train()'],['../classSvmModel.html#af40e7c4fa2e9939f5d7306bf9ca4cb3e',1,'SvmModel::train()'],['../classSVR.html#a20620cffb15439a7f28d0e4b7007aea5',1,'SVR::train()']]],
-  ['train_5fbinary',['train_binary',['../classNuSVC.html#acdd27cd8b37a8b63cebbf2e473dee10b',1,'NuSVC::train_binary()'],['../classSVC.html#ab3d0f6f3db7500cb2a431bd5ea3ad04e',1,'SVC::train_binary()']]]
+  ['save_5fsvr_5fcoef',['save_svr_coef',['../classSVR.html#ad11489832ff9d9eda97cada5d437f768',1,'SVR']]],
+  ['save_5fto_5ffile',['save_to_file',['../classSvmModel.html#a83ca37174114b2b52d504d8a999e9aa2',1,'SvmModel']]],
+  ['set_5fdevice_5fdata',['set_device_data',['../classthunder_1_1SyncMem.html#ab9b4b0faf47050ea58c4fc46b4b8abfd',1,'thunder::SyncMem']]],
+  ['set_5fhost_5fdata',['set_host_data',['../classthunder_1_1SyncMem.html#a97a639297a723fe0166786f37f94a810',1,'thunder::SyncMem']]],
+  ['size',['size',['../classthunder_1_1SyncMem.html#a78f79f08889d3d7951414268b37dcfb3',1,'thunder::SyncMem']]],
+  ['start',['start',['../classDataSet.html#a4bd634bb939fc6d1c80a1b30e090ce20',1,'DataSet']]],
+  ['syncdata',['SyncData',['../classSyncData.html#af00ab83c3db7c770b15bdee5770214af',1,'SyncData']]],
+  ['syncmem',['SyncMem',['../classthunder_1_1SyncMem.html#adcfb84154a21b1bb80eefd239bb34a6b',1,'thunder::SyncMem']]]
 ];

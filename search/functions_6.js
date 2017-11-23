@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['mem_5fset',['mem_set',['../classSyncData.html#a4ed64161bb849b58dd849088cd2e5ee1',1,'SyncData']]],
-  ['model_5fsetup',['model_setup',['../classSVC.html#a13d3980a3ca844601f03cd5f862d7a8f',1,'SVC::model_setup()'],['../classSvmModel.html#ac396718768c84e5336ceba93420f6c51',1,'SvmModel::model_setup()']]]
+  ['label',['label',['../classDataSet.html#aebd095e85c866d5c5d3c40784e47d537',1,'DataSet']]],
+  ['load_5ffrom_5ffile',['load_from_file',['../classDataSet.html#a51ef4f5f6057b9739d6d072f95859936',1,'DataSet::load_from_file()'],['../classSvmModel.html#aaccc1a69f41e3e7f343fdf573fca156c',1,'SvmModel::load_from_file()']]],
+  ['load_5ffrom_5fpython',['load_from_python',['../classDataSet.html#a442c92d7cf82f29528bdbe0ab1fbd982',1,'DataSet']]]
 ];

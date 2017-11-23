@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['n_5ffeatures',['n_features',['../classKernelMatrix.html#aa08c9d9680d56850b8852ca96946d880',1,'KernelMatrix']]],
-  ['n_5finstances',['n_instances',['../classKernelMatrix.html#a47bd7998d97d7b1f9a2058ddb38ca0e2',1,'KernelMatrix']]],
-  ['nnz',['nnz',['../classKernelMatrix.html#aaa49a372255aa00477db4b82d362f654',1,'KernelMatrix']]]
+  ['mem_5fset',['mem_set',['../classSyncData.html#a4ed64161bb849b58dd849088cd2e5ee1',1,'SyncData']]],
+  ['model_5fsetup',['model_setup',['../classSVC.html#a13d3980a3ca844601f03cd5f862d7a8f',1,'SVC::model_setup()'],['../classSvmModel.html#ac396718768c84e5336ceba93420f6c51',1,'SvmModel::model_setup()']]]
 ];
