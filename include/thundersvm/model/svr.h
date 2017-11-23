@@ -12,7 +12,7 @@
 using std::map;
 
 /**
- * Support Vector Machine for regression
+ * @brief Support Vector Machine for regression
  */
 class SVR : public SvmModel {
 public:
