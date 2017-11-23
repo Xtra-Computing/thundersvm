@@ -8,12 +8,11 @@
 #include <thundersvm/model/nusvr.h>
 #include <thundersvm/util/metric.h>
 #include "thundersvm/cmdparser.h"
-#include <iostream>
+
 using std::fstream;
 using std::stringstream;
 DataSet dataset_python;
 
-INITIALIZE_EASYLOGGINGPP
 extern "C" {
     DataSet* DataSet_new() {return new DataSet();}
     void DataSet_load_from_python(DataSet *dataset, float *y, char **x, int len) {dataset->load_from_python(y, x, len);}
