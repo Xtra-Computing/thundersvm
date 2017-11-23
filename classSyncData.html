@@ -67,13 +67,16 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pri-methods">Private Member Functions</a> &#124;
-<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classSyncData-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">SyncData&lt; T &gt; Class Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>Wrapper of SyncMem with a type.  
+ <a href="classSyncData.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="syncdata_8h_source.html">syncdata.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for SyncData&lt; T &gt;:</div>
 <div class="dyncontent">
@@ -85,8 +88,7 @@ Inheritance diagram for SyncData&lt; T &gt;:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:af00ab83c3db7c770b15bdee5770214af"><td class="memItemLeft" align="right" valign="top"><a id="af00ab83c3db7c770b15bdee5770214af"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>SyncData</b> (size_t count)</td></tr>
+<tr class="memitem:af00ab83c3db7c770b15bdee5770214af"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSyncData.html#af00ab83c3db7c770b15bdee5770214af">SyncData</a> (size_t count)</td></tr>
 <tr class="separator:af00ab83c3db7c770b15bdee5770214af"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8682b11cd41b2d7a8b5f022f0fd6a674"><td class="memItemLeft" align="right" valign="top"><a id="a8682b11cd41b2d7a8b5f022f0fd6a674"></a>
 const T *&#160;</td><td class="memItemRight" valign="bottom"><b>host_data</b> () const</td></tr>
@@ -112,23 +114,19 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>to_host</b> () const<
 <tr class="memitem:a690d59a5ce834da76f817f77ac980e32"><td class="memItemLeft" align="right" valign="top"><a id="a690d59a5ce834da76f817f77ac980e32"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>to_device</b> () const</td></tr>
 <tr class="separator:a690d59a5ce834da76f817f77ac980e32"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab990be0185a539f57585d1a2df748c65"><td class="memItemLeft" align="right" valign="top"><a id="ab990be0185a539f57585d1a2df748c65"></a>
-const T &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator[]</b> (int index) const</td></tr>
+<tr class="memitem:ab990be0185a539f57585d1a2df748c65"><td class="memItemLeft" align="right" valign="top">const T &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSyncData.html#ab990be0185a539f57585d1a2df748c65">operator[]</a> (int index) const</td></tr>
 <tr class="separator:ab990be0185a539f57585d1a2df748c65"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9ef937985efc33b5a7b916d8c290574d"><td class="memItemLeft" align="right" valign="top"><a id="a9ef937985efc33b5a7b916d8c290574d"></a>
 T &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator[]</b> (int index)</td></tr>
 <tr class="separator:a9ef937985efc33b5a7b916d8c290574d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aabaf4b074c110e14a8f654f87b3060d3"><td class="memItemLeft" align="right" valign="top"><a id="aabaf4b074c110e14a8f654f87b3060d3"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>copy_from</b> (const T *source, size_t count)</td></tr>
+<tr class="memitem:aabaf4b074c110e14a8f654f87b3060d3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSyncData.html#aabaf4b074c110e14a8f654f87b3060d3">copy_from</a> (const T *source, size_t count)</td></tr>
 <tr class="separator:aabaf4b074c110e14a8f654f87b3060d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a22c4825b0e505d2dc98793a00fb923d1"><td class="memItemLeft" align="right" valign="top"><a id="a22c4825b0e505d2dc98793a00fb923d1"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>copy_from</b> (const <a class="el" href="classSyncData.html">SyncData</a>&lt; T &gt; &amp;source)</td></tr>
 <tr class="separator:a22c4825b0e505d2dc98793a00fb923d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4ed64161bb849b58dd849088cd2e5ee1"><td class="memItemLeft" align="right" valign="top"><a id="a4ed64161bb849b58dd849088cd2e5ee1"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>mem_set</b> (const T &amp;value)</td></tr>
+<tr class="memitem:a4ed64161bb849b58dd849088cd2e5ee1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSyncData.html#a4ed64161bb849b58dd849088cd2e5ee1">mem_set</a> (const T &amp;value)</td></tr>
 <tr class="separator:a4ed64161bb849b58dd849088cd2e5ee1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a61d09ff9847adc1210f7047993a3a7f1"><td class="memItemLeft" align="right" valign="top"><a id="a61d09ff9847adc1210f7047993a3a7f1"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>resize</b> (size_t count)</td></tr>
+<tr class="memitem:a61d09ff9847adc1210f7047993a3a7f1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSyncData.html#a61d09ff9847adc1210f7047993a3a7f1">resize</a> (size_t count)</td></tr>
 <tr class="separator:a61d09ff9847adc1210f7047993a3a7f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af53bb3cff3f974bbe7b5afab4750dbda"><td class="memItemLeft" align="right" valign="top"><a id="af53bb3cff3f974bbe7b5afab4750dbda"></a>
 size_t&#160;</td><td class="memItemRight" valign="bottom"><b>mem_size</b> () const</td></tr>
@@ -142,25 +140,178 @@ SyncMem::HEAD&#160;</td><td class="memItemRight" valign="bottom"><b>head</b> () 
 <tr class="memitem:ad54ceab7ff418f51a37361f3902e92c0"><td class="memItemLeft" align="right" valign="top"><a id="ad54ceab7ff418f51a37361f3902e92c0"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>log</b> (el::base::type::ostream_t &amp;ostream) const override</td></tr>
 <tr class="separator:ad54ceab7ff418f51a37361f3902e92c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
-Private Member Functions</h2></td></tr>
-<tr class="memitem:a5cd2bfc573db51113ca16054d88844bb"><td class="memItemLeft" align="right" valign="top"><a id="a5cd2bfc573db51113ca16054d88844bb"></a>
-<a class="el" href="classSyncData.html">SyncData</a>&lt; T &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (const <a class="el" href="classSyncData.html">SyncData</a>&lt; T &gt; &amp;)</td></tr>
-<tr class="separator:a5cd2bfc573db51113ca16054d88844bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7cd881512a87359cb82b929baf935a07"><td class="memItemLeft" align="right" valign="top"><a id="a7cd881512a87359cb82b929baf935a07"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>SyncData</b> (const <a class="el" href="classSyncData.html">SyncData</a>&lt; T &gt; &amp;)</td></tr>
-<tr class="separator:a7cd881512a87359cb82b929baf935a07"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
-Private Attributes</h2></td></tr>
-<tr class="memitem:a18f6fceed0f20e390f44191c481290bb"><td class="memItemLeft" align="right" valign="top"><a id="a18f6fceed0f20e390f44191c481290bb"></a>
-<a class="el" href="classthunder_1_1SyncMem.html">SyncMem</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>mem</b></td></tr>
-<tr class="separator:a18f6fceed0f20e390f44191c481290bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac6e67444451136e17a04085e797f8c5e"><td class="memItemLeft" align="right" valign="top"><a id="ac6e67444451136e17a04085e797f8c5e"></a>
-size_t&#160;</td><td class="memItemRight" valign="bottom"><b>size_</b></td></tr>
-<tr class="separator:ac6e67444451136e17a04085e797f8c5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><h3>template&lt;typename T&gt;<br />
+class SyncData&lt; T &gt;</h3>
+
+<p>Wrapper of SyncMem with a type. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T</td><td>type of element </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="af00ab83c3db7c770b15bdee5770214af"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af00ab83c3db7c770b15bdee5770214af">&#9670;&nbsp;</a></span>SyncData()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classSyncData.html">SyncData</a>&lt; T &gt;::<a class="el" href="classSyncData.html">SyncData</a> </td>
+          <td>(</td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>count</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>initialize class that can store given count of elements </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">count</td><td>the given count </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="aabaf4b074c110e14a8f654f87b3060d3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aabaf4b074c110e14a8f654f87b3060d3">&#9670;&nbsp;</a></span>copy_from()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="classSyncData.html">SyncData</a>&lt; T &gt;::copy_from </td>
+          <td>(</td>
+          <td class="paramtype">const T *&#160;</td>
+          <td class="paramname"><em>source</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>count</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>copy device data. This will call to_device() implicitly. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">source</td><td>source device data pointer </td></tr>
+    <tr><td class="paramname">count</td><td>the count of elements </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a4ed64161bb849b58dd849088cd2e5ee1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4ed64161bb849b58dd849088cd2e5ee1">&#9670;&nbsp;</a></span>mem_set()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="classSyncData.html">SyncData</a>&lt; T &gt;::mem_set </td>
+          <td>(</td>
+          <td class="paramtype">const T &amp;&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>set all elements to the given value. This method will set device data. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">value</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ab990be0185a539f57585d1a2df748c65"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab990be0185a539f57585d1a2df748c65">&#9670;&nbsp;</a></span>operator[]()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const T&amp; <a class="el" href="classSyncData.html">SyncData</a>&lt; T &gt;::operator[] </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>index</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>random access operator </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">index</td><td>the index of the elements </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><b>host</b> element at the index </dd></dl>
+
+</div>
+</div>
+<a id="a61d09ff9847adc1210f7047993a3a7f1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a61d09ff9847adc1210f7047993a3a7f1">&#9670;&nbsp;</a></span>resize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="classSyncData.html">SyncData</a>&lt; T &gt;::resize </td>
+          <td>(</td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>count</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>resize to a new size. This will also clear all data. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">count</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/thundersvm/<a class="el" href="syncdata_8h_source.html">syncdata.h</a></li>
 <li>src/thundersvm/syncdata.cpp</li>

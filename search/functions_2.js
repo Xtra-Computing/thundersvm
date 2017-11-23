@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['model_5fsetup',['model_setup',['../classSVC.html#a13d3980a3ca844601f03cd5f862d7a8f',1,'SVC::model_setup()'],['../classSvmModel.html#ac396718768c84e5336ceba93420f6c51',1,'SvmModel::model_setup()']]],
-  ['multiclass_5fprobability',['multiclass_probability',['../classSVC.html#aa710ceec54d0f64ae2df08b8388cc7c6',1,'SVC']]]
+  ['get_5frows',['get_rows',['../classKernelMatrix.html#afe4e609e4c7b1daefcbb188aac08f335',1,'KernelMatrix::get_rows(const SyncData&lt; int &gt; &amp;idx, SyncData&lt; float_type &gt; &amp;kernel_rows) const'],['../classKernelMatrix.html#a00032e0086582e37c6e8a3d9b13c4326',1,'KernelMatrix::get_rows(const DataSet::node2d &amp;instances, SyncData&lt; float_type &gt; &amp;kernel_rows) const']]]
 ];

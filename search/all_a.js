@@ -1,14 +1,7 @@
 var searchData=
 [
-  ['save_5fsvr_5fcoef',['save_svr_coef',['../classSVR.html#ad11489832ff9d9eda97cada5d437f768',1,'SVR']]],
-  ['save_5fto_5ffile',['save_to_file',['../classSvmModel.html#a83ca37174114b2b52d504d8a999e9aa2',1,'SvmModel']]],
-  ['sv',['sv',['../classSvmModel.html#affdbfed8346886355fb1918ec650fc6f',1,'SvmModel']]],
-  ['svc',['SVC',['../classSVC.html',1,'']]],
-  ['svmmodel',['SvmModel',['../classSvmModel.html',1,'']]],
-  ['svmparam',['SvmParam',['../structSvmParam.html',1,'']]],
-  ['svr',['SVR',['../classSVR.html',1,'']]],
-  ['syncdata',['SyncData',['../classSyncData.html',1,'']]],
-  ['syncdata_3c_20float_5ftype_20_3e',['SyncData&lt; float_type &gt;',['../classSyncData.html',1,'']]],
-  ['syncdata_3c_20int_20_3e',['SyncData&lt; int &gt;',['../classSyncData.html',1,'']]],
-  ['syncmem',['SyncMem',['../classthunder_1_1SyncMem.html',1,'thunder']]]
+  ['predict',['predict',['../classOneClassSVC.html#adebb04652fb4d0c57ea204bc42cd72ca',1,'OneClassSVC::predict()'],['../classSVC.html#ad2382cd5a2a1a84c7bcb4668ccc68ba1',1,'SVC::predict()'],['../classSvmModel.html#a176b44e12c91f3cf97d388646735f8d9',1,'SvmModel::predict()']]],
+  ['predict_5fdec_5fvalues',['predict_dec_values',['../classSvmModel.html#a3c866fc4628a6985a1b8527e65df9e2d',1,'SvmModel']]],
+  ['proba',['probA',['../classSvmModel.html#a94a23c8ef9f0bbc7fd98f8b625cebd1f',1,'SvmModel']]],
+  ['probb',['probB',['../classSvmModel.html#a1005e41d97b9fa9a0f614c25f1141196',1,'SvmModel']]]
 ];

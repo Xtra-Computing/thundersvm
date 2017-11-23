@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['label',['label',['../classSvmModel.html#ab2b83f30e82b06180ba0b024f67ab9aa',1,'SvmModel']]],
-  ['load_5ffrom_5ffile',['load_from_file',['../classSvmModel.html#aaccc1a69f41e3e7f343fdf573fca156c',1,'SvmModel']]]
+  ['head',['HEAD',['../classthunder_1_1SyncMem.html#a32058664321340bd7a5998f28b108edc',1,'thunder::SyncMem']]],
+  ['host_5fdata',['host_data',['../classthunder_1_1SyncMem.html#a8e783ea36301b6ee936001652b8479f8',1,'thunder::SyncMem']]]
 ];
