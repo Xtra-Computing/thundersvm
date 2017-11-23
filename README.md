@@ -1,10 +1,9 @@
-# ThunderSVM
 [![Build Status](https://travis-ci.org/zeyiwen/thundersvm.svg?branch=master)](https://travis-ci.org/zeyiwen/thundersvm)
 [![Documentation Status](https://readthedocs.org/projects/thundersvm/badge/?version=latest)](https://thundersvm.readthedocs.org)
 [![GitHub license](http://dmlc.github.io/img/apache2.svg)](./LICENSE)
 
 <div align="center">
-<img src="https://github.com/zeyiwen/thundersvm/raw/master/logo.png" width="250" height="200" align=left/>
+<img src="https://github.com/zeyiwen/thundersvm/raw/master/logo.png" width="240" height="200" align=left/>
 <img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/lang-logo.png" width="250" height="200" align=left/>
 <img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/overall.png" width="250" height="200" align=left/>
 </div>
@@ -34,8 +33,8 @@ mkdir build && cd build && cmake .. && make -j
 ```
 ### Quick Start
 ```bash
-bin\thundersvm-train -c 100 -g 0.5 ../dataset/test_dataset.txt
-bin\thundersvm-predict ../dataset/test_dataset.txt test_dataset.model test_dataset.predict
+./bin/thundersvm-train -c 100 -g 0.5 ../dataset/test_dataset.txt
+./bin/thundersvm-predict ../dataset/test_dataset.txt test_dataset.txt.model test_dataset.predict
 ```
 You will see `Accuracy = 0.98` after successful running.
 
