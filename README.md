@@ -55,11 +55,18 @@ mkdir build && cd build && cmake -DUSE_CUDA=OFF -DUSE_EIGEN=ON .. && make -j
 ```
 Now ThunderSVM will work solely on CPUs and does not rely on CUDA.
 
+## How to cite ThunderSVM
+If you use ThunderSVM in your paper, please cite our work.
+```
+@article{wenthundersvm17,
+ author = {Wen, Zeyi and Shi, Jiashuai and He, Bingsheng and Li, Qinbin and Chen, Jian},
+ title = {{ThunderSVM}: A Fast SVM library for SVMs on GPUs and CPUs},
+ journal = {To appear in arxiv},
+ year = {2017}
+}
+```
 ## Related websites
 * [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) | [SVM<sup>light</sup>](http://svmlight.joachims.org/) | [OHD-SVM](https://github.com/OrcusCZ/OHD-SVM) | [NVIDIA Machine Learning](http://www.nvidia.com/object/machine-learning.html)
-
-## TODO
-- integrate with interfaces
 
 ## Acknowlegement 
 * We acknowledge NVIDIA for their hardware donations.
