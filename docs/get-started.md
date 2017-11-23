@@ -25,16 +25,6 @@ make -j runtest
 ```
 Make sure all the test cases pass.
 
-## Set running mode
-We provide two ways to run ThunderSVM. By modifying CMakeList.txt in the thundersvm directory, you can choose whether or not to use gpu to speed up ThunderSVM. To run ThunderSVM with gpu, you should turn USE_CUDA on in CMakeList.txt.
-```bash
-set(USE_CUDA ON CACHE BOOL "Compile with CUDA")
-```
-To run ThunderSVM without gpu, you should turn USE_CUDA off.
-```bash
-set(USE_CUDA OFF CACHE BOOL "Compile with CUDA")
-```
-
 ## Training SVMs
 We show some concrete examples of using ThunderSVM. ThunderSVM uses the same command line options as LibSVM, so existing users of LibSVM can use ThunderSVM quickly. For new users of SVMs, the [user guide](http://www.csie.ntu.edu.tw/~cjlin/papers/guide/guide.pdf) provided in the LibSVM website also helps. 
 
@@ -76,12 +66,5 @@ Instructions available in [How To](how-to.md) page.
 ```
 The meaning of each option can be found in the [parameters](parameters.md) page. 
 
-### Python Interface
-ThunderSVM provides python interface. Go to the python subdirectory and type python. Put your dataset file in dataset subdirectory. Here is an example to call ThunderSVM functions.
-```bash
->>>from svm import *
->>>y,x = svm_read_problem('mnist.scale')
->>>svm_train(y, x, 'mnist.scale.model', '-s 0 -t 2 -g 0.125 -c 10 -e 0.001')
->>>y,x = svm_read_problem('mnist.scale.t')
->>>y = svm_predict(x, 'mnist.scale.model', 'mnist.scale.out')
-```
+### Interfaces
+ThunderSVM provides python, R and Matlab interface. You can find the instructions in corresponding subdirectory.
