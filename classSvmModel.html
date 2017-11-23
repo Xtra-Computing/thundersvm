@@ -87,7 +87,7 @@ Inheritance diagram for SvmModel:</div>
   <map id="SvmModel_map" name="SvmModel_map">
 <area href="classOneClassSVC.html" title="Support Vector Machine for outlier detection (density estimation) " alt="OneClassSVC" shape="rect" coords="0,56,93,80"/>
 <area href="classSVC.html" title="Support Vector Machine for classification. " alt="SVC" shape="rect" coords="103,56,196,80"/>
-<area href="classSVR.html" alt="SVR" shape="rect" coords="206,56,299,80"/>
+<area href="classSVR.html" title="Support Vector Machine for regression. " alt="SVR" shape="rect" coords="206,56,299,80"/>
 <area href="classNuSVC.html" title="Nu-Support Vector Machine for classification. " alt="NuSVC" shape="rect" coords="103,112,196,136"/>
 <area href="classNuSVR.html" title="Support Vector Machine for regression. " alt="NuSVR" shape="rect" coords="206,112,299,136"/>
 </map>
@@ -232,7 +232,7 @@ vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class=
   </tr>
 </table>
 </div><div class="memdoc">
-<p>load <a class="el" href="classSvmModel.html" title="Abstract class for different SVM models. ">SvmModel</a> from a file, the file format is the same as LIBSVM. before call this function, one must read the first line of the model file, which contains svm_type. Then construct right <a class="el" href="classSvmModel.html" title="Abstract class for different SVM models. ">SvmModel</a> (<a class="el" href="classSVC.html" title="Support Vector Machine for classification. ">SVC</a>, <a class="el" href="classSVR.html">SVR</a>, ...), since <a class="el" href="classSvmModel.html" title="Abstract class for different SVM models. ">SvmModel</a> is an abstract class. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>load <a class="el" href="classSvmModel.html" title="Abstract class for different SVM models. ">SvmModel</a> from a file, the file format is the same as LIBSVM. before call this function, one must read the first line of the model file, which contains svm_type. Then construct right <a class="el" href="classSvmModel.html" title="Abstract class for different SVM models. ">SvmModel</a> (<a class="el" href="classSVC.html" title="Support Vector Machine for classification. ">SVC</a>, <a class="el" href="classSVR.html" title="Support Vector Machine for regression. ">SVR</a>, ...), since <a class="el" href="classSvmModel.html" title="Abstract class for different SVM models. ">SvmModel</a> is an abstract class. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">path</td><td>path and filename of saved model file </td></tr>
   </table>
@@ -326,7 +326,7 @@ vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class=
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>label (<a class="el" href="classSVC.html" title="Support Vector Machine for classification. ">SVC</a>, <a class="el" href="classNuSVC.html" title="Nu-Support Vector Machine for classification. ">NuSVC</a>), real number (<a class="el" href="classSVR.html">SVR</a>, <a class="el" href="classNuSVR.html" title="Support Vector Machine for regression. ">NuSVR</a>), {-1,+1} (<a class="el" href="classOneClassSVC.html" title="Support Vector Machine for outlier detection (density estimation) ">OneClassSVC</a>) </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>label (<a class="el" href="classSVC.html" title="Support Vector Machine for classification. ">SVC</a>, <a class="el" href="classNuSVC.html" title="Nu-Support Vector Machine for classification. ">NuSVC</a>), real number (<a class="el" href="classSVR.html" title="Support Vector Machine for regression. ">SVR</a>, <a class="el" href="classNuSVR.html" title="Support Vector Machine for regression. ">NuSVR</a>), {-1,+1} (<a class="el" href="classOneClassSVC.html" title="Support Vector Machine for outlier detection (density estimation) ">OneClassSVC</a>) </dd></dl>
 
 <p>Reimplemented in <a class="el" href="classSVC.html#ad2382cd5a2a1a84c7bcb4668ccc68ba1">SVC</a>, and <a class="el" href="classOneClassSVC.html#adebb04652fb4d0c57ea204bc42cd72ca">OneClassSVC</a>.</p>
 
