@@ -1,4 +1,4 @@
-dyn.load("../build/lib/libthundersvm-lib.so")
+dyn.load("../build/lib/libthundersvm.so")
 svm_train_R <-
 function(a1)
 {

@@ -7,7 +7,7 @@ import sys
 
 
 dirname = path.dirname(path.abspath(__file__))
-libsvm = CDLL(path.join(dirname, '../build/lib/libthundersvm-lib.so'))
+libsvm = CDLL(path.join(dirname, '../build/lib/libthundersvm.so'))
 dataset_path = dirname + '/../dataset/'
 
 class dataset(object):
