@@ -2,7 +2,10 @@
 // Created by jiashuai on 17-9-17.
 //
 #include "thundersvm/dataset.h"
-
+#include <omp.h>
+#include <string>
+#include <iostream>
+using namespace std;
 using std::fstream;
 using std::stringstream;
 
@@ -10,8 +13,11 @@ DataSet::DataSet() : total_count_(0), n_features_(0) {}
 
 DataSet::DataSet(const DataSet::node2d &instances, int n_features, const vector<float_type> &y) :
         instances_(instances), n_features_(n_features), y_(y), total_count_(instances_.size()) {}
-
+/*
 void DataSet::load_from_file(string file_name) {
+    struct timeval t1,t2;
+    double timeuse;
+    gettimeofday(&t1,NULL);
     y_.clear();
     instances_.clear();
     total_count_ = 0;
@@ -38,7 +44,175 @@ void DataSet::load_from_file(string file_name) {
         total_count_++;
     }
     file.close();
+    gettimeofday(&t2,NULL);
+    timeuse = (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec)/1000.0;
+    cout<<"Use Time:"<<timeuse<<endl;
 }
+*/
+inline char* BackFindEndLine(char *bptr, char *begin) {
+    for (; bptr != begin; --bptr) {
+      if (*bptr == '\n' || *bptr == '\r') return bptr;
+    }
+    return begin;
+}
+void DataSet::load_from_file(string file_name){
+    y_.clear();
+    instances_.clear();
+    total_count_ = 0;
+    n_features_ = 0;
+    std::ifstream ifs (file_name, std::ifstream::binary);
+    // get pointer to associated buffer object
+    std::filebuf* pbuf = ifs.rdbuf();
+    // get file size using buffer's members
+    std::size_t fsize = pbuf->pubseekoff (0,ifs.end,ifs.in);
+    pbuf->pubseekpos (0,ifs.in);
+    // allocate memory to contain file data
+    char* buffer=new char[fsize];
+    // get file data
+    pbuf->sgetn (buffer,fsize);
+    ifs.close();
+    char *head = buffer;
+    const int nthread = omp_get_max_threads();
+    vector<float_type> y_thread[nthread];
+    vector<vector<DataSet::node>> instances_thread[nthread];
+    int local_count[nthread];
+    int local_feature[nthread];
+    memset(local_count, 0, nthread * sizeof(int));
+    memset(local_feature, 0, nthread * sizeof(int));
+    #pragma omp parallel num_threads(nthread)
+    {
+        int tid = omp_get_thread_num();
+        size_t nstep = (fsize + nthread - 1) / nthread;
+        size_t sbegin = std::min(tid * nstep, fsize);
+        size_t send = std::min((tid + 1) * nstep, fsize);
+        char *pbegin = BackFindEndLine(head + sbegin, head);
+        char *pend;
+        if (tid + 1 == nthread) {
+          pend = head + send;
+        } else {
+          pend = BackFindEndLine(head + send, head);
+        }
+        char * lbegin;
+        if(tid == 0) 
+            lbegin = pbegin;
+        else
+            lbegin = pbegin + 1;
+        char * lend = lbegin;
+        //cout << "before while lbegin" << endl;
+        while(1){
+            lend = lbegin;
+            if(lend == pend)
+                break;
+            if(*lend == '\n'){
+                lbegin ++;
+                continue;
+            }
+            while (lend != pend && *lend != '\n' && *lend != '\r'){
+                ++lend;
+            }
+            string line(lbegin, lend);
+            float_type y;
+            int i;
+            float_type v;
+            stringstream ss(line);
+            ss >> y;
+            y_thread[tid].push_back(y);
+            instances_thread[tid].emplace_back();//reserve space for an instance
+            string tuple;
+            while (ss >> tuple) {
+                CHECK_EQ(sscanf(tuple.c_str(), "%d:%f", &i, &v), 2) << "read error, using [index]:[value] format";
+                instances_thread[tid][local_count[tid]].emplace_back(i, v);
+                if (i > local_feature[tid]) local_feature[tid] = i;
+            };
+            
+            local_count[tid]++;
+            if(lend == pend)
+                break;
+            lbegin = lend + 1;
+        }
+    }
+    for(int i = 0; i < nthread; i++){
+        if(local_feature[i] > n_features_)
+            n_features_ = local_feature[i];
+        total_count_ += local_count[i];
+    }
+    int count_num = 0;
+    for(int i = 0; i < nthread; i++){
+        for(int j = 0; j < y_thread[i].size(); j++){
+            this->y_.push_back(y_thread[i][j]);
+        }
+        for(int j = 0; j < local_count[i]; j++){
+            this->instances_.emplace_back();
+            for(int k = 0; k < instances_thread[i][j].size(); k++)
+                this->instances_[count_num].emplace_back(instances_thread[i][j][k].index, instances_thread[i][j][k].value);
+            count_num++;
+        }
+    }
+}
+/*
+inline bool isdigitchars(char c) {
+  return (c >= '0' && c <= '9')
+    || c == '+' || c == '-'
+    || c == '.'
+    || c == 'e' || c == 'E';
+}
+
+inline bool isblank(char c) {
+  return (c == ' ' || c == '\t');
+}
+
+inline int get_label(const char * begin, const char * end,
+                     const char ** endptr, float &v1) { // NOLINT(*)
+  const char * p = begin;
+  while (p != end && !isdigitchars(*p)) ++p;
+  if (p == end) {
+    *endptr = end;
+    return 0;
+  }
+  const char * q = p;
+  while (q != end && isdigitchars(*q)) ++q;
+  v1 = strtol(p, q);
+  p = q;
+  while (p != end && isblank(*p)) ++p;
+  if (p == end || *p != ':') {
+    // only v1
+    *endptr = p;
+    return 1;
+  }
+  else{
+    return -1;
+  }
+}
+
+inline int ParsePair(const char * begin, const char * end,
+                     const char ** endptr, int &v1, float &v2) { // NOLINT(*)
+  const char * p = begin;
+  while (p != end && !isdigitchars(*p)) ++p;
+  if (p == end) {
+    *endptr = end;
+    return 0;
+  }
+  const char * q = p;
+  while (q != end && isdigitchars(*q)) ++q;
+  v1 = strtol(p, q);
+  p = q;
+  while (p != end && isblank(*p)) ++p;
+  if (p == end || *p != ':') {
+    // only v1
+    *endptr = p;
+    return 1;
+  }
+  p++;
+  while (p != end && !isdigitchars(*p)) ++p;
+  q = p;
+  while (q != end && isdigitchars(*q)) ++q;
+  *endptr = q;
+  v2 = strtof(p, q);
+  return 2;
+}
+
+*/
+
 void DataSet::load_from_python(float *y, char **x, int len){
     y_.clear();
     instances_.clear();
