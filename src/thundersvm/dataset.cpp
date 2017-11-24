@@ -4,8 +4,6 @@
 #include "thundersvm/dataset.h"
 #include <omp.h>
 #include <string>
-#include <iostream>
-using namespace std;
 using std::fstream;
 using std::stringstream;
 
@@ -56,6 +54,9 @@ inline char* BackFindEndLine(char *bptr, char *begin) {
     return begin;
 }
 void DataSet::load_from_file(string file_name){
+    struct timeval t1,t2;
+    double timeuse;
+    gettimeofday(&t1,NULL);
     y_.clear();
     instances_.clear();
     total_count_ = 0;
@@ -136,18 +137,24 @@ void DataSet::load_from_file(string file_name){
             n_features_ = local_feature[i];
         total_count_ += local_count[i];
     }
-    int count_num = 0;
+    //int count_num = 0;
     for(int i = 0; i < nthread; i++){
-        for(int j = 0; j < y_thread[i].size(); j++){
-            this->y_.push_back(y_thread[i][j]);
-        }
-        for(int j = 0; j < local_count[i]; j++){
-            this->instances_.emplace_back();
-            for(int k = 0; k < instances_thread[i][j].size(); k++)
-                this->instances_[count_num].emplace_back(instances_thread[i][j][k].index, instances_thread[i][j][k].value);
-            count_num++;
-        }
+        this->y_.insert(y_.end(), y_thread[i].begin(), y_thread[i].end());
+        //for(int j = 0; j < y_thread[i].size(); j++){
+
+            //this->y_.push_back(y_thread[i][j]);
+        
+        this->instances_.insert(instances_.end(), instances_thread[i].begin(), instances_thread[i].end());
+        //for(int j = 0; j < local_count[i]; j++){
+            //this->instances_.emplace_back();
+            //for(int k = 0; k < instances_thread[i][j].size(); k++)
+            //this->instances_.emplace_back(instances_thread[i][j]);
+        //count_num++;
+        //}
     }
+    gettimeofday(&t2,NULL);
+    timeuse = (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec)/1000.0;
+    std::cout<<"Use Time:"<<timeuse<<std::endl;
 }
 /*
 inline bool isdigitchars(char c) {
