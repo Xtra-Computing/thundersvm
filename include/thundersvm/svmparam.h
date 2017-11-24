@@ -7,6 +7,9 @@
 
 #include "thundersvm.h"
 
+/**
+ * @brief params for ThunderSVM
+ */
 struct SvmParam {
     SvmParam() {
         svm_type = C_SVC;
@@ -20,32 +23,40 @@ struct SvmParam {
         nr_weight = 0;
     }
 
+    /// SVM type
     enum SVM_TYPE {
         C_SVC, NU_SVC, ONE_CLASS, EPSILON_SVR, NU_SVR
-    };    /* svm_type */
+    };
+    /// kernel function type
     enum KERNEL_TYPE {
         LINEAR, POLY, RBF, SIGMOID/*, PRECOMPUTED*/
-    }; /* kernel_type */
+    };
     SVM_TYPE svm_type;
     KERNEL_TYPE kernel_type;
 
-    float_type C; //for regularization
-    float_type gamma; //for rbf kernel
-    float_type p; //for regression
-    float_type nu; //for nu-SVM
-    float_type epsilon; //stopping criteria
-    int degree; //degree for polynomial kernel
-
-    float_type coef0;    /* for poly/sigmoid */
-
-    /* these are for training only */
-//    double cache_size; /* in MB */
-    int nr_weight;        /* for C_SVC */
-    int *weight_label;    /* for C_SVC */
-    float_type *weight;        /* for C_SVC */
-//    int shrinking;    /* use the shrinking heuristics */
-    int probability; /* do probability estimates */
+    ///regularization parameter
+    float_type C;
+    ///for RBF kernel
+    float_type gamma;
+    ///for regression
+    float_type p;
+    ///for \f$\nu\f$-SVM
+    float_type nu;
+    ///stopping criteria
+    float_type epsilon;
+    ///degree for polynomial kernel
+    int degree;
+    ///for polynomial/sigmoid kernel
+    float_type coef0;
+    ///for SVC
+    int nr_weight;
+    ///for SVC
+    int *weight_label;
+    ///for SVC
+    float_type *weight;
+    ///do probability estimates
+    int probability;
     static const char *kernel_type_name[6];
-    static const char *svm_type_name[6];  /* svm_type */
+    static const char *svm_type_name[6];
 };
 #endif //THUNDERSVM_SVMPARAM_H

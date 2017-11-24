@@ -8,7 +8,7 @@
 #include "svr.h"
 
 /**
- * @brief-Support Vector Machine for regression
+ * @brief Support Vector Machine for regression
  */
 class NuSVR : public SVR {
 public:

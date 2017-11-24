@@ -10,18 +10,42 @@
 #include "dataset.h"
 #include "svmparam.h"
 
+/**
+ * @brief The management class of kernel values.
+ */
 class KernelMatrix{
 public:
+    /**
+     * Create KernelMatrix with given instances (training data or support vectors).
+     * @param instances the instances, either are training instances for training, or are support vectors for prediction.
+     * @param param kernel_type in parm is used
+     */
     explicit KernelMatrix(const DataSet::node2d &instances, SvmParam param);
 
+    /**
+     * return specific rows in kernel matrix
+     * @param [in] idx the indices of the rows
+     * @param [out] kernel_rows
+     */
     void get_rows(const SyncData<int> &idx, SyncData<float_type> &kernel_rows) const;
 
+    /**
+     * return kernel values of each given instance and each instance stored in KernelMatrix
+     * @param [in] instances the given instances
+     * @param [out] kernel_rows
+     */
     void get_rows(const DataSet::node2d &instances, SyncData<float_type> &kernel_rows) const;
 
+    ///return the diagonal elements of kernel matrix
     const SyncData<float_type> &diag() const;
 
-    size_t n_instances() const { return n_instances_; };//number of instances
-    size_t n_features() const { return n_features_; };//number of features
+    ///the number of instances in KernelMatrix
+    size_t n_instances() const { return n_instances_; };
+
+    ///the maximum number of features of instances
+    size_t n_features() const { return n_features_; }
+
+    ///the number of non-zero features of all instances
     size_t nnz() const {return nnz_;};//number of nonzero
 private:
     KernelMatrix &operator=(const KernelMatrix &) const;
