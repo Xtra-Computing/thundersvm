@@ -3,7 +3,7 @@
 [![GitHub license](http://dmlc.github.io/img/apache2.svg)](./LICENSE)
 
 <div align="center">
-<img src="https://github.com/zeyiwen/thundersvm/raw/master/logo.png" width="240" height="200" align=left/>
+<img src="https://github.com/zeyiwen/thundersvm/raw/master/logo.png" width="240" height="210" align=left/>
 <img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/lang-logo.png" width="250" height="200" align=left/>
 <img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/overall.png" width="250" height="200" align=left/>
 </div>
@@ -13,6 +13,8 @@ The mission of ThunderSVM is to help users easily and efficiently apply SVMs to 
 * Support all functionalities of LibSVM such as one-class SVMs, SVC, SVR and probabilistic SVMs.
 * Use same command line options as LibSVM.
 * Support Python, R and Matlab interfaces.
+
+**Why accelerate SVMs**: A [survey](https://www.kaggle.com/amberthomas/kaggle-2017-survey-results) conducted by Kaggle in 2017 shows that 26% of the data mining and machine learning practitioners are users of SVMs.
 
 [Documentations](http://thundersvm.readthedocs.io) | [Installation](http://thundersvm.readthedocs.io/en/latest/how-to.html) | [API Reference (doxygen)](http://zeyiwen.github.io/thundersvm/)
 ## Contents
@@ -71,3 +73,4 @@ If you use ThunderSVM in your paper, please cite our work.
 ## Acknowlegement 
 * We acknowledge NVIDIA for their hardware donations.
 * This project is hosted by NUS, collaborating with Prof. Jian Chen (South China University of Technology). Initial work of this project was done when Zeyi Wen worked at The University of Melbourne.
+* This work is partially supported by a MoE AcRF Tier 1 grant (T1 251RES1610) in Singapore.
