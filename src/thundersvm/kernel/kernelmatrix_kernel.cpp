@@ -1,19 +1,17 @@
 //
 // Created by jiashuai on 17-11-7.
 //
-#include <config.h>
 
 #ifndef USE_CUDA
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
-#include <iostream>
-#include <fstream>
+
 namespace svm_kernel {
     void
     get_working_set_ins(const SyncData<float_type> &val, const SyncData<int> &col_ind, const SyncData<int> &row_ptr,
                         const SyncData<int> &data_row_idx, SyncData<float_type> &data_rows, int m) {
-#pragma omp parallel for
+#pragma omp parallel for schedule(guided)
         for (int i = 0; i < m; i++) {
             int row = data_row_idx[i];
             for (int j = row_ptr[row]; j < row_ptr[row + 1]; ++j) {
@@ -27,7 +25,7 @@ namespace svm_kernel {
     RBF_kernel(const SyncData<float_type> &self_dot0, const SyncData<float_type> &self_dot1,
                SyncData<float_type> &dot_product, int m,
                int n, float_type gamma) {
-#pragma omp parallel for
+#pragma omp parallel for schedule(guided)
         for (int idx = 0; idx < m * n; idx++) {
             int i = idx / n;//i is row id
             int j = idx % n;//j is column id
@@ -39,7 +37,7 @@ namespace svm_kernel {
     RBF_kernel(const SyncData<int> &self_dot0_idx, const SyncData<float_type> &self_dot1,
                SyncData<float_type> &dot_product, int m,
                int n, float_type gamma) {
-#pragma omp parallel for
+#pragma omp parallel for schedule(guided)
         for (int idx = 0; idx < m * n; idx++) {
             int i = idx / n;//i is row id
             int j = idx % n;//j is column id
@@ -49,14 +47,14 @@ namespace svm_kernel {
     }
 
     void poly_kernel(SyncData<float_type> &dot_product, float_type gamma, float_type coef0, int degree, int mn) {
-#pragma omp parallel for
+#pragma omp parallel for schedule(guided)
         for (int idx = 0; idx < mn; idx++) {
             dot_product[idx] = powf(gamma * dot_product[idx] + coef0, degree);
         }
     }
 
     void sigmoid_kernel(SyncData<float_type> &dot_product, float_type gamma, float_type coef0, int mn) {
-#pragma omp parallel for
+#pragma omp parallel for schedule(guided)
         for (int idx = 0; idx < mn; idx++) {
             dot_product[idx] = tanhf(gamma * dot_product[idx] + coef0);
         }
@@ -66,7 +64,7 @@ namespace svm_kernel {
                            const SyncData<int> &sv_count, const SyncData<float_type> &rho,
                            const SyncData<float_type> &k_mat,
                            SyncData<float_type> &dec_values, int n_classes, int n_instances) {
-#pragma omp parallel for
+#pragma omp parallel for schedule(guided)
         for (int idx = 0; idx < n_instances; idx++) {
             int k = 0;
             int n_binary_models = n_classes * (n_classes - 1) / 2;
