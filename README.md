@@ -3,7 +3,7 @@
 [![GitHub license](http://dmlc.github.io/img/apache2.svg)](./LICENSE)
 
 <div align="center">
-<img src="https://github.com/zeyiwen/thundersvm/raw/master/logo.png" width="240" height="210" align=left/>
+<img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/logo.png" width="240" height="210" align=left/>
 <img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/lang-logo.png" width="250" height="200" align=left/>
 <img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/overall.png" width="250" height="200" align=left/>
 </div>
@@ -62,7 +62,7 @@ If you use ThunderSVM in your paper, please cite our work.
 ```
 @article{wenthundersvm17,
  author = {Wen, Zeyi and Shi, Jiashuai and He, Bingsheng and Li, Qinbin and Chen, Jian},
- title = {{ThunderSVM}: A Fast SVM library for SVMs on GPUs and CPUs},
+ title = {{ThunderSVM}: A Fast SVM library on GPUs and CPUs},
  journal = {To appear in arxiv},
  year = {2017}
 }
