@@ -3,7 +3,7 @@
 [![GitHub license](http://dmlc.github.io/img/apache2.svg)](./LICENSE)
 
 <div align="center">
-<img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/logo.png" width="240" height="210" align=left/>
+<img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/logo.png" width="240" height="220" align=left/>
 <img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/lang-logo.png" width="250" height="200" align=left/>
 <img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/overall.png" width="250" height="200" align=left/>
 </div>
@@ -74,3 +74,4 @@ If you use ThunderSVM in your paper, please cite our work.
 * We acknowledge NVIDIA for their hardware donations.
 * This project is hosted by NUS, collaborating with Prof. Jian Chen (South China University of Technology). Initial work of this project was done when Zeyi Wen worked at The University of Melbourne.
 * This work is partially supported by a MoE AcRF Tier 1 grant (T1 251RES1610) in Singapore.
+* We also thank the authors of LibSVM and OHD-SVM which inspire our algorithmic design.
