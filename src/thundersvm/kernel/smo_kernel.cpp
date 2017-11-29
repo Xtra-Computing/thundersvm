@@ -3,8 +3,8 @@
 // Created by jiashuai on 17-11-7.
 //
 
-#ifndef USE_CUDA
 #include <thundersvm/kernel/smo_kernel.h>
+#ifndef USE_CUDA
 
 namespace svm_kernel {
     int get_min_idx(const float *values, int size) {

@@ -2,8 +2,8 @@
 // Created by jiashuai on 17-11-7.
 //
 
-#ifndef USE_CUDA
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
+#ifndef USE_CUDA
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
