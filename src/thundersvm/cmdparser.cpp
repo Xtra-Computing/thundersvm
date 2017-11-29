@@ -1,3 +1,9 @@
+/*
+    Since the format of parameters are same as libsvm, we reference and modify command line parser source code of libsvm in this file.
+    
+    Copyright (c) 2000-2014 Chih-Chung Chang and Chih-Jen Lin
+    All rights reserved.
+ */
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
