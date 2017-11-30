@@ -13,7 +13,7 @@ This page is dedicated to summarizing some frequently asked questions about Thun
   No. However, the code should work on Windows OS, although we haven't tested it on Windows.
 
 * **Can ThunderSVM run on CPUs?**  
-  Yes. Please see [Working without GPUs](get-started.md#working-without-gpus).
+  Yes. Please see [Working without GPUs](get-started.md).
   
  * **How can I do grid search?**
    Since ThunderSVM supports cross-validation. You can write a simple grid.sh script like the following one. Then ```run sh grid.sh [dataset]```.  You may modify the script to meet your needs. Indeed, ThunderSVM supports the same command line parameters as LIBSVM. So the script grid.py in LIBSVM can be used for ThunderSVM with minor modifications.
