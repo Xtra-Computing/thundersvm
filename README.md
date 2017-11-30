@@ -58,7 +58,7 @@ mkdir build && cd build && cmake -DUSE_CUDA=OFF -DUSE_EIGEN=ON .. && make -j
 Now ThunderSVM will work solely on CPUs and does not rely on CUDA.
 
 ## How to cite ThunderSVM
-If you use ThunderSVM in your paper, please cite our work.
+If you use ThunderSVM in your paper, please cite our work ([preprint now available](http://www.comp.nus.edu.sg/~hebs/pub/thundersvm.pdf)).
 ```
 @article{wenthundersvm17,
  author = {Wen, Zeyi and Shi, Jiashuai and He, Bingsheng and Li, Qinbin and Chen, Jian},
