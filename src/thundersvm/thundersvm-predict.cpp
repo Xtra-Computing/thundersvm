@@ -19,8 +19,10 @@ int main(int argc, char **argv) {
     parser.parse_command_line(argc, argv);
     fstream file;
     file.open(parser.svmpredict_model_file_name, fstream::in);
+	std::cout << parser.svmpredict_model_file_name << "\n";
     string feature, svm_type;
     file >> feature >> svm_type;
+	std::cout << feature << "; " << svm_type << "\n";
     CHECK_EQ(feature, "svm_type");
     SvmModel *model = nullptr;
     Metric *metric = nullptr;

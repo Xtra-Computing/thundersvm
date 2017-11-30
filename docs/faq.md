@@ -17,6 +17,23 @@ This page is dedicated to summarizing some frequently asked questions about Thun
 
 * Can ThunderSVM run on CPUs?  
   No. The current version of ThunderSVM must run on GPUs, but we strive to make ThunderSVM run purely on CPUs in parallel.
+  
+  * How can I do grid search?
+  Since ThunderSVM supports cross-validation. You can write a simple grid.sh script like the following one
+```
+#!/usr/bin/bash
+DATASET=$1
+OPTIONS=
+N_FOLD=5
+for c in 1 3 10 30 100
+do
+  for g in 0.1 0.3 1 3 10
+    do
+      bin/thundersvm-train -c ${c} -g ${g} -v ${N_FOLD} ${OPTIONS} ${DATASET}
+    done
+done
+```
+Then ```run sh grid.sh [dataset]```.  You may modify the script to meet your needs. Indeed, ThunderSVM supports the same command line parameters as LIBSVM. So the script grid.py in LIBSVM can be used for ThunderSVM with minor modifications.
 
 ## FAQs of developers
 * Why not use shrinking?  

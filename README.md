@@ -19,8 +19,7 @@ The mission of ThunderSVM is to help users easily and efficiently apply SVMs to 
 [Documentations](http://thundersvm.readthedocs.io) | [Installation](http://thundersvm.readthedocs.io/en/latest/how-to.html) | [API Reference (doxygen)](http://zeyiwen.github.io/thundersvm/)
 ## Contents
 - [Getting Started](https://github.com/zeyiwen/thundersvm#getting-started)
-- [Advanced](https://github.com/zeyiwen/thundersvm#advanced)
-- [Working without GPUs](https://github.com/zeyiwen/thundersvm#working-without-gpus)
+- [Working without GPUs](http://thundersvm.readthedocs.io/en/latest/get-started.html#working-without-GPUs)
 ## Getting Started
 ### Prerequisites
 * [CUDA](https://developer.nvidia.com/cuda-downloads) 7.5 or above | cmake 2.8 or above | gcc 4.8 or above
@@ -39,23 +38,6 @@ mkdir build && cd build && cmake .. && make -j
 ./bin/thundersvm-predict ../dataset/test_dataset.txt test_dataset.txt.model test_dataset.predict
 ```
 You will see `Accuracy = 0.98` after successful running.
-
-## Advanced
-## Working without GPUs
-If you don't have GPUs, ThunderSVM can work with CPU only.
-### Get Eigen Library
-ThunderSVM uses [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) for matrix calculation. To use Eigen, just 
-initialize the submodule. 
-```bash
-# in thundersvm root directory
-git submodule init eigen && git submodule update
-```
-### Build without GPUs
-```bash
-# in thundersvm root directory
-mkdir build && cd build && cmake -DUSE_CUDA=OFF -DUSE_EIGEN=ON .. && make -j
-```
-Now ThunderSVM will work solely on CPUs and does not rely on CUDA.
 
 ## How to cite ThunderSVM
 If you use ThunderSVM in your paper, please cite our work ([preprint now available](http://www.comp.nus.edu.sg/~hebs/pub/thundersvm.pdf)).

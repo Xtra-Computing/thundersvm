@@ -25,6 +25,22 @@ make -j runtest
 ```
 Make sure all the test cases pass.
 
+## Working without GPUs
+If you don't have GPUs, ThunderSVM can work with CPU only.
+### Get Eigen Library
+ThunderSVM uses [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) for matrix calculation. To use Eigen, just 
+initialize the submodule. 
+```bash
+# in thundersvm root directory
+git submodule init eigen && git submodule update
+```
+### Build without GPUs
+```bash
+# in thundersvm root directory
+mkdir build && cd build && cmake -DUSE_CUDA=OFF -DUSE_EIGEN=ON .. && make -j
+```
+Now ThunderSVM will work solely on CPUs and does not rely on CUDA.
+
 ## Training SVMs
 We show some concrete examples of using ThunderSVM. ThunderSVM uses the same command line options as LibSVM, so existing users of LibSVM can use ThunderSVM quickly. For new users of SVMs, the [user guide](http://www.csie.ntu.edu.tw/~cjlin/papers/guide/guide.pdf) provided in the LibSVM website also helps. 
 
