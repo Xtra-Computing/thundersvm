@@ -54,9 +54,6 @@ inline char* BackFindEndLine(char *bptr, char *begin) {
     return begin;
 }
 void DataSet::load_from_file(string file_name){
-    struct timeval t1,t2;
-    double timeuse;
-    gettimeofday(&t1,NULL);
     y_.clear();
     instances_.clear();
     total_count_ = 0;
@@ -74,18 +71,22 @@ void DataSet::load_from_file(string file_name){
     ifs.close();
     char *head = buffer;
     const int nthread = omp_get_max_threads();
-    vector<float_type> y_thread[nthread];
-    vector<vector<DataSet::node>> instances_thread[nthread];
-    int local_count[nthread];
-    int local_feature[nthread];
+    //vector<float_type> y_thread[nthread];
+    //vector<vector<DataSet::node>> instances_thread[nthread];
+	//int local_count[nthread];
+	//int local_feature[nthread];
+	vector<float_type> *y_thread = new vector<float_type>[nthread];
+	vector<vector<DataSet::node>> *instances_thread = new vector<vector<DataSet::node>>[nthread];
+	int *local_count = new int[nthread];
+	int *local_feature = new int[nthread];
     memset(local_count, 0, nthread * sizeof(int));
     memset(local_feature, 0, nthread * sizeof(int));
     #pragma omp parallel num_threads(nthread)
     {
         int tid = omp_get_thread_num();
         size_t nstep = (fsize + nthread - 1) / nthread;
-        size_t sbegin = std::min(tid * nstep, fsize);
-        size_t send = std::min((tid + 1) * nstep, fsize);
+        size_t sbegin = min(tid * nstep, fsize);
+        size_t send = min((tid + 1) * nstep, fsize);
         char *pbegin = BackFindEndLine(head + sbegin, head);
         char *pend;
         if (tid + 1 == nthread) {
@@ -152,9 +153,6 @@ void DataSet::load_from_file(string file_name){
         //count_num++;
         //}
     }
-    gettimeofday(&t2,NULL);
-    timeuse = (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec)/1000.0;
-    std::cout<<"Use Time:"<<timeuse<<std::endl;
 }
 /*
 inline bool isdigitchars(char c) {
