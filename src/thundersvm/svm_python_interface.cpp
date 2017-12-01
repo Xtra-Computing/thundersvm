@@ -75,7 +75,7 @@ extern "C" {
         vector<float_type> predict_y, test_y;
         if (parser.do_cross_validation) {
             vector<float_type> test_predict = model->cross_validation(train_dataset, parser.param_cmd, parser.nr_fold);
-    	   uint dataset_size = test_predict.size() / 2;
+    	   unsigned int dataset_size = test_predict.size() / 2;
     	   test_y.insert(test_y.end(), test_predict.begin(), test_predict.begin() + dataset_size);
     	   predict_y.insert(predict_y.end(), test_predict.begin() + dataset_size, test_predict.end());
         } else {
@@ -241,7 +241,7 @@ extern "C" {
         vector<float_type> predict_y, test_y;
         if (parser.do_cross_validation) {
             vector<float_type> test_predict = model->cross_validation(dataset_python, parser.param_cmd, parser.nr_fold);
-           uint dataset_size = test_predict.size() / 2;
+           unsigned int dataset_size = test_predict.size() / 2;
            test_y.insert(test_y.end(), test_predict.begin(), test_predict.begin() + dataset_size);
            predict_y.insert(predict_y.end(), test_predict.begin() + dataset_size, test_predict.end());
         } else {
