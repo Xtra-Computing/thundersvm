@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
 
 cmake_policy(SET CMP0048 NEW)
-
 project(thundersvm VERSION 0.1.0 LANGUAGES C CXX)
 set(USE_CUDA ON CACHE BOOL "Compile with CUDA")
 set(USE_EIGEN OFF CACHE BOOL "Compile with Eigen")
@@ -12,14 +11,7 @@ if (OPENMP_FOUND)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
-#find_package(MKL REQUIRED)
-#include_directories(${MKL_INCLUDE_DIRS})
-#link_directories(${MKL_LIBRARIES})
-#target_link_libraries(<module>
-#mkl_intel_lp64
-#mkl_sequential
-#mkl_core
-#)
+
 if (USE_CUDA)
     message("Compile with CUDA")
     find_package(CUDA REQUIRED QUIET)
@@ -33,7 +25,6 @@ if (USE_EIGEN)
     message("using Eigen for acceleration")
     include_directories(${PROJECT_SOURCE_DIR}/eigen)
 endif ()
-
 
 if (CMAKE_VERSION VERSION_LESS "3.1")
     add_compile_options("-std=c++11")

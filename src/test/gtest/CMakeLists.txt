@@ -15,7 +15,9 @@ ExternalProject_Add(googletest
         -DCMAKE_CXX_FLAGS=${MSVC_COMPILER_DEFS}
         -Dgtest_force_shared_crt=${GTEST_FORCE_SHARED_CRT}
         -Dgtest_disable_pthreads=${GTEST_DISABLE_PTHREADS}
-        -DBUILD_GTEST=ON
+        -DBUILD_GTEST=OFF
+        -DCMAKE_C_COMPILIER=${CMAKE_C_COMPILER}
+        -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
         PREFIX "${CMAKE_CURRENT_BINARY_DIR}"
         # Disable install step
         INSTALL_COMMAND ""

@@ -9,8 +9,8 @@ using namespace svm_kernel;
 
 void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<float_type> &alpha, float_type &rho,
                        SyncData<float_type> &f_val, float_type eps, float_type Cp, float_type Cn, int ws_size) const {
-    uint n_instances = k_mat.n_instances();
-    uint q = ws_size / 2;
+    int n_instances = k_mat.n_instances();
+    int q = ws_size / 2;
 
     SyncData<int> working_set(ws_size);
     SyncData<int> working_set_first_half(q);

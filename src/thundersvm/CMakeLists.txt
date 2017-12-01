@@ -4,7 +4,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 file(GLOB_RECURSE SRC *)
 list(REMOVE_ITEM SRC "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}-train.cpp")
 list(REMOVE_ITEM SRC "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}-predict.cpp")
-
 if (USE_CUDA)
     cuda_add_library(${PROJECT_LIB_NAME} SHARED ${SRC})
     target_link_libraries(${PROJECT_LIB_NAME} ${CUDA_cusparse_LIBRARY})

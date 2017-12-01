@@ -12,7 +12,6 @@
 #include <thundersvm/util/metric.h>
 
 using std::fstream;
-INITIALIZE_EASYLOGGINGPP
 
 int main(int argc, char **argv) {
     CMDParser parser;
