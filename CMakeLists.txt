@@ -4,7 +4,7 @@ cmake_policy(SET CMP0048 NEW)
 project(thundersvm VERSION 0.1.0 LANGUAGES C CXX)
 set(USE_CUDA ON CACHE BOOL "Compile with CUDA")
 set(USE_EIGEN OFF CACHE BOOL "Compile with Eigen")
-
+set(CMAKE_BUILD_TYPE Release)
 find_package(Threads REQUIRED)
 find_package(OpenMP REQUIRED)
 if (OPENMP_FOUND)
