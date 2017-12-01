@@ -12,12 +12,10 @@
 #include <thundersvm/util/metric.h>
 #include "thundersvm/cmdparser.h"
 
-INITIALIZE_EASYLOGGINGPP
 
 int main(int argc, char **argv) {
     CMDParser parser;
     parser.parse_command_line(argc, argv);
-
     DataSet train_dataset;
     train_dataset.load_from_file(parser.svmtrain_input_file_name);
     SvmModel *model = nullptr;

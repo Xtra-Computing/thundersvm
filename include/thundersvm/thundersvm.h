@@ -9,8 +9,8 @@
 #include <string>
 #include <vector>
 #include <config.h>
+#include "math.h"
 #include "util/common.h"
-
 using std::string;
 using std::vector;
 typedef float float_type;

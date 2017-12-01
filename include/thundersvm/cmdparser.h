@@ -8,6 +8,7 @@
 #ifndef CMDPARSER_H_
 #define CMDPARSER_H_
 
+#include "thundersvm.h"
 #include "svmparam.h"
 
 /**

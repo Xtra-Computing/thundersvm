@@ -59,8 +59,12 @@ void HelpInfo_svmpredict() {
 void CMDParser::parse_command_line(int argc, char **argv) {
     int i;
     string bin_name = argv[0];
-    bin_name = bin_name.substr(bin_name.find_last_of("/") + 1);
-    if (bin_name == "thundersvm-train") {
+	#ifdef _WIN32
+		bin_name = bin_name.substr(bin_name.find_last_of("\\") + 1);
+	#else
+		bin_name = bin_name.substr(bin_name.find_last_of("/") + 1);
+	#endif
+    if (bin_name == "thundersvm-train" || bin_name == "thundersvm-train.exe") {
         // parse options
         for (i = 1; i < argc; i++) {
             if (argv[i][0] != '-') break;
@@ -150,7 +154,7 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                 ++p;
             sprintf(model_file_name, "%s.model", p);
         }
-    } else if (bin_name == "thundersvm-predict") {
+    } else if (bin_name == "thundersvm-predict" || bin_name == "thundersvm-predict.exe") {
         FILE *input, *output;
         for (i = 1; i < argc; i++) {
             if (argv[i][0] != '-') break;
