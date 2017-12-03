@@ -79,17 +79,6 @@ namespace svm_kernel {
          */
         const int nthread = std::min(ws_size, omp_get_max_threads());
         //const int nthread = 2;
-        //float local_eps;
-        //bool go = true;
-        //float local_diff;
-        //int numOfIter = 0;
-        /*
-        int i, j1, j2;
-        float l;
-        float up_value, low_value;
-        float local_eps, local_diff;
-        int numOfIter = 0;
-         */
     #pragma omp parallel num_threads(nthread)
     {
         //bool go = true;
@@ -103,8 +92,6 @@ namespace svm_kernel {
         int step = (ws_size + nthread - 1) / nthread;
         int begin = std::min(tid * step, ws_size);
         int end = std::min((tid + 1) * step, ws_size);
-        //std::cout<<"begin"<<begin<<std::endl;
-        //std::cout<<"end"<<end<<std::endl;
 
         for(int idx = begin; idx < end; idx++){
             wsi[idx] = working_set[idx];
@@ -117,8 +104,9 @@ namespace svm_kernel {
 
     //#pragma omp barrier
         //int numOfIter = 0;
+
         while (1) {
-#pragma omp barrier
+//#pragma omp barrier
             //select fUp and fLow
             for (int idx = begin; idx < end; ++idx) {
                 if (is_I_up(a_[idx], y_[idx], Cp, Cn))
@@ -144,51 +132,28 @@ namespace svm_kernel {
                     f_val2reduce[idx] = INFINITY;
             }
 #pragma omp barrier
-                j1 = get_min_idx(f_val2reduce, ws_size);
-            //int j1 = get_block_min(f_val2reduce, f_idx2reduce);
+            j1 = get_min_idx(f_val2reduce, ws_size);
                 low_value = -f_val2reduce[j1];
                 local_diff = low_value - up_value;
             if (numOfIter == 0) {
 
                 //if(tid == 0){
                     local_eps = max(eps, 0.1f * local_diff);
-                //if(tid == 0)
-#pragma omp single
+                if(tid == 0)
+//#pragma omp single
                 {
                     diff[0] = local_diff;
                 }
-                    //printf("tid0:%f\n", local_eps);
-                //if(diff[0] != 0)
-                    //printf("diff[0]:%f\n", diff[0]);
-                //}
             }
             //}
 //#pragma omp barrier
-            //if(tid == 1)
-            //    printf("tid1:%f\n", local_eps);
             if (local_diff < local_eps) {
                 for (int idx = begin; idx < end; idx++) {
                     //int wsi = working_set[idx];
                     //float a_diff = a_old[idx] - a_[idx];
                     alpha_ptr[wsi[idx]] = a_[idx];
                     alpha_diff_ptr[idx] = (a_old[idx] - a_[idx]) * y_[idx];
-                    //alpha_diff[idx] = -(alpha[wsi[idx]] - a_old[idx]) * y_[idx];
-                    /*
-                    if(idx == 0 || idx == 32 || idx == 77)
-                        printf("a_[%d]:%f a_old[%d]:%f y_[%d]:%f alpha_diff[%d]:%f\n", idx, a_[idx], idx, a_old[idx], idx, y_[idx], idx, alpha_diff[idx]);
-                    if(alpha[wsi[idx]] != 0)
-                        printf("alpha[%d]:%f\n", wsi[idx], alpha[wsi[idx]]);
-                    if(alpha_diff[idx] != 0 || idx == 32 || idx == 77){
-                        printf("alpha_diff[%d]:%f\n", idx, alpha_diff[idx]);
-                    }
-                    */
                 }
-                /*
-                if(begin != end){
-                    alpha[wsi[begin]] = a_[begin];
-                    alpha_diff[begin] = (a_old[begin] - a_[begin]) * y_[begin];
-                }
-                 */
                 break;
             }
 #pragma omp barrier
@@ -212,8 +177,8 @@ namespace svm_kernel {
                 *alpha_i_diff = y_[i] > 0 ? Cp - a_[i] : a_[i];
                 *alpha_j_diff = min(y_[j2] > 0 ? a_[j2] : Cn - a_[j2],
                                     (-up_value + f_[j2]) / (kd[i] + kd[j2] - 2 * kIwsI[j2]));
-}
-            //}
+//}
+            }
 #pragma omp barrier
                 l = min(*alpha_i_diff, *alpha_j_diff);
             if(tid == 0) {
@@ -239,17 +204,15 @@ namespace svm_kernel {
         }
 //#pragma omp barrier
     }
-    /*
+
         delete[] a_old;
         delete[] a_;
         delete[] wsi;
         delete[] f_;
         delete[] kIwsI;
-        //delete[] kJ2wsI;
         delete[] y_;
         delete[] shared_mem;
-        //printf("end of c_smo_solve\n");
-        */
+
     }
 
     void nu_smo_solve(const SyncData<int> &y, SyncData<float_type> &f_val, SyncData<float_type> &alpha,
@@ -257,9 +220,12 @@ namespace svm_kernel {
                       const SyncData<int> &working_set, float_type C, const SyncData<float_type> &k_mat_rows,
                       const SyncData<float_type> &k_mat_diag, int row_len, float_type eps, SyncData<float_type> &diff,
                       int max_iter) {
-        //allocate shared memory
+        float_type* alpha_ptr = alpha.host_data();
+        float_type* alpha_diff_ptr = alpha_diff.host_data();
+
+
         int ws_size = working_set.size();
-        int *shared_mem = new int[ws_size * 3 + 2];
+        int *shared_mem = new int[ws_size * 3 * sizeof(float) + 2 * sizeof(float)];
         int *f_idx2reduce = shared_mem; //temporary memory for reduction
         float *f_val2reduce = (float *) &f_idx2reduce[ws_size]; //f values used for reduction.
         float *alpha_i_diff = &f_val2reduce[ws_size]; //delta alpha_i
@@ -268,154 +234,176 @@ namespace svm_kernel {
 
         //index, f value and alpha for each instance
         float *a_old = new float[ws_size];
+        int *wsi = new int[ws_size];
+        float *a_ = new float[ws_size];
         float *kIpwsI = new float[ws_size];
         float *kInwsI = new float[ws_size];
-        float *f = new float[ws_size];
-        for (int tid = 0; tid < ws_size; ++tid) {
-            int wsi = working_set[tid];
-            f[tid] = f_val[wsi];
-            a_old[tid] = alpha[wsi];
-            kd[tid] = k_mat_diag[wsi];
-        }
-        float local_eps;
-        int numOfIter = 0;
-        while (1) {
-            //select I_up (y=+1)
-            for (int tid = 0; tid < ws_size; ++tid) {
-                int wsi = working_set[tid];
-                if (y[wsi] > 0 && alpha[wsi] < C)
-                    f_val2reduce[tid] = f[tid];
-                else
-                    f_val2reduce[tid] = INFINITY;
-            }
-            int ip = get_min_idx(f_val2reduce, ws_size);
-            float up_value_p = f_val2reduce[ip];
-            for (int tid = 0; tid < ws_size; ++tid) {
-                kIpwsI[tid] = k_mat_rows[row_len * ip + working_set[tid]];//K[i, wsi]
-            }
+        float *kIwsI = new float[ws_size];
+        float *f_ = new float[ws_size];
+        float *y_ = new float[ws_size];
+        const int nthread = std::min(ws_size, omp_get_max_threads());
+        //const int nthread = 2;
+#pragma omp parallel num_threads(nthread)
+        {
+            //bool go = true;
+            //float local_eps;
+            int ip, in, j1p, j1n, j2p, j2n;
+            float f_val_j2p;
+            float l;
+            float up_value_p, up_value_n, low_value_p, low_value_n;
+            float local_eps, local_diff;
+            int numOfIter = 0;
+            int tid = omp_get_thread_num();
+            int step = (ws_size + nthread - 1) / nthread;
+            int begin = std::min(tid * step, ws_size);
+            int end = std::min((tid + 1) * step, ws_size);
 
-            //select I_up (y=-1)
-            for (int tid = 0; tid < ws_size; ++tid) {
-                int wsi = working_set[tid];
-                if (y[wsi] < 0 && alpha[wsi] > 0)
-                    f_val2reduce[tid] = f[tid];
-                else
-                    f_val2reduce[tid] = INFINITY;
+            for(int idx = begin; idx < end; idx++){
+                wsi[idx] = working_set[idx];
+                kd[idx] = k_mat_diag[wsi[idx]];
+                y_[idx] = y[wsi[idx]];
+                f_[idx] = f_val[wsi[idx]];
+                a_[idx] = alpha[wsi[idx]];
+                a_old[idx] = a_[idx];
             }
-            int in = get_min_idx(f_val2reduce, ws_size);
-            float up_value_n = f_val2reduce[in];
-            for (int tid = 0; tid < ws_size; ++tid) {
-                kInwsI[tid] = k_mat_rows[row_len * in + working_set[tid]];//K[i, wsi]
-            }
-
-            //select I_low (y=+1)
-            for (int tid = 0; tid < ws_size; ++tid) {
-                int wsi = working_set[tid];
-                if (y[wsi] > 0 && alpha[wsi] > 0)
-                    f_val2reduce[tid] = -f[tid];
-                else
-                    f_val2reduce[tid] = INFINITY;
-            }
-            int j1p = get_min_idx(f_val2reduce, ws_size);
-            float low_value_p = -f_val2reduce[j1p];
-
-            //select I_low (y=-1)
-            for (int tid = 0; tid < ws_size; ++tid) {
-                int wsi = working_set[tid];
-                if (y[wsi] < 0 && alpha[wsi] < C)
-                    f_val2reduce[tid] = -f[tid];
-                else
-                    f_val2reduce[tid] = INFINITY;
-            }
-            int j1n = get_min_idx(f_val2reduce, ws_size);
-            float low_value_n = -f_val2reduce[j1n];
-
-            float local_diff = max(low_value_p - up_value_p, low_value_n - up_value_n);
-
-            if (numOfIter == 0) {
-                local_eps = max(eps, 0.1f * local_diff);
-                diff[0] = local_diff;
-            }
-            
-            if (local_diff < local_eps) {
-                //printf("before alpha_diff\n");
-                for (int tid = 0; tid < ws_size; ++tid) {
-                    int wsi = working_set[tid];
-                    alpha_diff[tid] = -(alpha[wsi] - a_old[tid]) * y[wsi];
-
+            while (1) {
+                for (int idx = begin; idx < end; ++idx) {
+                    if (y_[idx] > 0 && a_[idx] < C)
+                        f_val2reduce[idx] = f_[idx];
+                    else
+                        f_val2reduce[idx] = INFINITY;
                 }
-                //printf("after alpha_diff\n");
-                break;
-            }
+#pragma omp barrier
+                ip = get_min_idx(f_val2reduce, ws_size);
+                up_value_p = f_val2reduce[ip];
+                for (int idx = begin; idx < end; ++idx) {
+                    kIpwsI[idx] = k_mat_rows[row_len * ip + wsi[idx]];//K[i, wsi]
+                }
+#pragma omp barrier
+                for (int idx = begin; idx < end; ++idx) {
+                    if (y_[idx] < 0 && a_[idx] > 0)
+                        f_val2reduce[idx] = f_[idx];
+                    else
+                        f_val2reduce[idx] = INFINITY;
+                }
+#pragma omp barrier
+                in = get_min_idx(f_val2reduce, ws_size);
+                up_value_n = f_val2reduce[in];
+                for (int idx = begin; idx < end; ++idx) {
+                    kInwsI[idx] = k_mat_rows[row_len * in + wsi[idx]];//K[i, wsi]
+                }
+#pragma omp barrier
+                for (int idx = begin; idx < end; ++idx) {
+                    if (y_[idx] > 0 && a_[idx] > 0)
+                        f_val2reduce[idx] = -f_[idx];
+                    else
+                        f_val2reduce[idx] = INFINITY;
+                }
+#pragma omp barrier
+                j1p = get_min_idx(f_val2reduce, ws_size);
+                low_value_p = -f_val2reduce[j1p];
+#pragma omp barrier
+                for (int idx = begin; idx < end; ++idx) {
+                    if (y_[idx] < 0 && a_[idx] < C)
+                        f_val2reduce[idx] = -f_[idx];
+                    else
+                        f_val2reduce[idx] = INFINITY;
+                }
+#pragma omp barrier
+                j1n = get_min_idx(f_val2reduce, ws_size);
+                low_value_n = -f_val2reduce[j1n];
 
-            //select j2p using second order heuristic
-            for (int tid = 0; tid < ws_size; ++tid) {
-                int wsi = working_set[tid];
-                if (-up_value_p > -f[tid] && y[wsi] > 0 && alpha[wsi] > 0) {
-                    float aIJ = kd[ip] + kd[tid] - 2 * kIpwsI[tid];
-                    float bIJ = -up_value_p + f[tid];
-                    f_val2reduce[tid] = -bIJ * bIJ / aIJ;
-                } else
-                    f_val2reduce[tid] = INFINITY;
-            }
-            int j2p = get_min_idx(f_val2reduce, ws_size);
-            float f_val_j2p = f_val2reduce[j2p];
 
-            //select j2n using second order heuristic
-            for (int tid = 0; tid < ws_size; ++tid) {
-                int wsi = working_set[tid];
-                if (-up_value_n > -f[tid] && y[wsi] < 0 && alpha[wsi] < C) {
-                    float aIJ = kd[ip] + kd[tid] - 2 * kIpwsI[tid];
-                    float bIJ = -up_value_n + f[tid];
-                    f_val2reduce[tid] = -bIJ * bIJ / aIJ;
-                } else
-                    f_val2reduce[tid] = INFINITY;
-            }
-            int j2n = get_min_idx(f_val2reduce, ws_size);
+                local_diff = max(low_value_p - up_value_p, low_value_n - up_value_n);
+                if (numOfIter == 0) {
+                    local_eps = max(eps, 0.1f * local_diff);
+                    if(tid == 0)
+                    {
+                        diff[0] = local_diff;
+                    }
+                }
+                if (local_diff < local_eps) {
+                    for (int idx = begin; idx < end; idx++) {
+                        alpha_ptr[wsi[idx]] = a_[idx];
+                        alpha_diff_ptr[idx] = (a_old[idx] - a_[idx]) * y_[idx];
+                    }
+                    break;
+                }
+#pragma omp barrier
+                for (int idx = begin; idx < end; ++idx) {
+                    if (-up_value_p > -f_[idx] && y_[idx] > 0 && a_[idx] > 0) {
+                        float aIJ = kd[ip] + kd[idx] - 2 * kIpwsI[idx];
+                        float bIJ = -up_value_p + f_[idx];
+                        f_val2reduce[idx] = -bIJ * bIJ / aIJ;
+                    } else
+                        f_val2reduce[idx] = INFINITY;
+                }
+#pragma omp barrier
+                j2p = get_min_idx(f_val2reduce, ws_size);
+                f_val_j2p = f_val2reduce[j2p];
+#pragma omp barrier
+                for (int idx = begin; idx < end; ++idx) {
+                    if (-up_value_n > -f_[idx] && y_[idx] < 0 && a_[idx] < C) {
+                        float aIJ = kd[in] + kd[idx] - 2 * kInwsI[idx];
+                        float bIJ = -up_value_n + f_[idx];
+                        f_val2reduce[idx] = -bIJ * bIJ / aIJ;
+                    } else
+                        f_val2reduce[idx] = INFINITY;
+                }
+#pragma omp barrier
+                j2n = get_min_idx(f_val2reduce, ws_size);
+                int i, j2;
+                float up_value;
+                //float kIwsI;
 
-            int i, j2;
-            float up_value;
-            float *kIwsI;
-            if (f_val_j2p < f_val2reduce[j2n]) {
-                i = ip;
-                j2 = j2p;
-                up_value = up_value_p;
-                kIwsI = kIpwsI;
-            } else {
-                i = in;
-                j2 = j2n;
-                kIwsI = kInwsI;
-                up_value = up_value_n;
-            }
-            //update alpha
-//            if (tid == i)
-//                *alpha_i_diff = y > 0 ? C - a : a;
-            *alpha_i_diff = y[working_set[i]] > 0 ? C - alpha[working_set[i]] : alpha[working_set[i]];
-//            if (tid == j2)
-//                *alpha_j_diff = min(y > 0 ? a : C - a, (-up_value + f) / (kd[i] + kd[j2] - 2 * kIwsI));
-            *alpha_j_diff = min(y[working_set[j2]] > 0 ? alpha[working_set[j2]] : C - alpha[working_set[j2]],
-                                (-up_value + f[j2]) / (kd[i] + kd[j2] - 2 * kIwsI[j2]));
-//            __syncthreads();
-            float l = min(*alpha_i_diff, *alpha_j_diff);
+                if (f_val_j2p < f_val2reduce[j2n]) {
+                    i = ip;
+                    j2 = j2p;
+                    up_value = up_value_p;
+                    for(int idx = begin; idx < end; ++idx)
+                        kIwsI[idx] = kIpwsI[idx];
+                } else {
+                    i = in;
+                    j2 = j2n;
+                    up_value = up_value_n;
+                    for(int idx = begin; idx < end; ++idx)
+                        kIwsI[idx] = kInwsI[idx];
+                }
 
-            alpha[working_set[i]] += l * y[working_set[i]];
-            alpha[working_set[j2]] -= l * y[working_set[j2]];
 
-            //update f
-            for (int tid = 0; tid < ws_size; ++tid) {
-                int wsi = working_set[tid];
-                float kJ2wsI = k_mat_rows[row_len * j2 + wsi];//K[J2, wsi]
-                f[tid] -= l * (kJ2wsI - kIwsI[tid]);
+
+
+                if(tid == 0) {
+                    *alpha_i_diff = y_[i] > 0 ? C - a_[i] : a_[i];
+                    *alpha_j_diff = min(y_[j2] > 0 ? a_[j2] : C - a_[j2],
+                                        (-up_value + f_[j2]) / (kd[i] + kd[j2] - 2 * kIwsI[j2]));
+                }
+#pragma omp barrier
+                l = min(*alpha_i_diff, *alpha_j_diff);
+                if(tid == 0) {
+                    a_[i] += l * y_[i];
+                    a_[j2] -= l * y_[j2];
+                }
+                //update f
+                for (int idx = begin; idx < end; ++idx) {
+                    float kJ2wsI = k_mat_rows[row_len * j2 + wsi[idx]];//K[J2, wsi]
+                    f_[idx] -= l * (kJ2wsI - kIwsI[idx]);
+                }
+                numOfIter++;
+                if (numOfIter > max_iter)
+                    break;
             }
-            numOfIter++;
-            if (numOfIter > max_iter) break;
         }
+
         delete[] a_old;
-        delete[] f;
+        delete[] a_;
+        delete[] wsi;
+        delete[] f_;
+        delete[] kIwsI;
         delete[] kIpwsI;
         delete[] kInwsI;
+        delete[] y_;
         delete[] shared_mem;
-        //printf("after nu_smo_solve\n");
     }
 
     void
