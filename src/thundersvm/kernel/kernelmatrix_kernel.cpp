@@ -3,7 +3,9 @@
 //
 
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
+
 #ifndef USE_CUDA
+
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
@@ -11,12 +13,17 @@ namespace svm_kernel {
     void
     get_working_set_ins(const SyncData<float_type> &val, const SyncData<int> &col_ind, const SyncData<int> &row_ptr,
                         const SyncData<int> &data_row_idx, SyncData<float_type> &data_rows, int m) {
+        const int *data_row_idx_data = data_row_idx.host_data();
+        float_type *data_rows_data = data_rows.host_data();
+        const int *row_ptr_data = row_ptr.host_data();
+        const int *col_ind_data = col_ind.host_data();
+        const float_type *val_data = val.host_data();
 #pragma omp parallel for schedule(guided)
         for (int i = 0; i < m; i++) {
-            int row = data_row_idx[i];
-            for (int j = row_ptr[row]; j < row_ptr[row + 1]; ++j) {
-                int col = col_ind[j];
-                data_rows[col * m + i] = val[j]; // row-major for cuSPARSE
+            int row = data_row_idx_data[i];
+            for (int j = row_ptr_data[row]; j < row_ptr_data[row + 1]; ++j) {
+                int col = col_ind_data[j];
+                data_rows_data[col * m + i] = val_data[j]; // row-major for cuSPARSE
             }
         }
     }
@@ -25,11 +32,15 @@ namespace svm_kernel {
     RBF_kernel(const SyncData<float_type> &self_dot0, const SyncData<float_type> &self_dot1,
                SyncData<float_type> &dot_product, int m,
                int n, float_type gamma) {
+        float_type *dot_product_data = dot_product.host_data();
+        const float_type *self_dot0_data = self_dot0.host_data();
+        const float_type *self_dot1_data = self_dot1.host_data();
 #pragma omp parallel for schedule(guided)
-        for (int idx = 0; idx < m * n; idx++) {
-            int i = idx / n;//i is row id
-            int j = idx % n;//j is column id
-            dot_product[idx] = expf(-(self_dot0[i] + self_dot1[j] - dot_product[idx] * 2) * gamma);
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; ++j) {
+                dot_product_data[i * n + j] = expf(
+                        -(self_dot0_data[i] + self_dot1_data[j] - dot_product_data[i * n + j] * 2) * gamma);
+            }
         }
     }
 
@@ -37,11 +48,16 @@ namespace svm_kernel {
     RBF_kernel(const SyncData<int> &self_dot0_idx, const SyncData<float_type> &self_dot1,
                SyncData<float_type> &dot_product, int m,
                int n, float_type gamma) {
+        float_type *dot_product_data = dot_product.host_data();
+        const int *self_dot0_idx_data = self_dot0_idx.host_data();
+        const float_type *self_dot1_data = self_dot1.host_data();
 #pragma omp parallel for schedule(guided)
-        for (int idx = 0; idx < m * n; idx++) {
-            int i = idx / n;//i is row id
-            int j = idx % n;//j is column id
-            dot_product[idx] = expf(-(self_dot1[self_dot0_idx[i]] + self_dot1[j] - dot_product[idx] * 2) * gamma);
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; ++j) {
+                dot_product_data[i * n + j] = expf(
+                        -(self_dot1_data[self_dot0_idx_data[i]] + self_dot1_data[j] - dot_product_data[i * n + j] * 2) *
+                        gamma);
+            }
         }
 
     }
@@ -110,16 +126,16 @@ namespace svm_kernel {
             }
         }
         */
-	Eigen::Map<const Eigen::MatrixXf> denseMat(dense_mat.host_data(), n, k);
-	Eigen::Map<const Eigen::SparseMatrix<float, Eigen::RowMajor>> sparseMat(m, k, nnz, csr_row_ptr.host_data(),
+        Eigen::Map<const Eigen::MatrixXf> denseMat(dense_mat.host_data(), n, k);
+        Eigen::Map<const Eigen::SparseMatrix<float, Eigen::RowMajor>> sparseMat(m, k, nnz, csr_row_ptr.host_data(),
                                                                                 csr_col_ind.host_data(),
                                                                                 csr_val.host_data());
-    Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> dense_tran = denseMat.transpose();
-	Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> retMat = sparseMat * dense_tran;
-	Eigen::Map < Eigen::Matrix < float, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor > > (result.host_data(),
-                retMat.rows(),
-                retMat.cols()) = retMat;
-    	
+        Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> dense_tran = denseMat.transpose();
+        Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> retMat = sparseMat * dense_tran;
+        Eigen::Map<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> >(result.host_data(),
+                                                                                           retMat.rows(),
+                                                                                           retMat.cols()) = retMat;
+
     }
 }
 #endif

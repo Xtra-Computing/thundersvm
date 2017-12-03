@@ -293,27 +293,32 @@ namespace svm_kernel {
     update_f(SyncData<float_type> &f, const SyncData<float_type> &alpha_diff, const SyncData<float_type> &k_mat_rows,
              int n_instances) {
         //"n_instances" equals to the number of rows of the whole kernel matrix for both SVC and SVR.
+        float_type *f_data = f.host_data();
+        const float_type *alpha_diff_data = alpha_diff.host_data();
+        const float_type *k_mat_rows_data = k_mat_rows.host_data();
 #pragma omp parallel for schedule(guided)
         for (int idx = 0; idx < n_instances; ++idx) {
             float_type sum_diff = 0;
             for (int i = 0; i < alpha_diff.size(); ++i) {
-                float_type d = alpha_diff[i];
+                float_type d = alpha_diff_data[i];
                 if (d != 0) {
-                    sum_diff += d * k_mat_rows[i * n_instances + idx];
+                    sum_diff += d * k_mat_rows_data[i * n_instances + idx];
                 }
             }
-            f[idx] -= sum_diff;
+            f_data[idx] -= sum_diff;
         }
     }
 
     void sort_f(SyncData<float_type> &f_val2sort, SyncData<int> &f_idx2sort) {
         vector<std::pair<float_type, int>> paris;
+        float_type *f_val2sort_data = f_val2sort.host_data();
+        int *f_idx2sort_data = f_idx2sort.host_data();
         for (int i = 0; i < f_val2sort.size(); ++i) {
-            paris.emplace_back(f_val2sort[i], f_idx2sort[i]);
+            paris.emplace_back(f_val2sort_data[i], f_idx2sort_data[i]);
         }
         std::sort(paris.begin(), paris.end());
         for (int i = 0; i < f_idx2sort.size(); ++i) {
-            f_idx2sort[i] = paris[i].second;
+            f_idx2sort_data[i] = paris[i].second;
         }
     }
 }
