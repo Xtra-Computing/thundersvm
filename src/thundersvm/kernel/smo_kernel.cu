@@ -1,11 +1,11 @@
 //
 // Created by jiashuai on 17-9-21.
 //
-#include <thrust/sort.h>
-#include <thrust/system/cuda/detail/par.h>
 #include "thundersvm/kernel/smo_kernel.h"
 
 #ifdef USE_CUDA
+#include <thrust/sort.h>
+#include <thrust/system/cuda/detail/par.h>
 namespace svm_kernel {
 
     __device__ int get_block_min(const float *values, int *index) {
@@ -253,10 +253,10 @@ namespace svm_kernel {
     }
 
     void
-    c_smo_solve(const SyncData<int> &y, SyncData<float_type> &f_val, SyncData<float_type> &alpha,
-                SyncData<float_type> &alpha_diff,
-                const SyncData<int> &working_set, float_type Cp, float_type Cn, const SyncData<float_type> &k_mat_rows,
-                const SyncData<float_type> &k_mat_diag, int row_len, float_type eps, SyncData<float_type> &diff,
+    c_smo_solve(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,
+                SyncArray<float_type> &alpha_diff,
+                const SyncArray<int> &working_set, float_type Cp, float_type Cn, const SyncArray<float_type> &k_mat_rows,
+                const SyncArray<float_type> &k_mat_diag, int row_len, float_type eps, SyncArray<float_type> &diff,
                 int max_iter) {
         size_t ws_size = working_set.size();
         size_t smem_size = ws_size * sizeof(float_type) * 3 + 2 * sizeof(float);
@@ -266,10 +266,10 @@ namespace svm_kernel {
                                                     row_len, eps, diff.device_data(), max_iter);
     }
 
-    void nu_smo_solve(const SyncData<int> &y, SyncData<float_type> &f_val, SyncData<float_type> &alpha,
-                      SyncData<float_type> &alpha_diff,
-                      const SyncData<int> &working_set, float_type C, const SyncData<float_type> &k_mat_rows,
-                      const SyncData<float_type> &k_mat_diag, int row_len, float_type eps, SyncData<float_type> &diff,
+    void nu_smo_solve(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,
+                      SyncArray<float_type> &alpha_diff,
+                      const SyncArray<int> &working_set, float_type C, const SyncArray<float_type> &k_mat_rows,
+                      const SyncArray<float_type> &k_mat_diag, int row_len, float_type eps, SyncArray<float_type> &diff,
                       int max_iter) {
         size_t ws_size = working_set.size();
         size_t smem_size = ws_size * sizeof(float_type) * 3 + 2 * sizeof(float);
@@ -296,13 +296,13 @@ namespace svm_kernel {
     }
 
     void
-    update_f(SyncData<float_type> &f, const SyncData<float_type> &alpha_diff, const SyncData<float_type> &k_mat_rows,
+    update_f(SyncArray<float_type> &f, const SyncArray<float_type> &alpha_diff, const SyncArray<float_type> &k_mat_rows,
              int n_instances) {
         SAFE_KERNEL_LAUNCH(update_f_kernel, f.device_data(), alpha_diff.size(), alpha_diff.device_data(),
                            k_mat_rows.device_data(), n_instances);
     }
 
-    void sort_f(SyncData<float_type> &f_val2sort, SyncData<int> &f_idx2sort) {
+    void sort_f(SyncArray<float_type> &f_val2sort, SyncArray<int> &f_idx2sort) {
         thrust::sort_by_key(thrust::cuda::par, f_val2sort.device_data(), f_val2sort.device_data() + f_val2sort.size(),
                             f_idx2sort.device_data(), thrust::less<float_type>());
     }

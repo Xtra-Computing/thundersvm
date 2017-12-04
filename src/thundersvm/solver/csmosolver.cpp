@@ -7,14 +7,15 @@
 
 using namespace svm_kernel;
 
-void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<float_type> &alpha, float_type &rho,
-                       SyncData<float_type> &f_val, float_type eps, float_type Cp, float_type Cn, int ws_size) const {
+void
+CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<float_type> &alpha, float_type &rho,
+                  SyncArray<float_type> &f_val, float_type eps, float_type Cp, float_type Cn, int ws_size) const {
     int n_instances = k_mat.n_instances();
     int q = ws_size / 2;
 
-    SyncData<int> working_set(ws_size);
-    SyncData<int> working_set_first_half(q);
-    SyncData<int> working_set_last_half(q);
+    SyncArray<int> working_set(ws_size);
+    SyncArray<int> working_set_first_half(q);
+    SyncArray<int> working_set_last_half(q);
 #ifdef USE_CUDA
     working_set_first_half.set_device_data(working_set.device_data());
     working_set_last_half.set_device_data(&working_set.device_data()[q]);
@@ -22,15 +23,15 @@ void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncDa
     working_set_first_half.set_host_data(working_set.host_data());
     working_set_last_half.set_host_data(&working_set.host_data()[q]);
 
-    SyncData<int> f_idx(n_instances);
-    SyncData<int> f_idx2sort(n_instances);
-    SyncData<float_type> f_val2sort(n_instances);
-    SyncData<float_type> alpha_diff(ws_size);
-    SyncData<float_type> diff(1);
+    SyncArray<int> f_idx(n_instances);
+    SyncArray<int> f_idx2sort(n_instances);
+    SyncArray<float_type> f_val2sort(n_instances);
+    SyncArray<float_type> alpha_diff(ws_size);
+    SyncArray<float_type> diff(1);
 
-    SyncData<float_type> k_mat_rows(ws_size * k_mat.n_instances());
-    SyncData<float_type> k_mat_rows_first_half(q * k_mat.n_instances());
-    SyncData<float_type> k_mat_rows_last_half(q * k_mat.n_instances());
+    SyncArray<float_type> k_mat_rows(ws_size * k_mat.n_instances());
+    SyncArray<float_type> k_mat_rows_first_half(q * k_mat.n_instances());
+    SyncArray<float_type> k_mat_rows_last_half(q * k_mat.n_instances());
 #ifdef USE_CUDA
     k_mat_rows_first_half.set_device_data(k_mat_rows.device_data());
     k_mat_rows_last_half.set_device_data(&k_mat_rows.device_data()[q * k_mat.n_instances()]);
@@ -79,39 +80,43 @@ void CSMOSolver::solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncDa
     printf("\n");
 }
 
-void CSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
-                                    const SyncData<float_type> &alpha, float_type Cp, float_type Cn,
-                                    SyncData<int> &working_set) const {
+void
+CSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncArray<int> &f_idx2sort, const SyncArray<int> &y,
+                               const SyncArray<float_type> &alpha, float_type Cp, float_type Cn,
+                               SyncArray<int> &working_set) const {
     int n_instances = ws_indicator.size();
     int p_left = 0;
     int p_right = n_instances - 1;
     int n_selected = 0;
     const int *index = f_idx2sort.host_data();
+    const int *y_data = y.host_data();
+    const float_type *alpha_data = alpha.host_data();
+    int *working_set_data = working_set.host_data();
     while (n_selected < working_set.size()) {
         int i;
         if (p_left < n_instances) {
             i = index[p_left];
-            while (ws_indicator[i] == 1 || !is_I_up(alpha[i], y[i], Cp, Cn)) {
+            while (ws_indicator[i] == 1 || !is_I_up(alpha_data[i], y_data[i], Cp, Cn)) {
                 //construct working set of I_up
                 p_left++;
                 if (p_left == n_instances) break;
                 i = index[p_left];
             }
             if (p_left < n_instances) {
-                working_set[n_selected++] = i;
+                working_set_data[n_selected++] = i;
                 ws_indicator[i] = 1;
             }
         }
         if (p_right >= 0) {
             i = index[p_right];
-            while (ws_indicator[i] == 1 || !is_I_low(alpha[i], y[i], Cp, Cn)) {
+            while (ws_indicator[i] == 1 || !is_I_low(alpha_data[i], y_data[i], Cp, Cn)) {
                 //construct working set of I_low
                 p_right--;
                 if (p_right == -1) break;
                 i = index[p_right];
             }
             if (p_right >= 0) {
-                working_set[n_selected++] = i;
+                working_set_data[n_selected++] = i;
                 ws_indicator[i] = 1;
             }
         }
@@ -120,7 +125,7 @@ void CSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncData<in
 }
 
 float_type
-CSMOSolver::calculate_rho(const SyncData<float_type> &f_val, const SyncData<int> &y, SyncData<float_type> &alpha,
+CSMOSolver::calculate_rho(const SyncArray<float_type> &f_val, const SyncArray<int> &y, SyncArray<float_type> &alpha,
                           float_type Cp,
                           float_type Cn) const {
     int n_free = 0;
@@ -138,8 +143,8 @@ CSMOSolver::calculate_rho(const SyncData<float_type> &f_val, const SyncData<int>
     return 0 != n_free ? (sum_free / n_free) : (-(up_value + low_value) / 2);
 }
 
-void CSMOSolver::init_f(const SyncData<float_type> &alpha, const SyncData<int> &y, const KernelMatrix &k_mat,
-                        SyncData<float_type> &f_val) const {
+void CSMOSolver::init_f(const SyncArray<float_type> &alpha, const SyncArray<int> &y, const KernelMatrix &k_mat,
+                        SyncArray<float_type> &f_val) const {
     //todo auto set batch size
     int batch_size = 100;
     vector<int> idx_vec;
@@ -150,11 +155,11 @@ void CSMOSolver::init_f(const SyncData<float_type> &alpha, const SyncData<int> &
             alpha_diff_vec.push_back(-alpha[i] * y[i]);
         }
         if (idx_vec.size() > batch_size || (i == alpha.size() - 1 && idx_vec.size() > 0)) {
-            SyncData<int> idx(idx_vec.size());
-            SyncData<float_type> alpha_diff(idx_vec.size());
+            SyncArray<int> idx(idx_vec.size());
+            SyncArray<float_type> alpha_diff(idx_vec.size());
             idx.copy_from(idx_vec.data(), idx_vec.size());
             alpha_diff.copy_from(alpha_diff_vec.data(), idx_vec.size());
-            SyncData<float_type> kernel_rows(idx.size() * k_mat.n_instances());
+            SyncArray<float_type> kernel_rows(idx.size() * k_mat.n_instances());
             k_mat.get_rows(idx, kernel_rows);
             update_f(f_val, alpha_diff, kernel_rows, k_mat.n_instances());
             idx_vec.clear();
@@ -164,11 +169,12 @@ void CSMOSolver::init_f(const SyncData<float_type> &alpha, const SyncData<int> &
 }
 
 void
-CSMOSolver::smo_kernel(const SyncData<int> &y, SyncData<float_type> &f_val, SyncData<float_type> &alpha,
-                       SyncData<float_type> &alpha_diff,
-                       const SyncData<int> &working_set, float_type Cp, float_type Cn,
-                       const SyncData<float_type> &k_mat_rows,
-                       const SyncData<float_type> &k_mat_diag, int row_len, float_type eps, SyncData<float_type> &diff,
+CSMOSolver::smo_kernel(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,
+                       SyncArray<float_type> &alpha_diff,
+                       const SyncArray<int> &working_set, float_type Cp, float_type Cn,
+                       const SyncArray<float_type> &k_mat_rows,
+                       const SyncArray<float_type> &k_mat_diag, int row_len, float_type eps,
+                       SyncArray<float_type> &diff,
                        int max_iter) const {
     c_smo_solve(y, f_val, alpha, alpha_diff, working_set, Cp, Cn, k_mat_rows, k_mat_diag, row_len, eps, diff, max_iter);
 }

@@ -7,7 +7,7 @@
 using namespace svm_kernel;
 
 float_type
-NuSMOSolver::calculate_rho(const SyncData<float_type> &f_val, const SyncData<int> &y, SyncData<float_type> &alpha,
+NuSMOSolver::calculate_rho(const SyncArray<float_type> &f_val, const SyncArray<int> &y, SyncArray<float_type> &alpha,
                            float_type Cp,
                            float_type Cn) const {
     int n_free_p = 0, n_free_n = 0;
@@ -42,9 +42,10 @@ NuSMOSolver::calculate_rho(const SyncData<float_type> &f_val, const SyncData<int
     return rho;
 }
 
-void NuSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
-                                     const SyncData<float_type> &alpha, float_type Cp, float_type Cn,
-                                     SyncData<int> &working_set) const {
+void
+NuSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncArray<int> &f_idx2sort, const SyncArray<int> &y,
+                                const SyncArray<float_type> &alpha, float_type Cp, float_type Cn,
+                                SyncArray<int> &working_set) const {
     int n_instances = ws_indicator.size();
     int p_left_p = 0;
     int p_left_n = 0;
@@ -109,19 +110,19 @@ void NuSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncData<i
     }
 }
 
-void NuSMOSolver::scale_alpha_rho(SyncData<float_type> &alpha, float_type &rho, float_type r) const {
+void NuSMOSolver::scale_alpha_rho(SyncArray<float_type> &alpha, float_type &rho, float_type r) const {
     for (int i = 0; i < alpha.size(); ++i) {
         alpha[i] /= r;//TODO parallel
     }
     rho /= r;
 }
 
-void NuSMOSolver::smo_kernel(const SyncData<int> &y, SyncData<float_type> &f_val, SyncData<float_type> &alpha,
-                             SyncData<float_type> &alpha_diff, const SyncData<int> &working_set, float_type Cp,
+void NuSMOSolver::smo_kernel(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,
+                             SyncArray<float_type> &alpha_diff, const SyncArray<int> &working_set, float_type Cp,
                              float_type Cn,
-                             const SyncData<float_type> &k_mat_rows, const SyncData<float_type> &k_mat_diag,
+                             const SyncArray<float_type> &k_mat_rows, const SyncArray<float_type> &k_mat_diag,
                              int row_len, float_type eps,
-                             SyncData<float_type> &diff, int max_iter) const {
+                             SyncArray<float_type> &diff, int max_iter) const {
     //Cn is not used but for compatibility with c-svc
     nu_smo_solve(y, f_val, alpha, alpha_diff, working_set, Cp, k_mat_rows, k_mat_diag, row_len, eps, diff, max_iter);
 }

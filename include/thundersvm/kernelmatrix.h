@@ -27,17 +27,17 @@ public:
      * @param [in] idx the indices of the rows
      * @param [out] kernel_rows
      */
-    void get_rows(const SyncData<int> &idx, SyncData<float_type> &kernel_rows) const;
+    void get_rows(const SyncArray<int> &idx, SyncArray<float_type> &kernel_rows) const;
 
     /**
      * return kernel values of each given instance and each instance stored in KernelMatrix
      * @param [in] instances the given instances
      * @param [out] kernel_rows
      */
-    void get_rows(const DataSet::node2d &instances, SyncData<float_type> &kernel_rows) const;
+    void get_rows(const DataSet::node2d &instances, SyncArray<float_type> &kernel_rows) const;
 
     ///return the diagonal elements of kernel matrix
-    const SyncData<float_type> &diag() const;
+    const SyncArray<float_type> &diag() const;
 
     ///the number of instances in KernelMatrix
     size_t n_instances() const { return n_instances_; };
@@ -52,20 +52,20 @@ private:
 
     KernelMatrix(const KernelMatrix &);
 
-    SyncData<float_type> val_;
-    SyncData<int> col_ind_;
-    SyncData<int> row_ptr_;
-    SyncData<float_type> diag_;
-    SyncData<float_type> self_dot_;
+    SyncArray<float_type> val_;
+    SyncArray<int> col_ind_;
+    SyncArray<int> row_ptr_;
+    SyncArray<float_type> diag_;
+    SyncArray<float_type> self_dot_;
     size_t nnz_;
     size_t n_instances_;
     size_t n_features_;
     SvmParam param;
 
-    void dns_csr_mul(const SyncData<float_type> &dense_mat, int n_rows, SyncData<float_type> &result) const;
+    void dns_csr_mul(const SyncArray<float_type> &dense_mat, int n_rows, SyncArray<float_type> &result) const;
 
-    void get_dot_product(const SyncData<int> &idx, SyncData<float_type> &dot_product) const;
+    void get_dot_product(const SyncArray<int> &idx, SyncArray<float_type> &dot_product) const;
 
-    void get_dot_product(const DataSet::node2d &instances, SyncData<float_type> &dot_product) const;
+    void get_dot_product(const DataSet::node2d &instances, SyncArray<float_type> &dot_product) const;
 };
 #endif //THUNDERSVM_KERNELMATRIX_H

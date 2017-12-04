@@ -4,6 +4,7 @@
 //
 
 #include <thundersvm/kernel/smo_kernel.h>
+
 #ifndef USE_CUDA
 
 namespace svm_kernel {
@@ -19,16 +20,15 @@ namespace svm_kernel {
         return min_idx;
     }
 
-    void c_smo_solve(const SyncData<int> &y, SyncData<float_type> &f_val, SyncData<float_type> &alpha,
-                     SyncData<float_type> &alpha_diff,
-                     const SyncData<int> &working_set, float_type Cp, float_type Cn,
-                     const SyncData<float_type> &k_mat_rows,
-                     const SyncData<float_type> &k_mat_diag, int row_len, float_type eps, SyncData<float_type> &diff,
-                     int max_iter) {
+    void c_smo_solve_kernel(const int *y, float_type *f_val, float_type *alpha, float_type *alpha_diff,
+                            const int *working_set,
+                            int ws_size,
+                            float Cp, float Cn, const float *k_mat_rows, const float *k_mat_diag, int row_len,
+                            float_type eps,
+                            float_type *diff, int max_iter) {
         //todo rewrite these codes
         //allocate shared memory
 
-        int ws_size = working_set.size();
         int *shared_mem = new int[ws_size * 3 + 2];
         int *f_idx2reduce = shared_mem; //temporary memory for reduction
         float *f_val2reduce = (float *) &f_idx2reduce[ws_size]; //f values used for reduction.
@@ -127,10 +127,21 @@ namespace svm_kernel {
         delete[] shared_mem;
     }
 
-    void nu_smo_solve(const SyncData<int> &y, SyncData<float_type> &f_val, SyncData<float_type> &alpha,
-                      SyncData<float_type> &alpha_diff,
-                      const SyncData<int> &working_set, float_type C, const SyncData<float_type> &k_mat_rows,
-                      const SyncData<float_type> &k_mat_diag, int row_len, float_type eps, SyncData<float_type> &diff,
+    void c_smo_solve(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,
+                     SyncArray<float_type> &alpha_diff,
+                     const SyncArray<int> &working_set, float_type Cp, float_type Cn,
+                     const SyncArray<float_type> &k_mat_rows,
+                     const SyncArray<float_type> &k_mat_diag, int row_len, float_type eps, SyncArray<float_type> &diff,
+                     int max_iter) {
+        c_smo_solve_kernel(y.host_data(), f_val.host_data(), alpha.host_data(), alpha_diff.host_data(),
+                           working_set.host_data(), working_set.size(), Cp, Cn, k_mat_rows.host_data(),
+                           k_mat_diag.host_data(), row_len, eps, diff.host_data(), max_iter);
+    }
+
+    void nu_smo_solve(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,
+                      SyncArray<float_type> &alpha_diff,
+                      const SyncArray<int> &working_set, float_type C, const SyncArray<float_type> &k_mat_rows,
+                      const SyncArray<float_type> &k_mat_diag, int row_len, float_type eps, SyncArray<float_type> &diff,
                       int max_iter) {
         //allocate shared memory
         int ws_size = working_set.size();
@@ -290,7 +301,7 @@ namespace svm_kernel {
     }
 
     void
-    update_f(SyncData<float_type> &f, const SyncData<float_type> &alpha_diff, const SyncData<float_type> &k_mat_rows,
+    update_f(SyncArray<float_type> &f, const SyncArray<float_type> &alpha_diff, const SyncArray<float_type> &k_mat_rows,
              int n_instances) {
         //"n_instances" equals to the number of rows of the whole kernel matrix for both SVC and SVR.
         float_type *f_data = f.host_data();
@@ -309,7 +320,7 @@ namespace svm_kernel {
         }
     }
 
-    void sort_f(SyncData<float_type> &f_val2sort, SyncData<int> &f_idx2sort) {
+    void sort_f(SyncArray<float_type> &f_val2sort, SyncArray<int> &f_idx2sort) {
         vector<std::pair<float_type, int>> paris;
         float_type *f_val2sort_data = f_val2sort.host_data();
         int *f_idx2sort_data = f_idx2sort.host_data();

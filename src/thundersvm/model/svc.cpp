@@ -42,7 +42,7 @@ void SVC::train(const DataSet &dataset, SvmParam param) {
     dataset_.group_classes();
     model_setup(dataset_, param);
 
-    vector<SyncData<float_type>> alpha(n_binary_models);
+    vector<SyncArray<float_type>> alpha(n_binary_models);
     vector<bool> is_sv(dataset_.n_instances(), false);
 
     int k = 0;
@@ -109,11 +109,11 @@ void SVC::train(const DataSet &dataset, SvmParam param) {
     }
 }
 
-void SVC::train_binary(const DataSet &dataset, int i, int j, SyncData<float_type> &alpha, float_type &rho) {
+void SVC::train_binary(const DataSet &dataset, int i, int j, SyncArray<float_type> &alpha, float_type &rho) {
     DataSet::node2d ins = dataset.instances(i, j);//get instances of class i and j
-    SyncData<int> y(ins.size());
+    SyncArray<int> y(ins.size());
     alpha.resize(ins.size());
-    SyncData<float_type> f_val(ins.size());
+    SyncArray<float_type> f_val(ins.size());
     alpha.mem_set(0);
     for (int l = 0; l < dataset.count()[i]; ++l) {
         y[l] = +1;
@@ -137,7 +137,7 @@ void SVC::train_binary(const DataSet &dataset, int i, int j, SyncData<float_type
 }
 
 vector<float_type> SVC::predict(const DataSet::node2d &instances, int batch_size) {
-    SyncData<float_type> dec_values(instances.size() * n_binary_models);
+    SyncArray<float_type> dec_values(instances.size() * n_binary_models);
     predict_dec_values(instances, dec_values, batch_size);
     return predict_label(dec_values, instances.size());
 }
@@ -209,7 +209,7 @@ void SVC::multiclass_probability(const vector<vector<float_type> > &r, vector<fl
     free(Qp);
 }
 
-vector<float_type> SVC::predict_label(const SyncData<float_type> &dec_values, int n_instances) const {
+vector<float_type> SVC::predict_label(const SyncArray<float_type> &dec_values, int n_instances) const {
     vector<float_type> predict_y;
     if (0 == param.probability) {
         //predict y by voting among k(k-1)/2 models
@@ -404,7 +404,7 @@ void SVC::probability_train(const DataSet &dataset) {
         }
         DataSet train_dataset(x_train, dataset.n_features(), y_train);
         temp_model->train(train_dataset, param_no_prob);
-        SyncData<float_type> dec_predict(x_test.size() * n_binary_models);
+        SyncArray<float_type> dec_predict(x_test.size() * n_binary_models);
         temp_model->predict_dec_values(x_test, dec_predict, 1000);
         for (int i = 0; i < x_test.size(); ++i) {
             memcpy(&dec_predict_all[test_idx[i] * n_binary_models], &dec_predict[i * n_binary_models],

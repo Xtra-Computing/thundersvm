@@ -16,8 +16,8 @@ void SVR::train(const DataSet &dataset, SvmParam param) {
 
     KernelMatrix kernelMatrix(instances_2, param);
 
-    SyncData<float_type> f_val(n_instances * 2);
-    SyncData<int> y(n_instances * 2);
+    SyncArray<float_type> f_val(n_instances * 2);
+    SyncArray<int> y(n_instances * 2);
 
     for (int i = 0; i < n_instances; ++i) {
         f_val[i] = param.p - dataset.y()[i];
@@ -26,7 +26,7 @@ void SVR::train(const DataSet &dataset, SvmParam param) {
         y[i + n_instances] = -1;
     }
 
-    SyncData<float_type> alpha_2(n_instances * 2);
+    SyncArray<float_type> alpha_2(n_instances * 2);
     alpha_2.mem_set(0);
     int ws_size = min(max2power(n_instances * 2), 1024);
     CSMOSolver solver;
@@ -34,7 +34,7 @@ void SVR::train(const DataSet &dataset, SvmParam param) {
     save_svr_coef(alpha_2, dataset.instances());
 }
 
-void SVR::save_svr_coef(const SyncData<float_type> &alpha_2, const DataSet::node2d &instances) {
+void SVR::save_svr_coef(const SyncArray<float_type> &alpha_2, const DataSet::node2d &instances) {
     LOG(INFO) << "rho = " << rho[0];
     int n_instances = alpha_2.size() / 2;
     vector<float_type> coef_vec;

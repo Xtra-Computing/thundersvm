@@ -69,8 +69,9 @@ vector<float_type> SvmModel::cross_validation(DataSet dataset, SvmParam param, i
 
 
 void
-SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncData<float_type> &dec_values, int batch_size) const {
-    SyncData<int> sv_start(n_classes);//start position of SVs in each class
+SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncArray<float_type> &dec_values,
+                             int batch_size) const {
+    SyncArray<int> sv_start(n_classes);//start position of SVs in each class
     sv_start[0] = 0;
     for (int i = 1; i < n_classes; ++i) {
         sv_start[i] = sv_start[i - 1] + n_sv[i - 1];
@@ -88,9 +89,9 @@ SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncData<float_ty
         }
 
         DataSet::node2d batch_ins(batch_start, batch_end);//get a batch of instances
-        SyncData<float_type> kernel_values(batch_ins.size() * sv.size());
+        SyncArray<float_type> kernel_values(batch_ins.size() * sv.size());
         k_mat.get_rows(batch_ins, kernel_values);
-        SyncData<float_type> batch_dec_values(batch_ins.size() * n_binary_models);
+        SyncArray<float_type> batch_dec_values(batch_ins.size() * n_binary_models);
 #ifdef USE_CUDA
         batch_dec_values.set_device_data(
                 &dec_values.device_data()[(batch_start - instances.begin()) * n_binary_models]);
@@ -109,7 +110,7 @@ SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncData<float_ty
 }
 
 vector<float_type> SvmModel::predict(const DataSet::node2d &instances, int batch_size) {
-    SyncData<float_type> dec_values(instances.size() * n_binary_models);
+    SyncArray<float_type> dec_values(instances.size() * n_binary_models);
     predict_dec_values(instances, dec_values, batch_size);
     vector<float_type> dec_values_vec(dec_values.size());
     memcpy(dec_values_vec.data(), dec_values.host_data(), dec_values.mem_size());

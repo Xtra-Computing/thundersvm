@@ -9,8 +9,8 @@
 void OneClassSVC::train(const DataSet &dataset, SvmParam param) {
     model_setup(dataset, param);
     int n_instances = dataset.n_instances();
-    SyncData<float_type> alpha(n_instances);
-    SyncData<float_type> f_val(n_instances);
+    SyncArray<float_type> alpha(n_instances);
+    SyncArray<float_type> f_val(n_instances);
 
     KernelMatrix kernelMatrix(dataset.instances(), param);
 
@@ -25,7 +25,7 @@ void OneClassSVC::train(const DataSet &dataset, SvmParam param) {
 
     //TODO batch, thrust
     f_val.mem_set(0);
-    SyncData<int> y(n_instances);
+    SyncArray<int> y(n_instances);
     for (int i = 0; i < n_instances; ++i) {
         y[i] = 1;
     }

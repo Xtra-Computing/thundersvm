@@ -4,13 +4,13 @@
 #include <thundersvm/model/nusvc.h>
 #include <thundersvm/solver/nusmosolver.h>
 
-void NuSVC::train_binary(const DataSet &dataset, int i, int j, SyncData<float_type> &alpha, float_type &rho) {
+void NuSVC::train_binary(const DataSet &dataset, int i, int j, SyncArray<float_type> &alpha, float_type &rho) {
     DataSet::node2d ins = dataset.instances(i, j);//get instances of class i and j
     int n_pos = dataset.count()[i];
     int n_neg = dataset.count()[j];
-    SyncData<int> y(ins.size());
+    SyncArray<int> y(ins.size());
     alpha.resize(ins.size());
-    SyncData<float_type> f_val(ins.size());
+    SyncArray<float_type> f_val(ins.size());
     alpha.mem_set(0);
     f_val.mem_set(0);
     float_type sum_pos = param.nu * ins.size() / 2;

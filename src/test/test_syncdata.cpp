@@ -5,7 +5,7 @@
 #include "thundersvm/syncdata.h"
 
 TEST(SyncDataTest, host_allocate){
-    SyncData<int> syncData(100);
+    SyncArray<int> syncData(100);
     EXPECT_NE(syncData.host_data(), nullptr);
     EXPECT_EQ(syncData.head(), SyncMem::HEAD::HOST);
     EXPECT_EQ(syncData.mem_size(), sizeof(int) * 100);
@@ -17,7 +17,7 @@ TEST(SyncDataTest, host_allocate){
 
 #ifdef USE_CUDA
 TEST(SyncDataTest, device_allocate){
-    SyncData<int> syncData(100);
+    SyncArray<int> syncData(100);
     EXPECT_NE(syncData.device_data(), nullptr);
     EXPECT_EQ(syncData.head(), SyncMem::HEAD::DEVICE);
     EXPECT_EQ(syncData.mem_size(), sizeof(int) * 100);
@@ -28,8 +28,8 @@ TEST(SyncDataTest, device_allocate){
 }
 
 TEST(SyncDataTest, host_to_device){
-    SyncData<int> syncData(10);
-    SyncData<int> syncData1(10);
+    SyncArray<int> syncData(10);
+    SyncArray<int> syncData1(10);
     syncData1.set_host_data(syncData.host_data());
     syncData1.set_device_data(syncData.device_data());
     int *data = syncData.host_data();
