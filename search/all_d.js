@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['resize',['resize',['../classSyncData.html#a61d09ff9847adc1210f7047993a3a7f1',1,'SyncData']]],
-  ['rho',['rho',['../classSvmModel.html#afe87f9afa263752b14d6325ec8d21802',1,'SvmModel']]]
+  ['resize',['resize',['../classSyncArray.html#a44ba4d6c3255f44ff811673a0c3f2e2d',1,'SyncArray']]],
+  ['rho',['rho',['../classSvmModel.html#ad03eab3505117a9a5a5cf26338a03fee',1,'SvmModel']]]
 ];

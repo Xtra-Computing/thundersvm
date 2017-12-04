@@ -90,8 +90,8 @@ Inheritance diagram for NuSVC:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:acdd27cd8b37a8b63cebbf2e473dee10b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNuSVC.html#acdd27cd8b37a8b63cebbf2e473dee10b">train_binary</a> (const <a class="el" href="classDataSet.html">DataSet</a> &amp;dataset, int i, int j, <a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt; &amp;alpha, float_type &amp;<a class="el" href="classSvmModel.html#afe87f9afa263752b14d6325ec8d21802">rho</a>) override</td></tr>
-<tr class="separator:acdd27cd8b37a8b63cebbf2e473dee10b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a665edd0a78dade8a6bfacdbfcaa13bed"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNuSVC.html#a665edd0a78dade8a6bfacdbfcaa13bed">train_binary</a> (const <a class="el" href="classDataSet.html">DataSet</a> &amp;dataset, int i, int j, <a class="el" href="classSyncArray.html">SyncArray</a>&lt; float_type &gt; &amp;alpha, float_type &amp;<a class="el" href="classSvmModel.html#ad03eab3505117a9a5a5cf26338a03fee">rho</a>) override</td></tr>
+<tr class="separator:a665edd0a78dade8a6bfacdbfcaa13bed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_methods_classSVC"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_classSVC')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="classSVC.html">SVC</a></td></tr>
 <tr class="memitem:a13d3980a3ca844601f03cd5f862d7a8f inherit pro_methods_classSVC"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSVC.html#a13d3980a3ca844601f03cd5f862d7a8f">model_setup</a> (const <a class="el" href="classDataSet.html">DataSet</a> &amp;dataset, <a class="el" href="structSvmParam.html">SvmParam</a> &amp;param) override</td></tr>
 <tr class="separator:a13d3980a3ca844601f03cd5f862d7a8f inherit pro_methods_classSVC"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -104,8 +104,8 @@ Additional Inherited Members</h2></td></tr>
 <tr class="memitem:ad2382cd5a2a1a84c7bcb4668ccc68ba1 inherit pub_methods_classSVC"><td class="memItemLeft" align="right" valign="top">vector&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSVC.html#ad2382cd5a2a1a84c7bcb4668ccc68ba1">predict</a> (const DataSet::node2d &amp;instances, int batch_size) override</td></tr>
 <tr class="separator:ad2382cd5a2a1a84c7bcb4668ccc68ba1 inherit pub_methods_classSVC"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classSvmModel"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classSvmModel')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classSvmModel.html">SvmModel</a></td></tr>
-<tr class="memitem:a3c866fc4628a6985a1b8527e65df9e2d inherit pub_methods_classSvmModel"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a3c866fc4628a6985a1b8527e65df9e2d">predict_dec_values</a> (const DataSet::node2d &amp;instances, <a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt; &amp;dec_values, int batch_size) const</td></tr>
-<tr class="separator:a3c866fc4628a6985a1b8527e65df9e2d inherit pub_methods_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae37f614adab2648c38b1e21c358a9ddc inherit pub_methods_classSvmModel"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#ae37f614adab2648c38b1e21c358a9ddc">predict_dec_values</a> (const DataSet::node2d &amp;instances, <a class="el" href="classSyncArray.html">SyncArray</a>&lt; float_type &gt; &amp;dec_values, int batch_size) const</td></tr>
+<tr class="separator:ae37f614adab2648c38b1e21c358a9ddc inherit pub_methods_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a270f882523e8b25926bc33eb84bb1d74 inherit pub_methods_classSvmModel"><td class="memItemLeft" align="right" valign="top">virtual vector&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a270f882523e8b25926bc33eb84bb1d74">cross_validation</a> (<a class="el" href="classDataSet.html">DataSet</a> dataset, <a class="el" href="structSvmParam.html">SvmParam</a> param, int n_fold)</td></tr>
 <tr class="separator:a270f882523e8b25926bc33eb84bb1d74 inherit pub_methods_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a83ca37174114b2b52d504d8a999e9aa2 inherit pub_methods_classSvmModel"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a83ca37174114b2b52d504d8a999e9aa2">save_to_file</a> (string path)</td></tr>
@@ -116,22 +116,22 @@ Additional Inherited Members</h2></td></tr>
 <tr class="memitem:ae82b6144d705eb6655e9c2f83b4da46a inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="ae82b6144d705eb6655e9c2f83b4da46a"></a>
 <a class="el" href="structSvmParam.html">SvmParam</a>&#160;</td><td class="memItemRight" valign="bottom"><b>param</b></td></tr>
 <tr class="separator:ae82b6144d705eb6655e9c2f83b4da46a inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7da1abb3acdb3984ee3c59f98005b993 inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a7da1abb3acdb3984ee3c59f98005b993">coef</a></td></tr>
-<tr class="separator:a7da1abb3acdb3984ee3c59f98005b993 inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a959e0867ad9572ab5d938d7da96745c3 inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classSyncArray.html">SyncArray</a>&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a959e0867ad9572ab5d938d7da96745c3">coef</a></td></tr>
+<tr class="separator:a959e0867ad9572ab5d938d7da96745c3 inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:affdbfed8346886355fb1918ec650fc6f inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top">DataSet::node2d&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#affdbfed8346886355fb1918ec650fc6f">sv</a></td></tr>
 <tr class="separator:affdbfed8346886355fb1918ec650fc6f inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a04e8f4891c6343d4f4cdd27eae8da11c inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="a04e8f4891c6343d4f4cdd27eae8da11c"></a>
-<a class="el" href="classSyncData.html">SyncData</a>&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a04e8f4891c6343d4f4cdd27eae8da11c">n_sv</a></td></tr>
-<tr class="memdesc:a04e8f4891c6343d4f4cdd27eae8da11c inherit pro_attribs_classSvmModel"><td class="mdescLeft">&#160;</td><td class="mdescRight">the number of support vectors for each class <br /></td></tr>
-<tr class="separator:a04e8f4891c6343d4f4cdd27eae8da11c inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7dfe7124a0657d4a487fbb0b204f70b1 inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="a7dfe7124a0657d4a487fbb0b204f70b1"></a>
+<a class="el" href="classSyncArray.html">SyncArray</a>&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a7dfe7124a0657d4a487fbb0b204f70b1">n_sv</a></td></tr>
+<tr class="memdesc:a7dfe7124a0657d4a487fbb0b204f70b1 inherit pro_attribs_classSvmModel"><td class="mdescLeft">&#160;</td><td class="mdescRight">the number of support vectors for each class <br /></td></tr>
+<tr class="separator:a7dfe7124a0657d4a487fbb0b204f70b1 inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a65739b8edd2f325128c9f7f7cb4e662d inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="a65739b8edd2f325128c9f7f7cb4e662d"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a65739b8edd2f325128c9f7f7cb4e662d">n_total_sv</a></td></tr>
 <tr class="memdesc:a65739b8edd2f325128c9f7f7cb4e662d inherit pro_attribs_classSvmModel"><td class="mdescLeft">&#160;</td><td class="mdescRight">the number of support vectors for all classes <br /></td></tr>
 <tr class="separator:a65739b8edd2f325128c9f7f7cb4e662d inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afe87f9afa263752b14d6325ec8d21802 inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="afe87f9afa263752b14d6325ec8d21802"></a>
-<a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#afe87f9afa263752b14d6325ec8d21802">rho</a></td></tr>
-<tr class="memdesc:afe87f9afa263752b14d6325ec8d21802 inherit pro_attribs_classSvmModel"><td class="mdescLeft">&#160;</td><td class="mdescRight">the bias term for each binary model <br /></td></tr>
-<tr class="separator:afe87f9afa263752b14d6325ec8d21802 inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad03eab3505117a9a5a5cf26338a03fee inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="ad03eab3505117a9a5a5cf26338a03fee"></a>
+<a class="el" href="classSyncArray.html">SyncArray</a>&lt; float_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#ad03eab3505117a9a5a5cf26338a03fee">rho</a></td></tr>
+<tr class="memdesc:ad03eab3505117a9a5a5cf26338a03fee inherit pro_attribs_classSvmModel"><td class="mdescLeft">&#160;</td><td class="mdescRight">the bias term for each binary model <br /></td></tr>
+<tr class="separator:ad03eab3505117a9a5a5cf26338a03fee inherit pro_attribs_classSvmModel"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8cc74e6ec369fb0e8b15a39668d7371d inherit pro_attribs_classSvmModel"><td class="memItemLeft" align="right" valign="top"><a id="a8cc74e6ec369fb0e8b15a39668d7371d"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSvmModel.html#a8cc74e6ec369fb0e8b15a39668d7371d">n_classes</a> = 2</td></tr>
 <tr class="memdesc:a8cc74e6ec369fb0e8b15a39668d7371d inherit pro_attribs_classSvmModel"><td class="mdescLeft">&#160;</td><td class="mdescRight">the number of classes <br /></td></tr>
@@ -156,8 +156,8 @@ vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class=
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Nu-Support Vector Machine for classification. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="acdd27cd8b37a8b63cebbf2e473dee10b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acdd27cd8b37a8b63cebbf2e473dee10b">&#9670;&nbsp;</a></span>train_binary()</h2>
+<a id="a665edd0a78dade8a6bfacdbfcaa13bed"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a665edd0a78dade8a6bfacdbfcaa13bed">&#9670;&nbsp;</a></span>train_binary()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -186,7 +186,7 @@ vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class=
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classSyncArray.html">SyncArray</a>&lt; float_type &gt; &amp;&#160;</td>
           <td class="paramname"><em>alpha</em>, </td>
         </tr>
         <tr>
@@ -218,7 +218,7 @@ vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class=
   </dd>
 </dl>
 
-<p>Reimplemented from <a class="el" href="classSVC.html#ab3d0f6f3db7500cb2a431bd5ea3ad04e">SVC</a>.</p>
+<p>Reimplemented from <a class="el" href="classSVC.html#a81205b63985a942ec2628182097f8b2f">SVC</a>.</p>
 
 </div>
 </div>

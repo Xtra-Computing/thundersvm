@@ -82,14 +82,14 @@ $(function() {
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a0795d5bcf9773f9dad28049968b1e17f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classKernelMatrix.html#a0795d5bcf9773f9dad28049968b1e17f">KernelMatrix</a> (const DataSet::node2d &amp;instances, <a class="el" href="structSvmParam.html">SvmParam</a> param)</td></tr>
 <tr class="separator:a0795d5bcf9773f9dad28049968b1e17f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afe4e609e4c7b1daefcbb188aac08f335"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classKernelMatrix.html#afe4e609e4c7b1daefcbb188aac08f335">get_rows</a> (const <a class="el" href="classSyncData.html">SyncData</a>&lt; int &gt; &amp;idx, <a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt; &amp;kernel_rows) const</td></tr>
-<tr class="separator:afe4e609e4c7b1daefcbb188aac08f335"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a00032e0086582e37c6e8a3d9b13c4326"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classKernelMatrix.html#a00032e0086582e37c6e8a3d9b13c4326">get_rows</a> (const DataSet::node2d &amp;instances, <a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt; &amp;kernel_rows) const</td></tr>
-<tr class="separator:a00032e0086582e37c6e8a3d9b13c4326"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab4abb7ddf12f398a77bf4aea5158e2d7"><td class="memItemLeft" align="right" valign="top"><a id="ab4abb7ddf12f398a77bf4aea5158e2d7"></a>
-const <a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classKernelMatrix.html#ab4abb7ddf12f398a77bf4aea5158e2d7">diag</a> () const</td></tr>
-<tr class="memdesc:ab4abb7ddf12f398a77bf4aea5158e2d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">return the diagonal elements of kernel matrix <br /></td></tr>
-<tr class="separator:ab4abb7ddf12f398a77bf4aea5158e2d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a683fe7a376a0afdd9a5a6ede56ea33ac"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classKernelMatrix.html#a683fe7a376a0afdd9a5a6ede56ea33ac">get_rows</a> (const <a class="el" href="classSyncArray.html">SyncArray</a>&lt; int &gt; &amp;idx, <a class="el" href="classSyncArray.html">SyncArray</a>&lt; float_type &gt; &amp;kernel_rows) const</td></tr>
+<tr class="separator:a683fe7a376a0afdd9a5a6ede56ea33ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46ba5ff687f0bb07b4a5cf5c50d60a4a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classKernelMatrix.html#a46ba5ff687f0bb07b4a5cf5c50d60a4a">get_rows</a> (const DataSet::node2d &amp;instances, <a class="el" href="classSyncArray.html">SyncArray</a>&lt; float_type &gt; &amp;kernel_rows) const</td></tr>
+<tr class="separator:a46ba5ff687f0bb07b4a5cf5c50d60a4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa2288c442b3b2aff4e3f163df0e0a74f"><td class="memItemLeft" align="right" valign="top"><a id="aa2288c442b3b2aff4e3f163df0e0a74f"></a>
+const <a class="el" href="classSyncArray.html">SyncArray</a>&lt; float_type &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classKernelMatrix.html#aa2288c442b3b2aff4e3f163df0e0a74f">diag</a> () const</td></tr>
+<tr class="memdesc:aa2288c442b3b2aff4e3f163df0e0a74f"><td class="mdescLeft">&#160;</td><td class="mdescRight">return the diagonal elements of kernel matrix <br /></td></tr>
+<tr class="separator:aa2288c442b3b2aff4e3f163df0e0a74f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a47bd7998d97d7b1f9a2058ddb38ca0e2"><td class="memItemLeft" align="right" valign="top"><a id="a47bd7998d97d7b1f9a2058ddb38ca0e2"></a>
 size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classKernelMatrix.html#a47bd7998d97d7b1f9a2058ddb38ca0e2">n_instances</a> () const</td></tr>
 <tr class="memdesc:a47bd7998d97d7b1f9a2058ddb38ca0e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">the number of instances in <a class="el" href="classKernelMatrix.html" title="The management class of kernel values. ">KernelMatrix</a> <br /></td></tr>
@@ -150,8 +150,8 @@ size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cl
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="afe4e609e4c7b1daefcbb188aac08f335"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afe4e609e4c7b1daefcbb188aac08f335">&#9670;&nbsp;</a></span>get_rows() <span class="overload">[1/2]</span></h2>
+<a id="a683fe7a376a0afdd9a5a6ede56ea33ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a683fe7a376a0afdd9a5a6ede56ea33ac">&#9670;&nbsp;</a></span>get_rows() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -159,13 +159,13 @@ size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cl
         <tr>
           <td class="memname">void KernelMatrix::get_rows </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classSyncData.html">SyncData</a>&lt; int &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classSyncArray.html">SyncArray</a>&lt; int &gt; &amp;&#160;</td>
           <td class="paramname"><em>idx</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classSyncArray.html">SyncArray</a>&lt; float_type &gt; &amp;&#160;</td>
           <td class="paramname"><em>kernel_rows</em>&#160;</td>
         </tr>
         <tr>
@@ -185,8 +185,8 @@ size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cl
 
 </div>
 </div>
-<a id="a00032e0086582e37c6e8a3d9b13c4326"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a00032e0086582e37c6e8a3d9b13c4326">&#9670;&nbsp;</a></span>get_rows() <span class="overload">[2/2]</span></h2>
+<a id="a46ba5ff687f0bb07b4a5cf5c50d60a4a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a46ba5ff687f0bb07b4a5cf5c50d60a4a">&#9670;&nbsp;</a></span>get_rows() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -200,7 +200,7 @@ size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cl
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classSyncData.html">SyncData</a>&lt; float_type &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classSyncArray.html">SyncArray</a>&lt; float_type &gt; &amp;&#160;</td>
           <td class="paramname"><em>kernel_rows</em>&#160;</td>
         </tr>
         <tr>
