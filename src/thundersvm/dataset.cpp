@@ -47,9 +47,9 @@ void DataSet::load_from_file(string file_name) {
     cout<<"Use Time:"<<timeuse<<endl;
 }
 */
-inline char* BackFindEndLine(char *bptr, char *begin) {
-    for (; bptr != begin; --bptr) {
-      if (*bptr == '\n' || *bptr == '\r') return bptr;
+inline char* findlastline(char *ptr, char *begin) {
+    for (; ptr != begin; --ptr) {
+      if (*ptr == '\n' || *ptr == '\r') return ptr;
     }
     return begin;
 }
@@ -71,10 +71,6 @@ void DataSet::load_from_file(string file_name){
     ifs.close();
     char *head = buffer;
     const int nthread = omp_get_max_threads();
-    //vector<float_type> y_thread[nthread];
-    //vector<vector<DataSet::node>> instances_thread[nthread];
-	//int local_count[nthread];
-	//int local_feature[nthread];
 	vector<float_type> *y_thread = new vector<float_type>[nthread];
 	vector<vector<DataSet::node>> *instances_thread = new vector<vector<DataSet::node>>[nthread];
 	int *local_count = new int[nthread];
@@ -87,12 +83,12 @@ void DataSet::load_from_file(string file_name){
         size_t nstep = (fsize + nthread - 1) / nthread;
         size_t sbegin = min(tid * nstep, fsize);
         size_t send = min((tid + 1) * nstep, fsize);
-        char *pbegin = BackFindEndLine(head + sbegin, head);
+        char *pbegin = findlastline(head + sbegin, head);
         char *pend;
         if (tid + 1 == nthread) {
           pend = head + send;
         } else {
-          pend = BackFindEndLine(head + send, head);
+          pend = findlastline(head + send, head);
         }
         char * lbegin;
         if(tid == 0) 
@@ -100,7 +96,6 @@ void DataSet::load_from_file(string file_name){
         else
             lbegin = pbegin + 1;
         char * lend = lbegin;
-        //cout << "before while lbegin" << endl;
         while(1){
             lend = lbegin;
             if(lend == pend)
@@ -126,7 +121,6 @@ void DataSet::load_from_file(string file_name){
                 instances_thread[tid][local_count[tid]].emplace_back(i, v);
                 if (i > local_feature[tid]) local_feature[tid] = i;
             };
-            
             local_count[tid]++;
             if(lend == pend)
                 break;
@@ -138,20 +132,9 @@ void DataSet::load_from_file(string file_name){
             n_features_ = local_feature[i];
         total_count_ += local_count[i];
     }
-    //int count_num = 0;
     for(int i = 0; i < nthread; i++){
         this->y_.insert(y_.end(), y_thread[i].begin(), y_thread[i].end());
-        //for(int j = 0; j < y_thread[i].size(); j++){
-
-            //this->y_.push_back(y_thread[i][j]);
-        
         this->instances_.insert(instances_.end(), instances_thread[i].begin(), instances_thread[i].end());
-        //for(int j = 0; j < local_count[i]; j++){
-            //this->instances_.emplace_back();
-            //for(int k = 0; k < instances_thread[i][j].size(); k++)
-            //this->instances_.emplace_back(instances_thread[i][j]);
-        //count_num++;
-        //}
     }
 }
 /*
