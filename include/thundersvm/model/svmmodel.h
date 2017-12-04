@@ -38,7 +38,7 @@ public:
      * @param [out] dec_values decision values predicted, #instances \f$times\f$ n_binary_models array
      * @param [in] batch_size the number of instances to predict parallel, higher value needs more memory
      */
-    void predict_dec_values(const DataSet::node2d &instances, SyncData<float_type> &dec_values, int batch_size) const;
+    void predict_dec_values(const DataSet::node2d &instances, SyncArray<float_type> &dec_values, int batch_size) const;
 
     /**
      * performing cross-validation.
@@ -86,7 +86,7 @@ protected:
      * support vectors of class i.
      */
 
-    SyncData<float_type> coef;
+    SyncArray<float_type> coef;
     /**
      * support vectors of this model. The support vectors is grouped in classes 0,1,2,.... The sequence of them in each
      * group is as they appear in original dataset. A training instance is saved as a support vector IFF it is a
@@ -95,13 +95,13 @@ protected:
 
     DataSet::node2d sv;
     ///the number of support vectors for each class
-    SyncData<int> n_sv;
+    SyncArray<int> n_sv;
 
     ///the number of support vectors for all classes
     int n_total_sv;
 
     ///the bias term for each binary model
-    SyncData<float_type> rho;
+    SyncArray<float_type> rho;
 
     ///the number of classes
     int n_classes = 2;

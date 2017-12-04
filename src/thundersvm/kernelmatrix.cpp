@@ -68,8 +68,8 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
 
 }
 
-void KernelMatrix::get_rows(const SyncData<int> &idx,
-                            SyncData<float_type> &kernel_rows) const {//compute multiple rows of kernel matrix according to idx
+void KernelMatrix::get_rows(const SyncArray<int> &idx,
+                            SyncArray<float_type> &kernel_rows) const {//compute multiple rows of kernel matrix according to idx
     CHECK_GE(kernel_rows.size(), idx.size() * n_instances_) << "kernel_rows memory is too small";
     get_dot_product(idx, kernel_rows);
     switch (param.kernel_type) {
@@ -89,19 +89,20 @@ void KernelMatrix::get_rows(const SyncData<int> &idx,
 }
 
 void KernelMatrix::get_rows(const DataSet::node2d &instances,
-                            SyncData<float_type> &kernel_rows) const {//compute the whole (sub-) kernel matrix of the given instances.
+                            SyncArray<float_type> &kernel_rows) const {//compute the whole (sub-) kernel matrix of the given instances.
     CHECK_GE(kernel_rows.size(), instances.size() * n_instances_) << "kernel_rows memory is too small";
     get_dot_product(instances, kernel_rows);
 
     //compute self dot
     //TODO use thrust
-    SyncData<float_type> self_dot(instances.size());
+    SyncArray<float_type> self_dot(instances.size());
+    float_type *self_dot_data = self_dot.host_data();
     for (int i = 0; i < instances.size(); ++i) {
         float_type sum = 0;
         for (int j = 0; j < instances[i].size(); ++j) {
             sum += instances[i][j].value * instances[i][j].value;
         }
-        self_dot[i] = sum;
+        self_dot_data[i] = sum;
     }
     switch (param.kernel_type) {
         case SvmParam::RBF:
@@ -119,31 +120,33 @@ void KernelMatrix::get_rows(const DataSet::node2d &instances,
     }
 }
 
-const SyncData<float_type> &KernelMatrix::diag() const {
+const SyncArray<float_type> &KernelMatrix::diag() const {
     return this->diag_;
 }
 
 
-void KernelMatrix::dns_csr_mul(const SyncData<float_type> &dense_mat, int n_rows, SyncData<float_type> &result) const {
+void
+KernelMatrix::dns_csr_mul(const SyncArray<float_type> &dense_mat, int n_rows, SyncArray<float_type> &result) const {
     CHECK_EQ(dense_mat.size(), n_rows * n_features_) << "dense matrix features doesn't match";
     svm_kernel::dns_csr_mul(n_instances_, n_rows, n_features_, dense_mat, val_, row_ptr_, col_ind_, nnz_, result);
 }
 
-void KernelMatrix::get_dot_product(const SyncData<int> &idx, SyncData<float_type> &dot_product) const {
-    SyncData<float_type> data_rows(idx.size() * n_features_);
+void KernelMatrix::get_dot_product(const SyncArray<int> &idx, SyncArray<float_type> &dot_product) const {
+    SyncArray<float_type> data_rows(idx.size() * n_features_);
     data_rows.mem_set(0);
     get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size());
     dns_csr_mul(data_rows, idx.size(), dot_product);
 }
 
-void KernelMatrix::get_dot_product(const DataSet::node2d &instances, SyncData<float_type> &dot_product) const {
-    SyncData<float_type> dense_ins(instances.size() * n_features_);
+void KernelMatrix::get_dot_product(const DataSet::node2d &instances, SyncArray<float_type> &dot_product) const {
+    SyncArray<float_type> dense_ins(instances.size() * n_features_);
     dense_ins.mem_set(0);
+    float_type *dense_ins_data = dense_ins.host_data();
     for (int i = 0; i < instances.size(); ++i) {
         float_type sum = 0;
         for (int j = 0; j < instances[i].size(); ++j) {
             if (instances[i][j].index - 1 < n_features_) {
-                dense_ins[(instances[i][j].index - 1) * instances.size() + i] = instances[i][j].value;
+                dense_ins_data[(instances[i][j].index - 1) * instances.size() + i] = instances[i][j].value;
                 sum += instances[i][j].value * instances[i][j].value;
             } else {
 //                LOG(WARNING)<<"the number of features in testing set is larger than training set";

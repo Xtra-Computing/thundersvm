@@ -13,17 +13,17 @@
  * @tparam T type of element
  */
 template<typename T>
-class SyncData : public el::Loggable {
+class SyncArray : public el::Loggable {
 public:
     /**
      * initialize class that can store given count of elements
      * @param count the given count
      */
-    explicit SyncData(size_t count);
+    explicit SyncArray(size_t count);
 
-    SyncData() : mem(nullptr), size_(0) {};
+    SyncArray() : mem(nullptr), size_(0) {};
 
-    ~SyncData();
+    ~SyncArray();
 
     const T *host_data() const;
 
@@ -49,18 +49,19 @@ public:
         mem->to_device();
     }
 
-    /**
-     * random access operator
-     * @param index the index of the elements
-     * @return **host** element at the index
-     */
-    const T &operator[](int index) const{
-        return host_data()[index];
-    }
-
-    T &operator[](int index){
-        return host_data()[index];
-    }
+    //deprecated because of performance issue
+//    /**
+//     * random access operator
+//     * @param index the index of the elements
+//     * @return **host** element at the index
+//     */
+//    const T &operator[](int index) const{
+//        return host_data()[index];
+//    }
+//
+//    T &operator[](int index){
+//        return host_data()[index];
+//    }
 
     /**
      * copy device data. This will call to_device() implicitly.
@@ -69,7 +70,7 @@ public:
      */
     void copy_from(const T *source, size_t count);
 
-    void copy_from(const SyncData<T> &source);
+    void copy_from(const SyncArray<T> &source);
 
     /**
      * set all elements to the given value. This method will set device data.
@@ -98,9 +99,9 @@ public:
     void log(el::base::type::ostream_t &ostream) const override;
 
 private:
-    SyncData<T> &operator=(const SyncData<T> &);
+    SyncArray<T> &operator=(const SyncArray<T> &);
 
-    SyncData(const SyncData<T>&);
+    SyncArray(const SyncArray<T> &);
 
     SyncMem *mem;
     size_t size_;

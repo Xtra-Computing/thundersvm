@@ -13,26 +13,28 @@
  */
 class CSMOSolver {
 public:
-    void solve(const KernelMatrix &k_mat, const SyncData<int> &y, SyncData<float_type> &alpha, float_type &rho,
-               SyncData<float_type> &f_val, float_type eps, float_type Cp, float_type Cn, int ws_size) const;
+    void solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<float_type> &alpha, float_type &rho,
+               SyncArray<float_type> &f_val, float_type eps, float_type Cp, float_type Cn, int ws_size) const;
 
 protected:
-    void init_f(const SyncData<float_type> &alpha, const SyncData<int> &y, const KernelMatrix &k_mat,
-                SyncData<float_type> &f_val) const;
+    void init_f(const SyncArray<float_type> &alpha, const SyncArray<int> &y, const KernelMatrix &k_mat,
+                SyncArray<float_type> &f_val) const;
 
-    virtual void select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
-                                    const SyncData<float_type> &alpha, float_type Cp, float_type Cn,
-                                    SyncData<int> &working_set) const;
+    virtual void
+    select_working_set(vector<int> &ws_indicator, const SyncArray<int> &f_idx2sort, const SyncArray<int> &y,
+                       const SyncArray<float_type> &alpha, float_type Cp, float_type Cn,
+                       SyncArray<int> &working_set) const;
 
     virtual float_type
-    calculate_rho(const SyncData<float_type> &f_val, const SyncData<int> &y, SyncData<float_type> &alpha, float_type Cp,
+    calculate_rho(const SyncArray<float_type> &f_val, const SyncArray<int> &y, SyncArray<float_type> &alpha,
+                  float_type Cp,
                   float_type Cn) const;
 
     virtual void
-    smo_kernel(const SyncData<int> &y, SyncData<float_type> &f_val, SyncData<float_type> &alpha,
-               SyncData<float_type> &alpha_diff,
-               const SyncData<int> &working_set, float_type Cp, float_type Cn, const SyncData<float_type> &k_mat_rows,
-               const SyncData<float_type> &k_mat_diag, int row_len, float_type eps, SyncData<float_type> &diff,
+    smo_kernel(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,
+               SyncArray<float_type> &alpha_diff,
+               const SyncArray<int> &working_set, float_type Cp, float_type Cn, const SyncArray<float_type> &k_mat_rows,
+               const SyncArray<float_type> &k_mat_diag, int row_len, float_type eps, SyncArray<float_type> &diff,
                int max_iter) const;
 };
 

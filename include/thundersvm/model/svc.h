@@ -32,7 +32,7 @@ protected:
      * of instances in this binary problem
      * @param [out] rho bias term \f$b\f$ in dual problem
      */
-    virtual void train_binary(const DataSet &dataset, int i, int j, SyncData<float_type> &alpha, float_type &rho);
+    virtual void train_binary(const DataSet &dataset, int i, int j, SyncArray<float_type> &alpha, float_type &rho);
 
     void model_setup(const DataSet &dataset, SvmParam &param) override;
 
@@ -45,7 +45,7 @@ private:
      * @param n_instances the number of instances to be predicted
      * @return final labels of each instances
      */
-    vector<float_type> predict_label(const SyncData<float_type> &dec_values, int n_instances) const;
+    vector<float_type> predict_label(const SyncArray<float_type> &dec_values, int n_instances) const;
 
     /**
      * perform probability training.

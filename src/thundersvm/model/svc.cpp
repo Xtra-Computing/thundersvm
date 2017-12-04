@@ -42,17 +42,18 @@ void SVC::train(const DataSet &dataset, SvmParam param) {
     dataset_.group_classes();
     model_setup(dataset_, param);
 
-    vector<SyncData<float_type>> alpha(n_binary_models);
+    vector<SyncArray<float_type>> alpha(n_binary_models);
     vector<bool> is_sv(dataset_.n_instances(), false);
 
     int k = 0;
     for (int i = 0; i < n_classes; ++i) {
         for (int j = i + 1; j < n_classes; ++j) {
-            train_binary(dataset_, i, j, alpha[k], rho[k]);
+            train_binary(dataset_, i, j, alpha[k], rho.host_data()[k]);
             vector<int> original_index = dataset_.original_index(i, j);
             CHECK_EQ(original_index.size(), alpha[k].size());
+            const float_type *alpha_data = alpha[k].host_data();
             for (int l = 0; l < alpha[k].size(); ++l) {
-                is_sv[original_index[l]] = is_sv[original_index[l]] || (alpha[k][l] != 0);
+                is_sv[original_index[l]] = is_sv[original_index[l]] || (alpha_data[l] != 0);
             }
             k++;
         }
@@ -61,9 +62,10 @@ void SVC::train(const DataSet &dataset, SvmParam param) {
     for (int i = 0; i < dataset_.n_classes(); ++i) {
         vector<int> original_index = dataset_.original_index(i);
         DataSet::node2d i_instances = dataset_.instances(i);
+        int *n_sv_data = n_sv.host_data();
         for (int j = 0; j < i_instances.size(); ++j) {
             if (is_sv[original_index[j]]) {
-                n_sv[i]++;
+                n_sv_data[i]++;
                 sv.push_back(i_instances[j]);
             }
         }
@@ -74,26 +76,29 @@ void SVC::train(const DataSet &dataset, SvmParam param) {
     coef.resize((n_classes - 1) * n_total_sv);
 
     vector<int> sv_start(1, 0);
+    const int *n_sv_data = n_sv.host_data();
     for (int i = 1; i < n_classes; ++i) {
-        sv_start.push_back(sv_start[i - 1] + n_sv[i - 1]);
+        sv_start.push_back(sv_start[i - 1] + n_sv_data[i - 1]);
     }
 
     k = 0;
+    float_type *coef_data = coef.host_data();
     for (int i = 0; i < n_classes; ++i) {
         for (int j = i + 1; j < n_classes; ++j) {
+            const float_type *alpha_data = alpha[k].host_data();
             vector<int> original_index = dataset_.original_index(i, j);
             int ci = dataset_.count()[i];
             int cj = dataset_.count()[j];
             int m = sv_start[i];
             for (int l = 0; l < ci; ++l) {
                 if (is_sv[original_index[l]]) {
-                    coef[(j - 1) * n_total_sv + m++] = alpha[k][l];
+                    coef_data[(j - 1) * n_total_sv + m++] = alpha_data[l];
                 }
             }
             m = sv_start[j];
             for (int l = ci; l < ci + cj; ++l) {
                 if (is_sv[original_index[l]]) {
-                    coef[i * n_total_sv + m++] = alpha[k][l];
+                    coef_data[i * n_total_sv + m++] = alpha_data[l];
                 }
             }
             k++;
@@ -109,19 +114,21 @@ void SVC::train(const DataSet &dataset, SvmParam param) {
     }
 }
 
-void SVC::train_binary(const DataSet &dataset, int i, int j, SyncData<float_type> &alpha, float_type &rho) {
+void SVC::train_binary(const DataSet &dataset, int i, int j, SyncArray<float_type> &alpha, float_type &rho) {
     DataSet::node2d ins = dataset.instances(i, j);//get instances of class i and j
-    SyncData<int> y(ins.size());
+    SyncArray<int> y(ins.size());
     alpha.resize(ins.size());
-    SyncData<float_type> f_val(ins.size());
+    SyncArray<float_type> f_val(ins.size());
     alpha.mem_set(0);
+    int *y_data = y.host_data();
+    float_type *f_val_data = f_val.host_data();
     for (int l = 0; l < dataset.count()[i]; ++l) {
-        y[l] = +1;
-        f_val[l] = -1;
+        y_data[l] = +1;
+        f_val_data[l] = -1;
     }
     for (int l = 0; l < dataset.count()[j]; ++l) {
-        y[dataset.count()[i] + l] = -1;
-        f_val[dataset.count()[i] + l] = +1;
+        y_data[dataset.count()[i] + l] = -1;
+        f_val_data[dataset.count()[i] + l] = +1;
     }
     KernelMatrix k_mat(ins, param);
     int ws_size = min(max2power(ins.size()), 1024);
@@ -129,15 +136,17 @@ void SVC::train_binary(const DataSet &dataset, int i, int j, SyncData<float_type
     solver.solve(k_mat, y, alpha, rho, f_val, param.epsilon, param.C * c_weight[i], param.C * c_weight[j], ws_size);
     LOG(INFO) << "rho = " << rho;
     int n_sv = 0;
+    y_data = y.host_data();
+    float_type *alpha_data = alpha.host_data();
     for (int l = 0; l < alpha.size(); ++l) {
-        alpha[l] *= y[l];
-        if (alpha[l] != 0) n_sv++;
+        alpha_data[l] *= y_data[l];
+        if (alpha_data[l] != 0) n_sv++;
     }
     LOG(INFO) << "#sv = " << n_sv;
 }
 
 vector<float_type> SVC::predict(const DataSet::node2d &instances, int batch_size) {
-    SyncData<float_type> dec_values(instances.size() * n_binary_models);
+    SyncArray<float_type> dec_values(instances.size() * n_binary_models);
     predict_dec_values(instances, dec_values, batch_size);
     return predict_label(dec_values, instances.size());
 }
@@ -209,8 +218,9 @@ void SVC::multiclass_probability(const vector<vector<float_type> > &r, vector<fl
     free(Qp);
 }
 
-vector<float_type> SVC::predict_label(const SyncData<float_type> &dec_values, int n_instances) const {
+vector<float_type> SVC::predict_label(const SyncArray<float_type> &dec_values, int n_instances) const {
     vector<float_type> predict_y;
+    const float_type *dec_values_data = dec_values.host_data();
     if (0 == param.probability) {
         //predict y by voting among k(k-1)/2 models
         for (int l = 0; l < n_instances; ++l) {
@@ -218,7 +228,7 @@ vector<float_type> SVC::predict_label(const SyncData<float_type> &dec_values, in
             int k = 0;
             for (int i = 0; i < n_classes; ++i) {
                 for (int j = i + 1; j < n_classes; ++j) {
-                    if (dec_values[l * n_binary_models + k] > 0)
+                    if (dec_values_data[l * n_binary_models + k] > 0)
                         votes[i]++;
                     else
                         votes[j]++;
@@ -241,7 +251,7 @@ vector<float_type> SVC::predict_label(const SyncData<float_type> &dec_values, in
             for (int i = 0; i < n_classes; i++)
                 for (int j = i + 1; j < n_classes; j++) {
                     r[i][j] = min(
-                            max(sigmoidPredict(dec_values[l * n_binary_models + k], probA[k], probB[k]), min_prob),
+                            max(sigmoidPredict(dec_values_data[l * n_binary_models + k], probA[k], probB[k]), min_prob),
                             1 - min_prob);
                     r[j][i] = 1 - r[i][j];
                     k++;
@@ -404,10 +414,11 @@ void SVC::probability_train(const DataSet &dataset) {
         }
         DataSet train_dataset(x_train, dataset.n_features(), y_train);
         temp_model->train(train_dataset, param_no_prob);
-        SyncData<float_type> dec_predict(x_test.size() * n_binary_models);
+        SyncArray<float_type> dec_predict(x_test.size() * n_binary_models);
         temp_model->predict_dec_values(x_test, dec_predict, 1000);
+        float_type *dec_predict_data = dec_predict.host_data();
         for (int i = 0; i < x_test.size(); ++i) {
-            memcpy(&dec_predict_all[test_idx[i] * n_binary_models], &dec_predict[i * n_binary_models],
+            memcpy(&dec_predict_all[test_idx[i] * n_binary_models], &dec_predict_data[i * n_binary_models],
                    sizeof(float_type) * n_binary_models);
         }
         delete temp_model;

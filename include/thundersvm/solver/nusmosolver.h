@@ -15,21 +15,22 @@ public:
     explicit NuSMOSolver(bool for_svr) : for_svr(for_svr) {};
 protected:
     float_type
-    calculate_rho(const SyncData<float_type> &f_val, const SyncData<int> &y, SyncData<float_type> &alpha, float_type Cp,
+    calculate_rho(const SyncArray<float_type> &f_val, const SyncArray<int> &y, SyncArray<float_type> &alpha,
+                  float_type Cp,
                   float_type Cn) const override;
 
-    void smo_kernel(const SyncData<int> &y, SyncData<float_type> &f_val, SyncData<float_type> &alpha,
-                    SyncData<float_type> &alpha_diff,
-                    const SyncData<int> &working_set, float_type Cp, float_type Cn,
-                    const SyncData<float_type> &k_mat_rows,
-                    const SyncData<float_type> &k_mat_diag, int row_len, float_type eps, SyncData<float_type> &diff,
+    void smo_kernel(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,
+                    SyncArray<float_type> &alpha_diff,
+                    const SyncArray<int> &working_set, float_type Cp, float_type Cn,
+                    const SyncArray<float_type> &k_mat_rows,
+                    const SyncArray<float_type> &k_mat_diag, int row_len, float_type eps, SyncArray<float_type> &diff,
                     int max_iter) const override;
 
-    void select_working_set(vector<int> &ws_indicator, const SyncData<int> &f_idx2sort, const SyncData<int> &y,
-                            const SyncData<float_type> &alpha, float_type Cp, float_type Cn,
-                            SyncData<int> &working_set) const override;
+    void select_working_set(vector<int> &ws_indicator, const SyncArray<int> &f_idx2sort, const SyncArray<int> &y,
+                            const SyncArray<float_type> &alpha, float_type Cp, float_type Cn,
+                            SyncArray<int> &working_set) const override;
 
-    void scale_alpha_rho(SyncData<float_type> &alpha, float_type &rho, float_type r) const;
+    void scale_alpha_rho(SyncArray<float_type> &alpha, float_type &rho, float_type r) const;
 
 private:
     bool for_svr;

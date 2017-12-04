@@ -2,10 +2,10 @@
 // Created by jiashuai on 17-9-17.
 //
 #include "gtest/gtest.h"
-#include "thundersvm/syncdata.h"
+#include "thundersvm/syncarray.h"
 
 TEST(SyncDataTest, host_allocate){
-    SyncData<int> syncData(100);
+    SyncArray<int> syncData(100);
     EXPECT_NE(syncData.host_data(), nullptr);
     EXPECT_EQ(syncData.head(), SyncMem::HEAD::HOST);
     EXPECT_EQ(syncData.mem_size(), sizeof(int) * 100);
@@ -17,7 +17,7 @@ TEST(SyncDataTest, host_allocate){
 
 #ifdef USE_CUDA
 TEST(SyncDataTest, device_allocate){
-    SyncData<int> syncData(100);
+    SyncArray<int> syncData(100);
     EXPECT_NE(syncData.device_data(), nullptr);
     EXPECT_EQ(syncData.head(), SyncMem::HEAD::DEVICE);
     EXPECT_EQ(syncData.mem_size(), sizeof(int) * 100);
@@ -28,8 +28,8 @@ TEST(SyncDataTest, device_allocate){
 }
 
 TEST(SyncDataTest, host_to_device){
-    SyncData<int> syncData(10);
-    SyncData<int> syncData1(10);
+    SyncArray<int> syncData(10);
+    SyncArray<int> syncData1(10);
     syncData1.set_host_data(syncData.host_data());
     syncData1.set_device_data(syncData.device_data());
     int *data = syncData.host_data();
@@ -48,8 +48,18 @@ TEST(SyncDataTest, host_to_device){
         EXPECT_EQ(data[i] , i);
     }
     for (int i = 0; i < 10; ++i) {
-        EXPECT_EQ(syncData[i] , i);
-        EXPECT_EQ(syncData1[i], i);
+EXPECT_EQ(syncData
+.
+
+host_data()[i], i
+
+);
+EXPECT_EQ(syncData1
+.
+
+host_data()[i], i
+
+);
     }
 }
 

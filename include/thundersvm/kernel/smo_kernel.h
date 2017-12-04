@@ -7,7 +7,7 @@
 
 #include <thundersvm/thundersvm.h>
 #include <thundersvm/clion_cuda.h>
-#include <thundersvm/syncdata.h>
+#include <thundersvm/syncarray.h>
 
 namespace svm_kernel {
     __host__ __device__ inline bool is_I_up(float a, float y, float Cp, float Cn) {
@@ -23,24 +23,25 @@ namespace svm_kernel {
     }
 
     void
-    c_smo_solve(const SyncData<int> &y, SyncData<float_type> &f_val, SyncData<float_type> &alpha,
-                SyncData<float_type> &alpha_diff,
-                const SyncData<int> &working_set, float_type Cp, float_type Cn, const SyncData<float_type> &k_mat_rows,
-                const SyncData<float_type> &k_mat_diag, int row_len, float_type eps, SyncData<float_type> &diff,
+    c_smo_solve(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,
+                SyncArray<float_type> &alpha_diff,
+                const SyncArray<int> &working_set, float_type Cp, float_type Cn,
+                const SyncArray<float_type> &k_mat_rows,
+                const SyncArray<float_type> &k_mat_diag, int row_len, float_type eps, SyncArray<float_type> &diff,
                 int max_iter);
 
     void
-    nu_smo_solve(const SyncData<int> &y, SyncData<float_type> &f_val, SyncData<float_type> &alpha,
-                 SyncData<float_type> &alpha_diff,
-                 const SyncData<int> &working_set, float_type C, const SyncData<float_type> &k_mat_rows,
-                 const SyncData<float_type> &k_mat_diag, int row_len, float_type eps, SyncData<float_type> &diff,
+    nu_smo_solve(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,
+                 SyncArray<float_type> &alpha_diff,
+                 const SyncArray<int> &working_set, float_type C, const SyncArray<float_type> &k_mat_rows,
+                 const SyncArray<float_type> &k_mat_diag, int row_len, float_type eps, SyncArray<float_type> &diff,
                  int max_iter);
 
     void
-    update_f(SyncData<float_type> &f, const SyncData<float_type> &alpha_diff, const SyncData<float_type> &k_mat_rows,
+    update_f(SyncArray<float_type> &f, const SyncArray<float_type> &alpha_diff, const SyncArray<float_type> &k_mat_rows,
              int n_instances);
 
-    void sort_f(SyncData<float_type> &f_val2sort, SyncData<int> &f_idx2sort);
+    void sort_f(SyncArray<float_type> &f_val2sort, SyncArray<int> &f_idx2sort);
 }
 
 #endif //THUNDERSVM_SMO_KERNEL_H

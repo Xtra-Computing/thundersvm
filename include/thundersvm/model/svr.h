@@ -24,7 +24,7 @@ protected:
      * @param alpha_2
      * @param instances
      */
-    void save_svr_coef(const SyncData<float_type> &alpha_2, const DataSet::node2d &instances);
+    void save_svr_coef(const SyncArray<float_type> &alpha_2, const DataSet::node2d &instances);
 };
 
 #endif //THUNDERSVM_SVR_H

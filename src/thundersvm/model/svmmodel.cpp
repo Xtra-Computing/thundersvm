@@ -69,11 +69,12 @@ vector<float_type> SvmModel::cross_validation(DataSet dataset, SvmParam param, i
 
 
 void
-SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncData<float_type> &dec_values, int batch_size) const {
-    SyncData<int> sv_start(n_classes);//start position of SVs in each class
-    sv_start[0] = 0;
+SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncArray<float_type> &dec_values,
+                             int batch_size) const {
+    SyncArray<int> sv_start(n_classes);//start position of SVs in each class
+    sv_start.host_data()[0] = 0;
     for (int i = 1; i < n_classes; ++i) {
-        sv_start[i] = sv_start[i - 1] + n_sv[i - 1];
+        sv_start.host_data()[i] = sv_start.host_data()[i - 1] + n_sv.host_data()[i - 1];
     }
 
     //compute kernel values
@@ -88,9 +89,9 @@ SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncData<float_ty
         }
 
         DataSet::node2d batch_ins(batch_start, batch_end);//get a batch of instances
-        SyncData<float_type> kernel_values(batch_ins.size() * sv.size());
+        SyncArray<float_type> kernel_values(batch_ins.size() * sv.size());
         k_mat.get_rows(batch_ins, kernel_values);
-        SyncData<float_type> batch_dec_values(batch_ins.size() * n_binary_models);
+        SyncArray<float_type> batch_dec_values(batch_ins.size() * n_binary_models);
 #ifdef USE_CUDA
         batch_dec_values.set_device_data(
                 &dec_values.device_data()[(batch_start - instances.begin()) * n_binary_models]);
@@ -109,7 +110,7 @@ SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncData<float_ty
 }
 
 vector<float_type> SvmModel::predict(const DataSet::node2d &instances, int batch_size) {
-    SyncData<float_type> dec_values(instances.size() * n_binary_models);
+    SyncArray<float_type> dec_values(instances.size() * n_binary_models);
     predict_dec_values(instances, dec_values, batch_size);
     vector<float_type> dec_values_vec(dec_values.size());
     memcpy(dec_values_vec.data(), dec_values.host_data(), dec_values.mem_size());
@@ -136,7 +137,7 @@ void SvmModel::save_to_file(string path) {
     fs_model << "total_sv " << sv.size() << endl;
     fs_model << "rho ";
     for (int i = 0; i < n_binary_models; ++i) {
-        fs_model << rho[i] << " ";
+        fs_model << rho.host_data()[i] << " ";
     }
     fs_model << endl;
     if (param.svm_type == SvmParam::NU_SVC || param.svm_type == SvmParam::C_SVC) {
@@ -147,7 +148,7 @@ void SvmModel::save_to_file(string path) {
         fs_model<< endl;
         fs_model << "nr_sv ";
         for (int i = 0; i < n_classes; ++i) {
-            fs_model << n_sv[i] << " ";
+            fs_model << n_sv.host_data()[i] << " ";
         }
         fs_model<< endl;
     }
@@ -164,9 +165,10 @@ void SvmModel::save_to_file(string path) {
         fs_model << endl;
     }
     fs_model << "SV " << endl;
+    const float_type *coef_data = coef.host_data();
     for (int i = 0; i < sv.size(); i++) {
         for (int j = 0; j < n_classes - 1; ++j) {
-            fs_model << setprecision(16) << coef[j * sv.size() + i] << " ";
+            fs_model << setprecision(16) << coef_data[j * sv.size() + i] << " ";
         }
 
         vector<DataSet::node> p = sv[i];
@@ -218,7 +220,7 @@ void SvmModel::load_from_file(string path) {
             ifs >> n_total_sv;
         } else if (feature == "rho") {
             for (int i = 0; i < n_binary_models; ++i) {
-                ifs >> rho[i];
+                ifs >> rho.host_data()[i];
             }
         } else if (feature == "label") {
             label = vector<int>(n_classes);
@@ -227,7 +229,7 @@ void SvmModel::load_from_file(string path) {
             }
         } else if (feature == "nr_sv") {
             for (int i = 0; i < n_classes; ++i) {
-                ifs >> n_sv[i];
+                ifs >> n_sv.host_data()[i];
             }
         } else if (feature == "probA") {
             param.probability = 1;
@@ -243,13 +245,14 @@ void SvmModel::load_from_file(string path) {
         } else if (feature == "SV") {
             sv.clear();
             coef.resize((n_classes - 1) * n_total_sv);
+            float_type *coef_data = coef.host_data();
             string line;
             getline(ifs, line);
             for (int i = 0; i < n_total_sv; i++) {
                 getline(ifs, line);
                 stringstream ss(line);
                 for (int j = 0; j < n_classes - 1; ++j) {
-                    ss >> coef[j * n_total_sv + i];
+                    ss >> coef_data[j * n_total_sv + i];
                 }
                 sv.emplace_back();//reserve space for an instance
                 string tuple;
@@ -263,7 +266,7 @@ void SvmModel::load_from_file(string path) {
         }
     }
     if (param.svm_type != SvmParam::C_SVC && param.svm_type != SvmParam::NU_SVC){
-        n_sv[0] = n_total_sv;
-        n_sv[1] = 0;
+        n_sv.host_data()[0] = n_total_sv;
+        n_sv.host_data()[1] = 0;
     }
 }

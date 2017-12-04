@@ -36,18 +36,14 @@ namespace svm_kernel {
     }
 
 
-    void c_smo_solve(const SyncData<int> &y, SyncData<float_type> &f_val, SyncData<float_type> &alpha,
-                     SyncData<float_type> &alpha_diff,
-                     const SyncData<int> &working_set, float_type Cp, float_type Cn,
-                     const SyncData<float_type> &k_mat_rows,
-                     const SyncData<float_type> &k_mat_diag, int row_len, float_type eps, SyncData<float_type> &diff,
-                     int max_iter) {
+    void c_smo_solve_kernel(const int *y, float_type *f_val, float_type *alpha, float_type *alpha_diff,
+                            const int *working_set,
+                            int ws_size,
+                            float Cp, float Cn, const float *k_mat_rows, const float *k_mat_diag, int row_len,
+                            float_type eps,
+                            float_type *diff, int max_iter) {
         //allocate shared memory
-        float_type* alpha_ptr = alpha.host_data();
-        float_type* alpha_diff_ptr = alpha_diff.host_data();
 
-
-        int ws_size = working_set.size();
         int *shared_mem = new int[ws_size * 3 * sizeof(float) + 2 * sizeof(float)];
         int *f_idx2reduce = shared_mem; //temporary memory for reduction
         float *f_val2reduce = (float *) &f_idx2reduce[ws_size]; //f values used for reduction.
@@ -117,8 +113,8 @@ namespace svm_kernel {
             }
             if (local_diff < local_eps) {
                 for (int idx = begin; idx < end; idx++) {
-                    alpha_ptr[wsi[idx]] = a_[idx];
-                    alpha_diff_ptr[idx] = (a_old[idx] - a_[idx]) * y_[idx];
+                    alpha[wsi[idx]] = a_[idx];
+                    alpha_diff[idx] = (a_old[idx] - a_[idx]) * y_[idx];
                 }
                 break;
             }
@@ -166,17 +162,24 @@ namespace svm_kernel {
 
     }
 
-    void nu_smo_solve(const SyncData<int> &y, SyncData<float_type> &f_val, SyncData<float_type> &alpha,
-                      SyncData<float_type> &alpha_diff,
-                      const SyncData<int> &working_set, float_type C, const SyncData<float_type> &k_mat_rows,
-                      const SyncData<float_type> &k_mat_diag, int row_len, float_type eps, SyncData<float_type> &diff,
-                      int max_iter) {
-        float_type* alpha_ptr = alpha.host_data();
-        float_type* alpha_diff_ptr = alpha_diff.host_data();
+    void c_smo_solve(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,
+                     SyncArray<float_type> &alpha_diff,
+                     const SyncArray<int> &working_set, float_type Cp, float_type Cn,
+                     const SyncArray<float_type> &k_mat_rows,
+                     const SyncArray<float_type> &k_mat_diag, int row_len, float_type eps, SyncArray<float_type> &diff,
+                     int max_iter) {
+        c_smo_solve_kernel(y.host_data(), f_val.host_data(), alpha.host_data(), alpha_diff.host_data(),
+                           working_set.host_data(), working_set.size(), Cp, Cn, k_mat_rows.host_data(),
+                           k_mat_diag.host_data(), row_len, eps, diff.host_data(), max_iter);
+    }
 
-
-        int ws_size = working_set.size();
-        int *shared_mem = new int[ws_size * 3 * sizeof(float) + 2 * sizeof(float)];
+    void nu_smo_solve_kernel(const int *y, float_type *f_val, float_type *alpha, float_type *alpha_diff,
+                        const int *working_set,
+                        int ws_size, float C, const float *k_mat_rows, const float *k_mat_diag, int row_len,
+                        float_type eps,
+                        float_type *diff, int max_iter) {
+        //allocate shared memory
+        int *shared_mem = new int[ws_size * 3 + 2];
         int *f_idx2reduce = shared_mem; //temporary memory for reduction
         float *f_val2reduce = (float *) &f_idx2reduce[ws_size]; //f values used for reduction.
         float *alpha_i_diff = &f_val2reduce[ws_size]; //delta alpha_i
@@ -275,8 +278,8 @@ namespace svm_kernel {
                 }
                 if (local_diff < local_eps) {
                     for (int idx = begin; idx < end; idx++) {
-                        alpha_ptr[wsi[idx]] = a_[idx];
-                        alpha_diff_ptr[idx] = (a_old[idx] - a_[idx]) * y_[idx];
+                        alpha[wsi[idx]] = a_[idx];
+                        alpha_diff[idx] = (a_old[idx] - a_[idx]) * y_[idx];
                     }
                     break;
                 }
@@ -355,32 +358,46 @@ namespace svm_kernel {
         delete[] y_;
         delete[] shared_mem;
     }
+    void nu_smo_solve(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,
+                      SyncArray<float_type> &alpha_diff,
+                      const SyncArray<int> &working_set, float_type C, const SyncArray<float_type> &k_mat_rows,
+                      const SyncArray<float_type> &k_mat_diag, int row_len, float_type eps, SyncArray<float_type> &diff,
+                      int max_iter) {
+        nu_smo_solve_kernel(y.host_data(), f_val.host_data(), alpha.host_data(), alpha_diff.host_data(),
+                           working_set.host_data(), working_set.size(), C, k_mat_rows.host_data(),
+                           k_mat_diag.host_data(), row_len, eps, diff.host_data(), max_iter);
+    }
 
     void
-    update_f(SyncData<float_type> &f, const SyncData<float_type> &alpha_diff, const SyncData<float_type> &k_mat_rows,
+    update_f(SyncArray<float_type> &f, const SyncArray<float_type> &alpha_diff, const SyncArray<float_type> &k_mat_rows,
              int n_instances) {
         //"n_instances" equals to the number of rows of the whole kernel matrix for both SVC and SVR.
+        float_type *f_data = f.host_data();
+        const float_type *alpha_diff_data = alpha_diff.host_data();
+        const float_type *k_mat_rows_data = k_mat_rows.host_data();
 #pragma omp parallel for schedule(guided)
         for (int idx = 0; idx < n_instances; ++idx) {
             float_type sum_diff = 0;
             for (int i = 0; i < alpha_diff.size(); ++i) {
-                float_type d = alpha_diff[i];
+                float_type d = alpha_diff_data[i];
                 if (d != 0) {
-                    sum_diff += d * k_mat_rows[i * n_instances + idx];
+                    sum_diff += d * k_mat_rows_data[i * n_instances + idx];
                 }
             }
-            f[idx] -= sum_diff;
+            f_data[idx] -= sum_diff;
         }
     }
 
-    void sort_f(SyncData<float_type> &f_val2sort, SyncData<int> &f_idx2sort) {
+    void sort_f(SyncArray<float_type> &f_val2sort, SyncArray<int> &f_idx2sort) {
         vector<std::pair<float_type, int>> paris;
+        float_type *f_val2sort_data = f_val2sort.host_data();
+        int *f_idx2sort_data = f_idx2sort.host_data();
         for (int i = 0; i < f_val2sort.size(); ++i) {
-            paris.emplace_back(f_val2sort[i], f_idx2sort[i]);
+            paris.emplace_back(f_val2sort_data[i], f_idx2sort_data[i]);
         }
         std::sort(paris.begin(), paris.end());
         for (int i = 0; i < f_idx2sort.size(); ++i) {
-            f_idx2sort[i] = paris[i].second;
+            f_idx2sort_data[i] = paris[i].second;
         }
     }
 }
