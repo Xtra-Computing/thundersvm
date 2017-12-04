@@ -6,7 +6,6 @@
 #include "thundersvm/kernel/kernelmatrix_kernel.h"
 #include <config.h>
 
-#ifdef USE_CUDA
 namespace svm_kernel {
     __global__ void
     kernel_get_working_set_ins(const float_type *val, const int *col_ind, const int *row_ptr, const int *data_row_idx,
@@ -152,4 +151,3 @@ namespace svm_kernel {
         //cusparseScsrmm return row-major matrix, so no transpose is needed
     }
 }
-#endif

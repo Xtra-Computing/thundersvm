@@ -3,9 +3,6 @@
 //
 
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
-
-#ifndef USE_CUDA
-
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
@@ -120,20 +117,6 @@ namespace svm_kernel {
     void dns_csr_mul(int m, int n, int k, const SyncArray<float_type> &dense_mat, const SyncArray<float_type> &csr_val,
                      const SyncArray<int> &csr_row_ptr, const SyncArray<int> &csr_col_ind, int nnz,
                      SyncArray<float_type> &result) {
-        /* 
-        for(int row = 0; row < m; row ++){
-            int nz_value_num = csr_row_ptr[row + 1] - csr_row_ptr[row];
-            if(nz_value_num != 0){
-                for(int col = 0; col < n; col++){
-                    float_type sum = 0;
-                    for(int nz_value_index = csr_row_ptr[row]; nz_value_index < csr_row_ptr[row + 1]; nz_value_index++){
-                        sum += csr_val[nz_value_index] * dense_mat[col + csr_col_ind[nz_value_index] * n];
-                    }
-                    result[row * n + col] = sum;
-                }
-            }
-        }
-        */
         Eigen::Map<const Eigen::MatrixXf> denseMat(dense_mat.host_data(), n, k);
         Eigen::Map<const Eigen::SparseMatrix<float, Eigen::RowMajor>> sparseMat(m, k, nnz, csr_row_ptr.host_data(),
                                                                                 csr_col_ind.host_data(),
@@ -143,7 +126,5 @@ namespace svm_kernel {
         Eigen::Map<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> >(result.host_data(),
                                                                                            retMat.rows(),
                                                                                            retMat.cols()) = retMat;
-
     }
 }
-#endif

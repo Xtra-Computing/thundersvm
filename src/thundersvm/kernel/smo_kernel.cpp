@@ -6,7 +6,6 @@
 
 #include <thundersvm/kernel/smo_kernel.h>
 #include <omp.h>
-#ifndef USE_CUDA
 namespace svm_kernel {
     int get_min_idx(const float *values, int size) {
         int min_idx = 0;
@@ -401,5 +400,4 @@ namespace svm_kernel {
         }
     }
 }
-#endif
 
