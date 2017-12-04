@@ -9,7 +9,6 @@
 TEST(CVTest, cv) {
     DataSet dataset;
     dataset.load_from_file(DATASET_DIR "test_dataset.txt");
-//    dataset.load_from_file(DATASET_DIR "mnist.scale");
     SVR model_svr;
     SVC model_svc;
     SvmParam param;

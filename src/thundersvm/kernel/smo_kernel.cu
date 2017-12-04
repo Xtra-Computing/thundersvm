@@ -3,7 +3,6 @@
 //
 #include "thundersvm/kernel/smo_kernel.h"
 
-#ifdef USE_CUDA
 #include <thrust/sort.h>
 #include <thrust/system/cuda/detail/par.h>
 namespace svm_kernel {
@@ -307,4 +306,3 @@ namespace svm_kernel {
                             f_idx2sort.device_data(), thrust::less<float_type>());
     }
 }
-#endif
