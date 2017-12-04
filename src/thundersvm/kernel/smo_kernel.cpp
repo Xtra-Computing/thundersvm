@@ -42,17 +42,13 @@ namespace svm_kernel {
                      const SyncData<float_type> &k_mat_rows,
                      const SyncData<float_type> &k_mat_diag, int row_len, float_type eps, SyncData<float_type> &diff,
                      int max_iter) {
-        //todo rewrite these codes
         //allocate shared memory
-        //const int *y_ptr = y.host_data();
-        //float_type* f_val_ptr = f_val.host_data();
         float_type* alpha_ptr = alpha.host_data();
         float_type* alpha_diff_ptr = alpha_diff.host_data();
 
 
         int ws_size = working_set.size();
         int *shared_mem = new int[ws_size * 3 * sizeof(float) + 2 * sizeof(float)];
-        //int *shared_mem = (int *)malloc(ws_size * (2 * sizeof(float) + sizeof(int)) + 2 * sizeof(float));
         int *f_idx2reduce = shared_mem; //temporary memory for reduction
         float *f_val2reduce = (float *) &f_idx2reduce[ws_size]; //f values used for reduction.
         float *alpha_i_diff = &f_val2reduce[ws_size]; //delta alpha_i
@@ -64,25 +60,12 @@ namespace svm_kernel {
         int *wsi = new int[ws_size];
         float *a_ = new float[ws_size];
         float *kIwsI = new float[ws_size];
-        //float *kJ2wsI = new float[ws_size];
         float *f_ = new float[ws_size];
         float *y_ = new float[ws_size];
-        /*
-        for(int idx = 0; idx < ws_size; idx++){
-            wsi[idx] = working_set[idx];
-            kd[idx] = k_mat_diag[wsi[idx]];
-            y_[idx] = y[wsi[idx]];
-            f_[idx] = f_val[wsi[idx]];
-            a_[idx] = alpha[wsi[idx]];
-            a_old[idx] = a_[idx];
-        }
-         */
         const int nthread = std::min(ws_size, omp_get_max_threads());
         //const int nthread = 2;
     #pragma omp parallel num_threads(nthread)
     {
-        //bool go = true;
-        //float local_eps;
         int i, j1, j2;
         float l;
         float up_value, low_value;
@@ -102,11 +85,7 @@ namespace svm_kernel {
             a_old[idx] = a_[idx];
         }
 
-    //#pragma omp barrier
-        //int numOfIter = 0;
-
         while (1) {
-//#pragma omp barrier
             //select fUp and fLow
             for (int idx = begin; idx < end; ++idx) {
                 if (is_I_up(a_[idx], y_[idx], Cp, Cn))
@@ -115,12 +94,8 @@ namespace svm_kernel {
                     f_val2reduce[idx] = INFINITY;
             }
 #pragma omp barrier
-            //if (tid == 0) {
-                i = get_min_idx(f_val2reduce, ws_size);
-                //int i = get_block_min(f_val2reduce, f_idx2reduce);
-                up_value = f_val2reduce[i];
-            //}
-//#pragma omp barrier
+            i = get_min_idx(f_val2reduce, ws_size);
+            up_value = f_val2reduce[i];
             for (int idx = begin; idx < end; ++idx) {
                 kIwsI[idx] = k_mat_rows[row_len * i + wsi[idx]];//K[i, wsi]
             }
@@ -136,31 +111,19 @@ namespace svm_kernel {
                 low_value = -f_val2reduce[j1];
                 local_diff = low_value - up_value;
             if (numOfIter == 0) {
-
-                //if(tid == 0){
-                    local_eps = max(eps, 0.1f * local_diff);
+                local_eps = max(eps, 0.1f * local_diff);
                 if(tid == 0)
-//#pragma omp single
-                {
                     diff[0] = local_diff;
-                }
             }
-            //}
-//#pragma omp barrier
             if (local_diff < local_eps) {
                 for (int idx = begin; idx < end; idx++) {
-                    //int wsi = working_set[idx];
-                    //float a_diff = a_old[idx] - a_[idx];
                     alpha_ptr[wsi[idx]] = a_[idx];
                     alpha_diff_ptr[idx] = (a_old[idx] - a_[idx]) * y_[idx];
                 }
                 break;
             }
 #pragma omp barrier
-            //if(go){
-                //printf("after first break\n");
             for (int idx = begin; idx < end; ++idx) {
-                //int wsi = working_set[idx];
                 if (-up_value > -f_[idx] && (is_I_low(a_[idx], y_[idx], Cp, Cn))) {
                     float aIJ = kd[i] + kd[idx] - 2 * kIwsI[idx];
                     float bIJ = -up_value + f_[idx];
@@ -169,40 +132,28 @@ namespace svm_kernel {
                     f_val2reduce[idx] = INFINITY;
             }
 #pragma omp barrier
-            //if(tid == 0) {
                 j2 = get_min_idx(f_val2reduce, ws_size);
             if(tid == 0) {
-//#pragma omp single
-//{
                 *alpha_i_diff = y_[i] > 0 ? Cp - a_[i] : a_[i];
                 *alpha_j_diff = min(y_[j2] > 0 ? a_[j2] : Cn - a_[j2],
                                     (-up_value + f_[j2]) / (kd[i] + kd[j2] - 2 * kIwsI[j2]));
-//}
             }
 #pragma omp barrier
                 l = min(*alpha_i_diff, *alpha_j_diff);
             if(tid == 0) {
-//#pragma omp single
-  //          {
                 a_[i] += l * y_[i];
                 a_[j2] -= l * y_[j2];
             }
-
-//#pragma omp barrier
             //update f
             for (int idx = begin; idx < end; ++idx) {
                 float kJ2wsI = k_mat_rows[row_len * j2 + wsi[idx]];//K[J2, wsi]
                 f_[idx] -= l * (kJ2wsI - kIwsI[idx]);
             }
-            //if(tid == 0)
             numOfIter++;
 
             if (numOfIter > max_iter)
-                //go = false;
                  break;
-            //}
         }
-//#pragma omp barrier
     }
 
         delete[] a_old;
@@ -354,7 +305,6 @@ namespace svm_kernel {
                 j2n = get_min_idx(f_val2reduce, ws_size);
                 int i, j2;
                 float up_value;
-                //float kIwsI;
 
                 if (f_val_j2p < f_val2reduce[j2n]) {
                     i = ip;
