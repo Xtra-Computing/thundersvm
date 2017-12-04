@@ -26,7 +26,7 @@ TEST(SVRTest, train) {
     vector<float_type> predict_y;
     predict_y = new_model->predict(dataset.instances(), 100);
     float_type mse = 0;
-    for (int i = 0; i < predict_y.size(); ++i) {
+    for (unsigned i = 0; i < predict_y.size(); ++i) {
         mse += (predict_y[i] - dataset.y()[i]) * (predict_y[i] - dataset.y()[i]);
     }
     mse /= predict_y.size();
