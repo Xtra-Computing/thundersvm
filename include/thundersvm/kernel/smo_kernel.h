@@ -7,7 +7,7 @@
 
 #include <thundersvm/thundersvm.h>
 #include <thundersvm/clion_cuda.h>
-#include <thundersvm/syncdata.h>
+#include <thundersvm/syncarray.h>
 
 namespace svm_kernel {
     __host__ __device__ inline bool is_I_up(float a, float y, float Cp, float Cn) {

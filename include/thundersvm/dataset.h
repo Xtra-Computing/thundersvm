@@ -6,7 +6,7 @@
 #define THUNDERSVM_DATASET_H
 
 #include "thundersvm.h"
-#include "syncdata.h"
+#include "syncarray.h"
 
 /**
  * @brief Dataset reader

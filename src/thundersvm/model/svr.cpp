@@ -19,35 +19,38 @@ void SVR::train(const DataSet &dataset, SvmParam param) {
     SyncArray<float_type> f_val(n_instances * 2);
     SyncArray<int> y(n_instances * 2);
 
+    float_type *f_val_data = f_val.host_data();
+    int *y_data = y.host_data();
     for (int i = 0; i < n_instances; ++i) {
-        f_val[i] = param.p - dataset.y()[i];
-        y[i] = +1;
-        f_val[i + n_instances] = -param.p - dataset.y()[i];
-        y[i + n_instances] = -1;
+        f_val_data[i] = param.p - dataset.y()[i];
+        y_data[i] = +1;
+        f_val_data[i + n_instances] = -param.p - dataset.y()[i];
+        y_data[i + n_instances] = -1;
     }
 
     SyncArray<float_type> alpha_2(n_instances * 2);
     alpha_2.mem_set(0);
     int ws_size = min(max2power(n_instances * 2), 1024);
     CSMOSolver solver;
-    solver.solve(kernelMatrix, y, alpha_2, rho[0], f_val, param.epsilon, param.C, param.C, ws_size);
+    solver.solve(kernelMatrix, y, alpha_2, rho.host_data()[0], f_val, param.epsilon, param.C, param.C, ws_size);
     save_svr_coef(alpha_2, dataset.instances());
 }
 
 void SVR::save_svr_coef(const SyncArray<float_type> &alpha_2, const DataSet::node2d &instances) {
-    LOG(INFO) << "rho = " << rho[0];
+    LOG(INFO) << "rho = " << rho.host_data()[0];
     int n_instances = alpha_2.size() / 2;
     vector<float_type> coef_vec;
+    const float_type *alpha_2_data = alpha_2.host_data();
     for (int i = 0; i < n_instances; ++i) {
-        float_type alpha_i = alpha_2[i] - alpha_2[i + n_instances];
+        float_type alpha_i = alpha_2_data[i] - alpha_2_data[i + n_instances];
         if (alpha_i != 0) {
             sv.push_back(instances[i]);
             coef_vec.push_back(alpha_i);
         }
     }
     LOG(INFO) << "#sv = " << sv.size();
-    n_sv[0] = sv.size();
-    n_sv[1] = 0;
+    n_sv.host_data()[0] = sv.size();
+    n_sv.host_data()[1] = 0;
     coef.resize(coef_vec.size());
     coef.copy_from(coef_vec.data(), coef_vec.size());
 }

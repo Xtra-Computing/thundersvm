@@ -14,21 +14,24 @@ NuSMOSolver::calculate_rho(const SyncArray<float_type> &f_val, const SyncArray<i
     float_type sum_free_p = 0, sum_free_n = 0;
     float_type up_value_p = INFINITY, up_value_n = INFINITY;
     float_type low_value_p = -INFINITY, low_value_n = -INFINITY;
+    const float_type *f_val_data = f_val.host_data();
+    const int *y_data = y.host_data();
+    float_type *alpha_data = alpha.host_data();
     for (int i = 0; i < alpha.size(); ++i) {
-        if (y[i] > 0) {
-            if (alpha[i] > 0 && alpha[i] < Cp) {
+        if (y_data[i] > 0) {
+            if (alpha_data[i] > 0 && alpha_data[i] < Cp) {
                 n_free_p++;
-                sum_free_p += f_val[i];
+                sum_free_p += f_val_data[i];
             }
-            if (is_I_up(alpha[i], y[i], Cp, Cn)) up_value_p = min(up_value_p, -f_val[i]);
-            if (is_I_low(alpha[i], y[i], Cp, Cn)) low_value_p = max(low_value_p, -f_val[i]);
+            if (is_I_up(alpha_data[i], y_data[i], Cp, Cn)) up_value_p = min(up_value_p, -f_val_data[i]);
+            if (is_I_low(alpha_data[i], y_data[i], Cp, Cn)) low_value_p = max(low_value_p, -f_val_data[i]);
         } else {
-            if (alpha[i] > 0 && alpha[i] < Cn) {
+            if (alpha_data[i] > 0 && alpha_data[i] < Cn) {
                 n_free_n++;
-                sum_free_n += -f_val[i];
+                sum_free_n += -f_val_data[i];
             }
-            if (is_I_up(alpha[i], y[i], Cp, Cn)) up_value_n = min(up_value_n, -f_val[i]);
-            if (is_I_low(alpha[i], y[i], Cp, Cn)) low_value_n = max(low_value_n, -f_val[i]);
+            if (is_I_up(alpha_data[i], y_data[i], Cp, Cn)) up_value_n = min(up_value_n, -f_val_data[i]);
+            if (is_I_low(alpha_data[i], y_data[i], Cp, Cn)) low_value_n = max(low_value_n, -f_val_data[i]);
         }
     }
     float_type r1 = n_free_p != 0 ? sum_free_p / n_free_p : (-(up_value_p + low_value_p) / 2);
@@ -53,57 +56,60 @@ NuSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncArray<int> 
     int p_right_n = n_instances - 1;
     int n_selected = 0;
     const int *index = f_idx2sort.host_data();
+    const int *y_data = y.host_data();
+    const float_type *alpha_data = alpha.host_data();
+    int *working_set_data = working_set.host_data();
     while (n_selected < working_set.size()) {
         int i;
         if (p_left_p < n_instances) {
             i = index[p_left_p];
-            while (ws_indicator[i] == 1 || !(y[i] > 0 && is_I_up(alpha[i], y[i], Cp, Cn))) {
+            while (ws_indicator[i] == 1 || !(y_data[i] > 0 && is_I_up(alpha_data[i], y_data[i], Cp, Cn))) {
                 //construct working set of I_up
                 p_left_p++;
                 if (p_left_p == n_instances) break;
                 i = index[p_left_p];
             }
             if (p_left_p < n_instances) {
-                working_set[n_selected++] = i;
+                working_set_data[n_selected++] = i;
                 ws_indicator[i] = 1;
             }
         }
         if (p_left_n < n_instances) {
             i = index[p_left_n];
-            while (ws_indicator[i] == 1 || !(y[i] < 0 && is_I_up(alpha[i], y[i], Cp, Cn))) {
+            while (ws_indicator[i] == 1 || !(y_data[i] < 0 && is_I_up(alpha_data[i], y_data[i], Cp, Cn))) {
                 //construct working set of I_up
                 p_left_n++;
                 if (p_left_n == n_instances) break;
                 i = index[p_left_n];
             }
             if (p_left_n < n_instances) {
-                working_set[n_selected++] = i;
+                working_set_data[n_selected++] = i;
                 ws_indicator[i] = 1;
             }
         }
         if (p_right_p >= 0) {
             i = index[p_right_p];
-            while (ws_indicator[i] == 1 || !(y[i] > 0 && is_I_low(alpha[i], y[i], Cp, Cn))) {
+            while (ws_indicator[i] == 1 || !(y_data[i] > 0 && is_I_low(alpha_data[i], y_data[i], Cp, Cn))) {
                 //construct working set of I_low
                 p_right_p--;
                 if (p_right_p == -1) break;
                 i = index[p_right_p];
             }
             if (p_right_p >= 0) {
-                working_set[n_selected++] = i;
+                working_set_data[n_selected++] = i;
                 ws_indicator[i] = 1;
             }
         }
         if (p_right_n >= 0) {
             i = index[p_right_n];
-            while (ws_indicator[i] == 1 || !(y[i] < 0 && is_I_low(alpha[i], y[i], Cp, Cn))) {
+            while (ws_indicator[i] == 1 || !(y_data[i] < 0 && is_I_low(alpha_data[i], y_data[i], Cp, Cn))) {
                 //construct working set of I_low
                 p_right_n--;
                 if (p_right_n == -1) break;
                 i = index[p_right_n];
             }
             if (p_right_n >= 0) {
-                working_set[n_selected++] = i;
+                working_set_data[n_selected++] = i;
                 ws_indicator[i] = 1;
             }
         }
@@ -111,8 +117,9 @@ NuSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncArray<int> 
 }
 
 void NuSMOSolver::scale_alpha_rho(SyncArray<float_type> &alpha, float_type &rho, float_type r) const {
+    float_type *alpha_data = alpha.host_data();
     for (int i = 0; i < alpha.size(); ++i) {
-        alpha[i] /= r;//TODO parallel
+        alpha_data[i] /= r;//TODO parallel
     }
     rho /= r;
 }

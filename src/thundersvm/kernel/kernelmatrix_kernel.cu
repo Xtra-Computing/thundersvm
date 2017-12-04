@@ -1,7 +1,7 @@
 //
 // Created by jiashuai on 17-9-20.
 //
-#include <thundersvm/syncdata.h>
+#include <thundersvm/syncarray.h>
 #include <cusparse.h>
 #include "thundersvm/kernel/kernelmatrix_kernel.h"
 #include <config.h>

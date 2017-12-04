@@ -2,7 +2,7 @@
 // Created by jiashuai on 17-9-17.
 //
 #include "gtest/gtest.h"
-#include "thundersvm/syncdata.h"
+#include "thundersvm/syncarray.h"
 
 TEST(SyncDataTest, host_allocate){
     SyncArray<int> syncData(100);
@@ -48,8 +48,18 @@ TEST(SyncDataTest, host_to_device){
         EXPECT_EQ(data[i] , i);
     }
     for (int i = 0; i < 10; ++i) {
-        EXPECT_EQ(syncData[i] , i);
-        EXPECT_EQ(syncData1[i], i);
+EXPECT_EQ(syncData
+.
+
+host_data()[i], i
+
+);
+EXPECT_EQ(syncData1
+.
+
+host_data()[i], i
+
+);
     }
 }
 

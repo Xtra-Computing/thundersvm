@@ -1,7 +1,7 @@
 //
 // Created by jiashuai on 17-9-17.
 //
-#include "thundersvm/syncdata.h"
+#include "thundersvm/syncarray.h"
 
 template<typename T>
 SyncArray<T>::SyncArray(size_t count):mem(new SyncMem(sizeof(T) * count)), size_(count) {

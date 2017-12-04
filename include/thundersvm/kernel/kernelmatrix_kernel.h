@@ -7,7 +7,7 @@
 
 #include "thundersvm/thundersvm.h"
 #include <thundersvm/clion_cuda.h>
-#include <thundersvm/syncdata.h>
+#include <thundersvm/syncarray.h>
 
 namespace svm_kernel {
     void

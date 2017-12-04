@@ -49,18 +49,19 @@ public:
         mem->to_device();
     }
 
-    /**
-     * random access operator
-     * @param index the index of the elements
-     * @return **host** element at the index
-     */
-    const T &operator[](int index) const{
-        return host_data()[index];
-    }
-
-    T &operator[](int index){
-        return host_data()[index];
-    }
+    //deprecated because of performance issue
+//    /**
+//     * random access operator
+//     * @param index the index of the elements
+//     * @return **host** element at the index
+//     */
+//    const T &operator[](int index) const{
+//        return host_data()[index];
+//    }
+//
+//    T &operator[](int index){
+//        return host_data()[index];
+//    }
 
     /**
      * copy device data. This will call to_device() implicitly.

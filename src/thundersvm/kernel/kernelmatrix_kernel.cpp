@@ -63,16 +63,18 @@ namespace svm_kernel {
     }
 
     void poly_kernel(SyncArray<float_type> &dot_product, float_type gamma, float_type coef0, int degree, int mn) {
+        float_type *dot_product_data = dot_product.host_data();
 #pragma omp parallel for schedule(guided)
         for (int idx = 0; idx < mn; idx++) {
-            dot_product[idx] = powf(gamma * dot_product[idx] + coef0, degree);
+            dot_product_data[idx] = powf(gamma * dot_product_data[idx] + coef0, degree);
         }
     }
 
     void sigmoid_kernel(SyncArray<float_type> &dot_product, float_type gamma, float_type coef0, int mn) {
+        float_type *dot_product_data = dot_product.host_data();
 #pragma omp parallel for schedule(guided)
         for (int idx = 0; idx < mn; idx++) {
-            dot_product[idx] = tanhf(gamma * dot_product[idx] + coef0);
+            dot_product_data[idx] = tanhf(gamma * dot_product_data[idx] + coef0);
         }
     }
 
@@ -80,19 +82,25 @@ namespace svm_kernel {
                            const SyncArray<int> &sv_count, const SyncArray<float_type> &rho,
                            const SyncArray<float_type> &k_mat,
                            SyncArray<float_type> &dec_values, int n_classes, int n_instances) {
+        const int *sv_start_data = sv_start.host_data();
+        const int *sv_count_data = sv_count.host_data();
+        const float_type *coef_data = coef.host_data();
+        const float_type *k_mat_data = k_mat.host_data();
+        float_type *dec_values_data = dec_values.host_data();
+        const float_type *rho_data = rho.host_data();
 #pragma omp parallel for schedule(guided)
         for (int idx = 0; idx < n_instances; idx++) {
             int k = 0;
             int n_binary_models = n_classes * (n_classes - 1) / 2;
             for (int i = 0; i < n_classes; ++i) {
                 for (int j = i + 1; j < n_classes; ++j) {
-                    int si = sv_start[i];
-                    int sj = sv_start[j];
-                    int ci = sv_count[i];
-                    int cj = sv_count[j];
-                    const float_type *coef1 = &coef[(j - 1) * total_sv];
-                    const float_type *coef2 = &coef[i * total_sv];
-                    const float_type *k_values = &k_mat[idx * total_sv];
+                    int si = sv_start_data[i];
+                    int sj = sv_start_data[j];
+                    int ci = sv_count_data[i];
+                    int cj = sv_count_data[j];
+                    const float_type *coef1 = &coef_data[(j - 1) * total_sv];
+                    const float_type *coef2 = &coef_data[i * total_sv];
+                    const float_type *k_values = &k_mat_data[idx * total_sv];
                     float_type sum = 0;
 #pragma omp parallel for reduction(+:sum)
                     for (int l = 0; l < ci; ++l) {
@@ -102,7 +110,7 @@ namespace svm_kernel {
                     for (int l = 0; l < cj; ++l) {
                         sum += coef2[sj + l] * k_values[sj + l];
                     }
-                    dec_values[idx * n_binary_models + k] = sum - rho[k];
+                    dec_values_data[idx * n_binary_models + k] = sum - rho_data[k];
                     k++;
                 }
             }

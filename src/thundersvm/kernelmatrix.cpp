@@ -96,12 +96,13 @@ void KernelMatrix::get_rows(const DataSet::node2d &instances,
     //compute self dot
     //TODO use thrust
     SyncArray<float_type> self_dot(instances.size());
+    float_type *self_dot_data = self_dot.host_data();
     for (int i = 0; i < instances.size(); ++i) {
         float_type sum = 0;
         for (int j = 0; j < instances[i].size(); ++j) {
             sum += instances[i][j].value * instances[i][j].value;
         }
-        self_dot[i] = sum;
+        self_dot_data[i] = sum;
     }
     switch (param.kernel_type) {
         case SvmParam::RBF:
@@ -140,11 +141,12 @@ void KernelMatrix::get_dot_product(const SyncArray<int> &idx, SyncArray<float_ty
 void KernelMatrix::get_dot_product(const DataSet::node2d &instances, SyncArray<float_type> &dot_product) const {
     SyncArray<float_type> dense_ins(instances.size() * n_features_);
     dense_ins.mem_set(0);
+    float_type *dense_ins_data = dense_ins.host_data();
     for (int i = 0; i < instances.size(); ++i) {
         float_type sum = 0;
         for (int j = 0; j < instances[i].size(); ++j) {
             if (instances[i][j].index - 1 < n_features_) {
-                dense_ins[(instances[i][j].index - 1) * instances.size() + i] = instances[i][j].value;
+                dense_ins_data[(instances[i][j].index - 1) * instances.size() + i] = instances[i][j].value;
                 sum += instances[i][j].value * instances[i][j].value;
             } else {
 //                LOG(WARNING)<<"the number of features in testing set is larger than training set";

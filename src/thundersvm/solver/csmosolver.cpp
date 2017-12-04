@@ -3,7 +3,6 @@
 //
 #include <thundersvm/solver/csmosolver.h>
 #include <thundersvm/kernel/smo_kernel.h>
-#include <climits>
 
 using namespace svm_kernel;
 
@@ -39,8 +38,9 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
     k_mat_rows_first_half.set_host_data(k_mat_rows.host_data());
     k_mat_rows_last_half.set_host_data(&k_mat_rows.host_data()[q * k_mat.n_instances()]);
 #endif
+    int *f_idx_data = f_idx.host_data();
     for (int i = 0; i < n_instances; ++i) {
-        f_idx[i] = i;
+        f_idx_data[i] = i;
     }
     init_f(alpha, y, k_mat, f_val);
     LOG(INFO) << "training start";
@@ -56,8 +56,9 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
             k_mat.get_rows(working_set, k_mat_rows);
         } else {
             working_set_first_half.copy_from(working_set_last_half);
+            int *working_set_data = working_set.host_data();
             for (int i = 0; i < q; ++i) {
-                ws_indicator[working_set[i]] = 1;
+                ws_indicator[working_set_data[i]] = 1;
             }
             select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set_last_half);
             k_mat_rows_first_half.copy_from(k_mat_rows_last_half);
@@ -72,7 +73,7 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
             printf(".");
             std::cout.flush();
         }
-        if (diff[0] < eps) {
+        if (diff.host_data()[0] < eps) {
             rho = calculate_rho(f_val, y, alpha, Cp, Cn);
             break;
         }
@@ -132,13 +133,16 @@ CSMOSolver::calculate_rho(const SyncArray<float_type> &f_val, const SyncArray<in
     float_type sum_free = 0;
     float_type up_value = INFINITY;
     float_type low_value = -INFINITY;
+    const float_type *f_val_data = f_val.host_data();
+    const int *y_data = y.host_data();
+    float_type *alpha_data = alpha.host_data();
     for (int i = 0; i < alpha.size(); ++i) {
-        if (is_free(alpha[i], y[i], Cp, Cn)) {
+        if (is_free(alpha_data[i], y_data[i], Cp, Cn)) {
             n_free++;
-            sum_free += f_val[i];
+            sum_free += f_val_data[i];
         }
-        if (is_I_up(alpha[i], y[i], Cp, Cn)) up_value = min(up_value, f_val[i]);
-        if (is_I_low(alpha[i], y[i], Cp, Cn)) low_value = max(low_value, f_val[i]);
+        if (is_I_up(alpha_data[i], y_data[i], Cp, Cn)) up_value = min(up_value, f_val_data[i]);
+        if (is_I_low(alpha_data[i], y_data[i], Cp, Cn)) low_value = max(low_value, f_val_data[i]);
     }
     return 0 != n_free ? (sum_free / n_free) : (-(up_value + low_value) / 2);
 }
@@ -149,10 +153,12 @@ void CSMOSolver::init_f(const SyncArray<float_type> &alpha, const SyncArray<int>
     int batch_size = 100;
     vector<int> idx_vec;
     vector<float_type> alpha_diff_vec;
+    const int *y_data = y.host_data();
+    const float_type *alpha_data = alpha.host_data();
     for (int i = 0; i < alpha.size(); ++i) {
-        if (alpha[i] != 0) {
+        if (alpha_data[i] != 0) {
             idx_vec.push_back(i);
-            alpha_diff_vec.push_back(-alpha[i] * y[i]);
+            alpha_diff_vec.push_back(-alpha_data[i] * y_data[i]);
         }
         if (idx_vec.size() > batch_size || (i == alpha.size() - 1 && idx_vec.size() > 0)) {
             SyncArray<int> idx(idx_vec.size());

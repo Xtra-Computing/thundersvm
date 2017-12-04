@@ -138,13 +138,12 @@ namespace svm_kernel {
                            k_mat_diag.host_data(), row_len, eps, diff.host_data(), max_iter);
     }
 
-    void nu_smo_solve(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,
-                      SyncArray<float_type> &alpha_diff,
-                      const SyncArray<int> &working_set, float_type C, const SyncArray<float_type> &k_mat_rows,
-                      const SyncArray<float_type> &k_mat_diag, int row_len, float_type eps, SyncArray<float_type> &diff,
-                      int max_iter) {
+    void nu_smo_solve_kernel(const int *y, float_type *f_val, float_type *alpha, float_type *alpha_diff,
+                        const int *working_set,
+                        int ws_size, float C, const float *k_mat_rows, const float *k_mat_diag, int row_len,
+                        float_type eps,
+                        float_type *diff, int max_iter) {
         //allocate shared memory
-        int ws_size = working_set.size();
         int *shared_mem = new int[ws_size * 3 + 2];
         int *f_idx2reduce = shared_mem; //temporary memory for reduction
         float *f_val2reduce = (float *) &f_idx2reduce[ws_size]; //f values used for reduction.
@@ -298,6 +297,15 @@ namespace svm_kernel {
         delete[] kIpwsI;
         delete[] kInwsI;
         delete[] shared_mem;
+    }
+    void nu_smo_solve(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,
+                      SyncArray<float_type> &alpha_diff,
+                      const SyncArray<int> &working_set, float_type C, const SyncArray<float_type> &k_mat_rows,
+                      const SyncArray<float_type> &k_mat_diag, int row_len, float_type eps, SyncArray<float_type> &diff,
+                      int max_iter) {
+        nu_smo_solve_kernel(y.host_data(), f_val.host_data(), alpha.host_data(), alpha_diff.host_data(),
+                           working_set.host_data(), working_set.size(), C, k_mat_rows.host_data(),
+                           k_mat_diag.host_data(), row_len, eps, diff.host_data(), max_iter);
     }
 
     void
