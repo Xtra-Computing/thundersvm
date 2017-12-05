@@ -84,3 +84,23 @@ The meaning of each option can be found in the [parameters](parameters.md) page.
 
 ### Interfaces
 ThunderSVM provides python, R and Matlab interface. You can find the instructions in corresponding subdirectory.
+
+## Working on windows
+ThunderSVM can work on windows. We recommend you install Visual Studio IDE on windows. You can download from [this link](https://www.visualstudio.com/vs/).
+* Clone ThunderSVM repository
+```bash
+git clone --recursive git@github.com:zeyiwen/thundersvm.git
+```
+* Download testing datasets
+```bash
+cd thundersvm
+dataset/get_datasets.sh
+```
+* Generate Visual Studio project
+```
+mkdir build
+cd build
+cmake ..
+```
+* Open Visual Studio project in build directory and build executable program.
+Then you can set parameters in properties and run program.
