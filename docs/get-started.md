@@ -91,16 +91,11 @@ ThunderSVM can work on windows. We recommend you install Visual Studio IDE on wi
 ```bash
 git clone --recursive git@github.com:zeyiwen/thundersvm.git
 ```
-* Download testing datasets
-```bash
-cd thundersvm
-dataset/get_datasets.sh
-```
-* Generate Visual Studio project
+* Generate Visual Studio project. You can use "-G XXX" to specify your compiler.
 ```
 mkdir build
 cd build
-cmake ..
+cmake [-G XXX] ...
 ```
 * Open Visual Studio project in build directory and build executable program.
-Then you can set parameters in properties and run program.
+Then you can set parameters in Debug -> Properties -> Configuration Properties -> Debugging -> Command Arguments and run program.
