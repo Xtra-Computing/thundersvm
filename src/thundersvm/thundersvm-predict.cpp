@@ -27,20 +27,20 @@ int main(int argc, char **argv) {
         std::shared_ptr<SvmModel> model;
         std::shared_ptr<Metric> metric;
         if (svm_type == "c_svc") {
-            model = new SVC();
-            metric = new Accuracy();
+            model.reset(new SVC());
+            metric.reset(new Accuracy());
         } else if (svm_type == "nu_svc") {
-            model = new NuSVC();
-            metric = new Accuracy();
+            model.reset(new NuSVC());
+            metric.reset(new Accuracy());
         } else if (svm_type == "one_class") {
-            model = new OneClassSVC();
+            model.reset(new OneClassSVC());
             //todo determine a metric
         } else if (svm_type == "epsilon_svr") {
-            model = new SVR();
-            metric = new MSE();
+            model.reset(new SVR());
+            metric.reset(new MSE());
         } else if (svm_type == "nu_svr") {
-            model = new NuSVR();
-            metric = new MSE();
+            model.reset(new NuSVR());
+            metric.reset(new MSE());
         }
 
 #ifdef USE_CUDA

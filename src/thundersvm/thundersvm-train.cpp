@@ -22,19 +22,19 @@ int main(int argc, char **argv) {
         std::shared_ptr<SvmModel> model;
         switch (parser.param_cmd.svm_type) {
             case SvmParam::C_SVC:
-                model = new SVC();
+                model.reset(new SVC());
                 break;
             case SvmParam::NU_SVC:
-                model = new NuSVC();
+                model.reset(new NuSVC());
                 break;
             case SvmParam::ONE_CLASS:
-                model = new OneClassSVC();
+                model.reset(new OneClassSVC());
                 break;
             case SvmParam::EPSILON_SVR:
-                model = new SVR();
+                model.reset(new SVR());
                 break;
             case SvmParam::NU_SVR:
-                model = new NuSVR();
+                model.reset(new NuSVR());
                 break;
         }
 
@@ -71,12 +71,12 @@ int main(int argc, char **argv) {
         switch (parser.param_cmd.svm_type) {
             case SvmParam::C_SVC:
             case SvmParam::NU_SVC: {
-                metric = new Accuracy();
+                metric.reset(new Accuracy());
                 break;
             }
             case SvmParam::EPSILON_SVR:
             case SvmParam::NU_SVR: {
-                metric = new MSE();
+                metric.reset(new MSE());
                 break;
             }
             case SvmParam::ONE_CLASS: {
