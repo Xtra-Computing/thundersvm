@@ -14,77 +14,89 @@
 
 
 int main(int argc, char **argv) {
-    CMDParser parser;
-    parser.parse_command_line(argc, argv);
-    DataSet train_dataset;
-    train_dataset.load_from_file(parser.svmtrain_input_file_name);
-    SvmModel *model = nullptr;
-    switch (parser.param_cmd.svm_type) {
-        case SvmParam::C_SVC:
-            model = new SVC();
-            break;
-        case SvmParam::NU_SVC:
-            model = new NuSVC();
-            break;
-        case SvmParam::ONE_CLASS:
-            model = new OneClassSVC();
-            break;
-        case SvmParam::EPSILON_SVR:
-            model = new SVR();
-            break;
-        case SvmParam::NU_SVR:
-            model = new NuSVR();
-            break;
-    }
+    try {
+        CMDParser parser;
+        parser.parse_command_line(argc, argv);
+        DataSet train_dataset;
+        train_dataset.load_from_file(parser.svmtrain_input_file_name);
+        std::shared_ptr<SvmModel> model;
+        switch (parser.param_cmd.svm_type) {
+            case SvmParam::C_SVC:
+                model = new SVC();
+                break;
+            case SvmParam::NU_SVC:
+                model = new NuSVC();
+                break;
+            case SvmParam::ONE_CLASS:
+                model = new OneClassSVC();
+                break;
+            case SvmParam::EPSILON_SVR:
+                model = new SVR();
+                break;
+            case SvmParam::NU_SVR:
+                model = new NuSVR();
+                break;
+        }
 
-	//todo add this to check_parameter method
-    if (parser.param_cmd.svm_type == SvmParam::NU_SVC) {
-        train_dataset.group_classes();
-        for (int i = 0; i < train_dataset.n_classes(); ++i) {
-            int n1 = train_dataset.count()[i];
-            for (int j = i + 1; j < train_dataset.n_classes(); ++j) {
-                int n2 = train_dataset.count()[j];
-                if (parser.param_cmd.nu * (n1 + n2) / 2 > min(n1, n2)) {
-                    printf("specified nu is infeasible\n");
-                    return 1;
+        //todo add this to check_parameter method
+        if (parser.param_cmd.svm_type == SvmParam::NU_SVC) {
+            train_dataset.group_classes();
+            for (int i = 0; i < train_dataset.n_classes(); ++i) {
+                int n1 = train_dataset.count()[i];
+                for (int j = i + 1; j < train_dataset.n_classes(); ++j) {
+                    int n2 = train_dataset.count()[j];
+                    if (parser.param_cmd.nu * (n1 + n2) / 2 > min(n1, n2)) {
+                        printf("specified nu is infeasible\n");
+                        return 1;
+                    }
                 }
             }
         }
-    }
 
 #ifdef USE_CUDA
-    CUDA_CHECK(cudaSetDevice(parser.gpu_id));
+        CUDA_CHECK(cudaSetDevice(parser.gpu_id));
 #endif
 
-    vector<float_type> predict_y;
-    if (parser.do_cross_validation) {
-        predict_y = model->cross_validation(train_dataset, parser.param_cmd, parser.nr_fold);
-    } else {
-        model->train(train_dataset, parser.param_cmd);
-        model->save_to_file(parser.model_file_name);
-    	predict_y = model->predict(train_dataset.instances(), 10000);
-    }
+        vector<float_type> predict_y;
+        if (parser.do_cross_validation) {
+            predict_y = model->cross_validation(train_dataset, parser.param_cmd, parser.nr_fold);
+        } else {
+            model->train(train_dataset, parser.param_cmd);
+            model->save_to_file(parser.model_file_name);
+            predict_y = model->predict(train_dataset.instances(), 10000);
+        }
 
-    //perform svm testing
-    Metric *metric = nullptr;
-    switch (parser.param_cmd.svm_type) {
-        case SvmParam::C_SVC:
-        case SvmParam::NU_SVC: {
-            metric = new Accuracy();
-            break;
+        //perform svm testing
+        std::shared_ptr<Metric> metric;
+        switch (parser.param_cmd.svm_type) {
+            case SvmParam::C_SVC:
+            case SvmParam::NU_SVC: {
+                metric = new Accuracy();
+                break;
+            }
+            case SvmParam::EPSILON_SVR:
+            case SvmParam::NU_SVR: {
+                metric = new MSE();
+                break;
+            }
+            case SvmParam::ONE_CLASS: {
+            }
         }
-        case SvmParam::EPSILON_SVR:
-        case SvmParam::NU_SVR: {
-            metric = new MSE();
-            break;
-        }
-        case SvmParam::ONE_CLASS: {
+        if (metric) {
+            LOG(INFO) << metric->name() << " = " << metric->score(predict_y, train_dataset.y());
         }
     }
-    if (metric) {
-        LOG(INFO) << metric->name() << " = " << metric->score(predict_y, train_dataset.y());
+    catch (std::bad_alloc &) {
+        LOG(FATAL) << "out of host memory";
+        exit(EXIT_FAILURE);
     }
-    delete model;
-    delete metric;
+    catch (std::exception const &x) {
+        LOG(FATAL) << x.what();
+        exit(EXIT_FAILURE);
+    }
+    catch (...) {
+        LOG(FATAL) << "unknown error";
+        exit(EXIT_FAILURE);
+    }
 }
 

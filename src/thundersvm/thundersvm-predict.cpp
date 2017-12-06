@@ -14,52 +14,66 @@
 using std::fstream;
 
 int main(int argc, char **argv) {
-    CMDParser parser;
-    parser.parse_command_line(argc, argv);
-    fstream file;
-    file.open(parser.svmpredict_model_file_name, fstream::in);
-	std::cout << parser.svmpredict_model_file_name << "\n";
-    string feature, svm_type;
-    file >> feature >> svm_type;
-	std::cout << feature << "; " << svm_type << "\n";
-    CHECK_EQ(feature, "svm_type");
-    SvmModel *model = nullptr;
-    Metric *metric = nullptr;
-    if (svm_type == "c_svc") {
-        model = new SVC();
-        metric = new Accuracy();
-    } else if (svm_type == "nu_svc") {
-        model = new NuSVC();
-        metric = new Accuracy();
-    } else if (svm_type == "one_class") {
-        model = new OneClassSVC();
-        //todo determine a metric
-    } else if (svm_type == "epsilon_svr") {
-        model = new SVR();
-        metric = new MSE();
-    } else if (svm_type == "nu_svr") {
-        model = new NuSVR();
-        metric = new MSE();
-    }
+    try {
+        CMDParser parser;
+        parser.parse_command_line(argc, argv);
+        fstream file;
+        file.open(parser.svmpredict_model_file_name, fstream::in);
+        std::cout << parser.svmpredict_model_file_name << "\n";
+        string feature, svm_type;
+        file >> feature >> svm_type;
+        std::cout << feature << "; " << svm_type << "\n";
+        CHECK_EQ(feature, "svm_type");
+        std::shared_ptr<SvmModel> model;
+        std::shared_ptr<Metric> metric;
+        if (svm_type == "c_svc") {
+            model = new SVC();
+            metric = new Accuracy();
+        } else if (svm_type == "nu_svc") {
+            model = new NuSVC();
+            metric = new Accuracy();
+        } else if (svm_type == "one_class") {
+            model = new OneClassSVC();
+            //todo determine a metric
+        } else if (svm_type == "epsilon_svr") {
+            model = new SVR();
+            metric = new MSE();
+        } else if (svm_type == "nu_svr") {
+            model = new NuSVR();
+            metric = new MSE();
+        }
 
 #ifdef USE_CUDA
-    CUDA_CHECK(cudaSetDevice(parser.gpu_id));
+        CUDA_CHECK(cudaSetDevice(parser.gpu_id));
 #endif
 
-    model->load_from_file(parser.svmpredict_model_file_name);
-    file.close();
-    file.open(parser.svmpredict_output_file);
-    DataSet predict_dataset;
-    predict_dataset.load_from_file(parser.svmpredict_input_file);
+        model->load_from_file(parser.svmpredict_model_file_name);
+        file.close();
+        file.open(parser.svmpredict_output_file);
+        DataSet predict_dataset;
+        predict_dataset.load_from_file(parser.svmpredict_input_file);
 
-    vector<float_type> predict_y;
-    predict_y = model->predict(predict_dataset.instances(), 10000);
-    for (int i = 0; i < predict_y.size(); ++i) {
-        file << predict_y[i] << std::endl;
+        vector<float_type> predict_y;
+        predict_y = model->predict(predict_dataset.instances(), 10000);
+        for (int i = 0; i < predict_y.size(); ++i) {
+            file << predict_y[i] << std::endl;
+        }
+        file.close();
+
+        if (metric) {
+            LOG(INFO) << metric->name() << " = " << metric->score(predict_y, predict_dataset.y());
+        }
     }
-    file.close();
-
-    if (metric) {
-        LOG(INFO) << metric->name() << " = " << metric->score(predict_y, predict_dataset.y());
+    catch (std::bad_alloc &) {
+        LOG(FATAL) << "out of host memory";
+        exit(EXIT_FAILURE);
+    }
+    catch (std::exception const &x) {
+        LOG(FATAL) << x.what();
+        exit(EXIT_FAILURE);
+    }
+    catch (...) {
+        LOG(FATAL) << "unknown error";
+        exit(EXIT_FAILURE);
     }
 }
