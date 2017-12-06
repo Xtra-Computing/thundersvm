@@ -59,6 +59,7 @@ void DataSet::load_from_file(string file_name){
     total_count_ = 0;
     n_features_ = 0;
     std::ifstream ifs (file_name, std::ifstream::binary);
+    CHECK(ifs.is_open()) << "file " << file_name << " not found";
     // get pointer to associated buffer object
     std::filebuf* pbuf = ifs.rdbuf();
     // get file size using buffer's members
