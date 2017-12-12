@@ -22,6 +22,7 @@ The mission of ThunderSVM is to help users easily and efficiently apply SVMs to 
 - [Working without GPUs](http://thundersvm.readthedocs.io/en/latest/get-started.html#working-without-gpus)
 ## Getting Started
 ### Prerequisites
+* Supported Operating Systems: Linux, Windows and MacOS
 * [CUDA](https://developer.nvidia.com/cuda-downloads) 7.5 or above | cmake 2.8 or above | gcc 4.8 or above
 ### Download
 ```bash
