@@ -63,28 +63,33 @@ namespace svm_kernel {
         int numOfIter = 0;
         while (1) {
             //select fUp and fLow
+            int i = 0;
+            float up_value = INFINITY;
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (is_I_up(alpha[wsi], y[wsi], Cp, Cn))
-                    f_val2reduce[tid] = f[tid];
-                else
-                    f_val2reduce[tid] = INFINITY;
+                    if(f[tid] < up_value){
+                        up_value = f[tid];
+                        i = tid;
+                    }
             }
-            int i = get_min_idx(f_val2reduce, ws_size);
-            float up_value = f_val2reduce[i];
+            //int i = get_min_idx(f_val2reduce, ws_size);
+            //float up_value = f_val2reduce[i];
             for (int tid = 0; tid < ws_size; ++tid) {
                 kIwsI[tid] = k_mat_rows[row_len * i + working_set[tid]];//K[i, wsi]
             }
-
+            int j1 = 0;
+            float low_value = -INFINITY;
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (is_I_low(alpha[wsi], y[wsi], Cp, Cn))
-                    f_val2reduce[tid] = -f[tid];
-                else
-                    f_val2reduce[tid] = INFINITY;
+                    if(f[tid] > low_value){
+                        low_value = f[tid];
+                        j1 = tid;
+                    }
             }
-            int j1 = get_min_idx(f_val2reduce, ws_size);
-            float low_value = -f_val2reduce[j1];
+            //int j1 = get_min_idx(f_val2reduce, ws_size);
+            //float low_value = -f_val2reduce[j1];
 
             float local_diff = low_value - up_value;
             if (numOfIter == 0) {
@@ -99,18 +104,22 @@ namespace svm_kernel {
                 diff[0] = local_diff;
                 break;
             }
-
+            int j2 = 0;
+            float min_t = INFINITY;
             //select j2 using second order heuristic
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (-up_value > -f[tid] && (is_I_low(alpha[wsi], y[wsi], Cp, Cn))) {
                     float aIJ = kd[i] + kd[tid] - 2 * kIwsI[tid];
                     float bIJ = -up_value + f[tid];
-                    f_val2reduce[tid] = -bIJ * bIJ / aIJ;
-                } else
-                    f_val2reduce[tid] = INFINITY;
+                    float ft = -bIJ * bIJ / aIJ;
+                    if(ft < min_t){
+                        min_t = ft;
+                        j2 = tid;
+                    }
+                }
             }
-            int j2 = get_min_idx(f_val2reduce, ws_size);
+            //int j2 = get_min_idx(f_val2reduce, ws_size);
 
             //update alpha
 //            if (tid == i)
@@ -179,54 +188,60 @@ namespace svm_kernel {
         int numOfIter = 0;
         while (1) {
             //select I_up (y=+1)
+            int ip = 0;
+            float up_value_p = INFINITY;
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (y[wsi] > 0 && alpha[wsi] < C)
-                    f_val2reduce[tid] = f[tid];
-                else
-                    f_val2reduce[tid] = INFINITY;
+                    if(f[tid] < up_value_p){
+                        ip = tid;
+                        up_value_p = f[tid];
+                    }
             }
-            int ip = get_min_idx(f_val2reduce, ws_size);
-            float up_value_p = f_val2reduce[ip];
+
             for (int tid = 0; tid < ws_size; ++tid) {
                 kIpwsI[tid] = k_mat_rows[row_len * ip + working_set[tid]];//K[i, wsi]
             }
 
             //select I_up (y=-1)
+            int in = 0;
+            float up_value_n = INFINITY;
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (y[wsi] < 0 && alpha[wsi] > 0)
-                    f_val2reduce[tid] = f[tid];
-                else
-                    f_val2reduce[tid] = INFINITY;
+                    if(f[tid] < up_value_n){
+                        in = tid;
+                        up_value_n = f[tid];
+                    }
             }
-            int in = get_min_idx(f_val2reduce, ws_size);
-            float up_value_n = f_val2reduce[in];
             for (int tid = 0; tid < ws_size; ++tid) {
                 kInwsI[tid] = k_mat_rows[row_len * in + working_set[tid]];//K[i, wsi]
             }
 
             //select I_low (y=+1)
+            int j1p = 0;
+            float low_value_p = -INFINITY;
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (y[wsi] > 0 && alpha[wsi] > 0)
-                    f_val2reduce[tid] = -f[tid];
-                else
-                    f_val2reduce[tid] = INFINITY;
+                    if(f[tid] > low_value_p){
+                        j1p = tid;
+                        low_value_p = f[tid];
+                    }
             }
-            int j1p = get_min_idx(f_val2reduce, ws_size);
-            float low_value_p = -f_val2reduce[j1p];
+
 
             //select I_low (y=-1)
+            int j1n = 0;
+            float low_value_n = -INFINITY;
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (y[wsi] < 0 && alpha[wsi] < C)
-                    f_val2reduce[tid] = -f[tid];
-                else
-                    f_val2reduce[tid] = INFINITY;
+                    if(f[tid] > low_value_n){
+                        j1n = tid;
+                        low_value_n = f[tid];
+                    }
             }
-            int j1n = get_min_idx(f_val2reduce, ws_size);
-            float low_value_n = -f_val2reduce[j1n];
 
             float local_diff = max(low_value_p - up_value_p, low_value_n - up_value_n);
 
@@ -244,34 +259,41 @@ namespace svm_kernel {
             }
 
             //select j2p using second order heuristic
-            for (int tid = 0; tid < ws_size; ++tid) {
+            int j2p = 0;
+	    float f_val_j2p = INFINITY;
+	    for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (-up_value_p > -f[tid] && y[wsi] > 0 && alpha[wsi] > 0) {
                     float aIJ = kd[ip] + kd[tid] - 2 * kIpwsI[tid];
                     float bIJ = -up_value_p + f[tid];
-                    f_val2reduce[tid] = -bIJ * bIJ / aIJ;
-                } else
-                    f_val2reduce[tid] = INFINITY;
+                    float f_t1  = -bIJ * bIJ / aIJ;
+		    if(f_t1 < f_val_j2p){
+			j2p = tid;
+			f_val_j2p = f_t1;
+		    }
+                }
             }
-            int j2p = get_min_idx(f_val2reduce, ws_size);
-            float f_val_j2p = f_val2reduce[j2p];
 
             //select j2n using second order heuristic
+            int j2n = 0;
+            float f_val_j2n = INFINITY;
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (-up_value_n > -f[tid] && y[wsi] < 0 && alpha[wsi] < C) {
                     float aIJ = kd[ip] + kd[tid] - 2 * kIpwsI[tid];
                     float bIJ = -up_value_n + f[tid];
-                    f_val2reduce[tid] = -bIJ * bIJ / aIJ;
-                } else
-                    f_val2reduce[tid] = INFINITY;
+                    float f_t2 = -bIJ * bIJ / aIJ;
+                    if(f_t2 < f_val_j2n){
+                        j2n = tid;
+                        f_val_j2n = f_t2;
+                    }
+                }
             }
-            int j2n = get_min_idx(f_val2reduce, ws_size);
 
             int i, j2;
             float up_value;
             float *kIwsI;
-            if (f_val_j2p < f_val2reduce[j2n]) {
+            if (f_val_j2p < f_val_j2n) {
                 i = ip;
                 j2 = j2p;
                 up_value = up_value_p;
