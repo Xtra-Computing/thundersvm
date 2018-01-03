@@ -19,10 +19,8 @@ int main(int argc, char **argv) {
         parser.parse_command_line(argc, argv);
         fstream file;
         file.open(parser.svmpredict_model_file_name, fstream::in);
-        std::cout << parser.svmpredict_model_file_name << "\n";
         string feature, svm_type;
         file >> feature >> svm_type;
-        std::cout << feature << "; " << svm_type << "\n";
         CHECK_EQ(feature, "svm_type");
         std::shared_ptr<SvmModel> model;
         std::shared_ptr<Metric> metric;
@@ -49,7 +47,7 @@ int main(int argc, char **argv) {
 
         model->load_from_file(parser.svmpredict_model_file_name);
         file.close();
-        file.open(parser.svmpredict_output_file);
+        file.open(parser.svmpredict_output_file, fstream::out);
         DataSet predict_dataset;
         predict_dataset.load_from_file(parser.svmpredict_input_file);
 
