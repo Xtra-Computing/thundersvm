@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/zeyiwen/thundersvm.svg?branch=master)](https://travis-ci.org/zeyiwen/thundersvm)
-[![Documentation Status](https://readthedocs.org/projects/thundersvm/badge/?version=latest)](https://thundersvm.readthedocs.org)
 [![GitHub license](http://dmlc.github.io/img/apache2.svg)](./LICENSE)
+<!---[![Documentation Status](https://readthedocs.org/projects/thundersvm/badge/?version=latest)](https://thundersvm.readthedocs.org)--->
 
 <div align="center">
 <img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/logo.png" width="240" height="220" align=left/>
@@ -45,7 +45,7 @@ If you use ThunderSVM in your paper, please cite our work ([preprint now availab
 ```
 @article{wenthundersvm17,
  author = {Wen, Zeyi and Shi, Jiashuai and He, Bingsheng and Li, Qinbin and Chen, Jian},
- title = {{ThunderSVM}: A Fast SVM library on GPUs and CPUs},
+ title = {{ThunderSVM}: A Fast SVM Library on GPUs and CPUs},
  journal = {To appear in arxiv},
  year = {2017}
 }
