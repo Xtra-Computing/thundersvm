@@ -13,95 +13,85 @@ DataSet::DataSet(const DataSet::node2d &instances, int n_features, const vector<
         instances_(instances), n_features_(n_features), y_(y), total_count_(instances_.size()) {}
 
 inline char *findlastline(char *ptr, char *begin) {
-    for (; ptr != begin; --ptr) {
-        if (*ptr == '\n' || *ptr == '\r') return ptr;
-    }
-    return begin;
+    while (ptr != begin && *ptr != '\n' && *ptr != '\r') --ptr;
+    return ptr;
 }
 
 void DataSet::load_from_file(string file_name) {
+    LOG(INFO)<<"loading dataset from file \""<<file_name<<"\"";
     y_.clear();
     instances_.clear();
     total_count_ = 0;
     n_features_ = 0;
     std::ifstream ifs(file_name, std::ifstream::binary);
     CHECK(ifs.is_open()) << "file " << file_name << " not found";
-    // get pointer to associated buffer object
-    std::filebuf *pbuf = ifs.rdbuf();
-    // get file size using buffer's members
-    std::size_t fsize = pbuf->pubseekoff(0, ifs.end, ifs.in);
-    pbuf->pubseekpos(0, ifs.in);
-    // allocate memory to contain file data
-    vector<char> buffer(fsize);
-    // get file data
-    pbuf->sgetn(buffer.data(), fsize);
-    ifs.close();
-    char *head = buffer.data();
-    const int nthread = omp_get_max_threads();
-    vector<vector<float_type>> y_thread(nthread);
-    vector<node2d> instances_thread(nthread);
 
-    vector<int> local_count(nthread, 0);
-    vector<int> local_feature(nthread, 0);
+    std::array<char, 2 << 20> buffer{}; //16M
+    const int nthread = omp_get_max_threads();
+
+    while (ifs) {
+        ifs.read(buffer.data(), buffer.size());
+        char *head = buffer.data();
+        size_t size = ifs.gcount();
+        vector<vector<float_type>> y_thread(nthread);
+        vector<node2d> instances_thread(nthread);
+
+        vector<int> local_feature(nthread, 0);
 #pragma omp parallel num_threads(nthread)
-    {
-        int tid = omp_get_thread_num();
-        size_t nstep = (fsize + nthread - 1) / nthread;
-        size_t sbegin = min(tid * nstep, fsize);
-        size_t send = min((tid + 1) * nstep, fsize);
-        char *pbegin = findlastline(head + sbegin, head);
-        char *pend;
-        if (tid + 1 == nthread) {
-            pend = head + send;
-        } else {
-            pend = findlastline(head + send, head);
-        }
-        char *lbegin;
-        if (tid == 0)
-            lbegin = pbegin;
-        else
-            lbegin = pbegin + 1;
-        char *lend = lbegin;
-        while (1) {
-            lend = lbegin;
-            if (lend == pend)
-                break;
-            if (*lend == '\n') {
-                lbegin++;
-                continue;
+        {
+            //get working area of this thread
+            int tid = omp_get_thread_num();
+            size_t nstep = (size + nthread - 1) / nthread;
+            size_t sbegin = min(tid * nstep, size);
+            size_t send = min((tid + 1) * nstep, size);
+            char *pbegin = findlastline(head + sbegin, head);
+            char *pend = findlastline(head + send, head);
+
+            //move stream start position to the end of last line
+            if (tid == nthread - 1) ifs.seekg(pend - head - send, std::ios_base::cur);
+
+            //read instances line by line
+            char *lbegin = pbegin;
+            char *lend = lbegin;
+            while (lend != pend) {
+                //get one line
+                lend = lbegin + 1;
+                while (lend != pend && *lend != '\n' && *lend != '\r') {
+                    ++lend;
+                }
+                string line(lbegin, lend);
+                stringstream ss(line);
+
+                //read label of an instance
+                y_thread[tid].emplace_back();
+                ss >> y_thread[tid].back();
+
+                //read features of an instance
+                instances_thread[tid].emplace_back();
+                string tuple;
+                while (ss >> tuple) {
+                    int i;
+                    float_type v;
+                    CHECK_EQ(sscanf(tuple.c_str(), "%d:%f", &i, &v), 2) << "read error, using [index]:[value] format";
+                    instances_thread[tid].back().emplace_back(i, v);
+                    if (i > local_feature[tid]) local_feature[tid] = i;
+                };
+
+                //read next instance
+                lbegin = lend;
             }
-            while (lend != pend && *lend != '\n' && *lend != '\r') {
-                ++lend;
-            }
-            string line(lbegin, lend);
-            float_type y;
-            int i;
-            float_type v;
-            stringstream ss(line);
-            ss >> y;
-            y_thread[tid].push_back(y);
-            instances_thread[tid].emplace_back();//reserve space for an instance
-            string tuple;
-            while (ss >> tuple) {
-                CHECK_EQ(sscanf(tuple.c_str(), "%d:%f", &i, &v), 2) << "read error, using [index]:[value] format";
-                instances_thread[tid][local_count[tid]].emplace_back(i, v);
-                if (i > local_feature[tid]) local_feature[tid] = i;
-            };
-            local_count[tid]++;
-            if (lend == pend)
-                break;
-            lbegin = lend + 1;
+        }
+        for (int i = 0; i < nthread; i++) {
+            if (local_feature[i] > n_features_)
+                n_features_ = local_feature[i];
+            total_count_ += instances_thread[i].size();
+        }
+        for (int i = 0; i < nthread; i++) {
+            this->y_.insert(y_.end(), y_thread[i].begin(), y_thread[i].end());
+            this->instances_.insert(instances_.end(), instances_thread[i].begin(), instances_thread[i].end());
         }
     }
-    for (int i = 0; i < nthread; i++) {
-        if (local_feature[i] > n_features_)
-            n_features_ = local_feature[i];
-        total_count_ += local_count[i];
-    }
-    for (int i = 0; i < nthread; i++) {
-        this->y_.insert(y_.end(), y_thread[i].begin(), y_thread[i].end());
-        this->instances_.insert(instances_.end(), instances_thread[i].begin(), instances_thread[i].end());
-    }
+    LOG(INFO)<<"#instances = "<<this->n_instances()<<", #features = "<<this->n_features();
 }
 
 void DataSet::load_from_python(float *y, char **x, int len) {
