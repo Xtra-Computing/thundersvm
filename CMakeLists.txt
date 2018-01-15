@@ -24,6 +24,9 @@ if (USE_CUDA)
     find_package(CUDA REQUIRED QUIET)
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -std=c++11 -Wno-deprecated-gpu-targets)
     set(LINK_LIBRARY ${CUDA_cusparse_LIBRARY})
+
+    # Correct error for GCC 5 and CUDA 7.5
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_MWAITXINTRIN_H_INCLUDED -D_FORCE_INLINES")
 else ()
     message("Compile without CUDA")
 endif ()
