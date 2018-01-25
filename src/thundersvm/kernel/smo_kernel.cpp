@@ -19,22 +19,6 @@ namespace svm_kernel {
         return min_idx;
     }
 
-    int get_block_min(const float *values, int *index){
-        int tid = omp_get_thread_num();
-        index[tid] = tid;
-#pragma omp barrier
-        for(int offset = omp_get_num_threads() / 2; offset > 0; offset >>= 1){
-            if(tid < offset) {
-                if(values[index[tid + offset]] <= values[index[tid]]) {
-                    index[tid] = index[tid + offset];
-                }
-            }
-#pragma omp barrier
-        }
-        return index[0];
-    }
-
-
     void c_smo_solve_kernel(const int *y, float_type *f_val, float_type *alpha, float_type *alpha_diff,
                             const int *working_set,
                             int ws_size,
@@ -42,12 +26,10 @@ namespace svm_kernel {
                             float_type eps,
                             float_type *diff, int max_iter) {
         //allocate shared memory
-        int *shared_mem = new int[ws_size * 3 + 2];
-        int *f_idx2reduce = shared_mem; //temporary memory for reduction
-        float *f_val2reduce = (float *) &f_idx2reduce[ws_size]; //f values used for reduction.
-        float *alpha_i_diff = &f_val2reduce[ws_size]; //delta alpha_i
-        float *alpha_j_diff = &alpha_i_diff[1];
-        float *kd = &alpha_j_diff[1]; // diagonal elements for kernel matrix
+        float *f_val2reduce = new float[ws_size]; //f values used for reduction.
+        float alpha_i_diff; //delta alpha_i
+        float alpha_j_diff;
+        float *kd = new float[ws_size]; // diagonal elements for kernel matrix
 
         //index, f value and alpha for each instance
         float *a_old = new float[ws_size];
@@ -110,9 +92,9 @@ namespace svm_kernel {
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (-up_value > -f[tid] && (is_I_low(alpha[wsi], y[wsi], Cp, Cn))) {
-                    float aIJ = kd[i] + kd[tid] - 2 * kIwsI[tid];
-                    float bIJ = -up_value + f[tid];
-                    float ft = -bIJ * bIJ / aIJ;
+                    double aIJ = kd[i] + kd[tid] - 2 * kIwsI[tid];
+                    double bIJ = -up_value + f[tid];
+                    double ft = -bIJ * bIJ / aIJ;
                     if(ft < min_t){
                         min_t = ft;
                         j2 = tid;
@@ -123,11 +105,11 @@ namespace svm_kernel {
 
             //update alpha
 //            if (tid == i)
-            *alpha_i_diff = y[working_set[i]] > 0 ? Cp - alpha[working_set[i]] : alpha[working_set[i]];
+            alpha_i_diff = y[working_set[i]] > 0 ? Cp - alpha[working_set[i]] : alpha[working_set[i]];
 //            if (tid == j2)
-            *alpha_j_diff = min(y[working_set[j2]] > 0 ? alpha[working_set[j2]] : Cn - alpha[working_set[j2]],
+            alpha_j_diff = min(y[working_set[j2]] > 0 ? alpha[working_set[j2]] : Cn - alpha[working_set[j2]],
                                 (-up_value + f[j2]) / (kd[i] + kd[j2] - 2 * kIwsI[j2]));
-            float l = min(*alpha_i_diff, *alpha_j_diff);
+            float l = min(alpha_i_diff, alpha_j_diff);
 
 //            if (tid == i)
             alpha[working_set[i]] += l * y[working_set[i]];
@@ -146,7 +128,6 @@ namespace svm_kernel {
         delete[] a_old;
         delete[] f;
         delete[] kIwsI;
-        delete[] shared_mem;
     }
 
     void c_smo_solve(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,
@@ -352,7 +333,7 @@ namespace svm_kernel {
         const float_type *k_mat_rows_data = k_mat_rows.host_data();
 #pragma omp parallel for schedule(guided)
         for (int idx = 0; idx < n_instances; ++idx) {
-            float_type sum_diff = 0;
+    			double sum_diff = 0;
             for (int i = 0; i < alpha_diff.size(); ++i) {
                 float_type d = alpha_diff_data[i];
                 if (d != 0) {
