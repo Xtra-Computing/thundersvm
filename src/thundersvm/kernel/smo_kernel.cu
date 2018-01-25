@@ -88,7 +88,7 @@ namespace svm_kernel {
             if (-up_value > -f && (is_I_low(a, y, Cp, Cn))) {
                 float aIJ = kd[i] + kd[tid] - 2 * kIwsI;
                 float bIJ = -up_value + f;
-                f_val2reduce[tid] = -bIJ * bIJ / aIJ;
+                f_val2reduce[tid] = (float)(-bIJ * bIJ / aIJ);
             } else
                 f_val2reduce[tid] = INFINITY;
             int j2 = get_block_min(f_val2reduce, f_idx2reduce);
@@ -150,7 +150,7 @@ namespace svm_kernel {
             __syncthreads();
             int ip = get_block_min(f_val2reduce, f_idx2reduce);
             float up_value_p = f_val2reduce[ip];
-            float kIpwsI = k_mat_rows[row_len * ip + wsi];//K[i, wsi]
+            double kIpwsI = k_mat_rows[row_len * ip + wsi];//K[i, wsi]
             __syncthreads();
 
             //select I_up (y=-1)
@@ -159,8 +159,8 @@ namespace svm_kernel {
             else
                 f_val2reduce[tid] = INFINITY;
             int in = get_block_min(f_val2reduce, f_idx2reduce);
-            float up_value_n = f_val2reduce[in];
-            float kInwsI = k_mat_rows[row_len * in + wsi];//K[i, wsi]
+            double up_value_n = f_val2reduce[in];
+            double kInwsI = k_mat_rows[row_len * in + wsi];//K[i, wsi]
             __syncthreads();
 
             //select I_low (y=+1)
@@ -169,7 +169,7 @@ namespace svm_kernel {
             else
                 f_val2reduce[tid] = INFINITY;
             int j1p = get_block_min(f_val2reduce, f_idx2reduce);
-            float low_value_p = -f_val2reduce[j1p];
+            double low_value_p = -f_val2reduce[j1p];
             __syncthreads();
 
             //select I_low (y=-1)
@@ -178,9 +178,9 @@ namespace svm_kernel {
             else
                 f_val2reduce[tid] = INFINITY;
             int j1n = get_block_min(f_val2reduce, f_idx2reduce);
-            float low_value_n = -f_val2reduce[j1n];
+            double low_value_n = -f_val2reduce[j1n];
 
-            float local_diff = max(low_value_p - up_value_p, low_value_n - up_value_n);
+            double local_diff = max(low_value_p - up_value_p, low_value_n - up_value_n);
 
             if (numOfIter == 0) {
                 local_eps = max(eps, 0.1f * local_diff);
@@ -198,27 +198,27 @@ namespace svm_kernel {
 
             //select j2p using second order heuristic
             if (-up_value_p > -f && y > 0 && a > 0) {
-                float aIJ = kd[ip] + kd[tid] - 2 * kIpwsI;
-                float bIJ = -up_value_p + f;
+                double aIJ = kd[ip] + kd[tid] - 2 * kIpwsI;
+                double bIJ = -up_value_p + f;
                 f_val2reduce[tid] = -bIJ * bIJ / aIJ;
             } else
                 f_val2reduce[tid] = INFINITY;
             int j2p = get_block_min(f_val2reduce, f_idx2reduce);
-            float f_val_j2p = f_val2reduce[j2p];
+            double f_val_j2p = f_val2reduce[j2p];
             __syncthreads();
 
             //select j2n using second order heuristic
             if (-up_value_n > -f && y < 0 && a < C) {
-                float aIJ = kd[in] + kd[tid] - 2 * kInwsI;
-                float bIJ = -up_value_n + f;
+                double aIJ = kd[in] + kd[tid] - 2 * kInwsI;
+                double bIJ = -up_value_n + f;
                 f_val2reduce[tid] = -bIJ * bIJ / aIJ;
             } else
                 f_val2reduce[tid] = INFINITY;
             int j2n = get_block_min(f_val2reduce, f_idx2reduce);
 
             int i, j2;
-            float up_value;
-            float kIwsI;
+            double up_value;
+            double kIwsI;
             if (f_val_j2p < f_val2reduce[j2n]) {
                 i = ip;
                 j2 = j2p;
@@ -236,7 +236,7 @@ namespace svm_kernel {
             if (tid == j2)
                 *alpha_j_diff = min(y > 0 ? a : C - a, (-up_value + f) / (kd[i] + kd[j2] - 2 * kIwsI));
             __syncthreads();
-            float l = min(*alpha_i_diff, *alpha_j_diff);
+            double l = min(*alpha_i_diff, *alpha_j_diff);
 
             if (tid == i)
                 a += l * y;
@@ -283,9 +283,9 @@ namespace svm_kernel {
                     int n_instances) {
         //"n_instances" equals to the number of rows of the whole kernel matrix for both SVC and SVR.
         KERNEL_LOOP(idx, n_instances) {//one thread to update multiple fvalues.
-            float_type sum_diff = 0;
+            double sum_diff = 0;
             for (int i = 0; i < ws_size; ++i) {
-                float_type d = alpha_diff[i];
+                double d = alpha_diff[i];
                 if (d != 0) {
                     sum_diff += d * k_mat_rows[i * n_instances + idx];
                 }

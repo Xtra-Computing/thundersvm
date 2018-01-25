@@ -130,7 +130,7 @@ CSMOSolver::calculate_rho(const SyncArray<float_type> &f_val, const SyncArray<in
                           float_type Cp,
                           float_type Cn) const {
     int n_free = 0;
-    float_type sum_free = 0;
+    double sum_free = 0;
     float_type up_value = INFINITY;
     float_type low_value = -INFINITY;
     const float_type *f_val_data = f_val.host_data();
