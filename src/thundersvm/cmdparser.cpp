@@ -57,6 +57,8 @@ void HelpInfo_svmpredict() {
 }
 
 void CMDParser::parse_command_line(int argc, char **argv) {
+    param_cmd.weight_label = NULL;
+    param_cmd.weight = NULL;
     int i;
     string bin_name = argv[0];
 	#ifdef _WIN32
@@ -125,11 +127,11 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                     break;
                 case 'w':
                     ++param_cmd.nr_weight;
-                    param_cmd.weight_label = (int *) realloc(param_cmd.weight_label, sizeof(int) * param_cmd.nr_weight);
-                    param_cmd.weight = (float_type *) realloc(param_cmd.weight, sizeof(double) * param_cmd.nr_weight);
-                    param_cmd.weight_label[param_cmd.nr_weight - 1] = atoi(&argv[i - 1][2]);
+		    param_cmd.weight_label = (int *) realloc(param_cmd.weight_label, sizeof(int) * param_cmd.nr_weight);
+        	    param_cmd.weight = (float_type *) realloc(param_cmd.weight, sizeof(double) * param_cmd.nr_weight);
+		    param_cmd.weight_label[param_cmd.nr_weight - 1] = atoi(&argv[i - 1][2]);
                     param_cmd.weight[param_cmd.nr_weight - 1] = atof(argv[i]);
-                    break;
+		        break;
                 case 'u':
                     gpu_id = atoi(argv[i]);
                     break;
@@ -202,6 +204,8 @@ void CMDParser::parse_command_line(int argc, char **argv) {
 }
 
 void CMDParser::parse_python(int argc, char **argv) {
+    param_cmd.weight_label = NULL;
+    param_cmd.weight = NULL;
     int i;
     //string bin_name = argv[0];
     //bin_name = bin_name.substr(bin_name.find_last_of("/") + 1);
