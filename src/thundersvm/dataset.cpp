@@ -3,7 +3,7 @@
 //
 #include "thundersvm/dataset.h"
 #include <omp.h>
-
+#include <array>
 using std::fstream;
 using std::stringstream;
 
