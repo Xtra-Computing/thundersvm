@@ -3,7 +3,7 @@
 //
 #include "thundersvm/dataset.h"
 #include <omp.h>
-#include <array>
+
 using std::fstream;
 using std::stringstream;
 
@@ -26,12 +26,12 @@ void DataSet::load_from_file(string file_name) {
     std::ifstream ifs(file_name, std::ifstream::binary);
     CHECK(ifs.is_open()) << "file " << file_name << " not found";
 
-    std::array<char, 2 << 20> buffer{}; //16M
+	int buffer_size = 2 << 20;
+	char *buffer = (char *)malloc(buffer_size);
     const int nthread = omp_get_max_threads();
-
+	char *head = buffer;
     while (ifs) {
-        ifs.read(buffer.data(), buffer.size());
-        char *head = buffer.data();
+        ifs.read(buffer, buffer_size);
         size_t size = ifs.gcount();
         vector<vector<float_type>> y_thread(nthread);
         vector<node2d> instances_thread(nthread);
@@ -91,6 +91,7 @@ void DataSet::load_from_file(string file_name) {
             this->instances_.insert(instances_.end(), instances_thread[i].begin(), instances_thread[i].end());
         }
     }
+    free(buffer);
     LOG(INFO)<<"#instances = "<<this->n_instances()<<", #features = "<<this->n_features();
 }
 
