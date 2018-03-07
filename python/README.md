@@ -1,7 +1,7 @@
 We provide simple python interface and Scikit-Learn Wrapper interface.
 
-#simple python interface:\
-##Methods:
+# simple python interface:
+## Methods
 svm_read_problem('file_name'):\
 	read data from file_name in dataset directory.\
 return: (labels, instances)
@@ -12,7 +12,7 @@ svm_train(labels, instances, 'model_file_name', parameters):\
 svm_predict(labels, instances, 'model_file_name', 'output_file_name', parameters):\
 	use model_file_name to predict (labes, instances) according to parameters and save the result to output_file_name in dataset directory.
 
-##Examples:
+## Examples
 ```python
 from svm import *
 y,x = svm_read_problem('mnist.scale')
@@ -21,7 +21,8 @@ y,x=svm_read_problem('mnist.scale.t')
 svm_predict(y,x,'mnist.scale.model','mnist.scale.out')
 ```
 
-#Scikit-Learn Wrapper interface:\
+# Scikit-Learn Wrapper interface
+## Usage
 The usage of thundersvm scikit interface is similar to scikit.svm
 
 class SVC(kernel = 2, degree = 3,\
@@ -43,7 +44,7 @@ class NuSVR(kernel = 2, degree = 3, gamma = 'auto',\
             coef0 = 0.0, cost = 1.0, tol = 0.001, probability = False)
 
 
-##Parameters:
+## Parameters
 kernel: int, optional(default=2)\
     set type of kernel function\
                     	0 -- linear: u'*v\
@@ -81,7 +82,7 @@ class_weight:  {dict, ‘balanced’}, optional(default=None)\
 
 
 
-##Examples:
+## Examples
 ```python
 from thundersvmScikit import *
 from sklearn.datasets import *
@@ -97,7 +98,7 @@ from sklearn.model_selection import *
 scores = cross_val_score(clf,x,y,cv=5)
 ```
 
-##Methods:
+## Methods
 fit(X, y)	Fit the SVM model according to the given training data.\
 get_params([deep])	Get parameters for this estimator.\
 predict(X)	Perform classification on samples in X.\
