@@ -59,9 +59,9 @@ extern "C" {
 //            LOG(WARNING)<<"using default gamma="<<parser.param_cmd.gamma;
 //        }
 
-#ifdef USE_CUDA
-        CUDA_CHECK(cudaSetDevice(parser.gpu_id));
-#endif
+//#ifdef USE_CUDA
+//        CUDA_CHECK(cudaSetDevice(parser.gpu_id));
+//#endif
 
 //        if (parser.do_cross_validation) {
 //            predict_y = model->cross_validation(train_dataset, parser.param_cmd, parser.nr_fold);
@@ -149,9 +149,9 @@ extern "C" {
         }
 
 
-    #ifdef USE_CUDA
-        CUDA_CHECK(cudaSetDevice(parser.gpu_id));
-    #endif
+//    #ifdef USE_CUDA
+//        CUDA_CHECK(cudaSetDevice(parser.gpu_id));
+//    #endif
 
 
         SvmParam param_cmd;
