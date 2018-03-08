@@ -3,6 +3,7 @@
 #include <thundersvm/svmparam.h>
 #include <thundersvm/model/svmmodel.h>
 #include <thundersvm/model/nusvc.h>
+#include <thundersvm/util/metric.h>
 
 //
 // Created by jiashuai on 17-10-30.
@@ -22,31 +23,24 @@ protected:
         test_dataset.load_from_file(test_filename);
         param.gamma = gamma;
         param.C = C;
-        param.epsilon = 0.001;
         param.nu = nu;
         param.kernel_type = SvmParam::RBF;
-	param.svm_type = SvmParam::NU_SVC;
+        param.svm_type = SvmParam::NU_SVC;
 //        param.probability = 1;
-        SvmModel *model = new NuSVC();
+        std::shared_ptr<SvmModel> model;
+        model.reset(new NuSVC());
         model->train(train_dataset, param);
-        model->save_to_file(train_filename+".model");
-        SvmModel *new_model = new NuSVC();
-        new_model->load_from_file(train_filename+".model");
-	predict_y = new_model->predict(test_dataset.instances(), 10000);
-        int n_correct = 0;
-        for (unsigned i = 0; i < predict_y.size(); ++i) {
-            if (predict_y[i] == test_dataset.y()[i])
-                n_correct++;
-        }
-        float accuracy = n_correct / (float) test_dataset.instances().size();
-        LOG(INFO) << "Accuracy = " << accuracy << "(" << n_correct << "/"
-                  << test_dataset.instances().size() << ")\n";
-        return accuracy;
+        predict_y = model->predict(test_dataset.instances(), 10000);
+        std::shared_ptr<Metric> metric;
+        metric.reset(new Accuracy());
+        return metric->score(predict_y, test_dataset.y());
     }
 };
 
 TEST_F(NuSVCTest, test_set) {
-    load_dataset_and_train(DATASET_DIR "test_dataset.txt", DATASET_DIR "test_dataset.txt", 100, 0.5, 0.1);
+    EXPECT_NEAR(load_dataset_and_train(DATASET_DIR
+                        "test_dataset.txt", DATASET_DIR
+                        "test_dataset.txt", 100, 0.5, 0.1), 0.98, 1e-3);
 }
 
 //TEST_F(NuSVCTest, a9a) {

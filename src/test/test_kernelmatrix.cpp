@@ -58,7 +58,7 @@ TEST(KernelMatrixTest, get_rows) {
     SyncArray<int> rows(n_rows);
     SyncArray<float_type> kernel_rows(n_rows * dataSet.n_instances());
     for (unsigned i = 0; i < n_rows; ++i) {
-        rows.host_data()[i] = i*3 + 4;
+        rows.host_data()[i] = i * 3 + 4;
     }
 
     //test rbf kernel
@@ -70,20 +70,14 @@ TEST(KernelMatrixTest, get_rows) {
 
     for (unsigned i = 0; i < kernelMatrix->diag().size(); ++i) {
         float_type cpu_kernel = rbf_kernel(dataSet.instances(), i, i, param.gamma);
-float_type gpu_kernel = kernelMatrix->diag().host_data()[i];
+        float_type gpu_kernel = kernelMatrix->diag().host_data()[i];
         EXPECT_NEAR(gpu_kernel, cpu_kernel, 1e-4) << i;
     }
     for (unsigned i = 0; i < rows.size(); ++i) {
         for (unsigned j = 0; j < kernelMatrix->n_instances(); ++j) {
-float_type gpu_kernel = kernel_rows.host_data()[i * kernelMatrix->n_instances() + j];
-float_type cpu_kernel = rbf_kernel(dataSet.instances(), rows.host_data()[i], j, param.gamma);
-EXPECT_NEAR(gpu_kernel, cpu_kernel,
-1e-4) << rows.
-
-host_data()[i]
-
-<< "," <<
-j;
+            float_type gpu_kernel = kernel_rows.host_data()[i * kernelMatrix->n_instances() + j];
+            float_type cpu_kernel = rbf_kernel(dataSet.instances(), rows.host_data()[i], j, param.gamma);
+            EXPECT_NEAR(gpu_kernel, cpu_kernel, 1e-4) << rows.host_data()[i] << "," << j;
         }
     }
 
@@ -91,14 +85,14 @@ j;
 
     for (unsigned i = 0; i < n_rows; ++i) {
         for (unsigned j = 0; j < kernelMatrix->n_instances(); ++j) {
-float_type gpu_kernel = kernel_rows.host_data()[i * kernelMatrix->n_instances() + j];
+            float_type gpu_kernel = kernel_rows.host_data()[i * kernelMatrix->n_instances() + j];
             float_type cpu_kernel = rbf_kernel(dataSet.instances(), i, j, param.gamma);
             EXPECT_NEAR(gpu_kernel, cpu_kernel, 1e-4) << i << "," << j;
         }
     }
     delete kernelMatrix;
 
-//    //test poly kernel
+    //test poly kernel
     param.gamma = 0.5;
     param.degree = 3;
     param.coef0 = 0.1;
@@ -108,21 +102,16 @@ float_type gpu_kernel = kernel_rows.host_data()[i * kernelMatrix->n_instances() 
 
     for (unsigned i = 0; i < kernelMatrix->diag().size(); ++i) {
         float_type cpu_kernel = powf(param.gamma * dot_product(dataSet.instances(), i, i) + param.coef0, param.degree);
-float_type gpu_kernel = kernelMatrix->diag().host_data()[i];
+        float_type gpu_kernel = kernelMatrix->diag().host_data()[i];
         EXPECT_NEAR(gpu_kernel, cpu_kernel, 1e-4) << i;
     }
     for (unsigned i = 0; i < rows.size(); ++i) {
         for (unsigned j = 0; j < kernelMatrix->n_instances(); ++j) {
-float_type gpu_kernel = kernel_rows.host_data()[i * kernelMatrix->n_instances() + j];
-float_type cpu_kernel = powf(param.gamma * dot_product(dataSet.instances(), rows.host_data()[i], j) + param.coef0,
-                                   param.degree);
-EXPECT_NEAR(gpu_kernel, cpu_kernel,
-1e-4) << rows.
-
-host_data()[i]
-
-<< "," <<
-j;
+            float_type gpu_kernel = kernel_rows.host_data()[i * kernelMatrix->n_instances() + j];
+            float_type cpu_kernel = powf(
+                    param.gamma * dot_product(dataSet.instances(), rows.host_data()[i], j) + param.coef0,
+                    param.degree);
+            EXPECT_NEAR(gpu_kernel, cpu_kernel, 1e-4) << rows.host_data()[i] << "," << j;
         }
     }
 
@@ -130,7 +119,7 @@ j;
 
     for (unsigned i = 0; i < n_rows; ++i) {
         for (unsigned j = 0; j < kernelMatrix->n_instances(); ++j) {
-float_type gpu_kernel = kernel_rows.host_data()[i * kernelMatrix->n_instances() + j];
+            float_type gpu_kernel = kernel_rows.host_data()[i * kernelMatrix->n_instances() + j];
             float_type cpu_kernel = powf(param.gamma * dot_product(dataSet.instances(), i, j) + param.coef0,
                                          param.degree);
             EXPECT_NEAR(gpu_kernel, cpu_kernel, 1e-4) << i << "," << j;
@@ -146,20 +135,15 @@ float_type gpu_kernel = kernel_rows.host_data()[i * kernelMatrix->n_instances() 
 
     for (unsigned i = 0; i < kernelMatrix->diag().size(); ++i) {
         float_type cpu_kernel = dot_product(dataSet.instances(), i, i);
-float_type gpu_kernel = kernelMatrix->diag().host_data()[i];
+        float_type gpu_kernel = kernelMatrix->diag().host_data()[i];
         EXPECT_NEAR(gpu_kernel, cpu_kernel, 1e-4) << i;
     }
     for (unsigned i = 0; i < rows.size(); ++i) {
         for (unsigned j = 0; j < kernelMatrix->n_instances(); ++j) {
-float_type gpu_kernel = kernel_rows.host_data()[i * kernelMatrix->n_instances() + j];
-float_type cpu_kernel = dot_product(dataSet.instances(), rows.host_data()[i], j);
-EXPECT_NEAR(gpu_kernel, cpu_kernel,
-1e-4) << rows.
-
-host_data()[i]
-
-<< "," <<
-j;
+            float_type gpu_kernel = kernel_rows.host_data()[i * kernelMatrix->n_instances() + j];
+            float_type cpu_kernel = dot_product(dataSet.instances(), rows.host_data()[i], j);
+            EXPECT_NEAR(gpu_kernel, cpu_kernel,
+                        1e-4) << rows.host_data()[i] << "," << j;
         }
     }
 
@@ -167,7 +151,7 @@ j;
 
     for (unsigned i = 0; i < n_rows; ++i) {
         for (unsigned j = 0; j < kernelMatrix->n_instances(); ++j) {
-float_type gpu_kernel = kernel_rows.host_data()[i * kernelMatrix->n_instances() + j];
+            float_type gpu_kernel = kernel_rows.host_data()[i * kernelMatrix->n_instances() + j];
             float_type cpu_kernel = dot_product(dataSet.instances(), i, j);
             EXPECT_NEAR(gpu_kernel, cpu_kernel, 1e-4) << i << "," << j;
         }
@@ -184,20 +168,15 @@ float_type gpu_kernel = kernel_rows.host_data()[i * kernelMatrix->n_instances() 
 
     for (unsigned i = 0; i < kernelMatrix->diag().size(); ++i) {
         float_type cpu_kernel = tanhf(param.gamma * dot_product(dataSet.instances(), i, i) + param.coef0);
-float_type gpu_kernel = kernelMatrix->diag().host_data()[i];
+        float_type gpu_kernel = kernelMatrix->diag().host_data()[i];
         EXPECT_NEAR(gpu_kernel, cpu_kernel, 1e-4) << i;
     }
     for (unsigned i = 0; i < rows.size(); ++i) {
         for (unsigned j = 0; j < kernelMatrix->n_instances(); ++j) {
-float_type gpu_kernel = kernel_rows.host_data()[i * kernelMatrix->n_instances() + j];
-float_type cpu_kernel = tanhf(param.gamma * dot_product(dataSet.instances(), rows.host_data()[i], j) + param.coef0);
-EXPECT_NEAR(gpu_kernel, cpu_kernel,
-1e-4) << rows.
-
-host_data()[i]
-
-<< "," <<
-j;
+            float_type gpu_kernel = kernel_rows.host_data()[i * kernelMatrix->n_instances() + j];
+            float_type cpu_kernel = tanhf(
+                    param.gamma * dot_product(dataSet.instances(), rows.host_data()[i], j) + param.coef0);
+            EXPECT_NEAR(gpu_kernel, cpu_kernel, 1e-4) << rows.host_data()[i] << "," << j;
         }
     }
 
@@ -205,7 +184,7 @@ j;
 
     for (unsigned i = 0; i < n_rows; ++i) {
         for (unsigned j = 0; j < kernelMatrix->n_instances(); ++j) {
-float_type gpu_kernel = kernel_rows.host_data()[i * kernelMatrix->n_instances() + j];
+            float_type gpu_kernel = kernel_rows.host_data()[i * kernelMatrix->n_instances() + j];
             float_type cpu_kernel = tanhf(param.gamma * dot_product(dataSet.instances(), i, j) + param.coef0);
             EXPECT_NEAR(gpu_kernel, cpu_kernel, 1e-4) << i << "," << j;
         }

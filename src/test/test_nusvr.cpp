@@ -2,33 +2,41 @@
 #include <thundersvm/dataset.h>
 #include <thundersvm/model/svmmodel.h>
 #include <thundersvm/model/nusvr.h>
+#include <thundersvm/util/metric.h>
 
 //
 // Created by jiashuai on 17-10-30.
 //
-TEST(NuSVRTest, train) {
 
-    DataSet dataset;
-    dataset.load_from_file(DATASET_DIR "test_dataset.txt");
+class NuSVRTest : public ::testing::Test {
+protected:
+    NuSVRTest() : test_dataset() {}
+
+    DataSet train_dataset;
+    DataSet test_dataset;
     SvmParam param;
-    param.gamma = 0.25;
-    param.C = 10;
-    param.epsilon = 0.001;
-    param.nu = 0.5;
-    param.kernel_type = SvmParam::RBF;
-    param.svm_type = SvmParam::NU_SVR;
-    SvmModel *model = new NuSVR();
-    model->train(dataset, param);
-    model->save_to_file(DATASET_DIR "test_dataset.txt.model2");
-    SvmModel *new_model = new NuSVR();
-    new_model->load_from_file(DATASET_DIR "test_dataset.txt.model2");
     vector<float_type> predict_y;
-    predict_y = new_model->predict(dataset.instances(), 100);
-    float_type mse = 0;
-    for (unsigned i = 0; i < predict_y.size(); ++i) {
-        mse += (predict_y[i] - dataset.y()[i]) * (predict_y[i] - dataset.y()[i]);
-    }
-    mse /= predict_y.size();
 
-    LOG(INFO) << "MSE = " << mse;
+    float
+    load_dataset_and_train(string train_filename, string test_filename, float_type C, float_type gamma, float_type nu) {
+        train_dataset.load_from_file(train_filename);
+        test_dataset.load_from_file(test_filename);
+        param.gamma = gamma;
+        param.C = C;
+        param.nu = nu;
+        param.kernel_type = SvmParam::RBF;
+        std::shared_ptr<SvmModel> model;
+        model.reset(new NuSVR());
+        model->train(train_dataset, param);
+        std::shared_ptr<Metric> metric;
+        metric.reset(new MSE());
+        predict_y = model->predict(test_dataset.instances(), 100);
+        return metric->score(predict_y, test_dataset.y());
+    }
+};
+
+TEST_F(NuSVRTest, test_set) {
+    EXPECT_NEAR(load_dataset_and_train(DATASET_DIR
+                        "test_dataset.txt", DATASET_DIR
+                        "test_dataset.txt", 100, 0.5, 0.1), 0.028369, 1e-5);
 }

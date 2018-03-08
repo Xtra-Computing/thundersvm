@@ -3,6 +3,7 @@
 //
 #include <thundersvm/model/svc.h>
 #include <gtest/gtest.h>
+#include <thundersvm/util/metric.h>
 
 class SVCTest : public ::testing::Test {
 protected:
@@ -18,24 +19,14 @@ protected:
         test_dataset.load_from_file(test_filename);
         param.gamma = gamma;
         param.C = C;
-        param.epsilon = 0.001;
         param.kernel_type = SvmParam::RBF;
-//        param.probability = 1;
-        SvmModel *model = new SVC();
+        std::shared_ptr<SvmModel> model;
+        model.reset(new SVC());
         model->train(train_dataset, param);
-        model->save_to_file(train_filename+".model");
-        SvmModel *new_model = new SVC();
-        new_model->load_from_file(train_filename+".model");
-        predict_y = new_model->predict(test_dataset.instances(), 10000);
-        int n_correct = 0;
-        for (unsigned i = 0; i < predict_y.size(); ++i) {
-            if (predict_y[i] == test_dataset.y()[i])
-                n_correct++;
-        }
-        float accuracy = n_correct / (float) test_dataset.instances().size();
-        LOG(INFO) << "Accuracy = " << accuracy << "(" << n_correct << "/"
-                  << test_dataset.instances().size() << ")\n";
-        return accuracy;
+        std::shared_ptr<Metric> metric;
+        metric.reset(new Accuracy());
+        predict_y = model->predict(test_dataset.instances(), 100);
+        return metric->score(predict_y, test_dataset.y());
     }
 };
 
