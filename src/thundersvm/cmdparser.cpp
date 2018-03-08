@@ -11,11 +11,6 @@
 #include "thundersvm/svmparam.h"
 #include "thundersvm/cmdparser.h"
 
-char *save_filename = NULL;
-char *restore_filename = NULL;
-
-char svmscale_file_name[1024];
-
 void HelpInfo_svmtrain() {
     printf(
             "Usage (same as LibSVM): thundersvm [options] training_set_file [model_file]\n"
@@ -61,11 +56,11 @@ void CMDParser::parse_command_line(int argc, char **argv) {
     param_cmd.weight = NULL;
     int i;
     string bin_name = argv[0];
-	#ifdef _WIN32
-		bin_name = bin_name.substr(bin_name.find_last_of("\\") + 1);
-	#else
-		bin_name = bin_name.substr(bin_name.find_last_of("/") + 1);
-	#endif
+#ifdef _WIN32
+    bin_name = bin_name.substr(bin_name.find_last_of("\\") + 1);
+#else
+    bin_name = bin_name.substr(bin_name.find_last_of("/") + 1);
+#endif
     if (bin_name == "thundersvm-train" || bin_name == "thundersvm-train.exe") {
         // parse options
         for (i = 1; i < argc; i++) {
@@ -127,11 +122,11 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                     break;
                 case 'w':
                     ++param_cmd.nr_weight;
-		    param_cmd.weight_label = (int *) realloc(param_cmd.weight_label, sizeof(int) * param_cmd.nr_weight);
-        	    param_cmd.weight = (float_type *) realloc(param_cmd.weight, sizeof(double) * param_cmd.nr_weight);
-		    param_cmd.weight_label[param_cmd.nr_weight - 1] = atoi(&argv[i - 1][2]);
+                    param_cmd.weight_label = (int *) realloc(param_cmd.weight_label, sizeof(int) * param_cmd.nr_weight);
+                    param_cmd.weight = (float_type *) realloc(param_cmd.weight, sizeof(double) * param_cmd.nr_weight);
+                    param_cmd.weight_label[param_cmd.nr_weight - 1] = atoi(&argv[i - 1][2]);
                     param_cmd.weight[param_cmd.nr_weight - 1] = atof(argv[i]);
-		        break;
+                    break;
                 case 'u':
                     gpu_id = atoi(argv[i]);
                     break;
@@ -144,17 +139,21 @@ void CMDParser::parse_command_line(int argc, char **argv) {
         if (i >= argc)
             HelpInfo_svmtrain();
 
-        strcpy(svmtrain_input_file_name, argv[i]);
+//        strcpy(svmtrain_input_file_name, argv[i]);
+        svmtrain_input_file_name = argv[i];
 
         if (i < argc - 1)
-            strcpy(model_file_name, argv[i + 1]);
+//            strcpy(model_file_name, argv[i + 1]);
+            model_file_name = argv[i + 1];
         else {
             char *p = strrchr(argv[i], '/');
             if (p == NULL)
                 p = argv[i];
             else
                 ++p;
-            sprintf(model_file_name, "%s.model", p);
+//            sprintf(model_file_name, "%s.model", p);
+            model_file_name = p;
+            model_file_name += ".model";
         }
     } else if (bin_name == "thundersvm-predict" || bin_name == "thundersvm-predict.exe") {
         FILE *input, *output;
@@ -188,9 +187,12 @@ void CMDParser::parse_command_line(int argc, char **argv) {
             exit(1);
         }
         */
-        strcpy(svmpredict_input_file, argv[i]);
-        strcpy(svmpredict_output_file, argv[i + 2]);
-        strcpy(svmpredict_model_file_name, argv[i + 1]);
+//        strcpy(svmpredict_input_file, argv[i]);
+        svmpredict_input_file = argv[i];
+//        strcpy(svmpredict_output_file, argv[i + 2]);
+        svmpredict_output_file = argv[i + 2];
+//        strcpy(svmpredict_model_file_name, argv[i + 1]);
+        svmpredict_model_file_name = argv[i + 1];
     }
 
 

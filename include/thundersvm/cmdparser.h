@@ -26,11 +26,11 @@ public:
 	bool do_cross_validation;
 	int nr_fold;
 	int gpu_id;
-	char svmtrain_input_file_name[1024];
-	char svmpredict_input_file[1024];
-	char svmpredict_output_file[1024];
-	char svmpredict_model_file_name[1024];
-	char model_file_name[1024];
+    string svmtrain_input_file_name;
+    string svmpredict_input_file;
+    string svmpredict_output_file;
+    string svmpredict_model_file_name;
+    string model_file_name;
 };
 
 

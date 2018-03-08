@@ -16,11 +16,13 @@ struct SvmParam {
         kernel_type = RBF;
         C = 1;
         gamma = 0;
-        p = 0.1;
-        epsilon = 0.001;
+        p = 0.1f;
+        epsilon = 0.001f;
         nu = 0.5;
         probability = false;
         nr_weight = 0;
+        degree = 3;
+        coef0 = 0;
     }
 
     /// SVM type

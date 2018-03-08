@@ -28,8 +28,8 @@ extern "C" {
         DataSet train_dataset;
         char input_file_path[1024] = DATASET_DIR;
         char model_file_path[1024] = DATASET_DIR;
-        strcat(input_file_path, parser.svmtrain_input_file_name);
-        strcat(model_file_path, parser.model_file_name);
+        strcat(input_file_path, parser.svmtrain_input_file_name.c_str());
+        strcat(model_file_path, parser.model_file_name.c_str());
         train_dataset.load_from_file(input_file_path);
         SvmModel *model = nullptr;
         switch (parser.param_cmd.svm_type) {
@@ -112,9 +112,9 @@ extern "C" {
         char model_file_path[1024] = DATASET_DIR;
         char predict_file_path[1024] = DATASET_DIR;
         char output_file_path[1024] = DATASET_DIR;
-        strcat(model_file_path, parser.svmpredict_model_file_name);
-        strcat(predict_file_path, parser.svmpredict_input_file);
-        strcat(output_file_path, parser.svmpredict_output_file);
+        strcat(model_file_path, parser.svmpredict_model_file_name.c_str());
+        strcat(predict_file_path, parser.svmpredict_input_file.c_str());
+        strcat(output_file_path, parser.svmpredict_output_file.c_str());
         fstream file;
         file.open(model_file_path, std::fstream::in);
         string feature, svm_type;
