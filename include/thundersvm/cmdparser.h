@@ -22,6 +22,8 @@ public:
 
 	void parse_python(int argc, char **argv);
 
+    bool check_parameter();
+
 	SvmParam param_cmd;
 	bool do_cross_validation;
 	int nr_fold;

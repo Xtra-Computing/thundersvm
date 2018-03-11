@@ -12,8 +12,8 @@
 #include "thundersvm/cmdparser.h"
 
 void HelpInfo_svmtrain() {
-    printf(
-            "Usage (same as LibSVM): thundersvm [options] training_set_file [model_file]\n"
+    LOG(INFO) <<
+              "Usage (same as LibSVM): thundersvm [options] training_set_file [model_file]\n"
                     "options:\n"
                     "-s svm_type: set type of SVM (default 0)\n"
                     "	0 -- C-SVC		(multi-class classification)\n"
@@ -37,17 +37,15 @@ void HelpInfo_svmtrain() {
                     "-b probability_estimates: whether to train a SVC or SVR model for probability estimates, 0 or 1 (default 0)\n"
                     "-wi weight: set the parameter C of class i to weight*C, for C-SVC (default 1)\n"
                     "-v n: n-fold cross validation mode\n"
-                    "-u n: specify which gpu to use (default 0)\n"
-    );
+                    "-u n: specify which gpu to use (default 0)\n";
     exit(1);
 }
 
 void HelpInfo_svmpredict() {
-    printf(
-            "Usage: svm-predict [options] test_file model_file output_file\n"
+    LOG(INFO) <<
+              "Usage: svm-predict [options] test_file model_file output_file\n"
                     "options:\n"
-                    "-b probability_estimates: whether to predict probability estimates, 0 or 1 (default 0); for one-class SVM only 0 is supported\n"
-    );
+                    "-b probability_estimates: whether to predict probability estimates, 0 or 1 (default 0); for one-class SVM only 0 is supported\n";
     exit(1);
 }
 
@@ -116,7 +114,7 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                     do_cross_validation = true;
                     nr_fold = atoi(argv[i]);
                     if (nr_fold < 2) {
-                        fprintf(stderr, "n-fold cross validation: n must >= 2\n");
+                        LOG(ERROR) << "n-fold cross validation: n must >= 2";
                         HelpInfo_svmtrain();
                     }
                     break;
@@ -131,7 +129,7 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                     gpu_id = atoi(argv[i]);
                     break;
                 default:
-                    fprintf(stderr, "Unknown option: -%c\n", argv[i - 1][1]);
+                    LOG(ERROR) << "Unknown option: " + string(argv[i - 1]);
                     HelpInfo_svmtrain();
             }
         }
@@ -139,11 +137,11 @@ void CMDParser::parse_command_line(int argc, char **argv) {
         if (i >= argc)
             HelpInfo_svmtrain();
 
-//        strcpy(svmtrain_input_file_name, argv[i]);
+        if (!check_parameter()) HelpInfo_svmtrain();
+
         svmtrain_input_file_name = argv[i];
 
         if (i < argc - 1)
-//            strcpy(model_file_name, argv[i + 1]);
             model_file_name = argv[i + 1];
         else {
             char *p = strrchr(argv[i], '/');
@@ -151,12 +149,10 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                 p = argv[i];
             else
                 ++p;
-//            sprintf(model_file_name, "%s.model", p);
             model_file_name = p;
             model_file_name += ".model";
         }
     } else if (bin_name == "thundersvm-predict" || bin_name == "thundersvm-predict.exe") {
-        FILE *input, *output;
         for (i = 1; i < argc; i++) {
             if (argv[i][0] != '-') break;
             i++;
@@ -174,43 +170,17 @@ void CMDParser::parse_command_line(int argc, char **argv) {
         }
         if (i >= argc - 2)
             HelpInfo_svmpredict();
-        /*
-        input = fopen(argv[i], "r");
-        if (input == NULL) {
-            fprintf(stderr, "can't open input file %s\n", argv[i]);
-            exit(1);
-        }
-
-        output = fopen(argv[i + 2], "w");
-        if (output == NULL) {
-            fprintf(stderr, "can't open output file %s\n", argv[i + 2]);
-            exit(1);
-        }
-        */
-//        strcpy(svmpredict_input_file, argv[i]);
         svmpredict_input_file = argv[i];
-//        strcpy(svmpredict_output_file, argv[i + 2]);
         svmpredict_output_file = argv[i + 2];
-//        strcpy(svmpredict_model_file_name, argv[i + 1]);
         svmpredict_model_file_name = argv[i + 1];
     }
-
-
-//    else {
-//
-//        printf("Usage: thundersvm [options] training_set_file [model_file]\n"
-//                       "or: thundersvm_predict [options] test_file model_file output_file\n"
-//                       "or: thundersvm_scale [options] data_filename\n");
-//        exit(0);
-//    }
 }
 
 void CMDParser::parse_python(int argc, char **argv) {
+    //todo: refactor this function, since it overlaps parse_command_line too much
     param_cmd.weight_label = NULL;
     param_cmd.weight = NULL;
     int i;
-    //string bin_name = argv[0];
-    //bin_name = bin_name.substr(bin_name.find_last_of("/") + 1);
     for (i = 0; i < argc; i++) {
         if (argv[i][0] != '-') break;
         if (++i >= argc)
@@ -286,4 +256,54 @@ void CMDParser::parse_python(int argc, char **argv) {
 
     if (i > argc)
         HelpInfo_svmtrain();
+}
+
+bool CMDParser::check_parameter() {
+    SvmParam::SVM_TYPE svm_type = param_cmd.svm_type;
+    if (svm_type < SvmParam::C_SVC || svm_type > SvmParam::NU_SVR) {
+        LOG(ERROR) << "unknown svm type";
+        return false;
+    }
+    SvmParam::KERNEL_TYPE kernel_type = param_cmd.kernel_type;
+    if (kernel_type < SvmParam::LINEAR || kernel_type > SvmParam::SIGMOID) {
+        LOG(ERROR) << "unknown kernel type";
+        return false;
+    }
+    if (param_cmd.gamma < 0) {
+        LOG(ERROR) << "gamma should < 0";
+        return false;
+    }
+    if (param_cmd.degree < 0) {
+        LOG(ERROR) << "degree of polynomial kernel < 0";
+        return false;
+    }
+    if (param_cmd.epsilon <= 0) {
+        LOG(ERROR) << "epsilon <= 0";
+        return false;
+    }
+    if (svm_type == SvmParam::C_SVC || svm_type == SvmParam::EPSILON_SVR || svm_type == SvmParam::NU_SVR)
+        if (param_cmd.C <= 0) {
+            LOG(ERROR) << "C <= 0";
+            return false;
+        }
+    if (svm_type == SvmParam::NU_SVC || svm_type == SvmParam::ONE_CLASS || svm_type == SvmParam::NU_SVR)
+        if (param_cmd.nu <= 0 || param_cmd.nu > 1) {
+            LOG(ERROR) << "nu <= 0 or nu > 1";
+            return false;
+        }
+    if (svm_type == SvmParam::EPSILON_SVR)
+        if (param_cmd.p < 0) {
+            LOG(ERROR) << "p < 0";
+            return false;
+        }
+    if (param_cmd.probability != 0 && param_cmd.probability != 1) {
+        LOG(ERROR) << "probability != 0 and probability != 1";
+        return false;
+    }
+    if (param_cmd.probability == 1 &&
+        (svm_type == SvmParam::ONE_CLASS || svm_type == SvmParam::EPSILON_SVR || svm_type == SvmParam::NU_SVR)) {
+        LOG(ERROR) << "one-class SVM and SVR probability output not supported yet";
+        return false;
+    }
+    return true;
 }

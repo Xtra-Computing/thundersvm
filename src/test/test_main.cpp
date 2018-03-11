@@ -8,6 +8,6 @@ int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Format, "%datetime %level %fbase:%line : %msg");
     el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
-    //cudaSetDevice(1);
+//    el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
     return RUN_ALL_TESTS();
 }
