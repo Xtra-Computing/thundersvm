@@ -38,6 +38,12 @@ public:
     ///load dataset from python
     void load_from_python(float *y, char **x, int len);
 
+    ///load from sparse data
+    void load_from_sparse(int row_size, float* val, int* row_ptr, int* col_ptr, float* label);
+
+    ///load from dense data
+    void load_from_dense(int row_size, int features, float* data, float* label);
+
     ///group instances in same class
     void group_classes(bool classification = true);
 

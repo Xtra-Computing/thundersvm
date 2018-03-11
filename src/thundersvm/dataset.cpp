@@ -117,6 +117,54 @@ void DataSet::load_from_python(float *y, char **x, int len) {
     }
 }
 
+void DataSet::load_from_sparse(int row_size, float* val, int* row_ptr, int* col_ptr, float* label) {
+    y_.clear();
+    instances_.clear();
+    total_count_ = 0;
+    n_features_ = 0;
+    for(int i = 0; i < row_size; i++){
+        int ind;
+        float_type  v;
+        if(label != NULL)
+            y_.push_back(label[i]);
+        instances_.emplace_back();
+        for(int i = row_ptr[total_count_]; i < row_ptr[total_count_ + 1]; i++){
+            ind = col_ptr[i] + 1;
+            v = val[i];
+            instances_[total_count_].emplace_back(ind, v);
+            if(ind > n_features_) n_features_ = ind;
+        }
+        total_count_++;
+
+    }
+    LOG(INFO)<<"#instances = "<<this->n_instances()<<", #features = "<<this->n_features();
+
+}
+
+void DataSet::load_from_dense(int row_size, int features, float* data, float* label){
+    y_.clear();
+    instances_.clear();
+    total_count_ = 0;
+    n_features_ = 0;
+    int off = 0;
+    for(int i = 0; i < row_size; i++){
+        int ind;
+        float_type v;
+        if(label != NULL)
+            y_.push_back(label[i]);
+        instances_.emplace_back();
+        for(int i = 0; i < features; i++){
+            ind = i + 1;
+            v = data[off];
+            off++;
+            instances_[total_count_].emplace_back(ind, v);
+        }
+        total_count_++;
+    }
+    n_features_ = features;
+    LOG(INFO)<<"#instances = "<<this->n_instances()<<", #features = "<<this->n_features();
+}
+
 const vector<int> &DataSet::count() const {//return the number of instances of each class
     return count_;
 }
