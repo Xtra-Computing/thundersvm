@@ -74,6 +74,7 @@ namespace svm_kernel {
                 local_eps = max(eps, 0.1f * local_diff);
                 if (tid == 0) {
                     diff[0] = local_diff;
+                    diff[1] = numOfIter;
                 }
             }
 

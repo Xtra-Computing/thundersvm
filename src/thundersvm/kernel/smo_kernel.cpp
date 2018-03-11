@@ -84,6 +84,7 @@ namespace svm_kernel {
                     alpha_diff[tid] = -(alpha[wsi] - a_old[tid]) * y[wsi];
                 }
                 diff[0] = local_diff;
+                diff[1] = numOfIter;
                 break;
             }
             int j2 = 0;

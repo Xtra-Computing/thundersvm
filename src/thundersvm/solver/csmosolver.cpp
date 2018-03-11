@@ -4,6 +4,7 @@
 #include <thundersvm/solver/csmosolver.h>
 #include <thundersvm/kernel/smo_kernel.h>
 #include <limits.h>
+
 using namespace svm_kernel;
 
 void
@@ -26,7 +27,7 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
     SyncArray<int> f_idx2sort(n_instances);
     SyncArray<float_type> f_val2sort(n_instances);
     SyncArray<float_type> alpha_diff(ws_size);
-    SyncArray<float_type> diff(1);
+    SyncArray<float_type> diff(2);
 
     SyncArray<float_type> k_mat_rows(ws_size * k_mat.n_instances());
     SyncArray<float_type> k_mat_rows_first_half(q * k_mat.n_instances());
@@ -45,6 +46,7 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
     init_f(alpha, y, k_mat, f_val);
     LOG(INFO) << "training start";
     int max_iter = max(100000, ws_size > INT_MAX / 100 ? INT_MAX : 100 * ws_size);
+    long long local_iter = 0;
     for (int iter = 0;; ++iter) {
         //select working set
         f_idx2sort.copy_from(f_idx);
@@ -69,16 +71,14 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
                    max_iter);
         //update f
         update_f(f_val, alpha_diff, k_mat_rows, k_mat.n_instances());
-        if (iter % 10 == 0) {
-            printf(".");
-            std::cout.flush();
-        }
+        if (iter % 100 == 0) LOG(INFO) << "global iter = " << iter << ", total local iter = " << local_iter;
+        local_iter += diff.host_data()[1];
         if (diff.host_data()[0] < eps) {
             rho = calculate_rho(f_val, y, alpha, Cp, Cn);
+            LOG(INFO) << "global iter = " << iter << ", total local iter = " << local_iter;
             break;
         }
     }
-    printf("\n");
 }
 
 void
