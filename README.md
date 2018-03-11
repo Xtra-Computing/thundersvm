@@ -7,7 +7,9 @@
 <img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/lang-logo.png" width="250" height="200" align=left/>
 <img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/overall.png" width="250" height="200" align=left/>
 </div>
-
+## News
+- add scikit-learn interface, see [here](https://github.com/zeyiwen/thundersvm/tree/master/python)
+- add quiet mode (-q)
 ## Overview
 The mission of ThunderSVM is to help users easily and efficiently apply SVMs to solve problems. ThunderSVM exploits GPUs and multi-core CPUs to achieve high efficiency. Key features of ThunderSVM are as follows.
 * Support all functionalities of LibSVM such as one-class SVMs, SVC, SVR and probabilistic SVMs.
