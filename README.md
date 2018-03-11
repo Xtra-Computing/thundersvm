@@ -7,6 +7,7 @@
 <img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/lang-logo.png" width="250" height="200" align=left/>
 <img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/overall.png" width="250" height="200" align=left/>
 </div>
+
 ## News
 - add scikit-learn interface, see [here](https://github.com/zeyiwen/thundersvm/tree/master/python)
 - add quiet mode (-q)
