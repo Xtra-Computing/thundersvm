@@ -37,7 +37,8 @@ void HelpInfo_svmtrain() {
                     "-b probability_estimates: whether to train a SVC or SVR model for probability estimates, 0 or 1 (default 0)\n"
                     "-wi weight: set the parameter C of class i to weight*C, for C-SVC (default 1)\n"
                     "-v n: n-fold cross validation mode\n"
-                    "-u n: specify which gpu to use (default 0)\n";
+            "-u n: specify which gpu to use (default 0)\n"
+            "-q: quiet mode";
     exit(1);
 }
 
@@ -106,8 +107,7 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                     param_cmd.probability = atoi(argv[i]);
                     break;
                 case 'q':
-//                    print_func = &print_null;
-                    //todo disable logging
+                    el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
                     i--;
                     break;
                 case 'v':
