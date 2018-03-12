@@ -32,7 +32,7 @@ void OneClassSVC::train(const DataSet &dataset, SvmParam param) {
         y_data[i] = 1;
     }
     CSMOSolver solver;
-    solver.solve(kernelMatrix, y, alpha, rho.host_data()[0], f_val, param.epsilon, 1, 1, ws_size);
+    solver.solve(kernelMatrix, y, alpha, rho.host_data()[0], f_val, param.epsilon, 1, 1, ws_size, max_iter);
 
     //todo these codes are similar to svr, try to combine them
     LOG(INFO) << "rho = " << rho.host_data()[0];

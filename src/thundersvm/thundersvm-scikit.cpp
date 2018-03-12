@@ -17,7 +17,12 @@ extern "C" {
                                   int svm_type, int kernel_type, int degree, float gamma, float coef0,
                                   float cost, float nu, float tol, int probability,
                                   int weight_size, int* weight_label, float* weight,
+                                  int verbose, int max_iter,
                                   int* n_features, int* n_classes){
+        if(verbose)
+            el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
+        else
+            el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "true");
         DataSet train_dataset;
         train_dataset.load_from_sparse(row_size, val, row_ptr, col_ptr, label);
         SvmModel* model;
@@ -38,7 +43,7 @@ extern "C" {
                 model = new NuSVR();
                 break;
         }
-
+        model->set_max_iter(max_iter);
 
         //todo add this to check_parameter method
         if (svm_type == SvmParam::NU_SVC) {
@@ -99,7 +104,12 @@ extern "C" {
                                  int svm_type, int kernel_type, int degree, float gamma, float coef0,
                                  float cost, float nu, float tol, int probability,
                                  int weight_size, int* weight_label, float* weight,
+                                 int verbose, int max_iter,
                                  int* n_features, int* n_classes){
+        if(verbose)
+            el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
+        else
+            el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "true");
         DataSet train_dataset;
         train_dataset.load_from_dense(row_size, features, data, label);
         SvmModel* model;
@@ -121,7 +131,7 @@ extern "C" {
                 break;
         }
 
-
+        model->set_max_iter(max_iter);
         //todo add this to check_parameter method
         if (svm_type == SvmParam::NU_SVC) {
             train_dataset.group_classes();
@@ -210,9 +220,28 @@ extern "C" {
     void get_support_classes(int* n_support, int n_class, SvmModel* model){
         SyncArray<int> n_sv(n_class);
         n_sv.copy_from(model->get_n_sv());
+        int* n_sv_ptr = n_sv.host_data();
         for(int i = 0; i < n_sv.size(); i++){
-            n_support[i] = n_sv.host_data()[i];
+            n_support[i] = n_sv_ptr[i];
         }
-
     }
+
+    void get_coef(float* dual_coef, int n_class, int n_sv, SvmModel* model){
+        SyncArray<float_type > coef((n_class - 1 ) * n_sv);
+        coef.copy_from(model->get_coef());
+        float_type * coef_ptr = coef.host_data();
+        for(int i = 0; i < coef.size(); i++){
+            dual_coef[i] = coef_ptr[i];
+        }
+    }
+
+    void get_rho(float* rho_, int rho_size, SvmModel* model){
+        SyncArray<float_type > rho(rho_size);
+        rho.copy_from(model->get_rho());
+        float_type * rho_ptr = rho.host_data();
+        for(int i = 0; i < rho.size(); i++){
+            rho_[i] = rho_ptr[i];
+        }
+    }
+
 }

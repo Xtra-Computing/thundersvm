@@ -283,6 +283,19 @@ const SyncArray<int> & SvmModel::get_n_sv() const{
     return n_sv;
 }
 
+const SyncArray<float_type> & SvmModel::get_coef() const{
+    return coef;
+}
+
+const SyncArray<float_type> & SvmModel::get_rho() const{
+    return rho;
+}
+
 int SvmModel::get_n_classes() const {
     return n_classes;
+}
+
+void SvmModel::set_max_iter(int iter) {
+    max_iter = iter;
+    return;
 }

@@ -9,7 +9,7 @@ using namespace svm_kernel;
 
 void
 CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<float_type> &alpha, float_type &rho,
-                  SyncArray<float_type> &f_val, float_type eps, float_type Cp, float_type Cn, int ws_size) const {
+                  SyncArray<float_type> &f_val, float_type eps, float_type Cp, float_type Cn, int ws_size, int out_max_iter) const {
     int n_instances = k_mat.n_instances();
     int q = ws_size / 2;
 
@@ -74,6 +74,11 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
         if (iter % 100 == 0) LOG(INFO) << "global iter = " << iter << ", total local iter = " << local_iter;
         local_iter += diff.host_data()[1];
         if (diff.host_data()[0] < eps) {
+            rho = calculate_rho(f_val, y, alpha, Cp, Cn);
+            LOG(INFO) << "global iter = " << iter << ", total local iter = " << local_iter;
+            break;
+        }
+        if ((out_max_iter != -1) && (iter == out_max_iter)){
             rho = calculate_rho(f_val, y, alpha, Cp, Cn);
             LOG(INFO) << "global iter = " << iter << ", total local iter = " << local_iter;
             break;

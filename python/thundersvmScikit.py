@@ -16,14 +16,21 @@ from os import path
 
 
 dirname = path.dirname(path.abspath(__file__))
-thundersvm = CDLL(path.join(dirname, '../build/lib/libthundersvm.so'))
+lib_path = path.join(dirname, '../build/lib/libthundersvm.so')
+if path.exists(lib_path):
+    thundersvm = CDLL(lib_path)
+else :
+    print ("Please build the library first!")
+    exit()
 
 SVM_TYPE = ['c_svc', 'nu_svc', 'one_class', 'epsilon_svr', 'nu_svr']
 
 class SvmModel(ThundersvmBase):
     def __init__(self, kernel, degree,
                  gamma, coef0, cost, nu, epsilon,
-                 tol, probability, class_weight):
+                 tol, probability, class_weight,
+                 shrinking, cache_size, verbose,
+                 max_iter, random_state):
         self.kernel = kernel
         self.degree = degree
         self.gamma = gamma
@@ -34,6 +41,11 @@ class SvmModel(ThundersvmBase):
         self.tol = tol
         self.probability = probability
         self.class_weight = class_weight
+        self.shrinking = shrinking
+        self.cache_size = cache_size
+        self.verbose = verbose
+        self.max_iter = max_iter
+        self.random_state = random_state
 
     def label_validate(self, y):
 
@@ -65,7 +77,21 @@ class SvmModel(ThundersvmBase):
         csr_data = (c_float * (self.n_sv * self.n_features))()
         data_size = (c_int * 1)()
         thundersvm.get_sv(csr_row, csr_col, csr_data, data_size, self.model)
-        print ("here0")
+
+        dual_coef = (c_float * ((self.n_classes - 1) * self.n_sv))()
+        thundersvm.get_coef(dual_coef, self.n_classes, self.n_sv, self.model)
+        self.dual_coef_ = np.empty(0, dtype = float)
+        for index in range(0, (self.n_classes - 1) * self.n_sv):
+            self.dual_coef_ = np.append(self.dual_coef_, dual_coef[index])
+        self.dual_coef_ = np.reshape(self.dual_coef_, (self.n_classes - 1, self.n_sv))
+
+        rho_size = self.n_classes * (self.n_classes - 1) / 2
+        rho = (c_float * rho_size)()
+        thundersvm.get_rho(rho, rho_size, self.model)
+        self.intercept_ = np.empty(0, dtype = float)
+        for index in range(0, rho_size):
+            self.intercept_ = np.append(self.intercept_, rho[index])
+
         row = []
         for index in range(0, self.n_sv + 1):
             row += [csr_row[index]]
@@ -80,10 +106,8 @@ class SvmModel(ThundersvmBase):
         self.data = np.asarray(data)
 
         self.support_vectors_ = sp.csr_matrix((self.data, self.col, self.row))
-        print ("here1")
         if self._sparse == False:
             self.support_vectors_ = self.support_vectors_.toarray(order = 'C')
-        print ("here2")
         n_support_ = (c_int * self.n_classes)()
         thundersvm.get_support_classes(n_support_, self.n_classes, self.model)
         self.n_support_ = np.empty(0, dtype = int)
@@ -123,6 +147,7 @@ class SvmModel(ThundersvmBase):
             kernel_type, self.degree, c_float(self._gamma), c_float(self.coef0),
             c_float(self.cost), c_float(self.nu), c_float(self.tol),
             self.probability, weight_size, weight_label, weight,
+            self.verbose, self.max_iter,
             n_features, n_classes)
         self.n_features = n_features[0]
         self.n_classes = n_classes[0]
@@ -158,16 +183,14 @@ class SvmModel(ThundersvmBase):
 
         n_features = (c_int * 1)()
         n_classes = (c_int * 1)()
-
         self.model = thundersvm.sparse_model_scikit(
                 X.shape[0], data, indptr, indices, label, solver_type,
                 kernel_type, self.degree, c_float(self._gamma), c_float(self.coef0),
                 c_float(self.cost), c_float(self.nu), c_float(self.tol),
                 self.probability, weight_size, weight_label, weight,
+                self.verbose, self.max_iter,
                 n_features, n_classes)
         self.n_features = n_features[0]
-        print ("nfeatures:")
-        print (n_features[0])
         self.n_classes = n_classes[0]
 
 
@@ -242,12 +265,17 @@ class SVC(SvmModel, ClassifierMixin):
      _impl = 'c_svc'
      def __init__(self, kernel = 2, degree = 3,
                   gamma = 'auto', coef0 = 0.0, cost = 1.0,
-                  tol = 0.001, probability = False, class_weight = None):
+                  tol = 0.001, probability = False, class_weight = None,
+                  shrinking = False, cache_size = None, verbose = False,
+                  max_iter = -1, random_state = None, decison_function_shape = 'ovo'):
+         self.decison_function_shape = decison_function_shape
          super(SVC, self).__init__(
              kernel=kernel, degree=degree, gamma=gamma,
              coef0=coef0, cost=cost, nu=0., epsilon=0.,
              tol=tol, probability=probability,
-             class_weight=class_weight)
+             class_weight=class_weight, shrinking = shrinking,
+             cache_size = cache_size, verbose = verbose,
+             max_iter = max_iter, random_state = random_state)
 
 
 
@@ -255,21 +283,29 @@ class NuSVC(SvmModel, ClassifierMixin):
     _impl = 'nu_svc'
     def __init__(self, kernel = 2, degree = 3, gamma = 'auto',
                  coef0 = 0.0, nu = 0.5, tol = 0.001,
-                 probability = False):
+                 probability = False, shrinking = False, cache_size = None, verbose = False,
+                 max_iter = -1, random_state = None, decison_function_shape = 'ovo'):
+        self.decison_function_shape = decison_function_shape
         super(NuSVC, self).__init__(
             kernel = kernel, degree = degree, gamma = gamma,
             coef0 = coef0, cost = 0., nu = nu, epsilon= 0.,
-            tol = tol, probability = probability, class_weight = None
+            tol = tol, probability = probability, class_weight = None,
+            shrinking = shrinking, cache_size = cache_size, verbose = verbose,
+            max_iter = max_iter, random_state = random_state
         )
 
 class OneClassSVM(SvmModel):
     _impl = 'one_class'
     def __init__(self, kernel = 2, degree = 3, gamma = 'auto',
-                 coef0 = 0.0, nu = 0.5, tol = 0.001):
+                 coef0 = 0.0, nu = 0.5, tol = 0.001,
+                 shrinking = False, cache_size = None, verbose = False,
+                 max_iter = -1, random_state = None):
         super(OneClassSVM, self).__init__(
             kernel = kernel, degree = degree, gamma = gamma,
             coef0 = coef0, cost = 0., nu = nu, epsilon = 0.,
-            tol = tol, probability= False, class_weight = None
+            tol = tol, probability= False, class_weight = None,
+            shrinking = shrinking, cache_size = cache_size, verbose = verbose,
+            max_iter = max_iter, random_state = random_state
         )
 
     def fit(self, X, y=None):
@@ -279,19 +315,27 @@ class SVR(SvmModel, RegressorMixin):
     _impl = 'epsilon_svr'
     def __init__(self, kernel = 2, degree = 3, gamma = 'auto',
                  coef0 = 0.0, cost = 1.0, epsilon = 0.1,
-                 tol = 0.001, probability = False):
+                 tol = 0.001, probability = False,
+                 shrinking = False, cache_size = None, verbose = False,
+                 max_iter = -1):
         super(SVR, self).__init__(
             kernel = kernel, degree = degree, gamma = gamma,
             coef0 = coef0, cost = cost, epsilon = epsilon,
-            tol = tol, probability = probability, class_weight = None
+            tol = tol, probability = probability, class_weight = None,
+            shrinking = shrinking, cache_size = cache_size, verbose = verbose,
+            max_iter = max_iter, random_state = None
         )
 
 class NuSVR(SvmModel, RegressorMixin):
     _impl = 'nu_svr'
     def __init(self, kernel = 2, degree = 3, gamma = 'auto',
-               coef0 = 0.0, cost = 1.0, tol = 0.001, probability = False):
+               coef0 = 0.0, cost = 1.0, tol = 0.001, probability = False,
+               shrinking = False, cache_size = None, verbose = False,
+               max_iter = -1):
         super(NuSVR, self).__init(
             kernel = kernel, degree = degree, gamma = gamma,
             coef0 = coef0, cost = cost, epsilon = 0.,
-            tol = tol, probability = probability, class_weight = None
+            tol = tol, probability = probability, class_weight = None,
+            shrinking = shrinking, cache_size = cache_size, verbose = verbose,
+            max_iter = max_iter, random_state = None
         )

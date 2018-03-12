@@ -66,13 +66,26 @@ public:
      */
     virtual void load_from_file(string path);
 
+    //return n_total_sv
     int total_sv() const;
 
+    //return n_classes
     int get_n_classes() const;
 
+    //return sv
     const DataSet::node2d &svs() const;
 
+    //return n_sv
     const SyncArray<int> &get_n_sv() const;
+
+    //return coef
+    const SyncArray<float_type> &get_coef() const;
+
+    //return rho
+    const SyncArray<float_type> &get_rho() const;
+
+    //set max_iter
+    void set_max_iter(int iter);
 protected:
 
     /**
@@ -124,6 +137,9 @@ protected:
 
     ///only for SVC, maps logical label (0,1,2,...) to real label in dataset (maybe 2,4,5,...)
     vector<int> label;
+
+    ///Hard limit on iterations within solver, or -1 for no limit.
+    int max_iter = -1;
 };
 
 #endif //THUNDERSVM_SVMMODEL_H

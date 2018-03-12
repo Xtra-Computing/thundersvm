@@ -80,6 +80,37 @@ probability: boolean, optional(default=False)\
 class_weight:  {dict, ‘balanced’}, optional(default=None)\
     set the parameter C of class i to weight*C, for C-SVC
 
+shrinking : boolean, optional (default=False, Not support yet for True)\
+    Whether to use the shrinking heuristic. .
+
+cache_size : float, optional, Not support yet.\
+    Specify the size of the kernel cache (in MB).
+
+verbose : bool(default=False)\
+    Enable verbose output. Note that this setting takes advantage of a per-process runtime setting in libsvm that, if enabled, may not work properly in a multithreaded context.
+
+max_iter : int, optional (default=-1)\
+    Hard limit on iterations within solver, or -1 for no limit.
+
+decision_function_shape : ‘ovo’, default=’ovo’, Not support yet for 'ovr'\
+    Only for classifier. Whether to return a one-vs-rest (‘ovr’) decision function of shape (n_samples, n_classes) as all other classifiers, or the original one-vs-one (‘ovo’) decision function of libsvm which has shape (n_samples, n_classes * (n_classes - 1) / 2).
+
+random_state : int, RandomState instance or None, optional (default=None), Not support yet\
+    The seed of the pseudo random number generator to use when shuffling the data. If int, random_state is the seed used by the random number generator; If RandomState instance, random_state is the random number generator; If None, the random number generator is the RandomState instance used by np.random.
+
+## Attributes
+support_vectors_ : array-like, shape = [n_SV, n_features]\
+    Support vectors.
+
+n_support_ : array-like, dtype=int32, shape = [n_class]\
+    Number of support vectors for each class.
+
+dual_coef_ : array, shape = [n_class-1, n_SV]\
+    Coefficients of the support vector in the decision function. For multiclass, coefficient for all 1-vs-1 classifiers. The layout of the coefficients in the multiclass case is somewhat non-trivial.
+
+intercept_ : array, shape = [n_class * (n_class-1) / 2]\
+    Constants in decision function.
+
 
 
 ## Examples

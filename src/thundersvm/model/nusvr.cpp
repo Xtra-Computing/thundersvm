@@ -32,6 +32,6 @@ void NuSVR::train(const DataSet &dataset, SvmParam param) {
 
     int ws_size = min(max2power(n_instances) * 2, 1024);
     NuSMOSolver solver(true);
-    solver.solve(kernelMatrix, y, alpha_2, rho.host_data()[0], f_val, param.epsilon, param.C, param.C, ws_size);
+    solver.solve(kernelMatrix, y, alpha_2, rho.host_data()[0], f_val, param.epsilon, param.C, param.C, ws_size, max_iter);
     save_svr_coef(alpha_2, dataset.instances());
 }

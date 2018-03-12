@@ -112,6 +112,7 @@ void SVC::train(const DataSet &dataset, SvmParam param) {
         probB.resize(n_binary_models);
         probability_train(dataset_);
     }
+
 }
 
 void SVC::train_binary(const DataSet &dataset, int i, int j, SyncArray<float_type> &alpha, float_type &rho) {
@@ -133,7 +134,7 @@ void SVC::train_binary(const DataSet &dataset, int i, int j, SyncArray<float_typ
     KernelMatrix k_mat(ins, param);
     int ws_size = min(max2power(ins.size()), 1024);
     CSMOSolver solver;
-    solver.solve(k_mat, y, alpha, rho, f_val, param.epsilon, param.C * c_weight[i], param.C * c_weight[j], ws_size);
+    solver.solve(k_mat, y, alpha, rho, f_val, param.epsilon, param.C * c_weight[i], param.C * c_weight[j], ws_size, max_iter);
     LOG(INFO) << "rho = " << rho;
     int n_sv = 0;
     y_data = y.host_data();
