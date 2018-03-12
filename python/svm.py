@@ -7,7 +7,12 @@ import sys
 
 
 dirname = path.dirname(path.abspath(__file__))
-libsvm = CDLL(path.join(dirname, '../build/lib/libthundersvm.so'))
+lib_path = path.join(dirname, '../build/lib/libthundersvm.so')
+if path.exists(lib_path):
+	thundersvm = CDLL(lib_path)
+else :
+	print ("Please build the library first!")
+	exit()
 dataset_path = dirname + '/../dataset/'
 
 class dataset(object):
@@ -23,14 +28,14 @@ def svm_train(param):
 	param_list.insert(0, 'thundersvm-train')
 	param_array = (c_char_p * len(param_list))()
 	param_array[:] = param_list
-	libsvm.thundersvm_train(len(param_list), param_array)
+	thundersvm.thundersvm_train(len(param_list), param_array)
 
 def svm_predict(param):
 	param_list = param.split()
 	param_list.insert(0, 'thundersvm-predict')
 	param_array = (c_char_p * len(param_list))()
 	param_array[:] = param_list
-	libsvm.thundersvm_predict(len(param_list), param_array)
+	thundersvm.thundersvm_predict(len(param_list), param_array)
 '''
 def svm_read_problem(data_file_name):
 	"""
@@ -71,15 +76,15 @@ def svm_train(arg1, arg2 = None, arg3 = None, arg4 = None):
 		#dataset_python = dataset();
 		#dataset_python.load_from_python(arg1, arg2, arg3)
 		#print(dataset_python)
-		libsvm.load_from_python_interface(arg1_array, arg2_array, len(arg1_array))
-		libsvm.thundersvm_train_after_parse(arg4_array, len(arg4_array), arg3.encode('utf-8'))
+		thundersvm.load_from_python_interface(arg1_array, arg2_array, len(arg1_array))
+		thundersvm.thundersvm_train_after_parse(arg4_array, len(arg4_array), arg3.encode('utf-8'))
 	else:
 		param_list = arg1.encode('utf-8').split()
 		param_list.insert(0, 'thundersvm-train')
 		param_array = (c_char_p * len(param_list))()
 		param_array[:] = param_list
 		#print(param_array[0])
-		libsvm.thundersvm_train(len(param_list), param_array)
+		thundersvm.thundersvm_train(len(param_list), param_array)
 
 def svm_predict(arg1, arg2 = None, arg3 = None, arg4 = None, arg5 = None):
 	if arg2:
@@ -87,19 +92,19 @@ def svm_predict(arg1, arg2 = None, arg3 = None, arg4 = None, arg5 = None):
 		arg1_array[:] = arg1
 		arg2_array = (c_char_p * len(arg2))()
 		arg2_array[:] = arg2
-		libsvm.load_from_python_interface(arg1_array, arg2_array, len(arg1_array))
+		thundersvm.load_from_python_interface(arg1_array, arg2_array, len(arg1_array))
 		if arg5:
 			arg5_list = arg5.encode('utf-8').split()
 			arg5_array = (c_char_p * len(arg5_list))()
 			arg5_array[:] = arg5_list
-			libsvm.thundersvm_predict_after_parse(arg3.encode('utf-8'), arg4.encode('utf-8'), arg5_array, len(arg5_array))
+			thundersvm.thundersvm_predict_after_parse(arg3.encode('utf-8'), arg4.encode('utf-8'), arg5_array, len(arg5_array))
 		else :
 			arg5_array = None
-			libsvm.thundersvm_predict_after_parse(arg3.encode('utf-8'), arg4.encode('utf-8'), arg5_array, 0)
+			thundersvm.thundersvm_predict_after_parse(arg3.encode('utf-8'), arg4.encode('utf-8'), arg5_array, 0)
 	else:
 		param_list = arg1.split()
 		param_list.insert(0, 'thundersvm-predict')
 		param_array = (c_char_p * len(param_list))()
 		param_array[:] = param_list
-		libsvm.thundersvm_predict(len(param_list), param_array)	
+		thundersvm.thundersvm_predict(len(param_list), param_array)
 #libsvm.thundersvm_train(15, "./thundersvm-train -s 1 -t 2 -g 0.5 -c 100 -n 0.1 -e 0.001 dataset/test_dataset.txt dataset/test_dataset.txt.model");
