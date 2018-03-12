@@ -270,3 +270,19 @@ void SvmModel::load_from_file(string path) {
         n_sv.host_data()[1] = 0;
     }
 }
+
+int SvmModel::total_sv() const {
+    return n_total_sv;
+}
+
+const DataSet::node2d & SvmModel::svs() const {
+    return sv;
+}
+
+const SyncArray<int> & SvmModel::get_n_sv() const{
+    return n_sv;
+}
+
+int SvmModel::get_n_classes() const {
+    return n_classes;
+}
