@@ -22,12 +22,13 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
         for (int j = 0; j < instances[i].size(); ++j) {
             csr_val.push_back(instances[i][j].value);
             self_dot += instances[i][j].value * instances[i][j].value;
-            csr_col_ind.push_back(instances[i][j].index - 1);//libSVM data format is one-based, convert to zero-based
+            csr_col_ind.push_back(instances[i][j].index);//libSVM data format is one-based, convert to zero-based
             if (instances[i][j].index > n_features_) n_features_ = instances[i][j].index;
         }
         csr_row_ptr.push_back(csr_row_ptr.back() + instances[i].size());
         csr_self_dot.push_back(self_dot);
     }
+    n_features_++;
 
     //three arrays (on GPU/CPU) for csr representation
     val_.resize(csr_val.size());
@@ -145,8 +146,8 @@ void KernelMatrix::get_dot_product(const DataSet::node2d &instances, SyncArray<f
     for (int i = 0; i < instances.size(); ++i) {
         float_type sum = 0;
         for (int j = 0; j < instances[i].size(); ++j) {
-            if (instances[i][j].index - 1 < n_features_) {
-                dense_ins_data[(instances[i][j].index - 1) * instances.size() + i] = instances[i][j].value;
+            if (instances[i][j].index < n_features_) {
+                dense_ins_data[instances[i][j].index * instances.size() + i] = instances[i][j].value;
                 sum += instances[i][j].value * instances[i][j].value;
             } else {
 //                LOG(WARNING)<<"the number of features in testing set is larger than training set";

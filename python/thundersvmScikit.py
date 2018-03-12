@@ -59,6 +59,37 @@ class SvmModel(ThundersvmBase):
 
         fit(X, y, solver_type, kernel)
 
+        self.n_sv = thundersvm.n_sv(self.model)
+        csr_row = (c_int * (self.n_sv + 1))()
+        csr_col = (c_int * (self.n_sv * self.n_features))()
+        csr_data = (c_float * (self.n_sv * self.n_features))()
+        data_size = (c_int * 1)()
+        thundersvm.get_sv(csr_row, csr_col, csr_data, data_size, self.model)
+        print ("here0")
+        row = []
+        for index in range(0, self.n_sv + 1):
+            row += [csr_row[index]]
+        self.row = np.asarray(row)
+        col = []
+        for index in range(0, data_size[0]):
+            col += [csr_col[index]]
+        self.col = np.asarray(col)
+        data = []
+        for index in range(0, data_size[0]):
+            data += [csr_data[index]]
+        self.data = np.asarray(data)
+
+        self.support_vectors_ = sp.csr_matrix((self.data, self.col, self.row))
+        print ("here1")
+        if self._sparse == False:
+            self.support_vectors_ = self.support_vectors_.toarray(order = 'C')
+        print ("here2")
+        n_support_ = (c_int * self.n_classes)()
+        thundersvm.get_support_classes(n_support_, self.n_classes, self.model)
+        self.n_support_ = np.empty(0, dtype = int)
+        for index in range(0, self.n_classes):
+            self.n_support_ = np.append(self.n_support_, n_support_[index])
+
         self.shape_fit_ = X.shape
 
         return self
@@ -85,11 +116,17 @@ class SvmModel(ThundersvmBase):
         weight = (c_float * weight_size)()
         weight[:] = self.class_weight.values()
 
+        n_features = (c_int * 1)()
+        n_classes = (c_int * 1)()
         self.model = thundersvm.dense_model_scikit(
             samples, features, data, label, solver_type,
             kernel_type, self.degree, c_float(self._gamma), c_float(self.coef0),
             c_float(self.cost), c_float(self.nu), c_float(self.tol),
-            self.probability, weight_size, weight_label, weight)
+            self.probability, weight_size, weight_label, weight,
+            n_features, n_classes)
+        self.n_features = n_features[0]
+        self.n_classes = n_classes[0]
+
 
 
 
@@ -119,11 +156,22 @@ class SvmModel(ThundersvmBase):
         weight = (c_float * weight_size)()
         weight[:] = self.class_weight.values()
 
+        n_features = (c_int * 1)()
+        n_classes = (c_int * 1)()
+
         self.model = thundersvm.sparse_model_scikit(
                 X.shape[0], data, indptr, indices, label, solver_type,
                 kernel_type, self.degree, c_float(self._gamma), c_float(self.coef0),
                 c_float(self.cost), c_float(self.nu), c_float(self.tol),
-                self.probability, weight_size, weight_label, weight)
+                self.probability, weight_size, weight_label, weight,
+                n_features, n_classes)
+        self.n_features = n_features[0]
+        print ("nfeatures:")
+        print (n_features[0])
+        self.n_classes = n_classes[0]
+
+
+
 
 
 
@@ -159,14 +207,11 @@ class SvmModel(ThundersvmBase):
 
         data = (c_float * X_1d.size)()
         data[:] = X_1d
-        print(X.shape[0])
         thundersvm.dense_predict(
             samples, features, data,
             self.model,
             self.predict_label_ptr)
         predict_label = []
-        print(X.shape[0])
-        print(self.predict_label_ptr[0])
         for index in range(0, X.shape[0]):
             predict_label += [self.predict_label_ptr[index]]
         self.predict_label = np.asarray(predict_label)

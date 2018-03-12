@@ -66,6 +66,13 @@ public:
      */
     virtual void load_from_file(string path);
 
+    int total_sv() const;
+
+    int get_n_classes() const;
+
+    const DataSet::node2d &svs() const;
+
+    const SyncArray<int> &get_n_sv() const;
 protected:
 
     /**

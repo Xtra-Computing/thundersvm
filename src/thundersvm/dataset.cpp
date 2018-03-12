@@ -129,7 +129,7 @@ void DataSet::load_from_sparse(int row_size, float* val, int* row_ptr, int* col_
             y_.push_back(label[i]);
         instances_.emplace_back();
         for(int i = row_ptr[total_count_]; i < row_ptr[total_count_ + 1]; i++){
-            ind = col_ptr[i] + 1;
+            ind = col_ptr[i];
             v = val[i];
             instances_[total_count_].emplace_back(ind, v);
             if(ind > n_features_) n_features_ = ind;
@@ -137,6 +137,7 @@ void DataSet::load_from_sparse(int row_size, float* val, int* row_ptr, int* col_
         total_count_++;
 
     }
+    n_features_++;
     LOG(INFO)<<"#instances = "<<this->n_instances()<<", #features = "<<this->n_features();
 
 }
@@ -153,8 +154,8 @@ void DataSet::load_from_dense(int row_size, int features, float* data, float* la
         if(label != NULL)
             y_.push_back(label[i]);
         instances_.emplace_back();
-        for(int i = 0; i < features; i++){
-            ind = i + 1;
+        for(int j = 0; j < features; j++){
+            ind = j;
             v = data[off];
             off++;
             instances_[total_count_].emplace_back(ind, v);

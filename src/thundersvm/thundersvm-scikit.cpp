@@ -16,7 +16,8 @@ extern "C" {
     SvmModel* sparse_model_scikit(int row_size, float* val, int* row_ptr, int* col_ptr, float* label,
                                   int svm_type, int kernel_type, int degree, float gamma, float coef0,
                                   float cost, float nu, float tol, int probability,
-                                  int weight_size, int* weight_label, float* weight){
+                                  int weight_size, int* weight_label, float* weight,
+                                  int* n_features, int* n_classes){
         DataSet train_dataset;
         train_dataset.load_from_sparse(row_size, val, row_ptr, col_ptr, label);
         SvmModel* model;
@@ -53,19 +54,6 @@ extern "C" {
                 }
             }
         }
-
-//        if (gamma == 0 && kernel_type != SvmParam::LINEAR){
-//            gamma = 1.f / train_dataset.n_features();
-//            LOG(WARNING)<<"using default gamma="<<parser.param_cmd.gamma;
-//        }
-
-//#ifdef USE_CUDA
-//        CUDA_CHECK(cudaSetDevice(parser.gpu_id));
-//#endif
-
-//        if (parser.do_cross_validation) {
-//            predict_y = model->cross_validation(train_dataset, parser.param_cmd, parser.nr_fold);
-//        } else {
         SvmParam param_cmd;
         param_cmd.weight_label = NULL;
         param_cmd.weight = NULL;
@@ -90,10 +78,10 @@ extern "C" {
 
         model->train(train_dataset, param_cmd);
         LOG(INFO) << "training finished";
+        n_features[0] = train_dataset.n_features();
+        n_classes[0] = model->get_n_classes();
         return model;
 
-
-//        }
     }
 
     int sparse_predict(int row_size, float* val, int* row_ptr, int* col_ptr, SvmModel *model, float* predict_label){
@@ -108,9 +96,10 @@ extern "C" {
     }
 
     SvmModel* dense_model_scikit(int row_size, int features, float* data, float* label,
-                                  int svm_type, int kernel_type, int degree, float gamma, float coef0,
-                                  float cost, float nu, float tol, int probability,
-                                  int weight_size, int* weight_label, float* weight){
+                                 int svm_type, int kernel_type, int degree, float gamma, float coef0,
+                                 float cost, float nu, float tol, int probability,
+                                 int weight_size, int* weight_label, float* weight,
+                                 int* n_features, int* n_classes){
         DataSet train_dataset;
         train_dataset.load_from_dense(row_size, features, data, label);
         SvmModel* model;
@@ -149,11 +138,6 @@ extern "C" {
         }
 
 
-//    #ifdef USE_CUDA
-//        CUDA_CHECK(cudaSetDevice(parser.gpu_id));
-//    #endif
-
-
         SvmParam param_cmd;
         param_cmd.weight_label = NULL;
         param_cmd.weight = NULL;
@@ -178,6 +162,8 @@ extern "C" {
 
         model->train(train_dataset, param_cmd);
         LOG(INFO) << "training finished";
+        n_features[0] = train_dataset.n_features();
+        n_classes[0] = model->get_n_classes();
         return model;
 
     }
@@ -194,5 +180,39 @@ extern "C" {
         }
         std::cout<<"label[0]"<<predict_label[0]<<std::endl;
         return 0;
+    }
+
+    int n_sv(SvmModel* model){
+        return model->total_sv();
+    }
+
+
+    void get_sv(int* row, int* col, float* data, int* data_size, SvmModel* model){
+        DataSet::node2d svs = model->svs();
+        row[0] = 0;
+        int data_ind = 0;
+        int col_ind = 0;
+        int row_ind = 1;
+        for(int i = 0; i < svs.size(); i++){
+            row[row_ind] = row[row_ind - 1] + svs[i].size();
+            row_ind++;
+            for(int j = 0; j < svs[i].size(); j++){
+                data[data_ind] = svs[i][j].value;
+                data_ind++;
+                col[col_ind] = svs[i][j].index;
+                col_ind++;
+            }
+        }
+        data_size[0] = data_ind;
+        return ;
+    }
+
+    void get_support_classes(int* n_support, int n_class, SvmModel* model){
+        SyncArray<int> n_sv(n_class);
+        n_sv.copy_from(model->get_n_sv());
+        for(int i = 0; i < n_sv.size(); i++){
+            n_support[i] = n_sv.host_data()[i];
+        }
+
     }
 }
