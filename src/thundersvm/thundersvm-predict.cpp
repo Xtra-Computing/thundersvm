@@ -10,7 +10,7 @@
 #include <thundersvm/model/nusvc.h>
 #include <thundersvm/model/oneclass_svc.h>
 #include <thundersvm/util/metric.h>
-
+INITIALIZE_EASYLOGGINGPP
 using std::fstream;
 
 int main(int argc, char **argv) {

@@ -13,10 +13,13 @@ from sklearn.utils.validation import _num_samples
 
 from ctypes import *
 from os import path
-
+from sys import platform
 
 dirname = path.dirname(path.abspath(__file__))
-lib_path = path.join(dirname, '../build/lib/libthundersvm.so')
+if platform == "linux" or platform == "linux2":
+    lib_path = path.join(dirname, '../build/lib/libthundersvm.so')
+elif platform == "win32":
+    lib_path = path.join(dirname, '../build/bin/Debug/thundersvm.dll')
 if path.exists(lib_path):
     thundersvm = CDLL(lib_path)
 else :

@@ -11,7 +11,7 @@
 #include <thundersvm/model/nusvr.h>
 #include <thundersvm/util/metric.h>
 #include "thundersvm/cmdparser.h"
-
+INITIALIZE_EASYLOGGINGPP
 
 int main(int argc, char **argv) {
     try {
