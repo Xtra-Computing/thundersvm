@@ -40,9 +40,9 @@ For Windows, use the following example commands. You need to change the Visual S
 ```bash
 mkdir build
 cd build
-cmake ..  -G "Visual Studio 14 2015 Win64"
+cmake .. -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE -DBUILD_SHARED_LIBS=TRUE -G "Visual Studio 14 2015 Win64"
 ```
-The above commands generate some Visual Studio project files, open the Visual Studio project in the build directory to start building ```runtest``` on Windows.
+The above commands generate some Visual Studio project files, open the Visual Studio project in the build directory to start building ```runtest``` on Windows. Please note that CMake should be 3.4 or above for Windows.
 
 Make sure all the test cases pass.
 
