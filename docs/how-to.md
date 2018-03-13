@@ -42,7 +42,7 @@ cmake ..  -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE -DBUILD_SHARED_LIBS=TRUE -G "V
 ```
 The above commands generate some Visual Studio project files, open the Visual Studio project in the ```build``` directory to start building ThunderSVM on Windows. Please note that CMake should be 3.4 or above for Windows.
 
-You can now use ThunderSVM, and the options of executing ThunderSVM are available [here](parameters.md). Please refer to [Getting Started](get-started.md) for some examples of training SVMs using ThunderSVM.
+You can now use ThunderSVM, and the options of executing ThunderSVM are available [here](parameters.html). Please refer to [Getting Started](get-started.html) for some examples of training SVMs using ThunderSVM.
 
 ## How can I do grid search?
    Since ThunderSVM supports cross-validation. You can write a simple grid.sh script like the following one. Then run ``` sh grid.sh [dataset]```.  You may modify the script to meet your needs. Indeed, ThunderSVM supports the same command line parameters as LIBSVM. So the script grid.py in LIBSVM can be used for ThunderSVM with minor modifications.

@@ -82,13 +82,13 @@ For Windows machines, you can decompress the data set using tools such as [7-Zip
 
 * Install ThunderSVM
 
-Instructions available in [How To](how-to.md) page.
+Instructions available in [How To](how-to.html) page.
 
 * Run ThunderSVM
 ```bash
 ./thundersvm-train -s 0 -t 2 -g 0.125 -c 10 mnist.scale svm.model
 ```
-The meaning of each option can be found in the [parameters](parameters.md) page. The training takes a while to complete. Once completed, you can see the classifier accuracy is 94.32%.
+The meaning of each option can be found in the [parameters](parameters.html) page. The training takes a while to complete. Once completed, you can see the classifier accuracy is 94.32%.
 
 ### Training SVMs for Regression
 The usage of other SVM algorithms (such as SVM regression) are similar to the above example. The key different is the selection of the options. Let's take Abalone data set as an example.
@@ -99,13 +99,13 @@ The data set is available in [this link](https://www.csie.ntu.edu.tw/~cjlin/libs
 
 * Install ThunderSVM
 
-Instructions available in [How To](how-to.md) page.
+Instructions available in [How To](how-to.html) page.
 
 * Run ThunderSVM
 ```bash
 ./thundersvm-train -s 3 -t 2 -g 3.8 -c 1000 abalone_scale svm.model
 ```
-The meaning of each option can be found in the [parameters](parameters.md) page. 
+The meaning of each option can be found in the [parameters](parameters.html) page. 
 
 ### Interfaces
 ThunderSVM provides python, R and Matlab interface. You can find the instructions in the corresponding subdirectories.

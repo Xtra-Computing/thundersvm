@@ -4,16 +4,16 @@ This page is dedicated to summarizing some frequently asked questions about Thun
 
 ## FAQs of users
 * **How can I use the source code?** 
-   Please refere to [How To](how-to.md) page.
+   Please refere to [How To](how-to.html) page.
 
 * **What is the format of the input file?** 
   The file format is the same as the format of files in LibSVM site.
 
 * **Can ThunderSVM run on CPUs?** 
-  Yes. Please see [Working without GPUs](get-started.md).
+  Yes. Please see [Working without GPUs](get-started.html).
   
  * **How can I do grid search?**
- Please refer to [How To](how-to.md) page.
+ Please refer to [How To](how-to.html) page.
 
 ## FAQs of developers
 * **Why not use shrinking?**
