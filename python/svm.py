@@ -4,7 +4,7 @@ from ctypes import *
 from ctypes.util import find_library
 from os import path
 import sys
-
+from sys import platform
 
 dirname = path.dirname(path.abspath(__file__))
 if platform == "linux" or platform == "linux2":
