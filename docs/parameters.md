@@ -20,7 +20,7 @@ command line options:
 * -g: set ``$ gamma $`` in kernel function (default=``$ \frac{1}{\text{num_features}} $``)
 * -r: set ``$ r $`` in kernel function (default=0)
 * -c: set the parameter C of C-SVC, ``$ \epsilon $``-SVR, and ``$ \nu $``-SVR (default=1)
-* -n: set the parameter ``$ \nu $`` of ``$ \nu $``-SVC, one-class SVM, and ``$ \nu $``-SVR (default=0.5)
+* -n: set the parameter ``$ \nu $`` of ``$ \nu $``-SVC, one-class SVM, and ``$ \nu $``-SVR (``$ \nu \in $``(0, 1), default=0.5)
 * -p: set the ``$ \epsilon $`` in loss function of ``$ \epsilon $``-SVR (default=0.1)
 * _-m: set cache memory size in MB (default=100)_
 * -e: set tolerance of termination criterion (default=0.001)

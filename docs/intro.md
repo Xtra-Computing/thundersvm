@@ -4,7 +4,7 @@ In this page, we present Support Vector Machines (SVMs) and the Sequential Minim
 
 ## Support Vector Machines (SVMs)
 
-SVMs have been used in various applications including spam filtering, document classification, network attack detection. SVMs have good generalization property via maximizing margin of the seperating hyperplane. We discuss SVMs for binary classification here, because other SVM training problems such as SVM regression and ``$ \nu $``-SVMs can be converted into binary SVM training problems. The figure below shows an example of binary SVMs which have an optimal hyperplane seperating the training data set denoted by circles and squares. For non-linearly seperable data, SVMs use the kernel functions to map the data to a higher dimentional data space.
+SVMs have been used in various applications including spam filtering, document classification, network attack detection. SVMs have good generalization property via maximizing margin of the seperating hyperplane. We discuss SVMs for binary classification here, because other SVM training problems such as SVM regression and ``$ \nu $``-SVMs can be converted into binary SVM training problems. The figure below shows an example of binary SVMs which have an optimal hyperplane seperating the training data set denoted by circles and squares. For non-linearly seperable data, SVMs use the kernel functions to map the data to a higher dimentional data space and also allows errors by introducing slack variables (see the *where* under the optimization problem below).
 <center>![optimal hyperplan](https://docs.opencv.org/2.4/_images/optimal-hyperplane.png)</center>
 
 In the following, we describe the formal defination of SVMs. Specifically, a training instance ``$ x_i $`` is attached with an integer ``$ y_i \in \{+1, -1\} $`` as its label. A positive (negative) instance is a training instance with the label of +1 (-1). Given a set ``$ \mathcal{X} $`` of n training instances, the goal of training SVMs is to find a hyperplane that separates the positive and the negative instances in ``$ \mathcal{X} $`` with the maximum margin and meanwhile, with the minimum misclassification error on the training instances. The training is equivalent to solving the following optimization problem:
@@ -17,7 +17,7 @@ In the following, we describe the formal defination of SVMs. Specifically, a tra
 ```
 where ``$ \boldsymbol{w} $`` is the normal vector of the hyperplane, C is the penalty parameter, ``$ \boldsymbol{\xi} $`` is the slack variables to tolerant some training instances falling in the wrong side of the hyperplane, and b is the bias of the hyperplane.
 
-To handle the non-linearly separable data, SVMs use a mapping function to map the training instances from the original data space to a higher dimensional data space where the data may become linearly separable. The optimization problem above can be rewritten to a dual form where mapping functions can be replaced by kernel functions which make the mapping easier. The optimization problem in the dual form is shown as follows.
+To handle the non-linearly separable data, SVMs use a mapping function to map the training instances from the original data space to a higher dimensional data space where the data may become linearly separable. The optimization problem above can be rewritten to a dual form where the dot products of two mapped data can be replaced by a kernel function which avoids explicitly defining the mapping functions as only dot products are involved. The optimization problem in the dual form is shown as follows.
 ```math
 & \underset{\boldsymbol{\alpha}}{\text{max}}
 & & F(\boldsymbol{\alpha})=\sum_{i=1}^{n}{\alpha_i}-\frac{1}{2}{\boldsymbol{\alpha^T} \boldsymbol{Q} \boldsymbol{\alpha}}\\
@@ -77,11 +77,11 @@ where b is the bias of the hyperplane of the trained SVM. The training instances
 ## Other SVM Training Problems
 The other SVM training problems implemented in ThunderSVM can be modeled as binary SVM training problems. More specifically,
 
-* SVM regression
+* SVM regression: 
 The SVM regression training problem can be modeled as a binary SVM training problem, where each instance in the data set is duplicated, such that each instance is associated with two new training instances: one with label of +1 and the other with label of -1.
-* Multi-class SVM classification
+* Multi-class SVM classification: 
 Multi-class SVM classsification problem can be decomposed into a few binary SVM training problems via pair-wise coupling (also known as one-vs-one decomposition).
-* Probabilistic SVMs
+* Probabilistic SVMs: 
 Training probabilistic SVMs can be modeled as training binary SVMs and then use the decision values of the binary SVMs to fit a sigmoid function in order to obtain probabilities.
-* ``$ \nu $``-SVMs
+* ``$ \nu $``-SVMs: 
 Training ``$ \nu $``-SVMs is also very similar to training binary SVMs. The key difference is that instead of using two training instances to the currently trained model, ``$ \nu $``-SVMs use four training instances. Training ``$ \nu $``-SVMs for regression (``$ \nu $``-SVR) is similar to training SVMs for regression.

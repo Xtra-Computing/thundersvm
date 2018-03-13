@@ -25,17 +25,30 @@ The mission of ThunderSVM is to help users easily and efficiently apply SVMs to 
 - [Getting Started](https://github.com/zeyiwen/thundersvm#getting-started)
 - [Working without GPUs](http://thundersvm.readthedocs.io/en/latest/get-started.html#working-without-gpus)
 ## Getting Started
+Supported Operating Systems: Linux, Windows and MacOS
 ### Prerequisites
-* Supported Operating Systems: Linux, Windows and MacOS
-* [CUDA](https://developer.nvidia.com/cuda-downloads) 7.5 or above | cmake 2.8 or above | gcc 4.8 or above
+* cmake 2.8 or above 
+* gcc 4.8 or above for Linux and MacOS; Visual C++ for Windows
+
+If you want to use GPUs, you also need to install CUDA.
+
+* [CUDA](https://developer.nvidia.com/cuda-downloads) 7.5 or above
 ### Download
 ```bash
 git clone git@github.com:zeyiwen/thundersvm.git
 ```
 ### Build
+##### ThunderSVM on GPUs
 ```bash
 cd thundersvm
 mkdir build && cd build && cmake .. && make -j
+```
+If ```make -j``` doesn't work, please simple use ```make```.
+##### ThunderSVM on CPUs
+```bash
+# in thundersvm root directory
+git submodule init eigen && git submodule update
+mkdir build && cd build && cmake -DUSE_CUDA=OFF -DUSE_EIGEN=ON .. && make -j
 ```
 ### Quick Start
 ```bash
