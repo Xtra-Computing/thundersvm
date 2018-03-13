@@ -88,7 +88,7 @@ class SvmModel(ThundersvmBase):
             self.dual_coef_ = np.append(self.dual_coef_, dual_coef[index])
         self.dual_coef_ = np.reshape(self.dual_coef_, (self.n_classes - 1, self.n_sv))
 
-        rho_size = self.n_classes * (self.n_classes - 1) / 2
+        rho_size = int(self.n_classes * (self.n_classes - 1) / 2)
         rho = (c_float * rho_size)()
         thundersvm.get_rho(rho, rho_size, self.model)
         self.intercept_ = np.empty(0, dtype = float)
