@@ -73,14 +73,15 @@ class SvmModel(ThundersvmBase):
         fit = self._sparse_fit if self._sparse else self._dense_fit
 
         fit(X, y, solver_type, kernel)
-
+        if self._train_succeed[0] == -1:
+            print ("Training failed!")
+            return
         self.n_sv = thundersvm.n_sv(self.model)
         csr_row = (c_int * (self.n_sv + 1))()
         csr_col = (c_int * (self.n_sv * self.n_features))()
         csr_data = (c_float * (self.n_sv * self.n_features))()
         data_size = (c_int * 1)()
         thundersvm.get_sv(csr_row, csr_col, csr_data, data_size, self.model)
-
         dual_coef = (c_float * ((self.n_classes - 1) * self.n_sv))()
         thundersvm.get_coef(dual_coef, self.n_classes, self.n_sv, self.model)
         self.dual_coef_ = np.empty(0, dtype = float)
@@ -89,6 +90,7 @@ class SvmModel(ThundersvmBase):
         self.dual_coef_ = np.reshape(self.dual_coef_, (self.n_classes - 1, self.n_sv))
 
         rho_size = int(self.n_classes * (self.n_classes - 1) / 2)
+        self.n_binary_model = rho_size
         rho = (c_float * rho_size)()
         thundersvm.get_rho(rho, rho_size, self.model)
         self.intercept_ = np.empty(0, dtype = float)
@@ -145,13 +147,14 @@ class SvmModel(ThundersvmBase):
 
         n_features = (c_int * 1)()
         n_classes = (c_int * 1)()
+        self._train_succeed = (c_int * 1)()
         self.model = thundersvm.dense_model_scikit(
             samples, features, data, label, solver_type,
             kernel_type, self.degree, c_float(self._gamma), c_float(self.coef0),
             c_float(self.cost), c_float(self.nu), c_float(self.tol),
             self.probability, weight_size, weight_label, weight,
             self.verbose, self.max_iter,
-            n_features, n_classes)
+            n_features, n_classes, self._train_succeed)
         self.n_features = n_features[0]
         self.n_classes = n_classes[0]
 
@@ -186,13 +189,14 @@ class SvmModel(ThundersvmBase):
 
         n_features = (c_int * 1)()
         n_classes = (c_int * 1)()
+        self._train_succeed = (c_int * 1)()
         self.model = thundersvm.sparse_model_scikit(
                 X.shape[0], data, indptr, indices, label, solver_type,
                 kernel_type, self.degree, c_float(self._gamma), c_float(self.coef0),
                 c_float(self.cost), c_float(self.nu), c_float(self.tol),
                 self.probability, weight_size, weight_label, weight,
                 self.verbose, self.max_iter,
-                n_features, n_classes)
+                n_features, n_classes, self._train_succeed)
         self.n_features = n_features[0]
         self.n_classes = n_classes[0]
 
@@ -261,7 +265,56 @@ class SvmModel(ThundersvmBase):
         self.predict_label = np.asarray(predict_label)
         return self.predict_label
 
+    def decision_function(self, X):
+        X = self._validate_for_predict(X)
+        if not(self._impl in ['c_svc', 'nu_svc', 'one_class']):
+            print ("Not support decision_function!")
+            return
+        if self._sparse:
+            dec_func = self._sparse_decision_function(X)
+        else:
+            dec_func = self._dense_decision_function(X)
+        return dec_func
 
+    def _dense_decision_function(self, X):
+        X = check_array(X, dtype=np.float64, order="C")
+        samples = X.shape[0]
+        features = X.shape[1]
+        X_1d = X.ravel()
+
+        data = (c_float * X_1d.size)()
+        data[:] = X_1d
+        dec_size = X.shape[0] * self.n_binary_model
+        dec_value_ptr = (c_float * dec_size)()
+        thundersvm.dense_decision(
+            samples, features, data, self.model, dec_size, dec_value_ptr
+        )
+        self.dec_values = np.empty(0, dtype = float)
+        for index in range(0, dec_size):
+            self.dec_values = np.append(self.dec_values, dec_value_ptr[index])
+        self.dec_values = np.reshape(self.dec_values, (X.shape[0], self.n_binary_model))
+        return self.dec_values
+
+
+
+    def _sparse_decision_function(self, X):
+        X.data = np.asarray(X.data, dtype=np.float64, order='C')
+        data = (c_float * X.data.size)()
+        data[:] = X.data
+        indices = (c_int * X.indices.size)()
+        indices[:] = X.indices
+        indptr = (c_int * X.indptr.size)()
+        indptr[:] = X.indptr
+        dec_size = X.shape[0] * self.n_binary_model
+        dec_value_ptr = (c_float * dec_size)()
+        thundersvm.sparse_decision(
+            X.shape[0], data, indptr, indices,
+            self.model, dec_size, dec_value_ptr)
+        self.dec_values = np.empty(0, dtype = float)
+        for index in range(0, dec_size):
+            self.dec_values = np.append(self.dec_values, dec_value_ptr[index])
+        self.dec_values = np.reshape(self.dec_values, (X.shape[0], self.n_binary_model))
+        return self.dec_values
 
 
 class SVC(SvmModel, ClassifierMixin):
@@ -323,7 +376,7 @@ class SVR(SvmModel, RegressorMixin):
                  max_iter = -1):
         super(SVR, self).__init__(
             kernel = kernel, degree = degree, gamma = gamma,
-            coef0 = coef0, cost = cost, epsilon = epsilon,
+            coef0 = coef0, cost = cost, nu = 0., epsilon = epsilon,
             tol = tol, probability = probability, class_weight = None,
             shrinking = shrinking, cache_size = cache_size, verbose = verbose,
             max_iter = max_iter, random_state = None
@@ -331,13 +384,13 @@ class SVR(SvmModel, RegressorMixin):
 
 class NuSVR(SvmModel, RegressorMixin):
     _impl = 'nu_svr'
-    def __init(self, kernel = 2, degree = 3, gamma = 'auto',
-               coef0 = 0.0, cost = 1.0, tol = 0.001, probability = False,
+    def __init__(self, kernel = 2, degree = 3, gamma = 'auto',
+               coef0 = 0.0, nu = 0.5, cost = 1.0, tol = 0.001, probability = False,
                shrinking = False, cache_size = None, verbose = False,
                max_iter = -1):
-        super(NuSVR, self).__init(
+        super(NuSVR, self).__init__(
             kernel = kernel, degree = degree, gamma = gamma,
-            coef0 = coef0, cost = cost, epsilon = 0.,
+            coef0 = coef0, nu = nu, cost = cost, epsilon = 0.,
             tol = tol, probability = probability, class_weight = None,
             shrinking = shrinking, cache_size = cache_size, verbose = verbose,
             max_iter = max_iter, random_state = None

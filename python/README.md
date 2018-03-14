@@ -134,7 +134,8 @@ fit(X, y)	Fit the SVM model according to the given training data.\
 get_params([deep])	Get parameters for this estimator.\
 predict(X)	Perform classification on samples in X.\
 score(X, y)	Returns the mean accuracy on the given test data and labels.\
-set_params(**params)	Set the parameters of this estimator.
+set_params(**params)	Set the parameters of this estimator.\
+decision_function(X)    Only for SVC, NuSVC and OneClassSVM. Distance of the samples X to the separating hyperplane.
 
 
 

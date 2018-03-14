@@ -18,7 +18,8 @@ extern "C" {
                                   float cost, float nu, float tol, int probability,
                                   int weight_size, int* weight_label, float* weight,
                                   int verbose, int max_iter,
-                                  int* n_features, int* n_classes){
+                                  int* n_features, int* n_classes, int* succeed){
+        succeed[0] = 1;
         if(verbose)
             el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
         else
@@ -54,6 +55,7 @@ extern "C" {
                     int n2 = train_dataset.count()[j];
                     if (nu * (n1 + n2) / 2 > min(n1, n2)) {
                         printf("specified nu is infeasible\n");
+                        succeed[0] = -1;
                         return model;
                     }
                 }
@@ -105,7 +107,8 @@ extern "C" {
                                  float cost, float nu, float tol, int probability,
                                  int weight_size, int* weight_label, float* weight,
                                  int verbose, int max_iter,
-                                 int* n_features, int* n_classes){
+                                 int* n_features, int* n_classes, int* succeed){
+        succeed[0] = 1;
         if(verbose)
             el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
         else
@@ -141,6 +144,7 @@ extern "C" {
                     int n2 = train_dataset.count()[j];
                     if (nu * (n1 + n2) / 2 > min(n1, n2)) {
                         printf("specified nu is infeasible\n");
+                        succeed[0] = -1;
                         return model;
                     }
                 }
@@ -183,12 +187,9 @@ extern "C" {
         predict_dataset.load_from_dense(row_size, features, data, (float*) NULL);
         vector<float_type> predict_y;
         predict_y = model->predict(predict_dataset.instances(), 10000);
-        std::cout<<"predict_y:"<<predict_y[0]<<std::endl;
-        std::cout<<"size"<<predict_y.size()<<std::endl;
         for (int i = 0; i < predict_y.size(); ++i) {
             predict_label[i] = predict_y[i];
         }
-        std::cout<<"label[0]"<<predict_label[0]<<std::endl;
         return 0;
     }
 
@@ -241,6 +242,30 @@ extern "C" {
         float_type * rho_ptr = rho.host_data();
         for(int i = 0; i < rho.size(); i++){
             rho_[i] = rho_ptr[i];
+        }
+    }
+
+    void sparse_decision(int row_size, float* val, int* row_ptr, int* col_ptr, SvmModel *model, int value_size, float* dec_value){
+        DataSet predict_dataset;
+        predict_dataset.load_from_sparse(row_size, val, row_ptr, col_ptr, (float *)NULL);
+        model->predict(predict_dataset.instances(), 10000);
+        SyncArray<float_type> dec_value_array(value_size);
+        dec_value_array.copy_from(model->get_dec_value());
+        float_type *dec_value_ptr = dec_value_array.host_data();
+        for(int i = 0; i < dec_value_array.size(); i++){
+            dec_value[i] = dec_value_ptr[i];
+        }
+    }
+
+    void dense_decision(int row_size, int features, float* data, SvmModel *model, int value_size, float* dec_value){
+        DataSet predict_dataset;
+        predict_dataset.load_from_dense(row_size, features, data, (float*) NULL);
+        model->predict(predict_dataset.instances(), 10000);
+        SyncArray<float_type> dec_value_array(value_size);
+        dec_value_array.copy_from(model->get_dec_value());
+        float_type *dec_value_ptr = dec_value_array.host_data();
+        for(int i = 0; i < dec_value_array.size(); i++){
+            dec_value[i] = dec_value_ptr[i];
         }
     }
 
