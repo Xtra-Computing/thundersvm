@@ -14,9 +14,9 @@ The mission of ThunderSVM is to help users easily and efficiently apply SVMs to 
 </div>
 
 ## More information about ThunderSVM
-* [Getting Started](get-started.html)
-* [Introduction](intro.html)
-* [Parameters](parameters.html)
-* [How To](how-to.html)
-* [FAQ](faq.html)
-* [Related Websites](related-website.html)
+* [Getting Started](get-started.md)
+* [Introduction](intro.md)
+* [Parameters](parameters.md)
+* [How To](how-to.md)
+* [FAQ](faq.md)
+* [Related Websites](related-website.md)
