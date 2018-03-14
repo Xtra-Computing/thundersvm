@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/zeyiwen/thundersvm.svg?branch=master)](https://travis-ci.org/zeyiwen/thundersvm)
 [![GitHub license](http://dmlc.github.io/img/apache2.svg)](./LICENSE)
-<!---[![Documentation Status](https://readthedocs.org/projects/thundersvm/badge/?version=latest)](https://thundersvm.readthedocs.org)--->
+[![Documentation Status](https://readthedocs.org/projects/thundersvm/badge/?version=latest)](https://thundersvm.readthedocs.org)
 
 <div align="center">
 <img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/logo.png" width="240" height="220" align=left/>
@@ -8,7 +8,7 @@
 <img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/overall.png" width="250" height="200" align=left/>
 </div>
 
-## News
+## What's new
 - add scikit-learn interface, see [here](https://github.com/zeyiwen/thundersvm/tree/master/python)
 - add quiet mode (-q)
 
@@ -60,11 +60,11 @@ You will see `Accuracy = 0.98` after successful running.
 ## How to cite ThunderSVM
 If you use ThunderSVM in your paper, please cite our work ([preprint now available](http://www.comp.nus.edu.sg/~hebs/pub/thundersvm.pdf)).
 ```
-@article{wenthundersvm17,
+@article{wenthundersvm18,
  author = {Wen, Zeyi and Shi, Jiashuai and He, Bingsheng and Li, Qinbin and Chen, Jian},
- title = {{ThunderSVM}: A Fast SVM Library on GPUs and CPUs},
+ title = {{ThunderSVM}: A Fast {SVM} Library on {GPUs} and {CPUs}},
  journal = {To appear in arxiv},
- year = {2017}
+ year = {2018}
 }
 ```
 ## Related websites
