@@ -86,6 +86,8 @@ public:
 
     //set max_iter
     void set_max_iter(int iter);
+
+    const SyncArray<float_type> &get_dec_value() const;
 protected:
 
     /**
@@ -140,6 +142,9 @@ protected:
 
     ///Hard limit on iterations within solver, or -1 for no limit.
     int max_iter = -1;
+
+    ///only for SVC and NuSVC, decision values
+    SyncArray<float_type> dec_values;
 };
 
 #endif //THUNDERSVM_SVMMODEL_H

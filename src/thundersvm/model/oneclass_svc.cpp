@@ -46,6 +46,7 @@ void OneClassSVC::train(const DataSet &dataset, SvmParam param) {
     LOG(INFO) << "#sv = " << sv.size();
     n_sv.host_data()[0] = sv.size();
     n_sv.host_data()[1] = 0;
+    n_total_sv = sv.size();
     coef.resize(coef_vec.size());
     coef.copy_from(coef_vec.data(), coef_vec.size());
 }

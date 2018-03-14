@@ -110,7 +110,7 @@ SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncArray<float_t
 }
 
 vector<float_type> SvmModel::predict(const DataSet::node2d &instances, int batch_size) {
-    SyncArray<float_type> dec_values(instances.size() * n_binary_models);
+    dec_values.resize(instances.size() * n_binary_models);
     predict_dec_values(instances, dec_values, batch_size);
     vector<float_type> dec_values_vec(dec_values.size());
     memcpy(dec_values_vec.data(), dec_values.host_data(), dec_values.mem_size());
@@ -298,4 +298,8 @@ int SvmModel::get_n_classes() const {
 void SvmModel::set_max_iter(int iter) {
     max_iter = iter;
     return;
+}
+
+const SyncArray<float_type> & SvmModel::get_dec_value() const{
+    return dec_values;
 }
