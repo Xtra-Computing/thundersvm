@@ -27,21 +27,30 @@ The usage of thundersvm scikit interface is similar to scikit.svm
 
 class SVC(kernel = 2, degree = 3,\
           gamma = 'auto', coef0 = 0.0, cost = 1.0,\
-          tol = 0.001, probability = False, class_weight = None)
+          tol = 0.001, probability = False, class_weight = None,\
+          shrinking = False, cache_size = None, verbose = False,\
+          max_iter = -1, random_state = None, decison_function_shape = 'ovo')
 
 class NuSVC(kernel = 2, degree = 3, gamma = 'auto',\
             coef0 = 0.0, nu = 0.5, tol = 0.001,\
-            probability = False)
+            probability = False, shrinking = False, cache_size = None,\
+            verbose = False, max_iter = -1, random_state = None, decison_function_shape = 'ovo')
 
 class OneClassSVM(kernel = 2, degree = 3, gamma = 'auto',\
-                  coef0 = 0.0, nu = 0.5, tol = 0.001)
+                  coef0 = 0.0, nu = 0.5, tol = 0.001,\
+                  shrinking = False, cache_size = None,\
+                  verbose = False, max_iter = -1, random_state = None)
 
 class SVR(kernel = 2, degree = 3, gamma = 'auto',\
           coef0 = 0.0, cost = 1.0, epsilon = 0.1,\
-          tol = 0.001, probability = False)
+          tol = 0.001, probability = False,\
+          shrinking = False, cache_size = None,\
+          verbose = False, max_iter = -1)
 
 class NuSVR(kernel = 2, degree = 3, gamma = 'auto',\
-            coef0 = 0.0, cost = 1.0, tol = 0.001, probability = False)
+            coef0 = 0.0, nu = 0.5, cost = 1.0, tol = 0.001,\
+            probability = False, shrinking = False,\
+            cache_size = None, verbose = False, max_iter = -1)
 
 
 ## Parameters
