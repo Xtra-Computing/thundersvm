@@ -17,4 +17,4 @@ This page is dedicated to summarizing some frequently asked questions about Thun
 
 ## FAQs of developers
 * **Why not use shrinking?**
-  Shrinking is used in ThunderSVM, and is implemented by the working set size. We don't provide the shrinking option to users, because the traditional way of shrinking is inefficient on GPUs.
+  Shrinking is used in ThunderSVM and is implemented by the working set size. We don't provide the shrinking option to users, because the traditional way of shrinking is inefficient on GPUs.

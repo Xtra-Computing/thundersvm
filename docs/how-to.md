@@ -1,5 +1,5 @@
 # ThunderSVM How To
-This page is for instructions of contributing to ThunderSVM. ThunderSVM has been used by many users, and everyone can contribute to ThunderSVM to make it better.
+This page is for key instructions of intalling, using and contributing to ThunderSVM. ThunderSVM has been used by many users, and everyone can contribute to ThunderSVM to make it better.
 
 ## Install ThunderSVM
 To use ThunderSVM, we need to install the following software:

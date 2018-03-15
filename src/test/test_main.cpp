@@ -3,7 +3,9 @@
 //
 #include "thundersvm/thundersvm.h"
 #include "gtest/gtest.h"
-INITIALIZE_EASYLOGGINGPP
+#ifdef _WIN32
+	INITIALIZE_EASYLOGGINGPP
+#endif
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Format, "%datetime %level %fbase:%line : %msg");
