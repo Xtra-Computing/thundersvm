@@ -15,9 +15,9 @@ svm_predict(labels, instances, 'model_file_name', 'output_file_name', parameters
 ## Examples
 ```python
 from svm import *
-y,x = svm_read_problem('mnist.scale')
+y,x = svm_read_problem('../dataset/mnist.scale')
 svm_train(y,x,'mnist.scale.model','-s 0 -t 2 -g 0.125 -c 10 -e 0.001')
-y,x=svm_read_problem('mnist.scale.t')
+y,x=svm_read_problem('../dataset/mnist.scale.t')
 svm_predict(y,x,'mnist.scale.model','mnist.scale.out')
 ```
 

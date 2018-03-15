@@ -16,7 +16,7 @@ if path.exists(lib_path):
 else :
 	print ("Please build the library first!")
 	exit()
-dataset_path = dirname + '/../dataset/'
+dataset_path = dirname
 
 class dataset(object):
     def __init__(self):
@@ -49,7 +49,7 @@ def svm_read_problem(data_file_name):
 	"""
 	prob_y = []
 	prob_x = []
-	file_path = dataset_path + data_file_name
+	file_path = path.join(dataset_path, data_file_name)
 	for line in open(file_path):
 		line = line.split(None, 1)
 		# In case an instance with all zero features

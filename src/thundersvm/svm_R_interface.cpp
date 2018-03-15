@@ -16,14 +16,6 @@ extern "C" {
     void thundersvm_train_R(int *argc, char **argv) {
         CMDParser parser;
         parser.parse_command_line(*argc, argv);
-        /*
-        parser.param_cmd.svm_type = SvmParam::NU_SVC;
-        parser.param_cmd.kernel_type = SvmParam::RBF;
-        parser.param_cmd.C = 100;
-        parser.param_cmd.gamma = 0;
-        parser.param_cmd.nu = 0.1; 
-        parser.param_cmd.epsilon = 0.001;
-        */
 
         DataSet train_dataset;
         char input_file_path[1024] = DATASET_DIR;
@@ -81,27 +73,6 @@ extern "C" {
         	//predict_y = model->predict(train_dataset.instances(), 10000);
     		//test_y = train_dataset.y();
         }
-	/*
-        //perform svm testing
-        Metric *metric = nullptr;
-        switch (parser.param_cmd.svm_type) {
-            case SvmParam::C_SVC:
-            case SvmParam::NU_SVC: {
-                metric = new Accuracy();
-                break;
-            }
-            case SvmParam::EPSILON_SVR:
-            case SvmParam::NU_SVR: {
-                metric = new MSE();
-                break;
-            }
-            case SvmParam::ONE_CLASS: {
-            }
-        }
-        if (metric) {
-            LOG(INFO) << metric->name() << " = " << metric->score(predict_y, test_y); 
-        }
-	*/
         return;
     }
 
@@ -158,5 +129,14 @@ extern "C" {
         if (metric) {
             LOG(INFO) << metric->name() << " = " << metric->score(predict_y, predict_dataset.y());
         }
+    }
+
+    void train_R(char* dataset, int svm_type, int kernel,
+                 int degree, char* gamma, float_type coef0,
+                 float_type nu, float_type cost, float_type epsilon,
+                 float_type tol, int probability, char* class_weight,
+                 int shrinking, char* cache_size, int verbose,
+                 int max_iter, int random_state){
+
     }
 }
