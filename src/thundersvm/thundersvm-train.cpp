@@ -11,8 +11,9 @@
 #include <thundersvm/model/nusvr.h>
 #include <thundersvm/util/metric.h>
 #include "thundersvm/cmdparser.h"
-INITIALIZE_EASYLOGGINGPP
-
+#ifdef _WIN32
+	INITIALIZE_EASYLOGGINGPP
+#endif
 int main(int argc, char **argv) {
     try {
         CMDParser parser;
@@ -90,7 +91,7 @@ int main(int argc, char **argv) {
             }
         }
         if (metric) {
-            std::cout << metric->name() << " = " << metric->score(predict_y, train_dataset.y());
+            std::cout << metric->name() << " = " << metric->score(predict_y, train_dataset.y()) << std::endl;
         }
     }
     catch (std::bad_alloc &) {
