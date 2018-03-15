@@ -15,7 +15,7 @@ using std::stringstream;
 extern "C" {
     SvmModel* sparse_model_scikit(int row_size, float* val, int* row_ptr, int* col_ptr, float* label,
                                   int svm_type, int kernel_type, int degree, float gamma, float coef0,
-                                  float cost, float nu, float tol, int probability,
+                                  float cost, float nu, float epsilon, float tol, int probability,
                                   int weight_size, int* weight_label, float* weight,
                                   int verbose, int max_iter,
                                   int* n_features, int* n_classes, int* succeed){
@@ -71,6 +71,7 @@ extern "C" {
         param_cmd.coef0 = (float_type)coef0;
         param_cmd.C = (float_type)cost;
         param_cmd.nu = (float_type)nu;
+        param_cmd.p = (float_type)epsilon;
         param_cmd.epsilon = (float_type)tol;
         param_cmd.probability = probability;
         if(weight_size != 0) {
@@ -104,7 +105,7 @@ extern "C" {
 
     SvmModel* dense_model_scikit(int row_size, int features, float* data, float* label,
                                  int svm_type, int kernel_type, int degree, float gamma, float coef0,
-                                 float cost, float nu, float tol, int probability,
+                                 float cost, float nu, float epsilon, float tol, int probability,
                                  int weight_size, int* weight_label, float* weight,
                                  int verbose, int max_iter,
                                  int* n_features, int* n_classes, int* succeed){
@@ -162,6 +163,7 @@ extern "C" {
         param_cmd.coef0 = (float_type)coef0;
         param_cmd.C = (float_type)cost;
         param_cmd.nu = (float_type)nu;
+        param_cmd.p = (float_type)epsilon;
         param_cmd.epsilon = (float_type)tol;
         param_cmd.probability = probability;
         if(weight_size != 0) {

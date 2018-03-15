@@ -151,7 +151,7 @@ class SvmModel(ThundersvmBase):
         self.model = thundersvm.dense_model_scikit(
             samples, features, data, label, solver_type,
             kernel_type, self.degree, c_float(self._gamma), c_float(self.coef0),
-            c_float(self.cost), c_float(self.nu), c_float(self.tol),
+            c_float(self.cost), c_float(self.nu), c_float(self.epsilon), c_float(self.tol),
             self.probability, weight_size, weight_label, weight,
             self.verbose, self.max_iter,
             n_features, n_classes, self._train_succeed)
@@ -193,7 +193,7 @@ class SvmModel(ThundersvmBase):
         self.model = thundersvm.sparse_model_scikit(
                 X.shape[0], data, indptr, indices, label, solver_type,
                 kernel_type, self.degree, c_float(self._gamma), c_float(self.coef0),
-                c_float(self.cost), c_float(self.nu), c_float(self.tol),
+                c_float(self.cost), c_float(self.nu), c_float(self.epsilon), c_float(self.tol),
                 self.probability, weight_size, weight_label, weight,
                 self.verbose, self.max_iter,
                 n_features, n_classes, self._train_succeed)
