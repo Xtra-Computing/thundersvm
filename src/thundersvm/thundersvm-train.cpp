@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
             }
         }
         if (metric) {
-            LOG(INFO) << metric->name() << " = " << metric->score(predict_y, train_dataset.y());
+            std::cout << metric->name() << " = " << metric->score(predict_y, train_dataset.y());
         }
     }
     catch (std::bad_alloc &) {

@@ -1,6 +1,6 @@
 Getting Started with ThunderSVM
 ===============================
-Here we provide a quick start tutorial for users to install and test ThunderSVM.
+Here we provide a quick start tutorial for users to install ThunderSVM.
 
 ## Prerequisites
 * ```cmake``` 2.8 or above
@@ -63,7 +63,7 @@ mkdir build && cd build && cmake -DUSE_CUDA=OFF -DUSE_EIGEN=ON .. && make -j
 Now ThunderSVM will work solely on CPUs and does not rely on CUDA.
 
 ## Training SVMs
-We show some concrete examples of using ThunderSVM. ThunderSVM uses the same command line options as LibSVM, so existing users of LibSVM can use ThunderSVM quickly. For new users of SVMs, the [user guide](http://www.csie.ntu.edu.tw/~cjlin/papers/guide/guide.pdf) provided in the LibSVM website also helps. 
+We show some concrete examples of using ThunderSVM. ThunderSVM uses the same command line options as LibSVM, so existing users of LibSVM can use ThunderSVM quickly. For new users of SVMs, the [parameters](parameters.md) page provides explanation for the usage of each option. 
 
 ### Training SVMs for Classification
 In the following, we provide an example of using ThunderSVM for the MNIST dataset.

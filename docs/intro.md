@@ -1,6 +1,6 @@
 Introduction
 ======
-In this page, we present Support Vector Machines (SVMs) and the Sequential Minimumal Optimazation (SMO) solver for training SVMs.
+In this page, we present Support Vector Machines (SVMs) and the Sequential Minimumal Optimazation (SMO) solver.
 
 ## Support Vector Machines (SVMs)
 

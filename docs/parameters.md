@@ -2,7 +2,7 @@ ThunderSVM Parameters
 =====================
 This page is for parameter specification in ThunderSVM. The parameters used in ThunderSVM are identical to LibSVM, so existing LibSVM users can easily get used to ThunderSVM.
 
-command line options:
+The command line options for ThunderSVM are shown below.
 * -s: set the type of SVMs (default=0)
    * 0 -- C-SVC
    * 1 -- ``$ \nu $``-SVC
@@ -22,6 +22,7 @@ command line options:
 * -c: set the parameter C of C-SVC, ``$ \epsilon $``-SVR, and ``$ \nu $``-SVR (default=1)
 * -n: set the parameter ``$ \nu $`` of ``$ \nu $``-SVC, one-class SVM, and ``$ \nu $``-SVR (``$ \nu \in $``(0, 1), default=0.5)
 * -p: set the ``$ \epsilon $`` in loss function of ``$ \epsilon $``-SVR (default=0.1)
+* -q: enable quiet mode
 * _-m: set cache memory size in MB (default=100)_
 * -e: set tolerance of termination criterion (default=0.001)
 * _-h: whether to use the shrinking heuristics, 0 or 1 (default=1)_
