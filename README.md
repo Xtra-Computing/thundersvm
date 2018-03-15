@@ -43,7 +43,7 @@ git clone git@github.com:zeyiwen/thundersvm.git
 cd thundersvm
 mkdir build && cd build && cmake .. && make -j
 ```
-If ```make -j``` doesn't work, please simple use ```make```.
+If ```make -j``` doesn't work, please simply use ```make```.
 ##### ThunderSVM on CPUs
 ```bash
 # in thundersvm root directory
