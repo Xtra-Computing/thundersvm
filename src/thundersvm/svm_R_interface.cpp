@@ -270,10 +270,6 @@ extern "C" {
             metric = new MSE();
         }
 
-    #ifdef USE_CUDA
-        CUDA_CHECK(cudaSetDevice(parser.gpu_id));
-    #endif
-
         model->load_from_file(model_file_path);
         file.close();
         file.open(output_file_path, std::fstream::out);
