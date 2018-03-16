@@ -9,9 +9,9 @@ To use ThunderSVM, we need to install the following software:
 
 If you want to use GPUs, you also need to install CUDA.
 
-* [CUDA](https://developer.nvidia.com/cuda-downloads)
+* [CUDA](https://developer.nvidia.com/cuda-downloads) 7.5 or above
 
-After installing the dependencies, you can start compiling ThunderSVM.
+After installing the above software, you can start compiling ThunderSVM.
 
 * Clone ThunderSVM repository
 ```bash

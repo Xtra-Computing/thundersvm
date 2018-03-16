@@ -11,17 +11,17 @@ In the following, we describe the formal defination of SVMs. Specifically, a tra
 ```math
 & \underset{\boldsymbol{w}, \boldsymbol{\xi}, b}{\text{argmin}}
 & \frac{1}{2}{||\boldsymbol{w}||^2} + C\sum_{i=1}^{n}{\xi_i}\\
-& \text{subject to}
+& \text{subject to \quad}
 &  y_i(\boldsymbol{w}\cdot \boldsymbol{x}_i - b) \geq 1 - \xi_i \\
 & & \xi_i \geq 0, \ \forall i \in \{1,...,n\}
 ```
 where ``$ \boldsymbol{w} $`` is the normal vector of the hyperplane, C is the penalty parameter, ``$ \boldsymbol{\xi} $`` is the slack variables to tolerant some training instances falling in the wrong side of the hyperplane, and b is the bias of the hyperplane.
 
-To handle the non-linearly separable data, SVMs use a mapping function to map the training instances from the original data space to a higher dimensional data space where the data may become linearly separable. The optimization problem above can be rewritten to a dual form where the dot products of two mapped data can be replaced by a kernel function which avoids explicitly defining the mapping functions as only dot products are involved. The optimization problem in the dual form is shown as follows.
+To handle the non-linearly separable data, SVMs use a mapping function to map the training instances from the original data space to a higher dimensional data space where the data may become linearly separable. The optimization problem above can be rewritten to a dual form where the dot products of two mapped training instances can be replaced by a kernel function which avoids explicitly defining the mapping functions as only dot products are involved. The optimization problem in the dual form is shown as follows.
 ```math
 & \underset{\boldsymbol{\alpha}}{\text{max}}
 & & F(\boldsymbol{\alpha})=\sum_{i=1}^{n}{\alpha_i}-\frac{1}{2}{\boldsymbol{\alpha^T} \boldsymbol{Q} \boldsymbol{\alpha}}\\
-& \text{subject to}
+& \text{subject to \quad}
 & &  0 \leq \alpha_i \leq C, \forall i \in \{1,...,n\}\\
 & & & \sum_{i=1}^{n}{y_i\alpha_i} = 0
 ```
