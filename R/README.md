@@ -1,4 +1,4 @@
-#R interface for thundersvm.
+# R interface for thundersvm.
 
 ## Methods
 svm_train_R(svm_type = 0, kernel = 2,degree = 3,gamma = 'auto',\
