@@ -43,13 +43,15 @@ git clone git@github.com:zeyiwen/thundersvm.git
 cd thundersvm
 mkdir build && cd build && cmake .. && make -j
 ```
-If ```make -j``` doesn't work, please simply use ```make```.
+
 ##### ThunderSVM on CPUs
 ```bash
 # in thundersvm root directory
 git submodule init eigen && git submodule update
 mkdir build && cd build && cmake -DUSE_CUDA=OFF -DUSE_EIGEN=ON .. && make -j
 ```
+If ```make -j``` doesn't work, please simply use ```make```.
+
 ### Quick Start
 ```bash
 ./bin/thundersvm-train -c 100 -g 0.5 ../dataset/test_dataset.txt
