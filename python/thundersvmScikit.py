@@ -33,7 +33,7 @@ class SvmModel(ThundersvmBase):
                  gamma, coef0, cost, nu, epsilon,
                  tol, probability, class_weight,
                  shrinking, cache_size, verbose,
-                 max_iter, random_state):
+                 max_iter, n_cores, random_state):
         self.kernel = kernel
         self.degree = degree
         self.gamma = gamma
@@ -48,6 +48,7 @@ class SvmModel(ThundersvmBase):
         self.cache_size = cache_size
         self.verbose = verbose
         self.max_iter = max_iter
+        self.n_cores = n_cores
         self.random_state = random_state
 
     def label_validate(self, y):
@@ -153,7 +154,7 @@ class SvmModel(ThundersvmBase):
             kernel_type, self.degree, c_float(self._gamma), c_float(self.coef0),
             c_float(self.cost), c_float(self.nu), c_float(self.epsilon), c_float(self.tol),
             self.probability, weight_size, weight_label, weight,
-            self.verbose, self.max_iter,
+            self.verbose, self.max_iter, self.n_cores,
             n_features, n_classes, self._train_succeed)
         self.n_features = n_features[0]
         self.n_classes = n_classes[0]
@@ -195,7 +196,7 @@ class SvmModel(ThundersvmBase):
                 kernel_type, self.degree, c_float(self._gamma), c_float(self.coef0),
                 c_float(self.cost), c_float(self.nu), c_float(self.epsilon), c_float(self.tol),
                 self.probability, weight_size, weight_label, weight,
-                self.verbose, self.max_iter,
+                self.verbose, self.max_iter, self.n_cores,
                 n_features, n_classes, self._train_succeed)
         self.n_features = n_features[0]
         self.n_classes = n_classes[0]
@@ -323,7 +324,7 @@ class SVC(SvmModel, ClassifierMixin):
                   gamma = 'auto', coef0 = 0.0, cost = 1.0,
                   tol = 0.001, probability = False, class_weight = None,
                   shrinking = False, cache_size = None, verbose = False,
-                  max_iter = -1, random_state = None, decison_function_shape = 'ovo'):
+                  max_iter = -1, n_cores = -1, random_state = None, decison_function_shape = 'ovo'):
          self.decison_function_shape = decison_function_shape
          super(SVC, self).__init__(
              kernel=kernel, degree=degree, gamma=gamma,
@@ -331,7 +332,7 @@ class SVC(SvmModel, ClassifierMixin):
              tol=tol, probability=probability,
              class_weight=class_weight, shrinking = shrinking,
              cache_size = cache_size, verbose = verbose,
-             max_iter = max_iter, random_state = random_state)
+             max_iter = max_iter, n_cores = n_cores, random_state = random_state)
 
 
 
@@ -340,14 +341,14 @@ class NuSVC(SvmModel, ClassifierMixin):
     def __init__(self, kernel = 2, degree = 3, gamma = 'auto',
                  coef0 = 0.0, nu = 0.5, tol = 0.001,
                  probability = False, shrinking = False, cache_size = None, verbose = False,
-                 max_iter = -1, random_state = None, decison_function_shape = 'ovo'):
+                 max_iter = -1, n_cores = -1,random_state = None, decison_function_shape = 'ovo'):
         self.decison_function_shape = decison_function_shape
         super(NuSVC, self).__init__(
             kernel = kernel, degree = degree, gamma = gamma,
             coef0 = coef0, cost = 0., nu = nu, epsilon= 0.,
             tol = tol, probability = probability, class_weight = None,
             shrinking = shrinking, cache_size = cache_size, verbose = verbose,
-            max_iter = max_iter, random_state = random_state
+            max_iter = max_iter, n_cores = n_cores, random_state = random_state
         )
 
 class OneClassSVM(SvmModel):
@@ -355,13 +356,13 @@ class OneClassSVM(SvmModel):
     def __init__(self, kernel = 2, degree = 3, gamma = 'auto',
                  coef0 = 0.0, nu = 0.5, tol = 0.001,
                  shrinking = False, cache_size = None, verbose = False,
-                 max_iter = -1, random_state = None):
+                 max_iter = -1, n_cores = -1, random_state = None):
         super(OneClassSVM, self).__init__(
             kernel = kernel, degree = degree, gamma = gamma,
             coef0 = coef0, cost = 0., nu = nu, epsilon = 0.,
             tol = tol, probability= False, class_weight = None,
             shrinking = shrinking, cache_size = cache_size, verbose = verbose,
-            max_iter = max_iter, random_state = random_state
+            max_iter = max_iter, n_cores = n_cores, random_state = random_state
         )
 
     def fit(self, X, y=None):
@@ -373,13 +374,13 @@ class SVR(SvmModel, RegressorMixin):
                  coef0 = 0.0, cost = 1.0, epsilon = 0.1,
                  tol = 0.001, probability = False,
                  shrinking = False, cache_size = None, verbose = False,
-                 max_iter = -1):
+                 max_iter = -1, n_cores = -1):
         super(SVR, self).__init__(
             kernel = kernel, degree = degree, gamma = gamma,
             coef0 = coef0, cost = cost, nu = 0., epsilon = epsilon,
             tol = tol, probability = probability, class_weight = None,
             shrinking = shrinking, cache_size = cache_size, verbose = verbose,
-            max_iter = max_iter, random_state = None
+            max_iter = max_iter, n_cores = n_cores, random_state = None
         )
 
 class NuSVR(SvmModel, RegressorMixin):
@@ -387,11 +388,11 @@ class NuSVR(SvmModel, RegressorMixin):
     def __init__(self, kernel = 2, degree = 3, gamma = 'auto',
                coef0 = 0.0, nu = 0.5, cost = 1.0, tol = 0.001, probability = False,
                shrinking = False, cache_size = None, verbose = False,
-               max_iter = -1):
+               max_iter = -1, n_cores = -1):
         super(NuSVR, self).__init__(
             kernel = kernel, degree = degree, gamma = gamma,
             coef0 = coef0, nu = nu, cost = cost, epsilon = 0.,
             tol = tol, probability = probability, class_weight = None,
             shrinking = shrinking, cache_size = cache_size, verbose = verbose,
-            max_iter = max_iter, random_state = None
+            max_iter = max_iter, n_cores = n_cores, random_state = None
         )

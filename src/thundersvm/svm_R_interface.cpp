@@ -8,6 +8,7 @@
 #include <thundersvm/model/nusvr.h>
 #include <thundersvm/util/metric.h>
 #include "thundersvm/cmdparser.h"
+#include <omp.h>
 using std::fstream;
 using std::stringstream;
 extern "C" {
@@ -134,7 +135,7 @@ extern "C" {
                  double* nu, double* cost, double* epsilon,
                  double* tol, int* probability,
                 char** class_weight, int* weight_length,
-                int* verbose, int* max_iter, char **model_file){
+                int* verbose, int* max_iter, int* n_cores, char **model_file){
         int* succeed = new int[1];
         succeed[0] = 1;
 
@@ -142,6 +143,15 @@ extern "C" {
             el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
         else
             el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "true");
+        if(n_cores[0] == -1){
+            omp_set_num_threads(omp_get_num_procs());
+        }
+        else if(n_cores[0] <= 0){
+            LOG(ERROR) << "cores number must bigger than 0";
+        }
+        else{
+            omp_set_num_threads(n_cores[0]);
+        }
         char input_file_path[1024] = DATASET_DIR;
         char model_file_path[1024] = DATASET_DIR;
         strcat(input_file_path, "../R/");

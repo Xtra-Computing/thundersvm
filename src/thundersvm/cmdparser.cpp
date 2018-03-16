@@ -10,7 +10,7 @@
 #include <iostream>
 #include "thundersvm/svmparam.h"
 #include "thundersvm/cmdparser.h"
-
+#include <omp.h>
 void HelpInfo_svmtrain() {
     LOG(INFO) <<
               "Usage (same as LibSVM): thundersvm [options] training_set_file [model_file]\n"
@@ -38,6 +38,7 @@ void HelpInfo_svmtrain() {
                     "-wi weight: set the parameter C of class i to weight*C, for C-SVC (default 1)\n"
                     "-v n: n-fold cross validation mode\n"
             "-u n: specify which gpu to use (default 0)\n"
+            "-o n: set the number of cpu cores to use, -1 for maximum(default -1)\n"
             "-q: quiet mode";
     exit(1);
 }
@@ -106,6 +107,9 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                 case 'b':
                     param_cmd.probability = atoi(argv[i]);
                     break;
+                case 'o':
+                    n_cores = atoi(argv[i]);
+                    break;
                 case 'q':
                     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
                     i--;
@@ -133,7 +137,15 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                     HelpInfo_svmtrain();
             }
         }
-
+        if(n_cores == -1){
+            omp_set_num_threads(omp_get_max_threads());
+        }
+        else if(n_cores <= 0){
+            LOG(ERROR) << "cores number must bigger than 0";
+        }
+        else{
+            omp_set_num_threads(n_cores);
+        }
         if (i >= argc)
             HelpInfo_svmtrain();
 
@@ -225,6 +237,9 @@ void CMDParser::parse_python(int argc, char **argv) {
             case 'b':
                 param_cmd.probability = atoi(argv[i]);
                 break;
+            case 'o':
+                n_cores = atoi(argv[i]);
+                break;
             case 'q':
 //                    print_func = &print_null;
                 //todo disable logging
@@ -253,7 +268,15 @@ void CMDParser::parse_python(int argc, char **argv) {
                 HelpInfo_svmtrain();
         }
     }
-
+    if(n_cores == -1){
+        omp_set_num_threads(omp_get_num_procs());
+    }
+    else if(n_cores <= 0){
+        LOG(ERROR) << "cores number must bigger than 0";
+    }
+    else{
+        omp_set_num_threads(n_cores);
+    }
     if (i > argc)
         HelpInfo_svmtrain();
 }

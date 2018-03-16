@@ -53,7 +53,6 @@ int main(int argc, char **argv) {
                 }
             }
         }
-
         if (parser.param_cmd.gamma == 0 && parser.param_cmd.kernel_type != SvmParam::LINEAR){
             parser.param_cmd.gamma = 1.f / train_dataset.n_features();
             LOG(WARNING)<<"using default gamma="<<parser.param_cmd.gamma;
