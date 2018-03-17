@@ -1,4 +1,4 @@
-#include <src/test/gtest/src/googletest/googletest/include/gtest/gtest.h>
+#include "gtest/gtest.h"
 #include <thundersvm/dataset.h>
 #include <thundersvm/svmparam.h>
 #include <thundersvm/model/svmmodel.h>
