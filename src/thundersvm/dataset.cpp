@@ -13,7 +13,7 @@ DataSet::DataSet(const DataSet::node2d &instances, int n_features, const vector<
         instances_(instances), n_features_(n_features), y_(y), total_count_(instances_.size()) {}
 
 inline char *findlastline(char *ptr, char *begin) {
-    while (ptr != begin && *ptr != '\n' && *ptr != '\r') --ptr;
+    while (ptr != begin && *ptr != '\n') --ptr;
     return ptr;
 }
 
@@ -26,11 +26,11 @@ void DataSet::load_from_file(string file_name) {
     std::ifstream ifs(file_name, std::ifstream::binary);
     CHECK(ifs.is_open()) << "file " << file_name << " not found";
 
-	int buffer_size = 2 << 20;
+    int buffer_size = 16 << 20; //16MB
 	char *buffer = (char *)malloc(buffer_size);
     const int nthread = omp_get_max_threads();
-	char *head = buffer;
     while (ifs) {
+        char *head = buffer;
         ifs.read(buffer, buffer_size);
         size_t size = ifs.gcount();
         vector<vector<float_type>> y_thread(nthread);
@@ -48,15 +48,14 @@ void DataSet::load_from_file(string file_name) {
             char *pend = findlastline(head + send, head);
 
             //move stream start position to the end of last line
-            if (tid == nthread - 1) ifs.seekg(pend - head - send, std::ios_base::cur);
-
+            if (tid == nthread - 1) ifs.seekg(pend - head - send + 1, std::ios_base::cur);
             //read instances line by line
             char *lbegin = pbegin;
             char *lend = lbegin;
             while (lend != pend) {
                 //get one line
                 lend = lbegin + 1;
-                while (lend != pend && *lend != '\n' && *lend != '\r') {
+                while (lend != pend && *lend != '\n') {
                     ++lend;
                 }
                 string line(lbegin, lend);

@@ -30,5 +30,6 @@ The command line options for ThunderSVM are shown below.
 * -wi: for weighted C-SVC, set the parameter C of class i to ``$ wi \times C $`` (default=1)
 * -v n: n-fold cross validation mode
 * -u n: specify which gpu to use (default=0)
+* -o n: set number of cpu cores to use, -1 for maximum (default=-1)
 
 The options in italic are not applicable for GPUs, and the alternative optimizations are implemented with automatically setting working set size.

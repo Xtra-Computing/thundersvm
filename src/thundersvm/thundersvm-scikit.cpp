@@ -8,7 +8,7 @@
 #include <thundersvm/model/nusvr.h>
 #include <thundersvm/util/metric.h>
 #include "thundersvm/cmdparser.h"
-
+#include <omp.h>
 using std::fstream;
 using std::stringstream;
 
@@ -17,13 +17,23 @@ extern "C" {
                                   int svm_type, int kernel_type, int degree, float gamma, float coef0,
                                   float cost, float nu, float epsilon, float tol, int probability,
                                   int weight_size, int* weight_label, float* weight,
-                                  int verbose, int max_iter,
+                                  int verbose, int max_iter, int n_cores,
                                   int* n_features, int* n_classes, int* succeed){
         succeed[0] = 1;
         if(verbose)
             el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
         else
             el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "true");
+        if(n_cores == -1){
+            omp_set_num_threads(omp_get_num_procs());
+        }
+        else if(n_cores <= 0){
+            LOG(ERROR) << "cores number must bigger than 0";
+        }
+        else{
+            omp_set_num_threads(n_cores);
+        }
+
         DataSet train_dataset;
         train_dataset.load_from_sparse(row_size, val, row_ptr, col_ptr, label);
         SvmModel* model;
@@ -107,13 +117,19 @@ extern "C" {
                                  int svm_type, int kernel_type, int degree, float gamma, float coef0,
                                  float cost, float nu, float epsilon, float tol, int probability,
                                  int weight_size, int* weight_label, float* weight,
-                                 int verbose, int max_iter,
+                                 int verbose, int max_iter, int n_cores,
                                  int* n_features, int* n_classes, int* succeed){
         succeed[0] = 1;
         if(verbose)
             el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
         else
             el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "true");
+        if((n_cores <= 0) && (n_cores != -1)){
+            LOG(ERROR) << "cores number must bigger than 0";
+            succeed[0] = -1;
+        }
+        else
+            omp_set_num_threads(n_cores);
         DataSet train_dataset;
         train_dataset.load_from_dense(row_size, features, data, label);
         SvmModel* model;

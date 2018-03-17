@@ -29,28 +29,28 @@ class SVC(kernel = 2, degree = 3,\
           gamma = 'auto', coef0 = 0.0, cost = 1.0,\
           tol = 0.001, probability = False, class_weight = None,\
           shrinking = False, cache_size = None, verbose = False,\
-          max_iter = -1, random_state = None, decison_function_shape = 'ovo')
+          max_iter = -1, n_cores = -1, random_state = None, decison_function_shape = 'ovo')
 
 class NuSVC(kernel = 2, degree = 3, gamma = 'auto',\
             coef0 = 0.0, nu = 0.5, tol = 0.001,\
             probability = False, shrinking = False, cache_size = None,\
-            verbose = False, max_iter = -1, random_state = None, decison_function_shape = 'ovo')
+            verbose = False, max_iter = -1, n_cores = -1, random_state = None, decison_function_shape = 'ovo')
 
 class OneClassSVM(kernel = 2, degree = 3, gamma = 'auto',\
                   coef0 = 0.0, nu = 0.5, tol = 0.001,\
                   shrinking = False, cache_size = None,\
-                  verbose = False, max_iter = -1, random_state = None)
+                  verbose = False, max_iter = -1, n_cores = -1, random_state = None)
 
 class SVR(kernel = 2, degree = 3, gamma = 'auto',\
           coef0 = 0.0, cost = 1.0, epsilon = 0.1,\
           tol = 0.001, probability = False,\
           shrinking = False, cache_size = None,\
-          verbose = False, max_iter = -1)
+          verbose = False, max_iter = -1, n_cores = -1)
 
 class NuSVR(kernel = 2, degree = 3, gamma = 'auto',\
             coef0 = 0.0, nu = 0.5, cost = 1.0, tol = 0.001,\
             probability = False, shrinking = False,\
-            cache_size = None, verbose = False, max_iter = -1)
+            cache_size = None, verbose = False, max_iter = -1, n_cores = -1)
 
 
 ## Parameters
@@ -100,6 +100,9 @@ verbose : bool(default=False)\
 
 max_iter : int, optional (default=-1)\
     Hard limit on iterations within solver, or -1 for no limit.
+
+n_cores : int, optional (default=-1)\
+    The number of cpu cores to be used, or -1 for maximum.
 
 decision_function_shape : ‘ovo’, default=’ovo’, Not support yet for 'ovr'\
     Only for classifier. Whether to return a one-vs-rest (‘ovr’) decision function of shape (n_samples, n_classes) as all other classifiers, or the original one-vs-one (‘ovo’) decision function of libsvm which has shape (n_samples, n_classes * (n_classes - 1) / 2).
