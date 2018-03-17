@@ -8,4 +8,4 @@ before_script:
   - mkdir build
   - cd build
   - cmake -DUSE_CUDA=OFF -DUSE_EIGEN=ON ..
-script: make -j runtest
+script: cmake --build . --target runtest
