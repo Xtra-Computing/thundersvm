@@ -24,7 +24,7 @@ If you don't have a GPU or want to run ThunderSVM purely on CPUs, you need to ad
 git submodule init eigen && git submodule update
 ```
 
-* Build the executable for Linux or MacOS, use the following commands.
+* Build the executable for Linux, use the following commands.
 ```bash
 cd thundersvm
 mkdir build
@@ -33,6 +33,15 @@ cmake ..
 make -j
 ```
 If ```make -j``` doesn't work, please simply use ```make``` instead.
+
+* Build the executable for MacOS, use the following commands.
+```
+# in thundersvm root directory
+mkdir build
+cd build
+cmake -DCMAKE_CXX_COMPILER=[path_to_g++] -DCMAKE_C_COMPILER=[path_to_gcc] -DUSE_CUDA=ON -DUSE_EIGEN=OFF ..
+make -j
+```
 
 * Build the executable for Windows, use the following example commands. You need to change the Visual Studio version if you are using a different version of Visual Studio.
 ```bash

@@ -37,7 +37,7 @@ If you want to use GPUs, you also need to install CUDA.
 ```bash
 git clone git@github.com:zeyiwen/thundersvm.git
 ```
-### Build
+### Build on Linux (build [instructions](http://thundersvm.readthedocs.io/en/latest/get-started.html#installation) for MacOS and Windows)
 ##### ThunderSVM on GPUs
 ```bash
 cd thundersvm
