@@ -11,12 +11,11 @@ If you want to use GPUs, you also need to install CUDA.
 * [CUDA](https://developer.nvidia.com/cuda-downloads) 7.5 or above
 
 ## Installation
-#### Installation for  Linux and MacOS
+#### Installation for  Linux
 * Clone ThunderSVM repository
 ```bash
 git clone git@github.com:zeyiwen/thundersvm.git
 ```
-
 * Download testing datasets
 ```bash
 cd thundersvm
@@ -31,6 +30,26 @@ cmake ..
 make -j runtest
 ```
 If ```make -j runtest``` doesn't work, please use ```make runtest``` instead. Make sure all the test cases pass.
+
+#### Installation for MacOS
+* Clone ThunderSVM repository
+```bash
+git clone git@github.com:zeyiwen/thundersvm.git
+```
+You need to Install ```CMake``` and ```gcc``` for MacOS. If you don't have Homebrew, [here](https://brew.sh/) is its website.
+```bash
+brew install gcc
+brew install cmake
+```
+
+* Build ThunderSVM. You can specify gcc as the compiler of cmake. ([path_to_g++] is typically g++-7 but may be different in your system).
+```
+# in thundersvm root directory
+mkdir build
+cd build
+cmake -DCMAKE_CXX_COMPILER=[path_to_g++] -DCMAKE_C_COMPILER=[path_to_gcc] -DUSE_CUDA=ON -DUSE_EIGEN=OFF ..
+make -j
+```
 
 #### Installation for Windows
 * Clone ThunderSVM repository
@@ -55,12 +74,18 @@ initialize the submodule.
 # in thundersvm root directory
 git submodule init eigen && git submodule update
 ```
-* Build without GPUs for Linux and MacOS
+* Build without GPUs for Linux
 ```bash
 # in thundersvm root directory
 mkdir build && cd build && cmake -DUSE_CUDA=OFF -DUSE_EIGEN=ON .. && make -j
 ```
 If ```make -j``` doesn't work, please simply use ```make```. Now ThunderSVM will work solely on CPUs and does not rely on CUDA.
+
+* Build without GPUs for MacOS
+```bash
+# in thundersvm root directory
+mkdir build && cd build && cmake -DCMAKE_CXX_COMPILER=[path_to_g++] -DCMAKE_C_COMPILER=[path_to_gcc] -DUSE_CUDA=OFF -DUSE_EIGEN=ON .. && make -j
+```
 
 * Build without GPUs for Windows
 ```bash
