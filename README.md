@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/zeyiwen/thundersvm.svg?branch=master)](https://travis-ci.org/zeyiwen/thundersvm)
-[![GitHub license](http://dmlc.github.io/img/apache2.svg)](./LICENSE)
 [![Build status](https://ci.appveyor.com/api/projects/status/e9yoehx7orsrsh89/branch/master?svg=true)](https://ci.appveyor.com/project/shijiashuai/thundersvm/branch/master)
+[![GitHub license](http://dmlc.github.io/img/apache2.svg)](./LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/thundersvm/badge/?version=latest)](https://thundersvm.readthedocs.org)
 
 <div align="center">
