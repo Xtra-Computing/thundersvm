@@ -17,6 +17,7 @@ void SVC::model_setup(const DataSet &dataset, SvmParam &param) {
 
     //group instances with same class
     n_classes = dataset.n_classes();
+    LOG(INFO) << "#classes = " << n_classes;
     this->label = dataset.label();
     SvmModel::model_setup(dataset, param);
 

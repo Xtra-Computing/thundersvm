@@ -24,18 +24,28 @@ int main(int argc, char **argv) {
         switch (parser.param_cmd.svm_type) {
             case SvmParam::C_SVC:
                 model.reset(new SVC());
+                LOG(INFO) << "training C-SVC";
+                LOG(INFO) << "C = " << parser.param_cmd.C;
                 break;
             case SvmParam::NU_SVC:
                 model.reset(new NuSVC());
+                LOG(INFO) << "training nu-SVC";
+                LOG(INFO) << "nu = " << parser.param_cmd.nu;
                 break;
             case SvmParam::ONE_CLASS:
                 model.reset(new OneClassSVC());
+                LOG(INFO) << "training one-class SVM";
+                LOG(INFO) << "C = " << parser.param_cmd.C;
                 break;
             case SvmParam::EPSILON_SVR:
                 model.reset(new SVR());
+                LOG(INFO) << "training epsilon-SVR";
+                LOG(INFO) << "C = " << parser.param_cmd.C << " p = " << parser.param_cmd.p;
                 break;
             case SvmParam::NU_SVR:
                 model.reset(new NuSVR());
+                LOG(INFO) << "training nu-SVR";
+                LOG(INFO) << "nu = " << parser.param_cmd.nu;
                 break;
         }
 
