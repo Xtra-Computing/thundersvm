@@ -21,9 +21,9 @@ extern "C" {
                                   int* n_features, int* n_classes, int* succeed){
         succeed[0] = 1;
         if(verbose)
-            el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
-        else
             el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "true");
+        else
+            el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
         if(n_cores == -1){
             omp_set_num_threads(omp_get_num_procs());
         }
