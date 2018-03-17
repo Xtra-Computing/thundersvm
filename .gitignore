@@ -2,6 +2,7 @@
 !.gitignore
 !.gitmodules
 !.travis.yml
+!.appvetor.yml
 *build*
 dataset/*
 !dataset/*.sh
