@@ -71,16 +71,15 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
                    max_iter);
         //update f
         update_f(f_val, alpha_diff, k_mat_rows, k_mat.n_instances());
-        if (iter % 100 == 0) LOG(INFO) << "global iter = " << iter << ", total local iter = " << local_iter;
-        local_iter += diff.host_data()[1];
-        if (diff.host_data()[0] < eps) {
+        float_type *diff_data = diff.host_data();
+        if (iter % 100 == 0)
+            LOG(INFO) << "global iter = " << iter << ", total local iter = " << local_iter << ", diff = "
+                      << diff_data[0];
+        local_iter += diff_data[1];
+        if (diff_data[0] < eps || (out_max_iter != -1) && (iter == out_max_iter)) {
             rho = calculate_rho(f_val, y, alpha, Cp, Cn);
-            LOG(INFO) << "global iter = " << iter << ", total local iter = " << local_iter;
-            break;
-        }
-        if ((out_max_iter != -1) && (iter == out_max_iter)){
-            rho = calculate_rho(f_val, y, alpha, Cp, Cn);
-            LOG(INFO) << "global iter = " << iter << ", total local iter = " << local_iter;
+            LOG(INFO) << "global iter = " << iter << ", total local iter = " << local_iter << ", diff = "
+                      << diff_data[0];
             break;
         }
     }

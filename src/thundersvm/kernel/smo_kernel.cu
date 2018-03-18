@@ -74,13 +74,13 @@ namespace svm_kernel {
                 local_eps = max(eps, 0.1f * local_diff);
                 if (tid == 0) {
                     diff[0] = local_diff;
-                    diff[1] = numOfIter;
                 }
             }
 
             if (local_diff < local_eps) {
                 alpha[wsi] = a;
                 alpha_diff[tid] = -(a - aold) * y;
+                diff[1] = numOfIter;
                 break;
             }
             __syncthreads();
