@@ -50,12 +50,15 @@ class SvmModel(ThundersvmBase):
         self.max_iter = max_iter
         self.n_cores = n_cores
         self.random_state = random_state
+        self.model = None
 
     def label_validate(self, y):
 
         return column_or_1d(y, warn=True).astype(np.float64)
 
     def fit(self, X, y):
+        if self.model is not None:
+            thundersvm.model_free(c_void_p(self.model))
         sparse = sp.isspmatrix(X)
         self._sparse = sparse and not callable(self.kernel)
         X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
@@ -72,19 +75,19 @@ class SvmModel(ThundersvmBase):
         kernel = self.kernel
 
         fit = self._sparse_fit if self._sparse else self._dense_fit
-
+        self.model = thundersvm.model_new(solver_type)
         fit(X, y, solver_type, kernel)
         if self._train_succeed[0] == -1:
             print ("Training failed!")
             return
-        self.n_sv = thundersvm.n_sv(self.model)
+        self.n_sv = thundersvm.n_sv(c_void_p(self.model))
         csr_row = (c_int * (self.n_sv + 1))()
         csr_col = (c_int * (self.n_sv * self.n_features))()
         csr_data = (c_float * (self.n_sv * self.n_features))()
         data_size = (c_int * 1)()
-        thundersvm.get_sv(csr_row, csr_col, csr_data, data_size, self.model)
+        thundersvm.get_sv(csr_row, csr_col, csr_data, data_size, c_void_p(self.model))
         dual_coef = (c_float * ((self.n_classes - 1) * self.n_sv))()
-        thundersvm.get_coef(dual_coef, self.n_classes, self.n_sv, self.model)
+        thundersvm.get_coef(dual_coef, self.n_classes, self.n_sv, c_void_p(self.model))
         self.dual_coef_ = np.empty(0, dtype = float)
         for index in range(0, (self.n_classes - 1) * self.n_sv):
             self.dual_coef_ = np.append(self.dual_coef_, dual_coef[index])
@@ -93,7 +96,7 @@ class SvmModel(ThundersvmBase):
         rho_size = int(self.n_classes * (self.n_classes - 1) / 2)
         self.n_binary_model = rho_size
         rho = (c_float * rho_size)()
-        thundersvm.get_rho(rho, rho_size, self.model)
+        thundersvm.get_rho(rho, rho_size, c_void_p(self.model))
         self.intercept_ = np.empty(0, dtype = float)
         for index in range(0, rho_size):
             self.intercept_ = np.append(self.intercept_, rho[index])
@@ -115,7 +118,7 @@ class SvmModel(ThundersvmBase):
         if self._sparse == False:
             self.support_vectors_ = self.support_vectors_.toarray(order = 'C')
         n_support_ = (c_int * self.n_classes)()
-        thundersvm.get_support_classes(n_support_, self.n_classes, self.model)
+        thundersvm.get_support_classes(n_support_, self.n_classes, c_void_p(self.model))
         self.n_support_ = np.empty(0, dtype = int)
         for index in range(0, self.n_classes):
             self.n_support_ = np.append(self.n_support_, n_support_[index])
@@ -149,13 +152,13 @@ class SvmModel(ThundersvmBase):
         n_features = (c_int * 1)()
         n_classes = (c_int * 1)()
         self._train_succeed = (c_int * 1)()
-        self.model = thundersvm.dense_model_scikit(
+        thundersvm.dense_model_scikit(
             samples, features, data, label, solver_type,
             kernel_type, self.degree, c_float(self._gamma), c_float(self.coef0),
             c_float(self.cost), c_float(self.nu), c_float(self.epsilon), c_float(self.tol),
             self.probability, weight_size, weight_label, weight,
             self.verbose, self.max_iter, self.n_cores,
-            n_features, n_classes, self._train_succeed)
+            n_features, n_classes, self._train_succeed, c_void_p(self.model))
         self.n_features = n_features[0]
         self.n_classes = n_classes[0]
 
@@ -191,13 +194,13 @@ class SvmModel(ThundersvmBase):
         n_features = (c_int * 1)()
         n_classes = (c_int * 1)()
         self._train_succeed = (c_int * 1)()
-        self.model = thundersvm.sparse_model_scikit(
+        thundersvm.sparse_model_scikit(
                 X.shape[0], data, indptr, indices, label, solver_type,
                 kernel_type, self.degree, c_float(self._gamma), c_float(self.coef0),
                 c_float(self.cost), c_float(self.nu), c_float(self.epsilon), c_float(self.tol),
                 self.probability, weight_size, weight_label, weight,
                 self.verbose, self.max_iter, self.n_cores,
-                n_features, n_classes, self._train_succeed)
+                n_features, n_classes, self._train_succeed, c_void_p(self.model))
         self.n_features = n_features[0]
         self.n_classes = n_classes[0]
 
@@ -240,7 +243,7 @@ class SvmModel(ThundersvmBase):
         data[:] = X_1d
         thundersvm.dense_predict(
             samples, features, data,
-            self.model,
+            c_void_p(self.model),
             self.predict_label_ptr)
         predict_label = []
         for index in range(0, X.shape[0]):
@@ -258,7 +261,7 @@ class SvmModel(ThundersvmBase):
         indptr[:] = X.indptr
         thundersvm.sparse_predict(
             X.shape[0], data, indptr, indices,
-            self.model,
+            c_void_p(self.model),
             self.predict_label_ptr)
         predict_label = []
         for index in range(0, X.shape[0]):
@@ -288,7 +291,7 @@ class SvmModel(ThundersvmBase):
         dec_size = X.shape[0] * self.n_binary_model
         dec_value_ptr = (c_float * dec_size)()
         thundersvm.dense_decision(
-            samples, features, data, self.model, dec_size, dec_value_ptr
+            samples, features, data, c_void_p(self.model), dec_size, dec_value_ptr
         )
         self.dec_values = np.empty(0, dtype = float)
         for index in range(0, dec_size):
@@ -310,7 +313,7 @@ class SvmModel(ThundersvmBase):
         dec_value_ptr = (c_float * dec_size)()
         thundersvm.sparse_decision(
             X.shape[0], data, indptr, indices,
-            self.model, dec_size, dec_value_ptr)
+            c_void_p(self.model), dec_size, dec_value_ptr)
         self.dec_values = np.empty(0, dtype = float)
         for index in range(0, dec_size):
             self.dec_values = np.append(self.dec_values, dec_value_ptr[index])

@@ -13,12 +13,33 @@ using std::fstream;
 using std::stringstream;
 
 extern "C" {
-    SvmModel* sparse_model_scikit(int row_size, float* val, int* row_ptr, int* col_ptr, float* label,
+    SvmModel* model_new(int svm_type){
+        switch (svm_type){
+            case SvmParam::C_SVC:
+                return new SVC();
+            case SvmParam::NU_SVC:
+                return new NuSVC();
+            case SvmParam::ONE_CLASS:
+                return new OneClassSVC();
+            case SvmParam::EPSILON_SVR:
+                return new SVR();
+            case SvmParam::NU_SVR:
+                return new NuSVR();
+        }
+    }
+
+    void model_free(SvmModel* model){
+        if(model){
+            delete model;
+        }
+    }
+
+    void sparse_model_scikit(int row_size, float* val, int* row_ptr, int* col_ptr, float* label,
                                   int svm_type, int kernel_type, int degree, float gamma, float coef0,
                                   float cost, float nu, float epsilon, float tol, int probability,
                                   int weight_size, int* weight_label, float* weight,
                                   int verbose, int max_iter, int n_cores,
-                                  int* n_features, int* n_classes, int* succeed){
+                                  int* n_features, int* n_classes, int* succeed, SvmModel* model){
         succeed[0] = 1;
         if(verbose)
             el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "true");
@@ -36,24 +57,24 @@ extern "C" {
 
         DataSet train_dataset;
         train_dataset.load_from_sparse(row_size, val, row_ptr, col_ptr, label);
-        SvmModel* model;
-        switch (svm_type){
-            case SvmParam::C_SVC:
-                model = new SVC();
-                break;
-            case SvmParam::NU_SVC:
-                model = new NuSVC();
-                break;
-            case SvmParam::ONE_CLASS:
-                model = new OneClassSVC();
-                break;
-            case SvmParam::EPSILON_SVR:
-                model = new SVR();
-                break;
-            case SvmParam::NU_SVR:
-                model = new NuSVR();
-                break;
-        }
+//        SvmModel* model;
+//        switch (svm_type){
+//            case SvmParam::C_SVC:
+//                model = new SVC();
+//                break;
+//            case SvmParam::NU_SVC:
+//                model = new NuSVC();
+//                break;
+//            case SvmParam::ONE_CLASS:
+//                model = new OneClassSVC();
+//                break;
+//            case SvmParam::EPSILON_SVR:
+//                model = new SVR();
+//                break;
+//            case SvmParam::NU_SVR:
+//                model = new NuSVR();
+//                break;
+//        }
         model->set_max_iter(max_iter);
 
         //todo add this to check_parameter method
@@ -66,7 +87,6 @@ extern "C" {
                     if (nu * (n1 + n2) / 2 > min(n1, n2)) {
                         printf("specified nu is infeasible\n");
                         succeed[0] = -1;
-                        return model;
                     }
                 }
             }
@@ -93,13 +113,10 @@ extern "C" {
                 param_cmd.weight_label[i] = weight_label[i];
             }
         }
-
         model->train(train_dataset, param_cmd);
         LOG(INFO) << "training finished";
         n_features[0] = train_dataset.n_features();
         n_classes[0] = model->get_n_classes();
-        return model;
-
     }
 
     int sparse_predict(int row_size, float* val, int* row_ptr, int* col_ptr, SvmModel *model, float* predict_label){
@@ -118,7 +135,7 @@ extern "C" {
                                  float cost, float nu, float epsilon, float tol, int probability,
                                  int weight_size, int* weight_label, float* weight,
                                  int verbose, int max_iter, int n_cores,
-                                 int* n_features, int* n_classes, int* succeed){
+                                 int* n_features, int* n_classes, int* succeed, SvmModel* model){
         succeed[0] = 1;
         if(verbose)
             el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
@@ -132,24 +149,24 @@ extern "C" {
             omp_set_num_threads(n_cores);
         DataSet train_dataset;
         train_dataset.load_from_dense(row_size, features, data, label);
-        SvmModel* model;
-        switch (svm_type){
-            case SvmParam::C_SVC:
-                model = new SVC();
-                break;
-            case SvmParam::NU_SVC:
-                model = new NuSVC();
-                break;
-            case SvmParam::ONE_CLASS:
-                model = new OneClassSVC();
-                break;
-            case SvmParam::EPSILON_SVR:
-                model = new SVR();
-                break;
-            case SvmParam::NU_SVR:
-                model = new NuSVR();
-                break;
-        }
+//        SvmModel* model;
+//        switch (svm_type){
+//            case SvmParam::C_SVC:
+//                model = new SVC();
+//                break;
+//            case SvmParam::NU_SVC:
+//                model = new NuSVC();
+//                break;
+//            case SvmParam::ONE_CLASS:
+//                model = new OneClassSVC();
+//                break;
+//            case SvmParam::EPSILON_SVR:
+//                model = new SVR();
+//                break;
+//            case SvmParam::NU_SVR:
+//                model = new NuSVR();
+//                break;
+//        }
 
         model->set_max_iter(max_iter);
         //todo add this to check_parameter method
@@ -162,7 +179,6 @@ extern "C" {
                     if (nu * (n1 + n2) / 2 > min(n1, n2)) {
                         printf("specified nu is infeasible\n");
                         succeed[0] = -1;
-                        return model;
                     }
                 }
             }
@@ -196,7 +212,6 @@ extern "C" {
         LOG(INFO) << "training finished";
         n_features[0] = train_dataset.n_features();
         n_classes[0] = model->get_n_classes();
-        return model;
 
     }
 
@@ -215,6 +230,10 @@ extern "C" {
         return model->total_sv();
     }
 
+    void set_iter(SvmModel* model, int iter){
+        model->set_max_iter(iter);
+        return;
+    }
 
     void get_sv(int* row, int* col, float* data, int* data_size, SvmModel* model){
         DataSet::node2d svs = model->svs();
