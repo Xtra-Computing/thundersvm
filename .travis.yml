@@ -7,5 +7,5 @@ before_script:
   - sudo apt-get install libeigen3-dev
   - mkdir build
   - cd build
-  - cmake -DUSE_CUDA=OFF -DUSE_EIGEN=ON ..
+  - cmake -DUSE_CUDA=OFF -DUSE_EIGEN=ON -DBUILD_TESTS=ON ..
 script: cmake --build . --target runtest
