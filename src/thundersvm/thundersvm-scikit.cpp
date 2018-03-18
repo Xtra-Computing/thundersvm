@@ -130,7 +130,7 @@ extern "C" {
         return 0;
     }
 
-    SvmModel* dense_model_scikit(int row_size, int features, float* data, float* label,
+    void dense_model_scikit(int row_size, int features, float* data, float* label,
                                  int svm_type, int kernel_type, int degree, float gamma, float coef0,
                                  float cost, float nu, float epsilon, float tol, int probability,
                                  int weight_size, int* weight_label, float* weight,
