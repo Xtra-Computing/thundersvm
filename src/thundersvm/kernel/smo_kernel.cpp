@@ -76,6 +76,7 @@ namespace svm_kernel {
             float local_diff = low_value - up_value;
             if (numOfIter == 0) {
                 local_eps = max(eps, 0.1f * local_diff);
+				diff[0] = local_diff;
             }
 
             if (local_diff < local_eps) {
@@ -83,7 +84,6 @@ namespace svm_kernel {
                     int wsi = working_set[tid];
                     alpha_diff[tid] = -(alpha[wsi] - a_old[tid]) * y[wsi];
                 }
-                diff[0] = local_diff;
                 diff[1] = numOfIter;
                 break;
             }
@@ -116,6 +116,7 @@ namespace svm_kernel {
             alpha[working_set[i]] += l * y[working_set[i]];
 //            if (tid == j2)
             alpha[working_set[j2]] -= l * y[working_set[j2]];
+
 
             //update f
             for (int tid = 0; tid < ws_size; ++tid) {
