@@ -111,7 +111,12 @@ namespace svm_kernel {
             float kJ2wsI = k_mat_rows[row_len * j2 + wsi];//K[J2, wsi]
             f -= l * (kJ2wsI - kIwsI);
             numOfIter++;
-            if (numOfIter > max_iter) break;
+            if (numOfIter > max_iter){
+                alpha[wsi] = a;
+                alpha_diff[tid] = -(a - aold) * y;
+                diff[1] = numOfIter;
+                break;
+            }
         }
     }
 

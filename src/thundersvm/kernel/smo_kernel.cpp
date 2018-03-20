@@ -76,7 +76,13 @@ namespace svm_kernel {
             float local_diff = low_value - up_value;
             if (numOfIter == 0) {
                 local_eps = max(eps, 0.1f * local_diff);
-				diff[0] = local_diff;
+                if(ws_size == row_len)//in this case, local smo = global smo
+                    local_eps = eps;
+                diff[0] = local_diff;
+                if(diff[0] < eps){
+                    diff[1] = numOfIter;
+                    break;
+                }
             }
 
             if (local_diff < local_eps) {
@@ -125,7 +131,14 @@ namespace svm_kernel {
                 f[tid] -= l * (kJ2wsI - kIwsI[tid]);
             }
             numOfIter++;
-            if (numOfIter > max_iter) break;
+            if (numOfIter > max_iter){
+                for (int tid = 0; tid < ws_size; ++tid) {
+                    int wsi = working_set[tid];
+                    alpha_diff[tid] = -(alpha[wsi] - a_old[tid]) * y[wsi];
+                }
+                diff[1] = numOfIter;
+                break;
+            }
         }
         delete[] a_old;
         delete[] f;

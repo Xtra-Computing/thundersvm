@@ -30,7 +30,8 @@ void SVR::train(const DataSet &dataset, SvmParam param) {
 
     SyncArray<float_type> alpha_2(n_instances * 2);
     alpha_2.mem_set(0);
-    int ws_size = min(max2power(n_instances * 2), 1024);
+//    int ws_size = min(max2power(n_instances * 2), 1024);
+    int ws_size = n_instances * 2;
     CSMOSolver solver;
     solver.solve(kernelMatrix, y, alpha_2, rho.host_data()[0], f_val, param.epsilon, param.C, param.C, ws_size, max_iter);
     save_svr_coef(alpha_2, dataset.instances());
