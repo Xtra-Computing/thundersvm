@@ -79,7 +79,7 @@ namespace svm_kernel {
 				diff[0] = local_diff;
             }
 
-            if (local_diff < local_eps) {
+            if (numOfIter > max_iter || local_diff < local_eps) {
                 for (int tid = 0; tid < ws_size; ++tid) {
                     int wsi = working_set[tid];
                     alpha_diff[tid] = -(alpha[wsi] - a_old[tid]) * y[wsi];
@@ -125,7 +125,7 @@ namespace svm_kernel {
                 f[tid] -= l * (kJ2wsI - kIwsI[tid]);
             }
             numOfIter++;
-            if (numOfIter > max_iter) break;
+         //   if (numOfIter > max_iter) break;
         }
         delete[] a_old;
         delete[] f;
@@ -233,7 +233,7 @@ namespace svm_kernel {
                 diff[0] = local_diff;
             }
 
-            if (local_diff < local_eps) {
+            if (numOfIter > max_iter || local_diff < local_eps) {
                 for (int tid = 0; tid < ws_size; ++tid) {
                     int wsi = working_set[tid];
                     alpha_diff[tid] = -(alpha[wsi] - a_old[tid]) * y[wsi];
@@ -308,7 +308,7 @@ namespace svm_kernel {
                 f[tid] -= l * (kJ2wsI - kIwsI[tid]);
             }
             numOfIter++;
-            if (numOfIter > max_iter) break;
+            //if (numOfIter > max_iter) break;
         }
         delete[] a_old;
         delete[] f;

@@ -77,7 +77,7 @@ namespace svm_kernel {
                 }
             }
 
-            if (local_diff < local_eps) {
+            if (numOfIter > max_iter || local_diff < local_eps) {
                 alpha[wsi] = a;
                 alpha_diff[tid] = -(a - aold) * y;
                 diff[1] = numOfIter;
@@ -111,7 +111,7 @@ namespace svm_kernel {
             float kJ2wsI = k_mat_rows[row_len * j2 + wsi];//K[J2, wsi]
             f -= l * (kJ2wsI - kIwsI);
             numOfIter++;
-            if (numOfIter > max_iter) break;
+            //if (numOfIter > max_iter) break;
         }
     }
 
@@ -190,7 +190,7 @@ namespace svm_kernel {
                 }
             }
 
-            if (local_diff < local_eps) {
+            if (numOfIter > max_iter || local_diff < local_eps) {
                 alpha[wsi] = a;
                 alpha_diff[tid] = -(a - aold) * y;
                 break;
@@ -248,7 +248,7 @@ namespace svm_kernel {
             float kJ2wsI = k_mat_rows[row_len * j2 + wsi];//K[J2, wsi]
             f -= l * (kJ2wsI - kIwsI);
             numOfIter++;
-            if (numOfIter > max_iter) break;
+        //    if (numOfIter > max_iter) break;
         }
     }
 
