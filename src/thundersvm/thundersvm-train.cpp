@@ -11,9 +11,11 @@
 #include <thundersvm/model/nusvr.h>
 #include <thundersvm/util/metric.h>
 #include "thundersvm/cmdparser.h"
+
 #ifdef _WIN32
-	INITIALIZE_EASYLOGGINGPP
+INITIALIZE_EASYLOGGINGPP
 #endif
+
 int main(int argc, char **argv) {
     try {
         CMDParser parser;
@@ -63,10 +65,13 @@ int main(int argc, char **argv) {
                 }
             }
         }
-        if (parser.param_cmd.gamma == 0 && parser.param_cmd.kernel_type != SvmParam::LINEAR){
-            parser.param_cmd.gamma = 1.f / train_dataset.n_features();
-            LOG(WARNING)<<"using default gamma="<<parser.param_cmd.gamma;
-        }
+        if (parser.param_cmd.kernel_type != SvmParam::LINEAR)
+            if (!parser.gamma_set) {
+                parser.param_cmd.gamma = 1.f / train_dataset.n_features();
+                LOG(WARNING) << "using default gamma=" << parser.param_cmd.gamma;
+            } else {
+                LOG(INFO) << "gamma = " << parser.param_cmd.gamma;
+            }
 
 #ifdef USE_CUDA
         CUDA_CHECK(cudaSetDevice(parser.gpu_id));
@@ -77,9 +82,9 @@ int main(int argc, char **argv) {
             predict_y = model->cross_validation(train_dataset, parser.param_cmd, parser.nr_fold);
         } else {
             model->train(train_dataset, parser.param_cmd);
-            LOG(INFO)<<"training finished";
+            LOG(INFO) << "training finished";
             model->save_to_file(parser.model_file_name);
-            LOG(INFO)<<"evaluating training score";
+            LOG(INFO) << "evaluating training score";
             predict_y = model->predict(train_dataset.instances(), 100);
         }
 

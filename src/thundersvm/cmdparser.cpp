@@ -80,6 +80,7 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                     break;
                 case 'g':
                     param_cmd.gamma = atof(argv[i]);
+                    gamma_set = true;
                     break;
                 case 'r':
                     param_cmd.coef0 = atof(argv[i]);
@@ -293,7 +294,7 @@ bool CMDParser::check_parameter() {
         return false;
     }
     if (param_cmd.gamma < 0) {
-        LOG(ERROR) << "gamma should < 0";
+        LOG(ERROR) << "gamma < 0";
         return false;
     }
     if (param_cmd.degree < 0) {

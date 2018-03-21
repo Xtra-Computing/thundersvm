@@ -16,7 +16,7 @@
  */
 class CMDParser{
 public:
-	CMDParser() : do_cross_validation(false), nr_fold(0), gpu_id(0), n_cores(-1) {};
+    CMDParser() : do_cross_validation(false), gamma_set(false), nr_fold(0), gpu_id(0), n_cores(-1) {};
 
 	void parse_command_line(int argc, char **argv);
 
@@ -26,6 +26,7 @@ public:
 
 	SvmParam param_cmd;
 	bool do_cross_validation;
+    bool gamma_set;
 	int nr_fold;
 	int gpu_id;
 	int n_cores;
