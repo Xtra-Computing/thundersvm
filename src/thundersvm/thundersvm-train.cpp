@@ -16,6 +16,7 @@
 #endif
 int main(int argc, char **argv) {
     try {
+	el::Loggers::addFlag(el::LoggingFlag::FixedTimeFormat);
         CMDParser parser;
         parser.parse_command_line(argc, argv);
         DataSet train_dataset;

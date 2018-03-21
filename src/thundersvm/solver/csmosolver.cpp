@@ -45,6 +45,8 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
     }
     init_f(alpha, y, k_mat, f_val);
     LOG(INFO) << "training start";
+{
+	TIMED_SCOPE(timerObj, "train time");
     int max_iter = max(100000, ws_size > INT_MAX / 100 ? INT_MAX : 100 * ws_size);
     long long local_iter = 0;
     for (int iter = 0;; ++iter) {
@@ -55,8 +57,11 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
         vector<int> ws_indicator(n_instances, 0);
         if (0 == iter) {
             select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set);
-            k_mat.get_rows(working_set, k_mat_rows);
-        } else {
+{
+	TIMED_SCOPE(timerObj, "get rows"); 
+           k_mat.get_rows(working_set, k_mat_rows);
+}
+	} else {
             working_set_first_half.copy_from(working_set_last_half);
             int *working_set_data = working_set.host_data();
             for (int i = 0; i < q; ++i) {
@@ -64,16 +69,33 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
             }
             select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set_last_half);
             k_mat_rows_first_half.copy_from(k_mat_rows_last_half);
+{
+	TIMED_SCOPE(timerObj, "get rows");
             k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
-        }
+}
+	}
         //local smo
+{
+	TIMED_SCOPE(timerObj, "local smo");
         smo_kernel(y, f_val, alpha, alpha_diff, working_set, Cp, Cn, k_mat_rows, k_mat.diag(), n_instances, eps, diff,
                    max_iter);
+}
+
         //update f
-        update_f(f_val, alpha_diff, k_mat_rows, k_mat.n_instances());
+	if(ws_size != n_instances ){
+		std::cout<<"update f"<<std::endl;
+        	update_f(f_val, alpha_diff, k_mat_rows, k_mat.n_instances());
+	}
+/*
+        std::cout<<"f after update:"<<std::endl;
+        for(int i = 0; i < f_val.size(); i++){
+            std::cout<<f_val.host_data()[working_set.host_data()[i]]<<" ";
+        }
+        std::cout<<std::endl;
+*/
         float_type *diff_data = diff.host_data();
         local_iter += diff_data[1];
-        if (iter % 100 == 0)
+//        if (iter % 100 == 0)
             LOG(INFO) << "global iter = " << iter << ", total local iter = " << local_iter << ", diff = "
                       << diff_data[0];
         if (diff_data[0] < eps || (out_max_iter != -1) && (iter == out_max_iter)) {
@@ -83,6 +105,7 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
             break;
         }
     }
+}
 }
 
 void

@@ -85,12 +85,18 @@ namespace svm_kernel {
                 }
             }
 
-            if (local_diff < local_eps) {
+            if (numOfIter > max_iter || local_diff < local_eps) {
                 for (int tid = 0; tid < ws_size; ++tid) {
                     int wsi = working_set[tid];
                     alpha_diff[tid] = -(alpha[wsi] - a_old[tid]) * y[wsi];
                 }
                 diff[1] = numOfIter;
+/*
+		std::cout<<"local f"<<std::endl;
+                for(int i = 0; i < ws_size; i++)
+                    std::cout<<f[i]<<" ";
+                std::cout<<std::endl;
+*/
                 break;
             }
             int j2 = 0;
@@ -99,9 +105,9 @@ namespace svm_kernel {
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (-up_value > -f[tid] && (is_I_low(alpha[wsi], y[wsi], Cp, Cn))) {
-                    double aIJ = kd[i] + kd[tid] - 2 * kIwsI[tid];
-                    double bIJ = -up_value + f[tid];
-                    double ft = -bIJ * bIJ / aIJ;
+                    float aIJ = kd[i] + kd[tid] - 2 * kIwsI[tid];
+                    float bIJ = -up_value + f[tid];
+                    float ft = -bIJ * bIJ / aIJ;
                     if(ft < min_t){
                         min_t = ft;
                         j2 = tid;
@@ -129,8 +135,13 @@ namespace svm_kernel {
                 int wsi = working_set[tid];
                 float kJ2wsI = k_mat_rows[row_len * j2 + wsi];//K[J2, wsi]
                 f[tid] -= l * (kJ2wsI - kIwsI[tid]);
-            }
+            	if(ws_size == row_len){
+			f_val[working_set[tid]] = f[tid];
+//			std::cout<<"write back f"<<std::endl;
+		} 
+	    }
             numOfIter++;
+/*
             if (numOfIter > max_iter){
                 for (int tid = 0; tid < ws_size; ++tid) {
                     int wsi = working_set[tid];
@@ -139,6 +150,7 @@ namespace svm_kernel {
                 diff[1] = numOfIter;
                 break;
             }
+*/
         }
         delete[] a_old;
         delete[] f;
@@ -348,14 +360,15 @@ namespace svm_kernel {
         const float_type *k_mat_rows_data = k_mat_rows.host_data();
 #pragma omp parallel for schedule(guided)
         for (int idx = 0; idx < n_instances; ++idx) {
-    			double sum_diff = 0;
+    			//double sum_diff = 0;
             for (int i = 0; i < alpha_diff.size(); ++i) {
                 float_type d = alpha_diff_data[i];
                 if (d != 0) {
-                    sum_diff += d * k_mat_rows_data[i * n_instances + idx];
-                }
+                    //sum_diff += d * k_mat_rows_data[i * n_instances + idx];
+                	f_data[idx] -= d * k_mat_rows_data[i * n_instances + idx];
+		}
             }
-            f_data[idx] -= sum_diff;
+            //f_data[idx] -= sum_diff;
         }
     }
 
