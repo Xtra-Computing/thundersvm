@@ -11,25 +11,21 @@ If you want to use GPUs, you also need to install CUDA.
 * [CUDA](https://developer.nvidia.com/cuda-downloads) 7.5 or above
 
 ## Installation
+If you don't have GPUs, please go to [Working without GPUs](#withoutGPU) in later section of this page.
 #### Installation for  Linux
 * Clone ThunderSVM repository
 ```bash
 git clone git@github.com:zeyiwen/thundersvm.git
 ```
-* Download testing datasets
-```bash
-cd thundersvm
-dataset/get_datasets.sh
-```
 
-* Build the binary for testing 
+* Build ThunderSVM
 ```bash
 mkdir build
 cd build
 cmake ..
-make -j runtest
+make -j
 ```
-If ```make -j runtest``` doesn't work, please use ```make runtest``` instead. Make sure all the test cases pass.
+If ```make -j``` doesn't work, please use ```make``` instead.
 
 #### Installation for MacOS
 * Clone ThunderSVM repository
@@ -65,8 +61,13 @@ cmake .. -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE -DBUILD_SHARED_LIBS=TRUE -G "Vi
 ```
 You need to change the Visual Studio version if you are using a different version of Visual Studio. Visual Studio can be downloaded from [this link](https://www.visualstudio.com/vs/). The above commands generate some Visual Studio project files, open the Visual Studio project to build ThunderSVM. Please note that CMake should be 3.4 or above for Windows.
 
-#### Working without GPUs
-If you don't have GPUs, ThunderSVM can work with CPU only.
+#### <a name="withoutGPU"></a> Working without GPUs
+If you don't have GPUs, ThunderSVM can run purely on CPUs. The number of CPU cores to use can be specified by the ```-o``` option (e.g., ```-o 10```), and refer to [Parameters](http://thundersvm.readthedocs.io/en/latest/parameters.html) for more information.
+
+* Clone ThunderSVM repository
+```bash
+git clone git@github.com:zeyiwen/thundersvm.git
+```
 
 * Get Eigen Library. ThunderSVM uses [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) for matrix calculation. To use Eigen, just 
 initialize the submodule. 
