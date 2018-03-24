@@ -7,14 +7,15 @@
 #include <thrust/system/cuda/detail/par.h>
 namespace svm_kernel {
 
-    __device__ int get_block_min(const float *values, int *index) {
+    template<typename T>
+    __device__ int get_block_min(const T *values, int *index) {
         int tid = threadIdx.x;
         index[tid] = tid;
         __syncthreads();
         //block size is always the power of 2
         for (int offset = blockDim.x / 2; offset > 0; offset >>= 1) {
             if (tid < offset) {
-                if (values[index[tid + offset]] <= values[index[tid]]) {
+                if (values[index[tid + offset]] < values[index[tid]]) {
                     index[tid] = index[tid + offset];
                 }
             }
@@ -35,19 +36,19 @@ namespace svm_kernel {
         //allocate shared memory
         extern __shared__ int shared_mem[];
         int *f_idx2reduce = shared_mem; //temporary memory for reduction
-        float *f_val2reduce = (float *) &f_idx2reduce[ws_size]; //f values used for reduction.
-        float *alpha_i_diff = &f_val2reduce[ws_size]; //delta alpha_i
-        float *alpha_j_diff = &alpha_i_diff[1];
-        float *kd = &alpha_j_diff[1]; // diagonal elements for kernel matrix
+        double *f_val2reduce = (double *) &shared_mem[ws_size]; //f values used for reduction.
+        double *alpha_i_diff = (double *) &shared_mem[ws_size * 3]; //delta alpha_i
+        double *alpha_j_diff = &alpha_i_diff[1];
+        float *kd = (float *) &alpha_j_diff[1]; // diagonal elements for kernel matrix
 
         //index, f value and alpha for each instance
         int tid = threadIdx.x;
         int wsi = working_set[tid];
         kd[tid] = k_mat_diag[wsi];
         float y = label[wsi];
-        float f = f_val[wsi];
-        float a = alpha[wsi];
-        float aold = a;
+        double f = f_val[wsi];
+        double a = alpha[wsi];
+        double aold = a;
         __syncthreads();
         float local_eps;
         int numOfIter = 0;
@@ -58,7 +59,7 @@ namespace svm_kernel {
             else
                 f_val2reduce[tid] = INFINITY;
             int i = get_block_min(f_val2reduce, f_idx2reduce);
-            float up_value = f_val2reduce[i];
+            double up_value = f_val2reduce[i];
             float kIwsI = k_mat_rows[row_len * i + wsi];//K[i, wsi]
             __syncthreads();
 
@@ -67,7 +68,7 @@ namespace svm_kernel {
             else
                 f_val2reduce[tid] = INFINITY;
             int j1 = get_block_min(f_val2reduce, f_idx2reduce);
-            float low_value = -f_val2reduce[j1];
+            double low_value = -f_val2reduce[j1];
 
             float local_diff = low_value - up_value;
             if (numOfIter == 0) {
@@ -87,9 +88,9 @@ namespace svm_kernel {
 
             //select j2 using second order heuristic
             if (-up_value > -f && (is_I_low(a, y, Cp, Cn))) {
-                float aIJ = kd[i] + kd[tid] - 2 * kIwsI;
-                float bIJ = -up_value + f;
-                f_val2reduce[tid] = (float)(-bIJ * bIJ / aIJ);
+                double aIJ = kd[i] + kd[tid] - 2 * kIwsI;
+                double bIJ = -up_value + f;
+                f_val2reduce[tid] = (-bIJ * bIJ / aIJ);
             } else
                 f_val2reduce[tid] = INFINITY;
             int j2 = get_block_min(f_val2reduce, f_idx2reduce);
@@ -100,7 +101,7 @@ namespace svm_kernel {
             if (tid == j2)
                 *alpha_j_diff = min(y > 0 ? a : Cn - a, (-up_value + f) / (kd[i] + kd[j2] - 2 * kIwsI));
             __syncthreads();
-            float l = min(*alpha_i_diff, *alpha_j_diff);
+            double l = min(*alpha_i_diff, *alpha_j_diff);
 
             if (tid == i)
                 a += l * y;
@@ -108,10 +109,9 @@ namespace svm_kernel {
                 a -= l * y;
 
             //update f
-            float kJ2wsI = k_mat_rows[row_len * j2 + wsi];//K[J2, wsi]
+            double kJ2wsI = k_mat_rows[row_len * j2 + wsi];//K[J2, wsi]
             f -= l * (kJ2wsI - kIwsI);
             numOfIter++;
-            //if (numOfIter > max_iter) break;
         }
     }
 
@@ -248,7 +248,6 @@ namespace svm_kernel {
             float kJ2wsI = k_mat_rows[row_len * j2 + wsi];//K[J2, wsi]
             f -= l * (kJ2wsI - kIwsI);
             numOfIter++;
-        //    if (numOfIter > max_iter) break;
         }
     }
 
@@ -259,7 +258,7 @@ namespace svm_kernel {
                 const SyncArray<float_type> &k_mat_diag, int row_len, float_type eps, SyncArray<float_type> &diff,
                 int max_iter) {
         size_t ws_size = working_set.size();
-        size_t smem_size = ws_size * sizeof(float_type) * 3 + 2 * sizeof(float);
+        size_t smem_size = ws_size * sizeof(float_type) * 4 + 2 * sizeof(double);
         c_smo_solve_kernel << < 1, ws_size, smem_size >> >
                                             (y.device_data(), f_val.device_data(), alpha.device_data(), alpha_diff.device_data(),
                                                     working_set.device_data(), ws_size, Cp, Cn, k_mat_rows.device_data(), k_mat_diag.device_data(),

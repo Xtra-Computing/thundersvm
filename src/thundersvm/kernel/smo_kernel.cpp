@@ -7,17 +7,6 @@
 #include <thundersvm/kernel/smo_kernel.h>
 #include <omp.h>
 namespace svm_kernel {
-    int get_min_idx(const float *values, int size) {
-        int min_idx = 0;
-        float min = INFINITY;
-        for (int i = 0; i < size; ++i) {
-            if (values[i] < min) {
-                min = values[i];
-                min_idx = i;
-            }
-        }
-        return min_idx;
-    }
 
     void c_smo_solve_kernel(const int *y, float_type *f_val, float_type *alpha, float_type *alpha_diff,
                             const int *working_set,
@@ -26,15 +15,14 @@ namespace svm_kernel {
                             float_type eps,
                             float_type *diff, int max_iter) {
         //allocate shared memory
-        float *f_val2reduce = new float[ws_size]; //f values used for reduction.
-        float alpha_i_diff; //delta alpha_i
-        float alpha_j_diff;
+        double alpha_i_diff; //delta alpha_i
+        double alpha_j_diff;
         float *kd = new float[ws_size]; // diagonal elements for kernel matrix
 
         //index, f value and alpha for each instance
-        float *a_old = new float[ws_size];
-        float *kIwsI = new float[ws_size];
-        float *f = new float[ws_size];
+        double *a_old = new double[ws_size];
+        double *kIwsI = new double[ws_size];
+        double *f = new double[ws_size];
         for (int tid = 0; tid < ws_size; ++tid) {
             int wsi = working_set[tid];
             f[tid] = f_val[wsi];
@@ -46,7 +34,7 @@ namespace svm_kernel {
         while (1) {
             //select fUp and fLow
             int i = 0;
-            float up_value = INFINITY;
+            double up_value = INFINITY;
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (is_I_up(alpha[wsi], y[wsi], Cp, Cn))
@@ -61,7 +49,7 @@ namespace svm_kernel {
                 kIwsI[tid] = k_mat_rows[row_len * i + working_set[tid]];//K[i, wsi]
             }
             int j1 = 0;
-            float low_value = -INFINITY;
+            double low_value = -INFINITY;
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (is_I_low(alpha[wsi], y[wsi], Cp, Cn))
@@ -88,7 +76,7 @@ namespace svm_kernel {
                 break;
             }
             int j2 = 0;
-            float min_t = INFINITY;
+            double min_t = INFINITY;
             //select j2 using second order heuristic
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
@@ -108,9 +96,9 @@ namespace svm_kernel {
 //            if (tid == i)
             alpha_i_diff = y[working_set[i]] > 0 ? Cp - alpha[working_set[i]] : alpha[working_set[i]];
 //            if (tid == j2)
-            alpha_j_diff = min(y[working_set[j2]] > 0 ? alpha[working_set[j2]] : Cn - alpha[working_set[j2]],
+            alpha_j_diff = min(double(y[working_set[j2]] > 0 ? alpha[working_set[j2]] : Cn - alpha[working_set[j2]]),
                                 (-up_value + f[j2]) / (kd[i] + kd[j2] - 2 * kIwsI[j2]));
-            float l = min(alpha_i_diff, alpha_j_diff);
+            double l = min(alpha_i_diff, alpha_j_diff);
 
 //            if (tid == i)
             alpha[working_set[i]] += l * y[working_set[i]];
@@ -125,7 +113,6 @@ namespace svm_kernel {
                 f[tid] -= l * (kJ2wsI - kIwsI[tid]);
             }
             numOfIter++;
-         //   if (numOfIter > max_iter) break;
         }
         delete[] a_old;
         delete[] f;
