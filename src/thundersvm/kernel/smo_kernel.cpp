@@ -100,8 +100,7 @@ namespace svm_kernel {
 //            if (tid == i)
             alpha_i_diff = y[working_set[i]] > 0 ? Cp - alpha[working_set[i]] : alpha[working_set[i]];
 //            if (tid == j2)
-            alpha_j_diff = min<float_type>(
-                    y[working_set[j2]] > 0 ? alpha[working_set[j2]] : Cn - alpha[working_set[j2]],
+            alpha_j_diff = min( y[working_set[j2]] > 0 ? alpha[working_set[j2]] : Cn - alpha[working_set[j2]],
                     (-up_value + f[j2]) / (kd[i] + kd[j2] - 2 * kIwsI[j2]));
             float_type l = min(alpha_i_diff, alpha_j_diff);
 
@@ -211,7 +210,7 @@ namespace svm_kernel {
                     }
             }
 
-            float_type local_diff = max<float_type>(low_value_p - up_value_p, low_value_n - up_value_n);
+            float_type local_diff = max(low_value_p - up_value_p, low_value_n - up_value_n);
 
             if (numOfIter == 0) {
                 local_eps = max(eps, 0.1 * local_diff);
@@ -278,7 +277,7 @@ namespace svm_kernel {
 //            if (tid == j2)
             alpha_j_diff = min(y[working_set[j2]] > 0 ? alpha[working_set[j2]] : C - alpha[working_set[j2]],
                                (-up_value + f[j2]) / (kd[i] + kd[j2] - 2 * kIwsI[j2]));
-            float_type l = min<float_type>(alpha_i_diff, alpha_j_diff);
+            float_type l = min(alpha_i_diff, alpha_j_diff);
 
             alpha[working_set[i]] += l * y[working_set[i]];
             alpha[working_set[j2]] -= l * y[working_set[j2]];
