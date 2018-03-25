@@ -8,8 +8,8 @@
 
 namespace svm_kernel {
     __global__ void
-    kernel_get_working_set_ins(const float_type *val, const int *col_ind, const int *row_ptr, const int *data_row_idx,
-                               float_type *data_rows,
+    kernel_get_working_set_ins(const kernel_type *val, const int *col_ind, const int *row_ptr, const int *data_row_idx,
+                               kernel_type *data_rows,
                                int m) {
         KERNEL_LOOP(i, m) {
             int row = data_row_idx[i];
@@ -21,8 +21,8 @@ namespace svm_kernel {
     }
 
     __global__ void
-    kernel_RBF_kernel(const float_type *self_dot0, const float_type *self_dot1, float_type *dot_product, int m, int n,
-                      float_type gamma) {
+    kernel_RBF_kernel(const kernel_type *self_dot0, const kernel_type *self_dot1, kernel_type *dot_product, int m, int n,
+                      kernel_type gamma) {
         //m rows of kernel matrix, where m is the working set size; n is the number of training instances
         KERNEL_LOOP(idx, m * n) {
             int i = idx / n;//i is row id
@@ -32,8 +32,8 @@ namespace svm_kernel {
     }
 
     __global__ void
-    kernel_RBF_kernel(const int *self_dot0_idx, const float_type *self_dot1, float_type *dot_product, int m, int n,
-                      float_type gamma) {
+    kernel_RBF_kernel(const int *self_dot0_idx, const kernel_type *self_dot1, kernel_type *dot_product, int m, int n,
+                      kernel_type gamma) {
         //compute m rows of kernel matrix, where m is the working set size and n is the number of training instances, according to idx
         KERNEL_LOOP(idx, m * n) {
             int i = idx / n;//i is row id
@@ -45,7 +45,7 @@ namespace svm_kernel {
     __global__ void
     kernel_sum_kernel_values(const float_type *coef, int total_sv, const int *sv_start, const int *sv_count,
                              const float_type *rho,
-                             const float_type *k_mat, float_type *dec_values, int n_classes, int n_instances) {
+                             const kernel_type *k_mat, float_type *dec_values, int n_classes, int n_instances) {
         KERNEL_LOOP(idx, n_instances) {
             int k = 0;
             int n_binary_models = n_classes * (n_classes - 1) / 2;
@@ -57,8 +57,8 @@ namespace svm_kernel {
                     int cj = sv_count[j];
                     const float_type *coef1 = &coef[(j - 1) * total_sv];
                     const float_type *coef2 = &coef[i * total_sv];
-                    const float_type *k_values = &k_mat[idx * total_sv];
-                    float_type sum = 0;
+                    const kernel_type *k_values = &k_mat[idx * total_sv];
+                    kernel_type sum = 0;
                     for (int l = 0; l < ci; ++l) {
                         sum += coef1[si + l] * k_values[si + l];
                     }
@@ -73,13 +73,13 @@ namespace svm_kernel {
     }
 
     __global__ void
-    kernel_poly_kernel(float_type *dot_product, float_type gamma, float_type coef0, int degree, int mn) {
+    kernel_poly_kernel(kernel_type *dot_product, kernel_type gamma, kernel_type coef0, int degree, int mn) {
         KERNEL_LOOP(idx, mn) {
             dot_product[idx] = powf(gamma * dot_product[idx] + coef0, degree);
         }
     }
 
-    __global__ void kernel_sigmoid_kernel(float_type *dot_product, float_type gamma, float_type coef0, int mn) {
+    __global__ void kernel_sigmoid_kernel(kernel_type *dot_product, kernel_type gamma, kernel_type coef0, int mn) {
         KERNEL_LOOP(idx, mn) {
             dot_product[idx] = tanhf(gamma * dot_product[idx] + coef0);
         }
@@ -87,7 +87,7 @@ namespace svm_kernel {
 
     void sum_kernel_values(const SyncArray<float_type> &coef, int total_sv, const SyncArray<int> &sv_start,
                            const SyncArray<int> &sv_count, const SyncArray<float_type> &rho,
-                           const SyncArray<float_type> &k_mat,
+                           const SyncArray<kernel_type> &k_mat,
                            SyncArray<float_type> &dec_values, int n_classes, int n_instances) {
         SAFE_KERNEL_LAUNCH(kernel_sum_kernel_values, coef.device_data(), total_sv, sv_start.device_data(),
                            sv_count.device_data(), rho.device_data(), k_mat.device_data(), dec_values.device_data(),
@@ -96,35 +96,35 @@ namespace svm_kernel {
     }
 
     void
-    get_working_set_ins(const SyncArray<float_type> &val, const SyncArray<int> &col_ind, const SyncArray<int> &row_ptr,
-                        const SyncArray<int> &data_row_idx, SyncArray<float_type> &data_rows, int m) {
+    get_working_set_ins(const SyncArray<kernel_type> &val, const SyncArray<int> &col_ind, const SyncArray<int> &row_ptr,
+                        const SyncArray<int> &data_row_idx, SyncArray<kernel_type> &data_rows, int m) {
         SAFE_KERNEL_LAUNCH(kernel_get_working_set_ins, val.device_data(), col_ind.device_data(), row_ptr.device_data(),
                            data_row_idx.device_data(), data_rows.device_data(), m);
 
     }
 
     void
-    RBF_kernel(const SyncArray<float_type> &self_dot0, const SyncArray<float_type> &self_dot1,
-               SyncArray<float_type> &dot_product, int m,
+    RBF_kernel(const SyncArray<kernel_type> &self_dot0, const SyncArray<kernel_type> &self_dot1,
+               SyncArray<kernel_type> &dot_product, int m,
                int n,
-               float_type gamma) {
+               kernel_type gamma) {
         SAFE_KERNEL_LAUNCH(kernel_RBF_kernel, self_dot0.device_data(), self_dot1.device_data(),
                            dot_product.device_data(), m, n, gamma);
     }
 
     void
-    RBF_kernel(const SyncArray<int> &self_dot0_idx, const SyncArray<float_type> &self_dot1,
-               SyncArray<float_type> &dot_product, int m,
-               int n, float_type gamma) {
+    RBF_kernel(const SyncArray<int> &self_dot0_idx, const SyncArray<kernel_type> &self_dot1,
+               SyncArray<kernel_type> &dot_product, int m,
+               int n, kernel_type gamma) {
         SAFE_KERNEL_LAUNCH(kernel_RBF_kernel, self_dot0_idx.device_data(), self_dot1.device_data(),
                            dot_product.device_data(), m, n, gamma);
     }
 
-    void poly_kernel(SyncArray<float_type> &dot_product, float_type gamma, float_type coef0, int degree, int mn) {
+    void poly_kernel(SyncArray<kernel_type> &dot_product, kernel_type gamma, kernel_type coef0, int degree, int mn) {
         SAFE_KERNEL_LAUNCH(kernel_poly_kernel, dot_product.device_data(), gamma, coef0, degree, mn);
     }
 
-    void sigmoid_kernel(SyncArray<float_type> &dot_product, float_type gamma, float_type coef0, int mn) {
+    void sigmoid_kernel(SyncArray<kernel_type> &dot_product, kernel_type gamma, kernel_type coef0, int mn) {
         SAFE_KERNEL_LAUNCH(kernel_sigmoid_kernel, dot_product.device_data(), gamma, coef0, mn);
     }
 
@@ -132,9 +132,9 @@ namespace svm_kernel {
     cusparseMatDescr_t descr;
     bool cusparse_init;
 
-    void dns_csr_mul(int m, int n, int k, const SyncArray<float_type> &dense_mat, const SyncArray<float_type> &csr_val,
+    void dns_csr_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_mat, const SyncArray<kernel_type> &csr_val,
                      const SyncArray<int> &csr_row_ptr, const SyncArray<int> &csr_col_ind, int nnz,
-                     SyncArray<float_type> &result) {
+                     SyncArray<kernel_type> &result) {
         if (!cusparse_init) {
             cusparseCreate(&handle);
             cusparseCreateMatDescr(&descr);

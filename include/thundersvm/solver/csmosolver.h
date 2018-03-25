@@ -33,8 +33,8 @@ protected:
     virtual void
     smo_kernel(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,
                SyncArray<float_type> &alpha_diff,
-               const SyncArray<int> &working_set, float_type Cp, float_type Cn, const SyncArray<float_type> &k_mat_rows,
-               const SyncArray<float_type> &k_mat_diag, int row_len, float_type eps, SyncArray<float_type> &diff,
+               const SyncArray<int> &working_set, float_type Cp, float_type Cn, const SyncArray<kernel_type> &k_mat_rows,
+               const SyncArray<kernel_type> &k_mat_diag, int row_len, float_type eps, SyncArray<float_type> &diff,
                int max_iter) const;
 };
 

@@ -29,9 +29,9 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
     SyncArray<float_type> alpha_diff(ws_size);
     SyncArray<float_type> diff(2);
 
-    SyncArray<float_type> k_mat_rows(ws_size * k_mat.n_instances());
-    SyncArray<float_type> k_mat_rows_first_half(q * k_mat.n_instances());
-    SyncArray<float_type> k_mat_rows_last_half(q * k_mat.n_instances());
+    SyncArray<kernel_type> k_mat_rows(ws_size * k_mat.n_instances());
+    SyncArray<kernel_type> k_mat_rows_first_half(q * k_mat.n_instances());
+    SyncArray<kernel_type> k_mat_rows_last_half(q * k_mat.n_instances());
 #ifdef USE_CUDA
     k_mat_rows_first_half.set_device_data(k_mat_rows.device_data());
     k_mat_rows_last_half.set_device_data(&k_mat_rows.device_data()[q * k_mat.n_instances()]);
@@ -169,7 +169,7 @@ void CSMOSolver::init_f(const SyncArray<float_type> &alpha, const SyncArray<int>
             SyncArray<float_type> alpha_diff(idx_vec.size());
             idx.copy_from(idx_vec.data(), idx_vec.size());
             alpha_diff.copy_from(alpha_diff_vec.data(), idx_vec.size());
-            SyncArray<float_type> kernel_rows(idx.size() * k_mat.n_instances());
+            SyncArray<kernel_type> kernel_rows(idx.size() * k_mat.n_instances());
             k_mat.get_rows(idx, kernel_rows);
             update_f(f_val, alpha_diff, kernel_rows, k_mat.n_instances());
             idx_vec.clear();
@@ -182,8 +182,8 @@ void
 CSMOSolver::smo_kernel(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,
                        SyncArray<float_type> &alpha_diff,
                        const SyncArray<int> &working_set, float_type Cp, float_type Cn,
-                       const SyncArray<float_type> &k_mat_rows,
-                       const SyncArray<float_type> &k_mat_diag, int row_len, float_type eps,
+                       const SyncArray<kernel_type> &k_mat_rows,
+                       const SyncArray<kernel_type> &k_mat_diag, int row_len, float_type eps,
                        SyncArray<float_type> &diff,
                        int max_iter) const {
     c_smo_solve(y, f_val, alpha, alpha_diff, working_set, Cp, Cn, k_mat_rows, k_mat_diag, row_len, eps, diff, max_iter);

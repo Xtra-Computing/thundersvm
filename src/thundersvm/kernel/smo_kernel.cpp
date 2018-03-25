@@ -6,39 +6,41 @@
 
 #include <thundersvm/kernel/smo_kernel.h>
 #include <omp.h>
+
 namespace svm_kernel {
 
     void c_smo_solve_kernel(const int *y, float_type *f_val, float_type *alpha, float_type *alpha_diff,
                             const int *working_set,
                             int ws_size,
-                            float Cp, float Cn, const float *k_mat_rows, const float *k_mat_diag, int row_len,
+                            float_type Cp, float_type Cn, const kernel_type *k_mat_rows, const kernel_type *k_mat_diag,
+                            int row_len,
                             float_type eps,
                             float_type *diff, int max_iter) {
         //allocate shared memory
-        double alpha_i_diff; //delta alpha_i
-        double alpha_j_diff;
-        float *kd = new float[ws_size]; // diagonal elements for kernel matrix
+        float_type alpha_i_diff; //delta alpha_i
+        float_type alpha_j_diff;
+        kernel_type *kd = new kernel_type[ws_size]; // diagonal elements for kernel matrix
 
         //index, f value and alpha for each instance
-        double *a_old = new double[ws_size];
-        double *kIwsI = new double[ws_size];
-        double *f = new double[ws_size];
+        float_type *a_old = new float_type[ws_size];
+        float_type *kIwsI = new float_type[ws_size];
+        float_type *f = new float_type[ws_size];
         for (int tid = 0; tid < ws_size; ++tid) {
             int wsi = working_set[tid];
             f[tid] = f_val[wsi];
             a_old[tid] = alpha[wsi];
             kd[tid] = k_mat_diag[wsi];
         }
-        float local_eps;
+        float_type local_eps;
         int numOfIter = 0;
         while (1) {
             //select fUp and fLow
             int i = 0;
-            double up_value = INFINITY;
+            float_type up_value = INFINITY;
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (is_I_up(alpha[wsi], y[wsi], Cp, Cn))
-                    if(f[tid] < up_value){
+                    if (f[tid] < up_value) {
                         up_value = f[tid];
                         i = tid;
                     }
@@ -49,11 +51,11 @@ namespace svm_kernel {
                 kIwsI[tid] = k_mat_rows[row_len * i + working_set[tid]];//K[i, wsi]
             }
             int j1 = 0;
-            double low_value = -INFINITY;
+            float_type low_value = -INFINITY;
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (is_I_low(alpha[wsi], y[wsi], Cp, Cn))
-                    if(f[tid] > low_value){
+                    if (f[tid] > low_value) {
                         low_value = f[tid];
                         j1 = tid;
                     }
@@ -61,10 +63,11 @@ namespace svm_kernel {
             //int j1 = get_min_idx(f_val2reduce, ws_size);
             //float low_value = -f_val2reduce[j1];
 
-            float local_diff = low_value - up_value;
+//            printf("up = %lf, low = %lf\n", up_value, low_value);
+            float_type local_diff = low_value - up_value;
             if (numOfIter == 0) {
-                local_eps = max(eps, 0.1f * local_diff);
-				diff[0] = local_diff;
+                local_eps = min(eps, 0.1f * local_diff);
+                diff[0] = local_diff;
             }
 
             if (numOfIter > max_iter || local_diff < local_eps) {
@@ -72,19 +75,20 @@ namespace svm_kernel {
                     int wsi = working_set[tid];
                     alpha_diff[tid] = -(alpha[wsi] - a_old[tid]) * y[wsi];
                 }
+//                LOG(INFO)<<"local diff = "<<local_diff;
                 diff[1] = numOfIter;
                 break;
             }
             int j2 = 0;
-            double min_t = INFINITY;
+            float_type min_t = INFINITY;
             //select j2 using second order heuristic
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (-up_value > -f[tid] && (is_I_low(alpha[wsi], y[wsi], Cp, Cn))) {
-                    double aIJ = kd[i] + kd[tid] - 2 * kIwsI[tid];
-                    double bIJ = -up_value + f[tid];
-                    double ft = -bIJ * bIJ / aIJ;
-                    if(ft < min_t){
+                    float_type aIJ = kd[i] + kd[tid] - 2 * kIwsI[tid];
+                    float_type bIJ = -up_value + f[tid];
+                    float_type ft = -bIJ * bIJ / aIJ;
+                    if (ft < min_t) {
                         min_t = ft;
                         j2 = tid;
                     }
@@ -96,9 +100,10 @@ namespace svm_kernel {
 //            if (tid == i)
             alpha_i_diff = y[working_set[i]] > 0 ? Cp - alpha[working_set[i]] : alpha[working_set[i]];
 //            if (tid == j2)
-            alpha_j_diff = min(double(y[working_set[j2]] > 0 ? alpha[working_set[j2]] : Cn - alpha[working_set[j2]]),
-                                (-up_value + f[j2]) / (kd[i] + kd[j2] - 2 * kIwsI[j2]));
-            double l = min(alpha_i_diff, alpha_j_diff);
+            alpha_j_diff = min<float_type>(
+                    y[working_set[j2]] > 0 ? alpha[working_set[j2]] : Cn - alpha[working_set[j2]],
+                    (-up_value + f[j2]) / (kd[i] + kd[j2] - 2 * kIwsI[j2]));
+            float_type l = min(alpha_i_diff, alpha_j_diff);
 
 //            if (tid == i)
             alpha[working_set[i]] += l * y[working_set[i]];
@@ -106,10 +111,11 @@ namespace svm_kernel {
             alpha[working_set[j2]] -= l * y[working_set[j2]];
 
 
+//            printf("i=%d, j1=%d, j2=%d, l = %f, local_diff=%f\n", i, j1, j2, l, local_diff);
             //update f
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
-                float kJ2wsI = k_mat_rows[row_len * j2 + wsi];//K[J2, wsi]
+                float_type kJ2wsI = k_mat_rows[row_len * j2 + wsi];//K[J2, wsi]
                 f[tid] -= l * (kJ2wsI - kIwsI[tid]);
             }
             numOfIter++;
@@ -122,8 +128,8 @@ namespace svm_kernel {
     void c_smo_solve(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,
                      SyncArray<float_type> &alpha_diff,
                      const SyncArray<int> &working_set, float_type Cp, float_type Cn,
-                     const SyncArray<float_type> &k_mat_rows,
-                     const SyncArray<float_type> &k_mat_diag, int row_len, float_type eps, SyncArray<float_type> &diff,
+                     const SyncArray<kernel_type> &k_mat_rows,
+                     const SyncArray<kernel_type> &k_mat_diag, int row_len, float_type eps, SyncArray<float_type> &diff,
                      int max_iter) {
         c_smo_solve_kernel(y.host_data(), f_val.host_data(), alpha.host_data(), alpha_diff.host_data(),
                            working_set.host_data(), working_set.size(), Cp, Cn, k_mat_rows.host_data(),
@@ -131,39 +137,35 @@ namespace svm_kernel {
     }
 
     void nu_smo_solve_kernel(const int *y, float_type *f_val, float_type *alpha, float_type *alpha_diff,
-                             const int *working_set,
-                             int ws_size, float C, const float *k_mat_rows, const float *k_mat_diag, int row_len,
-                             float_type eps,
-                             float_type *diff, int max_iter) {
+                             const int *working_set, int ws_size, float_type C, const kernel_type *k_mat_rows,
+                             const kernel_type *k_mat_diag, int row_len, float_type eps, float_type *diff,
+                             int max_iter) {
         //allocate shared memory
-        int *shared_mem = new int[ws_size * 3 + 2];
-        int *f_idx2reduce = shared_mem; //temporary memory for reduction
-        float *f_val2reduce = (float *) &f_idx2reduce[ws_size]; //f values used for reduction.
-        float *alpha_i_diff = &f_val2reduce[ws_size]; //delta alpha_i
-        float *alpha_j_diff = &alpha_i_diff[1];
-        float *kd = &alpha_j_diff[1]; // diagonal elements for kernel matrix
+        float_type alpha_i_diff; //delta alpha_i
+        float_type alpha_j_diff;
+        kernel_type *kd = new kernel_type[ws_size]; // diagonal elements for kernel matrix
 
         //index, f value and alpha for each instance
-        float *a_old = new float[ws_size];
-        float *kIpwsI = new float[ws_size];
-        float *kInwsI = new float[ws_size];
-        float *f = new float[ws_size];
+        float_type *a_old = new float_type[ws_size];
+        kernel_type *kIpwsI = new kernel_type[ws_size];
+        kernel_type *kInwsI = new kernel_type[ws_size];
+        float_type *f = new float_type[ws_size];
         for (int tid = 0; tid < ws_size; ++tid) {
             int wsi = working_set[tid];
             f[tid] = f_val[wsi];
             a_old[tid] = alpha[wsi];
             kd[tid] = k_mat_diag[wsi];
         }
-        float local_eps;
+        float_type local_eps;
         int numOfIter = 0;
         while (1) {
             //select I_up (y=+1)
             int ip = 0;
-            float up_value_p = INFINITY;
+            float_type up_value_p = INFINITY;
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (y[wsi] > 0 && alpha[wsi] < C)
-                    if(f[tid] < up_value_p){
+                    if (f[tid] < up_value_p) {
                         ip = tid;
                         up_value_p = f[tid];
                     }
@@ -175,11 +177,11 @@ namespace svm_kernel {
 
             //select I_up (y=-1)
             int in = 0;
-            float up_value_n = INFINITY;
+            float_type up_value_n = INFINITY;
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (y[wsi] < 0 && alpha[wsi] > 0)
-                    if(f[tid] < up_value_n){
+                    if (f[tid] < up_value_n) {
                         in = tid;
                         up_value_n = f[tid];
                     }
@@ -189,34 +191,30 @@ namespace svm_kernel {
             }
 
             //select I_low (y=+1)
-            int j1p = 0;
-            float low_value_p = -INFINITY;
+            float_type low_value_p = -INFINITY;
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (y[wsi] > 0 && alpha[wsi] > 0)
-                    if(f[tid] > low_value_p){
-                        j1p = tid;
+                    if (f[tid] > low_value_p) {
                         low_value_p = f[tid];
                     }
             }
 
 
             //select I_low (y=-1)
-            int j1n = 0;
-            float low_value_n = -INFINITY;
+            float_type low_value_n = -INFINITY;
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (y[wsi] < 0 && alpha[wsi] < C)
-                    if(f[tid] > low_value_n){
-                        j1n = tid;
+                    if (f[tid] > low_value_n) {
                         low_value_n = f[tid];
                     }
             }
 
-            float local_diff = max(low_value_p - up_value_p, low_value_n - up_value_n);
+            float_type local_diff = max<float_type>(low_value_p - up_value_p, low_value_n - up_value_n);
 
             if (numOfIter == 0) {
-                local_eps = max(eps, 0.1f * local_diff);
+                local_eps = max(eps, 0.1 * local_diff);
                 diff[0] = local_diff;
             }
 
@@ -230,30 +228,30 @@ namespace svm_kernel {
 
             //select j2p using second order heuristic
             int j2p = 0;
-	    float f_val_j2p = INFINITY;
-	    for (int tid = 0; tid < ws_size; ++tid) {
+            float_type f_val_j2p = INFINITY;
+            for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (-up_value_p > -f[tid] && y[wsi] > 0 && alpha[wsi] > 0) {
-                    float aIJ = kd[ip] + kd[tid] - 2 * kIpwsI[tid];
-                    float bIJ = -up_value_p + f[tid];
-                    float f_t1  = -bIJ * bIJ / aIJ;
-		    if(f_t1 < f_val_j2p){
-			j2p = tid;
-			f_val_j2p = f_t1;
-		    }
+                    float_type aIJ = kd[ip] + kd[tid] - 2 * kIpwsI[tid];
+                    float_type bIJ = -up_value_p + f[tid];
+                    float_type f_t1 = -bIJ * bIJ / aIJ;
+                    if (f_t1 < f_val_j2p) {
+                        j2p = tid;
+                        f_val_j2p = f_t1;
+                    }
                 }
             }
 
             //select j2n using second order heuristic
             int j2n = 0;
-            float f_val_j2n = INFINITY;
+            float_type f_val_j2n = INFINITY;
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
                 if (-up_value_n > -f[tid] && y[wsi] < 0 && alpha[wsi] < C) {
-                    float aIJ = kd[ip] + kd[tid] - 2 * kIpwsI[tid];
-                    float bIJ = -up_value_n + f[tid];
-                    float f_t2 = -bIJ * bIJ / aIJ;
-                    if(f_t2 < f_val_j2n){
+                    float_type aIJ = kd[ip] + kd[tid] - 2 * kIpwsI[tid];
+                    float_type bIJ = -up_value_n + f[tid];
+                    float_type f_t2 = -bIJ * bIJ / aIJ;
+                    if (f_t2 < f_val_j2n) {
                         j2n = tid;
                         f_val_j2n = f_t2;
                     }
@@ -261,8 +259,8 @@ namespace svm_kernel {
             }
 
             int i, j2;
-            float up_value;
-            float *kIwsI;
+            float_type up_value;
+            kernel_type *kIwsI;
             if (f_val_j2p < f_val_j2n) {
                 i = ip;
                 j2 = j2p;
@@ -276,14 +274,11 @@ namespace svm_kernel {
             }
             //update alpha
 //            if (tid == i)
-//                *alpha_i_diff = y > 0 ? C - a : a;
-            *alpha_i_diff = y[working_set[i]] > 0 ? C - alpha[working_set[i]] : alpha[working_set[i]];
+            alpha_i_diff = y[working_set[i]] > 0 ? C - alpha[working_set[i]] : alpha[working_set[i]];
 //            if (tid == j2)
-//                *alpha_j_diff = min(y > 0 ? a : C - a, (-up_value + f) / (kd[i] + kd[j2] - 2 * kIwsI));
-            *alpha_j_diff = min(y[working_set[j2]] > 0 ? alpha[working_set[j2]] : C - alpha[working_set[j2]],
-                                (-up_value + f[j2]) / (kd[i] + kd[j2] - 2 * kIwsI[j2]));
-//            __syncthreads();
-            float l = min(*alpha_i_diff, *alpha_j_diff);
+            alpha_j_diff = min(y[working_set[j2]] > 0 ? alpha[working_set[j2]] : C - alpha[working_set[j2]],
+                               (-up_value + f[j2]) / (kd[i] + kd[j2] - 2 * kIwsI[j2]));
+            float_type l = min<float_type>(alpha_i_diff, alpha_j_diff);
 
             alpha[working_set[i]] += l * y[working_set[i]];
             alpha[working_set[j2]] -= l * y[working_set[j2]];
@@ -291,22 +286,23 @@ namespace svm_kernel {
             //update f
             for (int tid = 0; tid < ws_size; ++tid) {
                 int wsi = working_set[tid];
-                float kJ2wsI = k_mat_rows[row_len * j2 + wsi];//K[J2, wsi]
+                kernel_type kJ2wsI = k_mat_rows[row_len * j2 + wsi];//K[J2, wsi]
                 f[tid] -= l * (kJ2wsI - kIwsI[tid]);
             }
             numOfIter++;
-            //if (numOfIter > max_iter) break;
         }
+        delete[] kd;
         delete[] a_old;
         delete[] f;
         delete[] kIpwsI;
         delete[] kInwsI;
-        delete[] shared_mem;
     }
+
     void nu_smo_solve(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,
                       SyncArray<float_type> &alpha_diff,
-                      const SyncArray<int> &working_set, float_type C, const SyncArray<float_type> &k_mat_rows,
-                      const SyncArray<float_type> &k_mat_diag, int row_len, float_type eps, SyncArray<float_type> &diff,
+                      const SyncArray<int> &working_set, float_type C, const SyncArray<kernel_type> &k_mat_rows,
+                      const SyncArray<kernel_type> &k_mat_diag, int row_len, float_type eps,
+                      SyncArray<float_type> &diff,
                       int max_iter) {
         nu_smo_solve_kernel(y.host_data(), f_val.host_data(), alpha.host_data(), alpha_diff.host_data(),
                             working_set.host_data(), working_set.size(), C, k_mat_rows.host_data(),
@@ -314,15 +310,16 @@ namespace svm_kernel {
     }
 
     void
-    update_f(SyncArray<float_type> &f, const SyncArray<float_type> &alpha_diff, const SyncArray<float_type> &k_mat_rows,
+    update_f(SyncArray<float_type> &f, const SyncArray<float_type> &alpha_diff,
+             const SyncArray<kernel_type> &k_mat_rows,
              int n_instances) {
         //"n_instances" equals to the number of rows of the whole kernel matrix for both SVC and SVR.
         float_type *f_data = f.host_data();
         const float_type *alpha_diff_data = alpha_diff.host_data();
-        const float_type *k_mat_rows_data = k_mat_rows.host_data();
+        const kernel_type *k_mat_rows_data = k_mat_rows.host_data();
 #pragma omp parallel for schedule(guided)
         for (int idx = 0; idx < n_instances; ++idx) {
-    			double sum_diff = 0;
+            double sum_diff = 0;
             for (int i = 0; i < alpha_diff.size(); ++i) {
                 float_type d = alpha_diff_data[i];
                 if (d != 0) {

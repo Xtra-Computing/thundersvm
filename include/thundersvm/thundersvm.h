@@ -13,5 +13,6 @@
 #include "util/common.h"
 using std::string;
 using std::vector;
-typedef float float_type;
+typedef double float_type;
+typedef float kernel_type;
 #endif //THUNDERSVM_THUNDERSVM_H

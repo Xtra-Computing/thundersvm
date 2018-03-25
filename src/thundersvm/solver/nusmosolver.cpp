@@ -127,7 +127,7 @@ void NuSMOSolver::scale_alpha_rho(SyncArray<float_type> &alpha, float_type &rho,
 void NuSMOSolver::smo_kernel(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,
                              SyncArray<float_type> &alpha_diff, const SyncArray<int> &working_set, float_type Cp,
                              float_type Cn,
-                             const SyncArray<float_type> &k_mat_rows, const SyncArray<float_type> &k_mat_diag,
+                             const SyncArray<kernel_type> &k_mat_rows, const SyncArray<kernel_type> &k_mat_diag,
                              int row_len, float_type eps,
                              SyncArray<float_type> &diff, int max_iter) const {
     //Cn is not used but for compatibility with c-svc

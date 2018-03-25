@@ -19,12 +19,12 @@ void NuSVC::train_binary(const DataSet &dataset, int i, int j, SyncArray<float_t
     float_type *alpha_data = alpha.host_data();
     for (int l = 0; l < n_pos; ++l) {
         y_data[l] = +1;
-        alpha_data[l] = min(1.f, sum_pos);
+        alpha_data[l] = min<float_type>(1., sum_pos);
         sum_pos -= alpha_data[l];
     }
     for (int l = 0; l < n_neg; ++l) {
         y_data[n_pos + l] = -1;
-        alpha_data[n_pos + l] = min(1.f, sum_neg);
+        alpha_data[n_pos + l] = min<float_type>(1., sum_neg);
         sum_neg -= alpha_data[n_pos + l];
     }
     vector<int> ori = dataset.original_index(i, j);

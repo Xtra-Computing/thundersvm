@@ -56,7 +56,7 @@ TEST(KernelMatrixTest, get_rows) {
     unsigned n_rows = 10;
     SvmParam param;
     SyncArray<int> rows(n_rows);
-    SyncArray<float_type> kernel_rows(n_rows * dataSet.n_instances());
+    SyncArray<kernel_type> kernel_rows(n_rows * dataSet.n_instances());
     for (unsigned i = 0; i < n_rows; ++i) {
         rows.host_data()[i] = i * 3 + 4;
     }

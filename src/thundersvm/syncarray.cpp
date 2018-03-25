@@ -89,4 +89,7 @@ template
 class SyncArray<int>;
 
 template
-class SyncArray<float_type>;
+class SyncArray<float>;
+
+template
+class SyncArray<double>;

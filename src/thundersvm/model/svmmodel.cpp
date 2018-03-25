@@ -89,7 +89,7 @@ SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncArray<float_t
         }
 
         DataSet::node2d batch_ins(batch_start, batch_end);//get a batch of instances
-        SyncArray<float_type> kernel_values(batch_ins.size() * sv.size());
+        SyncArray<kernel_type> kernel_values(batch_ins.size() * sv.size());
         k_mat.get_rows(batch_ins, kernel_values);
         SyncArray<float_type> batch_dec_values(batch_ins.size() * n_binary_models);
 #ifdef USE_CUDA
