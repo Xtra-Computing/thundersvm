@@ -8,6 +8,8 @@ Before you use the R interface, you must build ThunderSVM.
 
 * After you have successfully done the above two steps, it is ready to start using Python interfaces.
 ## Methods
+By default, the directory for storing the training data and results is the working directory.
+
 *svm_train_R(svm_type = 0, kernel = 2,degree = 3,gamma = 'auto',  coef0 = 0.0, nu = 0.5, cost = 1.0, epsilon = 0.1, tol = 0.001, probability = FALSE, class_weight = 'None', verbose = FALSE, max_iter = -1, dataset = 'None', model_file = 'None')*
 
 *svm_predict_R(test_dataset = 'None', model_file = 'None', out_file = 'None')*
