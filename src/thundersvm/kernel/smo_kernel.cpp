@@ -66,7 +66,7 @@ namespace svm_kernel {
 //            printf("up = %lf, low = %lf\n", up_value, low_value);
             float_type local_diff = low_value - up_value;
             if (numOfIter == 0) {
-                local_eps = min(eps, 0.1f * local_diff);
+                local_eps = max(eps, 0.1f * local_diff);
                 diff[0] = local_diff;
             }
 
