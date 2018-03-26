@@ -146,6 +146,7 @@ Where ```[path_to_g++]``` and ```[path_to_gcc]``` typically look like ```/usr/lo
 * Clone ThunderSVM repository
 ```bash
 git clone git@github.com:zeyiwen/thundersvm.git
+git submodule update --init src/test/googletest
 ```
 
 * Build the binary for testing
