@@ -122,6 +122,7 @@ namespace svm_kernel {
         delete[] a_old;
         delete[] f;
         delete[] kIwsI;
+	delete[] kd;
     }
 
     void c_smo_solve(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,
