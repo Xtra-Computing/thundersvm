@@ -59,7 +59,8 @@ NuSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncArray<int> 
     const int *y_data = y.host_data();
     const float_type *alpha_data = alpha.host_data();
     int *working_set_data = working_set.host_data();
-    while (n_selected < working_set.size()) {
+    int ws_size = working_set.size();
+    while (n_selected < ws_size) {
         int i;
         if (p_left_p < n_instances) {
             i = index[p_left_p];
@@ -82,7 +83,7 @@ NuSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncArray<int> 
                 if (p_left_n == n_instances) break;
                 i = index[p_left_n];
             }
-            if (p_left_n < n_instances) {
+            if (p_left_n < n_instances && n_selected < ws_size) {
                 working_set_data[n_selected++] = i;
                 ws_indicator[i] = 1;
             }
@@ -95,7 +96,7 @@ NuSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncArray<int> 
                 if (p_right_p == -1) break;
                 i = index[p_right_p];
             }
-            if (p_right_p >= 0) {
+            if (p_right_p >= 0 && n_selected < ws_size) {
                 working_set_data[n_selected++] = i;
                 ws_indicator[i] = 1;
             }
@@ -108,7 +109,7 @@ NuSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncArray<int> 
                 if (p_right_n == -1) break;
                 i = index[p_right_n];
             }
-            if (p_right_n >= 0) {
+            if (p_right_n >= 0 && n_selected < ws_size) {
                 working_set_data[n_selected++] = i;
                 ws_indicator[i] = 1;
             }
