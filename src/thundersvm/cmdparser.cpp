@@ -79,7 +79,17 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                     param_cmd.degree = atoi(argv[i]);
                     break;
                 case 'g':
-                    param_cmd.gamma = atof(argv[i]);
+                    {//handle fraction
+                        string str_argv(argv[i]);
+                        int slash = (int)str_argv.find("/", 0);
+                        if(slash != string::npos){
+                            float_type numerator = atof(str_argv.substr(0, slash).c_str());
+                            float_type denominator = atof(str_argv.substr(slash + 1).c_str());
+                            param_cmd.gamma = numerator / denominator;
+                        }
+                        else
+                        param_cmd.gamma = atof(argv[i]);
+                    }
                     gamma_set = true;
                     break;
                 case 'r':
