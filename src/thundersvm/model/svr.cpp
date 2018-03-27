@@ -56,3 +56,9 @@ void SVR::save_svr_coef(const SyncArray<float_type> &alpha_2, const DataSet::nod
     coef.copy_from(coef_vec.data(), coef_vec.size());
 }
 
+void SVR::model_setup(const DataSet &dataset, SvmParam &param) {
+    SvmModel::model_setup(dataset, param);
+    this->param.svm_type = SvmParam::EPSILON_SVR;
+}
+
+

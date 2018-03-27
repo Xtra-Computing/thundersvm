@@ -16,6 +16,9 @@ public:
 
     vector<float_type> predict(const DataSet::node2d &instances, int batch_size) override;
 
+protected:
+    void model_setup(const DataSet &dataset, SvmParam &param) override;
+
 };
 
 #endif //THUNDERSVM_ONECLASS_SVC_H

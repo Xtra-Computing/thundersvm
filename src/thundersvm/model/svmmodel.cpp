@@ -122,7 +122,7 @@ vector<float_type> SvmModel::predict(const DataSet::node2d &instances, int batch
 
 void SvmModel::save_to_file(string path) {
     ofstream fs_model;
-    fs_model.open(path.c_str());
+    fs_model.open(path.c_str(), std::ios_base::out|std::ios_base::trunc);
     CHECK(fs_model.is_open()) << "create file " << path << "failed";
     const SvmParam &param = this->param;
     fs_model << "svm_type " << SvmParam::svm_type_name[param.svm_type] << endl;

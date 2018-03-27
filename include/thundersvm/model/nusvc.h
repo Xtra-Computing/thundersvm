@@ -13,6 +13,8 @@
 class NuSVC : public SVC {
 protected:
     void train_binary(const DataSet &dataset, int i, int j, SyncArray<float_type> &alpha, float_type &rho) override;
+
+    void model_setup(const DataSet &dataset, SvmParam &param) override;
 };
 
 #endif //THUNDERSVM_NUSVC_H

@@ -19,6 +19,8 @@ public:
     void train(const DataSet &dataset, SvmParam param) override;
 
 protected:
+    void model_setup(const DataSet &dataset, SvmParam &param) override;
+
     /**
      * save \f$\boldsymbel{\alpha}\f$ into coef.
      * @param alpha_2

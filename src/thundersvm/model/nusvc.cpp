@@ -44,3 +44,7 @@ void NuSVC::train_binary(const DataSet &dataset, int i, int j, SyncArray<float_t
     LOG(INFO)<<"#sv = "<<n_sv;
 }
 
+void NuSVC::model_setup(const DataSet &dataset, SvmParam &param) {
+    SVC::model_setup(dataset, param);
+    this->param.svm_type = SvmParam::NU_SVC;
+}

@@ -20,7 +20,7 @@ void SVC::model_setup(const DataSet &dataset, SvmParam &param) {
     LOG(INFO) << "#classes = " << n_classes;
     this->label = dataset.label();
     SvmModel::model_setup(dataset, param);
-
+    this->param.svm_type = SvmParam::C_SVC;
     //calculate class weight for each class
     c_weight = vector<float_type>(n_classes, 1);
     for (int i = 0; i < param.nr_weight; ++i) {

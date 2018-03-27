@@ -14,6 +14,9 @@ class NuSVR : public SVR {
 public:
     void train(const DataSet &dataset, SvmParam param) override;
 
+protected:
+    void model_setup(const DataSet &dataset, SvmParam &param) override;
+
 };
 
 #endif //THUNDERSVM_NUSVR_H

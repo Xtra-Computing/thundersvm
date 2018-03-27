@@ -35,3 +35,8 @@ void NuSVR::train(const DataSet &dataset, SvmParam param) {
     solver.solve(kernelMatrix, y, alpha_2, rho.host_data()[0], f_val, param.epsilon, param.C, param.C, ws_size, max_iter);
     save_svr_coef(alpha_2, dataset.instances());
 }
+
+void NuSVR::model_setup(const DataSet &dataset, SvmParam &param) {
+    SVR::model_setup(dataset, param);
+    this->param.svm_type = SvmParam::NU_SVR;
+}

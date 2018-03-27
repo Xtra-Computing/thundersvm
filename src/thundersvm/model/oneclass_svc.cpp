@@ -61,3 +61,7 @@ vector<float_type> OneClassSVC::predict(const DataSet::node2d &instances, int ba
 }
 
 
+void OneClassSVC::model_setup(const DataSet &dataset, SvmParam &param) {
+    SvmModel::model_setup(dataset, param);
+    this->param.svm_type = SvmParam::ONE_CLASS;
+}
