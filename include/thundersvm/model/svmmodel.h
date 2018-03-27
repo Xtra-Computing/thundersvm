@@ -97,6 +97,8 @@ protected:
      */
     virtual void model_setup(const DataSet &dataset, SvmParam &param);
 
+    int get_working_set_size(int n_instances, int n_features);
+
     SvmParam param;
     /**
      * coefficients for each support vector, the structure is the same as LIBSVM. The coefficient is equal to

@@ -35,5 +35,5 @@ protected:
 TEST_F(SVRTest, test_set) {
     EXPECT_NEAR(load_dataset_and_train(DATASET_DIR
                         "test_dataset.txt", DATASET_DIR
-                        "test_dataset.txt", 100, 0.5), 0.020752, 1e-5);
+                        "test_dataset.txt", 100, 0.5), 0.020752, 1e-3);
 }

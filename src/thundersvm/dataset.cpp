@@ -101,7 +101,7 @@ void DataSet::load_from_python(float *y, char **x, int len) {
     n_features_ = 0;
     for (int i = 0; i < len; i++) {
         int ind;
-        float_type v;
+        float v;
         string line = x[i];
         stringstream ss(line);
         y_.push_back(y[i]);
@@ -123,7 +123,7 @@ void DataSet::load_from_sparse(int row_size, float* val, int* row_ptr, int* col_
     n_features_ = 0;
     for(int i = 0; i < row_size; i++){
         int ind;
-        float_type  v;
+        float  v;
         if(label != NULL)
             y_.push_back(label[i]);
         instances_.emplace_back();
@@ -149,7 +149,7 @@ void DataSet::load_from_dense(int row_size, int features, float* data, float* la
     int off = 0;
     for(int i = 0; i < row_size; i++){
         int ind;
-        float_type v;
+        float v;
         if(label != NULL)
             y_.push_back(label[i]);
         instances_.emplace_back();

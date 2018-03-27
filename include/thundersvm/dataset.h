@@ -14,10 +14,10 @@
 class DataSet {
 public:
     struct node{
-        node(int index, float_type value) : index(index), value(value) {}
+        node(int index, kernel_type value) : index(index), value(value) {}
 
         int index;
-        float_type value;
+        kernel_type value;
     };
 
     typedef vector<vector<DataSet::node>> node2d;

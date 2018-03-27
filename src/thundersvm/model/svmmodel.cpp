@@ -6,6 +6,8 @@
 #include <thundersvm/model/svmmodel.h>
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
 #include <iomanip>
+#include <sys/sysinfo.h>
+
 using std::ofstream;
 using std::endl;
 using std::setprecision;
@@ -102,10 +104,10 @@ SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncArray<float_t
         //sum kernel values and get decision values
         sum_kernel_values(coef, sv.size(), sv_start, n_sv, rho, kernel_values, batch_dec_values, n_classes,
                           batch_ins.size());
-		if ((instances.end() - batch_start) <= batch_size)
-			batch_start = instances.end();
-		else
-			batch_start += batch_size;
+        if ((instances.end() - batch_start) <= batch_size)
+            batch_start = instances.end();
+        else
+            batch_start += batch_size;
     }
 }
 
@@ -145,12 +147,12 @@ void SvmModel::save_to_file(string path) {
         for (int i = 0; i < n_classes; ++i) {
             fs_model << label[i] << " ";
         }
-        fs_model<< endl;
+        fs_model << endl;
         fs_model << "nr_sv ";
         for (int i = 0; i < n_classes; ++i) {
             fs_model << n_sv.host_data()[i] << " ";
         }
-        fs_model<< endl;
+        fs_model << endl;
     }
     if (param.probability == 1) {
         fs_model << "probA ";
@@ -265,7 +267,7 @@ void SvmModel::load_from_file(string path) {
             ifs.close();
         }
     }
-    if (param.svm_type != SvmParam::C_SVC && param.svm_type != SvmParam::NU_SVC){
+    if (param.svm_type != SvmParam::C_SVC && param.svm_type != SvmParam::NU_SVC) {
         n_sv.host_data()[0] = n_total_sv;
         n_sv.host_data()[1] = 0;
     }
@@ -275,19 +277,19 @@ int SvmModel::total_sv() const {
     return n_total_sv;
 }
 
-const DataSet::node2d & SvmModel::svs() const {
+const DataSet::node2d &SvmModel::svs() const {
     return sv;
 }
 
-const SyncArray<int> & SvmModel::get_n_sv() const{
+const SyncArray<int> &SvmModel::get_n_sv() const {
     return n_sv;
 }
 
-const SyncArray<float_type> & SvmModel::get_coef() const{
+const SyncArray<float_type> &SvmModel::get_coef() const {
     return coef;
 }
 
-const SyncArray<float_type> & SvmModel::get_rho() const{
+const SyncArray<float_type> &SvmModel::get_rho() const {
     return rho;
 }
 
@@ -300,6 +302,22 @@ void SvmModel::set_max_iter(int iter) {
     return;
 }
 
-const SyncArray<float_type> & SvmModel::get_dec_value() const{
+const SyncArray<float_type> &SvmModel::get_dec_value() const {
     return dec_values;
+}
+
+int SvmModel::get_working_set_size(int n_instances, int n_features) {
+    size_t free_device_mem;
+#ifdef USE_CUDA
+    size_t total_device_mem;
+    cudaMemGetInfo(&free_device_mem, &total_device_mem);
+#else
+    struct sysinfo si;
+    int r = sysinfo(&si);
+    free_device_mem = si.freeram;
+#endif
+    int ws_size = min(max2power(n_instances),
+                      min(max2power(free_device_mem / sizeof(kernel_type) / (n_instances + n_features)), 1024));
+    LOG(INFO) << "working set size = " << ws_size;
+    return ws_size;
 }

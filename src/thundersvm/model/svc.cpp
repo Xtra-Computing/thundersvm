@@ -133,9 +133,10 @@ void SVC::train_binary(const DataSet &dataset, int i, int j, SyncArray<float_typ
         f_val_data[dataset.count()[i] + l] = +1;
     }
     KernelMatrix k_mat(ins, param);
-    int ws_size = min(max2power(ins.size()), 1024);
+    int ws_size = get_working_set_size(ins.size(), k_mat.n_features());
     CSMOSolver solver;
-    solver.solve(k_mat, y, alpha, rho, f_val, param.epsilon, param.C * c_weight[i], param.C * c_weight[j], ws_size, max_iter);
+    solver.solve(k_mat, y, alpha, rho, f_val, param.epsilon, param.C * c_weight[i], param.C * c_weight[j], ws_size,
+                 max_iter);
     LOG(INFO) << "rho = " << rho;
     int n_sv = 0;
     y_data = y.host_data();

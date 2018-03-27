@@ -22,7 +22,7 @@ void OneClassSVC::train(const DataSet &dataset, SvmParam param) {
     }
     if (n < n_instances)
         alpha_data[n] = param.nu * n_instances - n;
-    int ws_size = min(max2power(n_instances), 1024);
+    int ws_size = get_working_set_size(n_instances, kernelMatrix.n_features());
 
     //TODO batch, thrust
     f_val.mem_set(0);

@@ -30,7 +30,7 @@ void NuSVC::train_binary(const DataSet &dataset, int i, int j, SyncArray<float_t
     vector<int> ori = dataset.original_index(i, j);
 
     KernelMatrix k_mat(ins, param);
-    int ws_size = min(max2power(ins.size()), 1024);
+    int ws_size = get_working_set_size(ins.size(), k_mat.n_features());
     NuSMOSolver solver(false);
     solver.solve(k_mat, y, alpha, rho, f_val, param.epsilon, 1, 1, ws_size, max_iter);
 
