@@ -5,11 +5,10 @@
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
-
 namespace svm_kernel {
     void
     get_working_set_ins(const SyncArray<kernel_type> &val, const SyncArray<int> &col_ind, const SyncArray<int> &row_ptr,
-                        const SyncArray<int> &data_row_idx, SyncArray<kernel_type> &data_rows, int m) {
+                            const SyncArray<int> &data_row_idx, SyncArray<kernel_type> &data_rows, int m, int n) {
         const int *data_row_idx_data = data_row_idx.host_data();
         kernel_type *data_rows_data = data_rows.host_data();
         const int *row_ptr_data = row_ptr.host_data();
@@ -20,7 +19,7 @@ namespace svm_kernel {
             int row = data_row_idx_data[i];
             for (int j = row_ptr_data[row]; j < row_ptr_data[row + 1]; ++j) {
                 int col = col_ind_data[j];
-                data_rows_data[col * m + i] = val_data[j]; // row-major for cuSPARSE
+                data_rows_data[i * n + col] = val_data[j]; //row major
             }
         }
     }
@@ -56,7 +55,6 @@ namespace svm_kernel {
                         gamma);
             }
         }
-
     }
 
     void poly_kernel(SyncArray<kernel_type> &dot_product, kernel_type gamma, kernel_type coef0, int degree, int mn) {
@@ -117,12 +115,11 @@ namespace svm_kernel {
     void dns_csr_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_mat, const SyncArray<kernel_type> &csr_val,
                      const SyncArray<int> &csr_row_ptr, const SyncArray<int> &csr_col_ind, int nnz,
                      SyncArray<kernel_type> &result) {
-        Eigen::Map<const Eigen::MatrixXf> denseMat(dense_mat.host_data(), n, k);
+        Eigen::Map<const Eigen::MatrixXf> denseMat(dense_mat.host_data(), k, n);
         Eigen::Map<const Eigen::SparseMatrix<kernel_type, Eigen::RowMajor>> sparseMat(m, k, nnz, csr_row_ptr.host_data(),
                                                                                 csr_col_ind.host_data(),
                                                                                 csr_val.host_data());
-        Eigen::Matrix<kernel_type, Eigen::Dynamic, Eigen::Dynamic> dense_tran = denseMat.transpose();
-        Eigen::Matrix<kernel_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> retMat = sparseMat * dense_tran;
+        Eigen::Matrix<kernel_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> retMat = sparseMat * denseMat;
         Eigen::Map<Eigen::Matrix<kernel_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> >(result.host_data(),
                                                                                            retMat.rows(),
                                                                                            retMat.cols()) = retMat;

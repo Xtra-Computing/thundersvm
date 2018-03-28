@@ -135,7 +135,7 @@ KernelMatrix::dns_csr_mul(const SyncArray<kernel_type> &dense_mat, int n_rows, S
 void KernelMatrix::get_dot_product(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const {
     SyncArray<kernel_type> data_rows(idx.size() * n_features_);
     data_rows.mem_set(0);
-    get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size());
+    get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size(), n_features_);
     dns_csr_mul(data_rows, idx.size(), dot_product);
 }
 
@@ -147,7 +147,12 @@ void KernelMatrix::get_dot_product(const DataSet::node2d &instances, SyncArray<k
         kernel_type sum = 0;
         for (int j = 0; j < instances[i].size(); ++j) {
             if (instances[i][j].index < n_features_) {
+                //col major for cuSPARSE, row major for Eigen
+#ifdef USE_CUDA
                 dense_ins_data[instances[i][j].index * instances.size() + i] = instances[i][j].value;
+#else
+                dense_ins_data[i * n_features_ + instances[i][j].index] = instances[i][j].value;
+#endif
                 sum += instances[i][j].value * instances[i][j].value;
             } else {
 //                LOG(WARNING)<<"the number of features in testing set is larger than training set";

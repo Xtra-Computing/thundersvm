@@ -10,12 +10,12 @@ namespace svm_kernel {
     __global__ void
     kernel_get_working_set_ins(const kernel_type *val, const int *col_ind, const int *row_ptr, const int *data_row_idx,
                                kernel_type *data_rows,
-                               int m) {
+                               int m, int n) {
         KERNEL_LOOP(i, m) {
             int row = data_row_idx[i];
             for (int j = row_ptr[row]; j < row_ptr[row + 1]; ++j) {
                 int col = col_ind[j];
-                data_rows[col * m + i] = val[j]; // row-major for cuSPARSE
+                data_rows[col * m + i] = val[j]; // col-major for cuSPARSE
             }
         }
     }
@@ -97,9 +97,9 @@ namespace svm_kernel {
 
     void
     get_working_set_ins(const SyncArray<kernel_type> &val, const SyncArray<int> &col_ind, const SyncArray<int> &row_ptr,
-                        const SyncArray<int> &data_row_idx, SyncArray<kernel_type> &data_rows, int m) {
+                        const SyncArray<int> &data_row_idx, SyncArray<kernel_type> &data_rows, int m, int n) {
         SAFE_KERNEL_LAUNCH(kernel_get_working_set_ins, val.device_data(), col_ind.device_data(), row_ptr.device_data(),
-                           data_row_idx.device_data(), data_rows.device_data(), m);
+                           data_row_idx.device_data(), data_rows.device_data(), m, n);
 
     }
 
