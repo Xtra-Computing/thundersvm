@@ -104,7 +104,7 @@ In the following, we provide an example of using ThunderSVM for the MNIST datase
 
 * Download the MNIST data set. The data set is available in [this link](https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/multiclass/mnist.scale.bz2).
 
-* Decompress the data set. For Windows machines, you can decompress the data set using tools such as [7-Zip](www.7-zip.org). For Unix based OSes, you can use
+* Decompress the data set. For Windows machines, you can decompress the data set using tools such as [7-Zip](https://www.7-zip.org). For Unix based OSes, you can use
 ```bash
 bunzip2 mnist.scale.bz2
 ```
