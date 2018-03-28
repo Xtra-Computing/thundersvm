@@ -17,7 +17,8 @@ build:
   project: build/thundersvm.sln
   parallel: true
   verbosity: quiet
-test: off
+test_script:
+- cmd: cmake --build . --target runtest
 artifacts:
 - path: build\bin\
   name: thundersvm
