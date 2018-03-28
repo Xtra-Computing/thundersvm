@@ -6,7 +6,13 @@
 #include <thundersvm/model/svmmodel.h>
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
 #include <iomanip>
+
+#ifdef _WIN32
+#include "windows.h"
+#else
 #include <sys/sysinfo.h>
+#endif
+
 
 using std::ofstream;
 using std::endl;
@@ -122,7 +128,7 @@ vector<float_type> SvmModel::predict(const DataSet::node2d &instances, int batch
 
 void SvmModel::save_to_file(string path) {
     ofstream fs_model;
-    fs_model.open(path.c_str(), std::ios_base::out|std::ios_base::trunc);
+    fs_model.open(path.c_str(), std::ios_base::out | std::ios_base::trunc);
     CHECK(fs_model.is_open()) << "create file " << path << "failed";
     const SvmParam &param = this->param;
     fs_model << "svm_type " << SvmParam::svm_type_name[param.svm_type] << endl;
@@ -312,9 +318,16 @@ int SvmModel::get_working_set_size(int n_instances, int n_features) {
     size_t total_device_mem;
     cudaMemGetInfo(&free_device_mem, &total_device_mem);
 #else
+#ifdef _WIN32
+    MEMORYSTATUSEX statex;
+    statex.dwLength = sizeof (statex);
+    GlobalMemoryStatusEx (&statex);
+    free_device_mem = statex.ullAvailPhys;
+#else
     struct sysinfo si;
     int r = sysinfo(&si);
     free_device_mem = si.freeram;
+#endif
 #endif
     int ws_size = min(max2power(n_instances),
                       min(max2power(free_device_mem / sizeof(kernel_type) / (n_instances + n_features)), 1024));
