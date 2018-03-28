@@ -15,7 +15,7 @@ If you don't have GPUs, please go to [Working without GPUs](#working-without-gpu
 #### Installation for  Linux
 * Clone ThunderSVM repository
 ```bash
-git clone git@github.com:zeyiwen/thundersvm.git
+git clone https://github.com/zeyiwen/thundersvm.git
 ```
 
 * Build ThunderSVM
@@ -30,7 +30,7 @@ If ```make -j``` doesn't work, please use ```make``` instead.
 #### Installation for MacOS
 * Clone ThunderSVM repository
 ```bash
-git clone git@github.com:zeyiwen/thundersvm.git
+git clone https://github.com/zeyiwen/thundersvm.git
 ```
 You need to Install ```CMake``` and ```gcc``` for MacOS. If you don't have Homebrew, [here](https://brew.sh/) is its website.
 ```bash
@@ -50,7 +50,7 @@ make -j
 #### Installation for Windows
 * Clone ThunderSVM repository
 ```bash
-git clone git@github.com:zeyiwen/thundersvm.git
+git clone https://github.com/zeyiwen/thundersvm.git
 ```
 
 * Create a Visual Studio project
@@ -66,7 +66,7 @@ If you don't have GPUs, ThunderSVM can run purely on CPUs. The number of CPU cor
 
 * Clone ThunderSVM repository
 ```bash
-git clone git@github.com:zeyiwen/thundersvm.git
+git clone https://github.com/zeyiwen/thundersvm.git
 ```
 
 * Get Eigen Library. ThunderSVM uses [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) for matrix calculation. To use Eigen, just 

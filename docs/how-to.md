@@ -15,7 +15,7 @@ After installing the above software, you can start compiling ThunderSVM.
 
 * Clone ThunderSVM repository
 ```bash
-git clone git@github.com:zeyiwen/thundersvm.git
+git clone https://github.com/zeyiwen/thundersvm.git
 ```
 
 If you don't have a GPU or want to run ThunderSVM purely on CPUs, you need to add a submodule to ThunderSVM by the following command. Please refer to [Working without GPUs](http://thundersvm.readthedocs.io/en/latest/get-started.html#working-without-gpus) for more information.
@@ -113,7 +113,7 @@ Please note that ```cmake .. [-D<options>=<args>]``` produces a  ```CMakeCache.t
 #### Build test on Linux
 * Clone ThunderSVM repository
 ```bash
-git clone git@github.com:zeyiwen/thundersvm.git
+git clone https://github.com/zeyiwen/thundersvm.git
 git submodule update --init src/test/googletest
 ```
 
@@ -129,7 +129,7 @@ If ```make -j runtest``` doesn't work, please use ```make runtest``` instead. Ma
 #### Build test on MacOS
 * Clone ThunderSVM repository
 ```bash
-git clone git@github.com:zeyiwen/thundersvm.git
+git clone https://github.com/zeyiwen/thundersvm.git
 git submodule update --init src/test/googletest
 ```
 
@@ -145,7 +145,7 @@ Where ```[path_to_g++]``` and ```[path_to_gcc]``` typically look like ```/usr/lo
 #### Build test on Windows
 * Clone ThunderSVM repository
 ```bash
-git clone git@github.com:zeyiwen/thundersvm.git
+git clone https://github.com/zeyiwen/thundersvm.git
 git submodule update --init src/test/googletest
 ```
 
