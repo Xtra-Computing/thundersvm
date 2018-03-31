@@ -192,6 +192,7 @@ namespace svm_kernel {
             if (numOfIter > max_iter || local_diff < local_eps) {
                 alpha[wsi] = a;
                 alpha_diff[tid] = -(a - aold) * y;
+                diff[1] = numOfIter;
                 break;
             }
             __syncthreads();
