@@ -82,6 +82,8 @@ namespace thunder {
 
         HEAD head() const;
 
+        static size_t get_total_memory_size() { return total_memory_size; }
+
     private:
         void *device_ptr;
         void *host_ptr;
@@ -89,6 +91,7 @@ namespace thunder {
         bool own_host_data;
         size_t size_;
         HEAD head_;
+        static size_t total_memory_size;
     };
 }
 using thunder::SyncMem;

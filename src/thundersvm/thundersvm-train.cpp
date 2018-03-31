@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
         }
     }
     catch (std::bad_alloc &) {
-        LOG(FATAL) << "out of host memory";
+        LOG(FATAL) << "out of memory, you may try \"-m memory size\" to constrain memory usage";
         exit(EXIT_FAILURE);
     }
     catch (std::exception const &x) {

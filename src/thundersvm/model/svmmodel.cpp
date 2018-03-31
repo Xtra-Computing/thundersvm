@@ -7,13 +7,6 @@
 #include <thundersvm/kernel/kernelmatrix_kernel.h>
 #include <iomanip>
 
-#ifdef _WIN32
-#include "windows.h"
-#else
-#include <sys/sysinfo.h>
-#endif
-
-
 using std::ofstream;
 using std::endl;
 using std::setprecision;
@@ -313,24 +306,9 @@ const SyncArray<float_type> &SvmModel::get_dec_value() const {
 }
 
 int SvmModel::get_working_set_size(int n_instances, int n_features) {
-    size_t free_device_mem;
-#ifdef USE_CUDA
-    size_t total_device_mem;
-    cudaMemGetInfo(&free_device_mem, &total_device_mem);
-#else
-#ifdef _WIN32
-    MEMORYSTATUSEX statex;
-    statex.dwLength = sizeof (statex);
-    GlobalMemoryStatusEx (&statex);
-    free_device_mem = statex.ullAvailPhys;
-#else
-    struct sysinfo si;
-    int r = sysinfo(&si);
-    free_device_mem = si.freeram;
-#endif
-#endif
+    size_t free_mem = param.max_mem_size - SyncMem::get_total_memory_size();
     int ws_size = min(max2power(n_instances),
-                      min(max2power(free_device_mem / sizeof(kernel_type) / (n_instances + n_features)), 1024));
+                      (int) min(max2power(free_mem / sizeof(kernel_type) / (n_instances + n_features)), size_t(1024)));
     LOG(INFO) << "working set size = " << ws_size;
     return ws_size;
 }

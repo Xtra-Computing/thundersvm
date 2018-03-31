@@ -17,8 +17,9 @@ static inline T min(T x, T y) { return (x < y) ? x : y; }
 
 #endif
 
-inline int max2power(int n) {
-    return int(pow(2, floor(log2f(float(n)))));
+template<typename T>
+inline T max2power(T n) {
+    return T(pow(2, floor(log2f(float(n)))));
 }
 const int BLOCK_SIZE = 512;
 
@@ -33,6 +34,7 @@ const int NUM_BLOCKS = 32 * 56;
   /* Code block avoids redefinition of cudaError_t error */ \
   do { \
     cudaError_t error = condition; \
+    if(error == cudaErrorMemoryAllocation) throw std::bad_alloc(); \
     CHECK_EQ(error, cudaSuccess) << " " << cudaGetErrorString(error); \
   } while (0)
 #define SAFE_KERNEL_LAUNCH(kernel_name, ...) \

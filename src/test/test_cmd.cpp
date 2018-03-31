@@ -47,6 +47,8 @@ TEST_F(CMDTest, test_default) {
     EXPECT_EQ(cmdParser.gpu_id, 0);
     EXPECT_EQ(cmdParser.svmtrain_input_file_name, traing_file_name);
     EXPECT_EQ(cmdParser.model_file_name, traing_file_name + ".model");
+    EXPECT_EQ(cmdParser.gamma_set, false);
+    EXPECT_EQ(cmdParser.n_cores, -1);
     //todo: check default gamma = 1/n_features
 #ifdef USE_CUDA
     //todo: check default device = 0
@@ -139,6 +141,12 @@ TEST_F(CMDTest, test_p) {
     EXPECT_DEATH(read_cmd("thundersvm-train -s 3 -p -1 " + traing_file_name), "");
 }
 
+TEST_F(CMDTest, test_m) {
+    read_cmd("thundersvm-train -m 1024 " + traing_file_name);
+    EXPECT_EQ(param.max_mem_size, 1024 << 20);
+    EXPECT_DEATH(read_cmd("thundersvm-train -m 0 " + traing_file_name), "");
+    EXPECT_DEATH(read_cmd("thundersvm-train -m -1 " + traing_file_name), "");
+}
 TEST_F(CMDTest, test_e) {
     read_cmd("thundersvm-train -e 0.1 " + traing_file_name);
     EXPECT_NEAR(param.epsilon, 0.1, float_max_error);

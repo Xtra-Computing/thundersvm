@@ -5,6 +5,7 @@
 #include <thundersvm/syncmem.h>
 
 namespace thunder {
+    size_t SyncMem::total_memory_size = 0;
     SyncMem::SyncMem() : device_ptr(nullptr), host_ptr(nullptr), size_(0), head_(UNINITIALIZED), own_device_data(false),
                          own_host_data(false) {
 
@@ -16,17 +17,20 @@ namespace thunder {
     }
 
     SyncMem::~SyncMem() {
-        this->head_ = UNINITIALIZED;
-        if (host_ptr && own_host_data) {
-            free_host(host_ptr);
-            host_ptr = nullptr;
-        }
+        if (this->head_ != UNINITIALIZED) {
+            this->head_ = UNINITIALIZED;
+            if (own_host_data || own_device_data) total_memory_size -= size_;
+            if (host_ptr && own_host_data) {
+                free_host(host_ptr);
+                host_ptr = nullptr;
+            }
 #ifdef USE_CUDA
-        if (device_ptr && own_device_data) {
-            CUDA_CHECK(cudaFree(device_ptr));
-            device_ptr = nullptr;
-        }
+            if (device_ptr && own_device_data) {
+                CUDA_CHECK(cudaFree(device_ptr));
+                device_ptr = nullptr;
+            }
 #endif
+        }
     }
 
     void *SyncMem::host_data() {
@@ -58,6 +62,7 @@ namespace thunder {
                 memset(host_ptr, 0, size_);
                 head_ = HOST;
                 own_host_data = true;
+                total_memory_size += size_;
                 break;
             case DEVICE:
 #ifdef USE_CUDA
@@ -84,6 +89,7 @@ namespace thunder {
                 CUDA_CHECK(cudaMemset(device_ptr, 0, size_));
                 head_ = DEVICE;
                 own_device_data = true;
+                total_memory_size += size_;
                 break;
             case HOST:
                 if (nullptr == device_ptr) {
@@ -105,6 +111,7 @@ namespace thunder {
         CHECK_NOTNULL(data);
         if (own_host_data) {
             free_host(host_ptr);
+            total_memory_size -= size_;
         }
         host_ptr = data;
         own_host_data = false;
@@ -116,6 +123,7 @@ namespace thunder {
         CHECK_NOTNULL(data);
         if (own_device_data) {
             CUDA_CHECK(cudaFree(device_data()));
+            total_memory_size -= size_;
         }
         device_ptr = data;
         own_device_data = false;

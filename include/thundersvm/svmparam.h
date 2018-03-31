@@ -23,6 +23,7 @@ struct SvmParam {
         nr_weight = 0;
         degree = 3;
         coef0 = 0;
+        max_mem_size = std::numeric_limits<size_t>::max();
     }
 
     /// SVM type
@@ -58,6 +59,8 @@ struct SvmParam {
     float_type *weight;
     ///do probability estimates
     int probability;
+    ///maximum memory size
+    size_t max_mem_size;
     static const char *kernel_type_name[6];
     static const char *svm_type_name[6];
 };

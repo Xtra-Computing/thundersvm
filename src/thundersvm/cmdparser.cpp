@@ -11,32 +11,34 @@
 #include "thundersvm/svmparam.h"
 #include "thundersvm/cmdparser.h"
 #include <omp.h>
+
 void HelpInfo_svmtrain() {
     LOG(INFO) <<
               "Usage (same as LibSVM): thundersvm [options] training_set_file [model_file]\n"
-                    "options:\n"
-                    "-s svm_type: set type of SVM (default 0)\n"
-                    "	0 -- C-SVC		(multi-class classification)\n"
-                    "	1 -- nu-SVC		(multi-class classification)\n"
-                    "	2 -- one-class SVM\n"
-                    "	3 -- epsilon-SVR	(regression)\n"
-                    "	4 -- nu-SVR		(regression)\n"
-                    "-t kernel_type: set type of kernel function (default 2)\n"
-                    "	0 -- linear: u'*v\n"
-                    "	1 -- polynomial: (gamma*u'*v + coef0)^degree\n"
-                    "	2 -- radial basis function: exp(-gamma*|u-v|^2)\n"
-                    "	3 -- sigmoid: tanh(gamma*u'*v + coef0)\n"
+                      "options:\n"
+                      "-s svm_type: set type of SVM (default 0)\n"
+                      "	0 -- C-SVC		(multi-class classification)\n"
+                      "	1 -- nu-SVC		(multi-class classification)\n"
+                      "	2 -- one-class SVM\n"
+                      "	3 -- epsilon-SVR	(regression)\n"
+                      "	4 -- nu-SVR		(regression)\n"
+                      "-t kernel_type: set type of kernel function (default 2)\n"
+                      "	0 -- linear: u'*v\n"
+                      "	1 -- polynomial: (gamma*u'*v + coef0)^degree\n"
+                      "	2 -- radial basis function: exp(-gamma*|u-v|^2)\n"
+                      "	3 -- sigmoid: tanh(gamma*u'*v + coef0)\n"
 //                    "	4 -- precomputed kernel (kernel values in training_set_file)\n"
-                    "-d degree: set degree in kernel function (default 3)\n"
-                    "-g gamma: set gamma in kernel function (default 1/num_features)\n"
-                    "-r coef0: set coef0 in kernel function (default 0)\n"
-                    "-c cost: set the parameter C of C-SVC, epsilon-SVR, and nu-SVR (default 1)\n"
-                    "-n nu: set the parameter nu of nu-SVC, one-class SVM, and nu-SVR (default 0.5)\n"
-                    "-p epsilon: set the epsilon in loss function of epsilon-SVR (default 0.1)\n"
-                    "-e epsilon: set tolerance of termination criterion (default 0.001)\n"
-                    "-b probability_estimates: whether to train a SVC or SVR model for probability estimates, 0 or 1 (default 0)\n"
-                    "-wi weight: set the parameter C of class i to weight*C, for C-SVC (default 1)\n"
-                    "-v n: n-fold cross validation mode\n"
+            "-d degree: set degree in kernel function (default 3)\n"
+            "-g gamma: set gamma in kernel function (default 1/num_features)\n"
+            "-r coef0: set coef0 in kernel function (default 0)\n"
+            "-c cost: set the parameter C of C-SVC, epsilon-SVR, and nu-SVR (default 1)\n"
+            "-n nu: set the parameter nu of nu-SVC, one-class SVM, and nu-SVR (default 0.5)\n"
+            "-p epsilon: set the epsilon in loss function of epsilon-SVR (default 0.1)\n"
+            "-m memory size: constrain the maximum memory size (MB) that thundersvm uses\n"
+            "-e epsilon: set tolerance of termination criterion (default 0.001)\n"
+            "-b probability_estimates: whether to train a SVC or SVR model for probability estimates, 0 or 1 (default 0)\n"
+            "-wi weight: set the parameter C of class i to weight*C, for C-SVC (default 1)\n"
+            "-v n: n-fold cross validation mode\n"
             "-u n: specify which gpu to use (default 0)\n"
             "-o n: set the number of cpu cores to use, -1 for maximum(default -1)\n"
             "-q: quiet mode";
@@ -46,8 +48,8 @@ void HelpInfo_svmtrain() {
 void HelpInfo_svmpredict() {
     LOG(INFO) <<
               "Usage: svm-predict [options] test_file model_file output_file\n"
-                    "options:\n"
-                    "-b probability_estimates: whether to predict probability estimates, 0 or 1 (default 0); for one-class SVM only 0 is supported\n";
+                      "options:\n"
+                      "-b probability_estimates: whether to predict probability estimates, 0 or 1 (default 0); for one-class SVM only 0 is supported\n";
     exit(1);
 }
 
@@ -78,18 +80,16 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                 case 'd':
                     param_cmd.degree = atoi(argv[i]);
                     break;
-                case 'g':
-                    {//handle fraction
-                        string str_argv(argv[i]);
-                        int slash = (int)str_argv.find("/", 0);
-                        if(slash != string::npos){
-                            float_type numerator = atof(str_argv.substr(0, slash).c_str());
-                            float_type denominator = atof(str_argv.substr(slash + 1).c_str());
-                            param_cmd.gamma = numerator / denominator;
-                        }
-                        else
+                case 'g': {//handle fraction
+                    string str_argv(argv[i]);
+                    int slash = (int) str_argv.find("/", 0);
+                    if (slash != string::npos) {
+                        float_type numerator = atof(str_argv.substr(0, slash).c_str());
+                        float_type denominator = atof(str_argv.substr(slash + 1).c_str());
+                        param_cmd.gamma = numerator / denominator;
+                    } else
                         param_cmd.gamma = atof(argv[i]);
-                    }
+                }
                     gamma_set = true;
                     break;
                 case 'r':
@@ -99,8 +99,7 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                     param_cmd.nu = atof(argv[i]);
                     break;
                 case 'm':
-//                    param_cmd.cache_size = atof(argv[i]);
-                    LOG(WARNING) << "setting cache size is not supported";
+                    param_cmd.max_mem_size = max(atoi(argv[i]), 0) << 20;//MB to Byte
                     break;
                 case 'c':
                     param_cmd.C = atof(argv[i]);
@@ -148,13 +147,11 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                     HelpInfo_svmtrain();
             }
         }
-        if(n_cores == -1){
+        if (n_cores == -1) {
             omp_set_num_threads(omp_get_max_threads());
-        }
-        else if(n_cores <= 0){
+        } else if (n_cores <= 0) {
             LOG(ERROR) << "cores number must bigger than 0";
-        }
-        else{
+        } else {
             omp_set_num_threads(n_cores);
         }
         if (i >= argc)
@@ -229,8 +226,7 @@ void CMDParser::parse_python(int argc, char **argv) {
                 param_cmd.nu = atof(argv[i]);
                 break;
             case 'm':
-//                    param_cmd.cache_size = atof(argv[i]);
-                LOG(WARNING) << "setting cache size is not supported";
+                param_cmd.max_mem_size = max(atoi(argv[i]), 0) << 20;//MB to Byte
                 break;
             case 'c':
                 param_cmd.C = atof(argv[i]);
@@ -279,13 +275,11 @@ void CMDParser::parse_python(int argc, char **argv) {
                 HelpInfo_svmtrain();
         }
     }
-    if(n_cores == -1){
+    if (n_cores == -1) {
         omp_set_num_threads(omp_get_num_procs());
-    }
-    else if(n_cores <= 0){
+    } else if (n_cores <= 0) {
         LOG(ERROR) << "cores number must bigger than 0";
-    }
-    else{
+    } else {
         omp_set_num_threads(n_cores);
     }
     if (i > argc)
@@ -330,6 +324,10 @@ bool CMDParser::check_parameter() {
             LOG(ERROR) << "p < 0";
             return false;
         }
+    if (param_cmd.max_mem_size <= 0) {
+        LOG(ERROR) << "max memory size <= 0";
+        return false;
+    }
     if (param_cmd.probability != 0 && param_cmd.probability != 1) {
         LOG(ERROR) << "probability != 0 and probability != 1";
         return false;
