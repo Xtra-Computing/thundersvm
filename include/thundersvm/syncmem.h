@@ -92,6 +92,7 @@ namespace thunder {
         bool own_host_data;
         size_t size_;
         HEAD head_;
+
     };
 }
 using thunder::SyncMem;
