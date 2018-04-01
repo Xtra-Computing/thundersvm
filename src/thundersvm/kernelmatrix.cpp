@@ -72,11 +72,25 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
 void KernelMatrix::get_rows(const SyncArray<int> &idx,
                             SyncArray<kernel_type> &kernel_rows) const {//compute multiple rows of kernel matrix according to idx
     CHECK_GE(kernel_rows.size(), idx.size() * n_instances_) << "kernel_rows memory is too small";
-    get_dot_product(idx, kernel_rows);
+#ifdef USE_CUDA
+    get_dot_product_dns_csr(idx, kernel_rows);
+#else
+{
+	TIMED_SCOPE(timerObj, "get dot product");
+	if(n_features_ < 1000000)
+		get_dot_product_dns_csr(idx, kernel_rows);
+	else
+		get_dot_product_csr_csr(idx, kernel_rows);
+//    get_dot_product_dns_dns(idx, kernel_rows);
+}
+#endif
     switch (param.kernel_type) {
         case SvmParam::RBF:
+{
+			TIMED_SCOPE(timerObj, "RBF kernel");
             RBF_kernel(idx, self_dot_, kernel_rows, idx.size(), n_instances_, param.gamma);
-            break;
+}
+			break;
         case SvmParam::LINEAR:
             //do nothing
             break;
@@ -131,12 +145,32 @@ KernelMatrix::dns_csr_mul(const SyncArray<kernel_type> &dense_mat, int n_rows, S
     CHECK_EQ(dense_mat.size(), n_rows * n_features_) << "dense matrix features doesn't match";
     svm_kernel::dns_csr_mul(n_instances_, n_rows, n_features_, dense_mat, val_, row_ptr_, col_ind_, nnz_, result);
 }
+#ifndef USE_CUDA
+void
+KernelMatrix::csr_csr_mul(const SyncArray<kernel_type> &ws_val, int n_rows, const SyncArray<int> &ws_col_ind,
+                          const SyncArray<int> &ws_row_ptr, SyncArray<kernel_type> &result) const {
+    svm_kernel::csr_csr_mul(n_instances_, n_rows, n_features_, ws_val, ws_col_ind, ws_row_ptr,
+                            val_, row_ptr_, col_ind_, nnz_, ws_val.size(), result);
+}
 
-void KernelMatrix::get_dot_product(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const {
+void
+KernelMatrix::dns_dns_mul(const SyncArray<kernel_type> &dense_mat, int n_rows,
+                          const SyncArray<kernel_type> &origin_dense, SyncArray<kernel_type> &result) const {
+    CHECK_EQ(dense_mat.size(), n_rows * n_features_) << "dense matrix features doesn't match";
+    svm_kernel::dns_dns_mul(n_instances_, n_rows, n_features_, dense_mat, origin_dense, result);
+}
+#endif
+void KernelMatrix::get_dot_product_dns_csr(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const {
     SyncArray<kernel_type> data_rows(idx.size() * n_features_);
     data_rows.mem_set(0);
+{
+	TIMED_SCOPE(timerObj, "get ws ins");
     get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size(), n_features_);
+}
+{
+	TIMED_SCOPE(timerObj, "dns csr mul");
     dns_csr_mul(data_rows, idx.size(), dot_product);
+}
 }
 
 void KernelMatrix::get_dot_product(const DataSet::node2d &instances, SyncArray<kernel_type> &dot_product) const {
@@ -161,5 +195,48 @@ void KernelMatrix::get_dot_product(const DataSet::node2d &instances, SyncArray<k
     }
     dns_csr_mul(dense_ins, instances.size(), dot_product);
 }
+#ifndef USE_CUDA
+void KernelMatrix::get_dot_product_csr_csr(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const {
+    SyncArray<kernel_type> ws_val;
+    SyncArray<int> ws_col_ind;
+    SyncArray<int> ws_row_ptr;
+{
+	TIMED_SCOPE(timerObj, "get ws ins");
+    get_working_set_ins(val_, col_ind_, row_ptr_, idx, ws_val, ws_col_ind, ws_row_ptr, idx.size());
+}
+{
+	TIMED_SCOPE(timerObj, "csr csr mul");
+    csr_csr_mul(ws_val, idx.size(), ws_col_ind, ws_row_ptr, dot_product);
+}
+}
 
-
+void KernelMatrix::get_dot_product_dns_dns(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const {
+    SyncArray<kernel_type> data_rows(idx.size() * n_features_);
+    data_rows.mem_set(0);
+    SyncArray<kernel_type> origin_dense(n_instances_ * n_features());
+    origin_dense.mem_set(0);
+    SyncArray<int> origin_idx(n_instances_);
+    int *origin_idx_data = origin_idx.host_data();
+    for (int i = 0; i < n_instances_; ++i) {
+        origin_idx_data[i] = i;
+    }
+{
+	TIMED_SCOPE(timerObj, "get ws ins");
+    get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size(), n_features_);
+    get_working_set_ins(val_, col_ind_, row_ptr_, origin_idx, origin_dense, origin_idx.size(), n_features_);
+}
+{
+	TIMED_SCOPE(timerObj, "dns dns mul");
+    dns_dns_mul(data_rows, idx.size(), origin_dense, dot_product);
+}
+}
+#endif
+//void KernelMatrix::get_dot_product_sparse(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const{
+//    int ws_val_num = 0;
+//    const int *row_ptr_data = row_ptr_.host_data();
+//    const int *idx_ptr = idx.host_data();
+//    for(int i = 0; i < idx.size(); i++){
+//        ws_val_num += row_ptr_data[idx_ptr[i] + 1] - row_ptr_data[idx_ptr[i]];
+//    }
+//    kernel_type *ws_val = new kernel_type[ws_val_num];
+//}

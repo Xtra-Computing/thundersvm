@@ -15,6 +15,11 @@ namespace svm_kernel {
                             const SyncArray<int> &data_row_idx, SyncArray<kernel_type> &data_rows, int m, int n);
 
     void
+    get_working_set_ins(const SyncArray<kernel_type> &val, const SyncArray<int> &col_ind, const SyncArray<int> &row_ptr,
+                        const SyncArray<int> &data_row_idx, SyncArray <kernel_type>& ws_val,
+                        SyncArray<int> &ws_col_ind, SyncArray<int> &ws_row_ptr, int m);
+
+    void
     RBF_kernel(const SyncArray<kernel_type> &self_dot0, const SyncArray<kernel_type> &self_dot1,
                SyncArray<kernel_type> &dot_product, int m,
                int n,
@@ -37,6 +42,15 @@ namespace svm_kernel {
     void dns_csr_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_mat, const SyncArray<kernel_type> &csr_val,
                      const SyncArray<int> &csr_row_ptr, const SyncArray<int> &csr_col_ind, int nnz,
                      SyncArray<kernel_type> &result);
+#ifndef USE_CUDA
+    void csr_csr_mul(int m, int n, int k, const SyncArray<kernel_type> &ws_val, const SyncArray<int> &ws_col_ind,
+                     const SyncArray<int> &ws_row_ptr, const SyncArray<kernel_type> &csr_val,
+                     const SyncArray<int> &csr_row_ptr, const SyncArray<int> &csr_col_ind, int nnz, int nnz2,
+                     SyncArray<kernel_type> &result);
+
+    void dns_dns_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_mat,
+                     const SyncArray<kernel_type> &origin_dense, SyncArray<kernel_type> &result);
+#endif
 }
 #endif //THUNDERSVM_KERNELMATRIX_KERNEL_H
 

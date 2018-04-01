@@ -45,7 +45,7 @@ if (USE_EIGEN)
     message("using Eigen for acceleration")
     include_directories(${PROJECT_SOURCE_DIR}/eigen)
 endif ()
-
+add_compile_options("-DELPP_FEATURE_PERFORMANCE_TRACKING")
 if (CMAKE_VERSION VERSION_LESS "3.1")
     add_compile_options("-std=c++11")
 else ()
