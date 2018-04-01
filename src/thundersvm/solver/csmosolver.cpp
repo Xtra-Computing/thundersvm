@@ -45,58 +45,32 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
     }
     init_f(alpha, y, k_mat, f_val);
     LOG(INFO) << "training start";
-{
-	TIMED_SCOPE(timerObj, "train time");
     int max_iter = max(100000, ws_size > INT_MAX / 100 ? INT_MAX : 100 * ws_size);
     long long local_iter = 0;
     for (int iter = 0;; ++iter) {
         //select working set
-{
-	TIMED_SCOPE(timerObj, "copy f");
         f_idx2sort.copy_from(f_idx);
         f_val2sort.copy_from(f_val);
-}
-{
-	TIMED_SCOPE(timerObj, "sort f");
         sort_f(f_val2sort, f_idx2sort);
-}
         vector<int> ws_indicator(n_instances, 0);
         if (0 == iter) {
-{
-		TIMED_SCOPE(timerObj, "select working set");
             select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set);
-}
-{
-		TIMED_SCOPE(timerObj, "get rows");
             k_mat.get_rows(working_set, k_mat_rows);
-}
         } else {
             working_set_first_half.copy_from(working_set_last_half);
             int *working_set_data = working_set.host_data();
             for (int i = 0; i < q; ++i) {
                 ws_indicator[working_set_data[i]] = 1;
             }
-{
-	TIMED_SCOPE(timerObj, "select working set");
             select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set_last_half);
-}
             k_mat_rows_first_half.copy_from(k_mat_rows_last_half);
-{
-	TIMED_SCOPE(timerObj, "get rows");
             k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
-}        
-	}
+		}
         //local smo
-{
-	TIMED_SCOPE(timerObj, "smo kernel");
         smo_kernel(y, f_val, alpha, alpha_diff, working_set, Cp, Cn, k_mat_rows, k_mat.diag(), n_instances, eps, diff,
                    max_iter);
-}
         //update f
-{
-	TIMED_SCOPE(timerObj, "update f");
         update_f(f_val, alpha_diff, k_mat_rows, k_mat.n_instances());
-}
         float_type *diff_data = diff.host_data();
         local_iter += diff_data[1];
         if (iter % 100 == 0)
@@ -109,7 +83,6 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
             break;
         }
     }
-}
 }
 
 void
