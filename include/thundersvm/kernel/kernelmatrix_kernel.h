@@ -48,8 +48,8 @@ namespace svm_kernel {
                      const SyncArray<int> &csr_row_ptr, const SyncArray<int> &csr_col_ind, int nnz, int nnz2,
                      SyncArray<kernel_type> &result);
 
-    void dns_dns_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_mat,
-                     const SyncArray<kernel_type> &origin_dense, SyncArray<kernel_type> &result);
+//    void dns_dns_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_mat,
+//                     const SyncArray<kernel_type> &origin_dense, SyncArray<kernel_type> &result);
 #endif
 }
 #endif //THUNDERSVM_KERNELMATRIX_KERNEL_H

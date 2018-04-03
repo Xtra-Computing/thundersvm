@@ -132,9 +132,9 @@ namespace svm_kernel {
     cusparseMatDescr_t descr;
     bool cusparse_init;
 
-    void dns_csr_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_mat, const SyncArray<kernel_type> &csr_val,
+    void dns_csr_mul(int m, int n, int k, const SyncArray<float> &dense_mat, const SyncArray<float> &csr_val,
                      const SyncArray<int> &csr_row_ptr, const SyncArray<int> &csr_col_ind, int nnz,
-                     SyncArray<kernel_type> &result) {
+                     SyncArray<float> &result) {
         if (!cusparse_init) {
             cusparseCreate(&handle);
             cusparseCreateMatDescr(&descr);
@@ -142,9 +142,27 @@ namespace svm_kernel {
             cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
             cusparse_init = true;
         }
-        kernel_type one(1);
-        kernel_type zero(0);
+        float one(1);
+        float zero(0);
         cusparseScsrmm2(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
+                        m, n, k, nnz, &one, descr, csr_val.device_data(), csr_row_ptr.device_data(),
+                        csr_col_ind.device_data(),
+                        dense_mat.device_data(), n, &zero, result.device_data(), m);
+        //cusparseScsrmm return row-major matrix, so no transpose is needed
+    }
+    void dns_csr_mul(int m, int n, int k, const SyncArray<double> &dense_mat, const SyncArray<double> &csr_val,
+                     const SyncArray<int> &csr_row_ptr, const SyncArray<int> &csr_col_ind, int nnz,
+                     SyncArray<double> &result) {
+        if (!cusparse_init) {
+            cusparseCreate(&handle);
+            cusparseCreateMatDescr(&descr);
+            cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);
+            cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
+            cusparse_init = true;
+        }
+        double one(1);
+        double zero(0);
+        cusparseDcsrmm2(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
                         m, n, k, nnz, &one, descr, csr_val.device_data(), csr_row_ptr.device_data(),
                         csr_col_ind.device_data(),
                         dense_mat.device_data(), n, &zero, result.device_data(), m);

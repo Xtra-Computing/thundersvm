@@ -147,12 +147,12 @@ KernelMatrix::csr_csr_mul(const SyncArray<kernel_type> &ws_val, int n_rows, cons
                             val_, row_ptr_, col_ind_, nnz_, ws_val.size(), result);
 }
 
-void
-KernelMatrix::dns_dns_mul(const SyncArray<kernel_type> &dense_mat, int n_rows,
-                          const SyncArray<kernel_type> &origin_dense, SyncArray<kernel_type> &result) const {
-    CHECK_EQ(dense_mat.size(), n_rows * n_features_) << "dense matrix features doesn't match";
-    svm_kernel::dns_dns_mul(n_instances_, n_rows, n_features_, dense_mat, origin_dense, result);
-}
+//void
+//KernelMatrix::dns_dns_mul(const SyncArray<kernel_type> &dense_mat, int n_rows,
+//                          const SyncArray<kernel_type> &origin_dense, SyncArray<kernel_type> &result) const {
+//    CHECK_EQ(dense_mat.size(), n_rows * n_features_) << "dense matrix features doesn't match";
+//    svm_kernel::dns_dns_mul(n_instances_, n_rows, n_features_, dense_mat, origin_dense, result);
+//}
 #endif
 void KernelMatrix::get_dot_product_dns_csr(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const {
     SyncArray<kernel_type> data_rows(idx.size() * n_features_);
@@ -192,18 +192,18 @@ void KernelMatrix::get_dot_product_csr_csr(const SyncArray<int> &idx, SyncArray<
     csr_csr_mul(ws_val, idx.size(), ws_col_ind, ws_row_ptr, dot_product);
 }
 
-void KernelMatrix::get_dot_product_dns_dns(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const {
-    SyncArray<kernel_type> data_rows(idx.size() * n_features_);
-    data_rows.mem_set(0);
-    SyncArray<kernel_type> origin_dense(n_instances_ * n_features());
-    origin_dense.mem_set(0);
-    SyncArray<int> origin_idx(n_instances_);
-    int *origin_idx_data = origin_idx.host_data();
-    for (int i = 0; i < n_instances_; ++i) {
-        origin_idx_data[i] = i;
-    }
-    get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size(), n_features_);
-    get_working_set_ins(val_, col_ind_, row_ptr_, origin_idx, origin_dense, origin_idx.size(), n_features_);
-    dns_dns_mul(data_rows, idx.size(), origin_dense, dot_product);
-}
+//void KernelMatrix::get_dot_product_dns_dns(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const {
+//    SyncArray<kernel_type> data_rows(idx.size() * n_features_);
+//    data_rows.mem_set(0);
+//    SyncArray<kernel_type> origin_dense(n_instances_ * n_features());
+//    origin_dense.mem_set(0);
+//    SyncArray<int> origin_idx(n_instances_);
+//    int *origin_idx_data = origin_idx.host_data();
+//    for (int i = 0; i < n_instances_; ++i) {
+//        origin_idx_data[i] = i;
+//    }
+//    get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size(), n_features_);
+//    get_working_set_ins(val_, col_ind_, row_ptr_, origin_idx, origin_dense, origin_idx.size(), n_features_);
+//    dns_dns_mul(data_rows, idx.size(), origin_dense, dot_product);
+//}
 #endif

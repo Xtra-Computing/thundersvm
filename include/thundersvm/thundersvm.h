@@ -14,5 +14,9 @@
 using std::string;
 using std::vector;
 typedef double float_type;
+#ifdef DOUBLE_PRECISION
+typedef double kernel_type;
+#else
 typedef float kernel_type;
+#endif
 #endif //THUNDERSVM_THUNDERSVM_H
