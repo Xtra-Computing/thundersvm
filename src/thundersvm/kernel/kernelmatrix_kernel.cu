@@ -142,8 +142,8 @@ namespace svm_kernel {
             cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
             cusparse_init = true;
         }
-        float one(1);
-        float zero(0);
+        kernel_type one(1);
+        kernel_type zero(0);
         cusparseScsrmm2(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
                         m, n, k, nnz, &one, descr, csr_val.device_data(), csr_row_ptr.device_data(),
                         csr_col_ind.device_data(),

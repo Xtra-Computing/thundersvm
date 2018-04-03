@@ -18,7 +18,7 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
 
     vector<kernel_type> csr_self_dot;
     for (int i = 0; i < n_instances_; ++i) {//convert libsvm format to csr format
-        kernel_type self_dot = 0;
+        float_type self_dot = 0;
         for (int j = 0; j < instances[i].size(); ++j) {
             csr_val.push_back(instances[i][j].value);
             self_dot += instances[i][j].value * instances[i][j].value;

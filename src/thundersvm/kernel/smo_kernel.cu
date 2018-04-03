@@ -118,7 +118,7 @@ namespace svm_kernel {
     __global__ void
     nu_smo_solve_kernel(const int *label, float_type *f_values, float_type *alpha, float_type *alpha_diff,
                         const int *working_set,
-                        int ws_size, float C, const float *k_mat_rows, const float *k_mat_diag, int row_len,
+                        int ws_size, float C, const kernel_type *k_mat_rows, const kernel_type *k_mat_diag, int row_len,
                         float_type eps,
                         float_type *diff, int max_iter) {
         //"row_len" equals to the number of instances in the original training dataset.
