@@ -99,7 +99,7 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                     param_cmd.nu = atof(argv[i]);
                     break;
                 case 'm':
-                    param_cmd.max_mem_size = max(atoi(argv[i]), 0) << 20;//MB to Byte
+                    param_cmd.max_mem_size = static_cast<size_t>(max(atoi(argv[i]), 0)) << 20;//MB to Byte
                     break;
                 case 'c':
                     param_cmd.C = atof(argv[i]);
@@ -226,7 +226,7 @@ void CMDParser::parse_python(int argc, char **argv) {
                 param_cmd.nu = atof(argv[i]);
                 break;
             case 'm':
-                param_cmd.max_mem_size = max(atoi(argv[i]), 0) << 20;//MB to Byte
+                param_cmd.max_mem_size = static_cast<size_t>(max(atoi(argv[i]), 0)) << 20;//MB to Byte
                 break;
             case 'c':
                 param_cmd.C = atof(argv[i]);

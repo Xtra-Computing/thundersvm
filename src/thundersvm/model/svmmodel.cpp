@@ -298,7 +298,6 @@ int SvmModel::get_n_classes() const {
 
 void SvmModel::set_max_iter(int iter) {
     max_iter = iter;
-    return;
 }
 
 const SyncArray<float_type> &SvmModel::get_dec_value() const {
