@@ -61,7 +61,7 @@ If ```make -j``` doesn't work, please simply use ```make```. The number of CPU c
 You will see `Accuracy = 0.98` after successful running.
 
 ## How to cite ThunderSVM
-If you use ThunderSVM in your paper, please cite our work ([preprint now available](http://www.comp.nus.edu.sg/~hebs/pub/thundersvm.pdf)).
+If you use ThunderSVM in your paper, please cite our work ([preprint now available](https://github.com/zeyiwen/thundersvm/blob/master/thundersvm-full.pdf)).
 ```
 @article{wenthundersvm18,
  author = {Wen, Zeyi and Shi, Jiashuai and He, Bingsheng and Li, Qinbin and Chen, Jian},
