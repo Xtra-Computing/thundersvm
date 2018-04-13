@@ -24,7 +24,7 @@ The mission of ThunderSVM is to help users easily and efficiently apply SVMs to 
 [Documentations](http://thundersvm.readthedocs.io) | [Installation](http://thundersvm.readthedocs.io/en/latest/how-to.html) | [API Reference (doxygen)](http://zeyiwen.github.io/thundersvm/)
 ## Contents
 - [Getting Started](https://github.com/zeyiwen/thundersvm#getting-started)
-- [Working without GPUs](http://thundersvm.readthedocs.io/en/latest/get-started.html#working-without-gpus)
+- [Working without GPUs](http://thundersvm.readthedocs.io/en/latest/get-started.html#working-without-gpus-a-name-withoutgpu-a)
 ## Getting Started
 Supported Operating Systems: Linux, Windows and MacOS
 ### Prerequisites
