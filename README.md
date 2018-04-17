@@ -18,6 +18,7 @@ The mission of ThunderSVM is to help users easily and efficiently apply SVMs to 
 * Support all functionalities of LibSVM such as one-class SVMs, SVC, SVR and probabilistic SVMs.
 * Use same command line options as LibSVM.
 * Support Python, R and Matlab interfaces.
+* Supported Operating Systems: Linux, Windows and MacOS.
 
 **Why accelerate SVMs**: A [survey](https://www.kaggle.com/amberthomas/kaggle-2017-survey-results) conducted by Kaggle in 2017 shows that 26% of the data mining and machine learning practitioners are users of SVMs.
 
@@ -26,7 +27,7 @@ The mission of ThunderSVM is to help users easily and efficiently apply SVMs to 
 - [Getting Started](https://github.com/zeyiwen/thundersvm#getting-started)
 - [Working without GPUs](http://thundersvm.readthedocs.io/en/latest/get-started.html#working-without-gpus-a-name-withoutgpu-a)
 ## Getting Started
-Supported Operating Systems: Linux, Windows and MacOS
+
 ### Prerequisites
 * cmake 2.8 or above 
 * gcc 4.8 or above for Linux and MacOS; Visual C++ for Windows
@@ -36,7 +37,7 @@ If you want to use GPUs, you also need to install CUDA.
 * [CUDA](https://developer.nvidia.com/cuda-downloads) 7.5 or above
 ### Download
 ```bash
-git clone git@github.com:zeyiwen/thundersvm.git
+git clone https://github.com/zeyiwen/thundersvm.git
 ```
 ### Build on Linux (build [instructions](http://thundersvm.readthedocs.io/en/latest/get-started.html#installation) for MacOS and Windows)
 ##### ThunderSVM on GPUs

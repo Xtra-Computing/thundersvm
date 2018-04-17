@@ -7,9 +7,9 @@ We provide both simple Python interface and scikit-learn wrapper interface. Befo
 
 * After you have successfully done the above two steps, it is ready to start using Python interfaces.
 
-## Simple Python interface:
+## Simple Python interface
 ### Methods
-By default, the directory for storing the training data and results is the working directory.
+By default, the directory for storing the training data and results is the working directory; the ThunderSVM library (e.g., ```libthundersvm.so```) is stored in ```../build/lib``` of the current working directory.
 
 *svm_read_problem('file_name')*:\
 	read data from *file_name*.\
@@ -21,15 +21,24 @@ By default, the directory for storing the training data and results is the worki
 *svm_predict(labels, instances, 'model_file_name', 'output_file_name', parameters)*:\
 	use the SVM model saved in *model_file_name* to predict the labels of the given instances and store the results to *output_file_name*.
 
-### Examples
+### Example
+* Step 1: go to the Python interface.
+```bash
+# in thundersvm root directory
+cd python
+```
+* Step 2: create a file called ```test.py``` which has the following content.
 ```python
 from svm import *
-y,x = svm_read_problem('../dataset/mnist.scale')
-svm_train(y,x,'mnist.scale.model','-s 0 -t 2 -g 0.125 -c 10 -e 0.001')
-y,x=svm_read_problem('../dataset/mnist.scale.t')
-svm_predict(y,x,'mnist.scale.model','mnist.scale.out')
+y,x = svm_read_problem('../dataset/test_dataset.txt')
+svm_train(y,x,'test_dataset.txt.model','-c 100 -g 0.5')
+y,x=svm_read_problem('../dataset/test_dataset.txt')
+svm_predict(y,x,'test_dataset.txt.model','test_dataset.predict')
 ```
-
+* Step 3: run the python script.
+```bash
+python test.py
+```
 ## Scikit-learn wrapper interface
 ### Usage
 The usage of thundersvm scikit interface is similar to scikit.svm.
@@ -52,10 +61,10 @@ class SVR(kernel = 2, degree = 3, gamma = 'auto', coef0 = 0.0, cost = 1.0, epsil
 ### Parameters
 *kernel*: int, optional(default=2)\
     set type of kernel function\
-                    	0 -- linear: u'*v\
-                    	1 -- polynomial: (gamma*u'*v + coef0)^degree\
-                    	2 -- radial basis function: exp(-gamma*|u-v|^2)\
-                    	3 -- sigmoid: tanh(gamma*u'*v + coef0)\
+                    	0 -- linear: u'\*v\
+                    	1 -- polynomial: (gamma\*u'\*v + coef0)^degree\
+                    	2 -- radial basis function: exp(-gamma\*|u-v|^2)\
+                    	3 -- sigmoid: tanh(gamma\*u'\*v + coef0)\
                     	4 -- precomputed kernel (kernel values in training_set_file)
 
 *degree*: int, optional(default=3)\
@@ -85,10 +94,10 @@ class SVR(kernel = 2, degree = 3, gamma = 'auto', coef0 = 0.0, cost = 1.0, epsil
 *class_weight*:  {dict, ‘balanced’}, optional(default=None)\
     set the parameter C of class i to weight*C, for C-SVC
 
-*shrinking*: boolean, optional (default=False, Not support yet for True)\
+*shrinking*: boolean, optional (default=False, not supported yet for True)\
     Whether to use the shrinking heuristic. .
 
-*cache_size*: float, optional, Not support yet.\
+*cache_size*: float, optional, not supported yet.\
     Specify the size of the kernel cache (in MB).
 
 *verbose*: bool(default=False)\
@@ -100,10 +109,10 @@ class SVR(kernel = 2, degree = 3, gamma = 'auto', coef0 = 0.0, cost = 1.0, epsil
 *n_cores*: int, optional (default=-1)\
     The number of cpu cores to be used, or -1 for maximum.
 
-*decision_function_shape*: ‘ovo’, default=’ovo’, Not support yet for 'ovr'\
+*decision_function_shape*: ‘ovo’, default=’ovo’, not supported yet for 'ovr'\
     Only for classifier. Whether to return a one-vs-rest (‘ovr’) decision function of shape (n_samples, n_classes) as all other classifiers, or the original one-vs-one (‘ovo’) decision function of libsvm which has shape (n_samples, n_classes * (n_classes - 1) / 2).
 
-*random_state*: int, RandomState instance or None, optional (default=None), Not support yet\
+*random_state*: int, RandomState instance or None, optional (default=None), not supported yet\
     The seed of the pseudo random number generator to use when shuffling the data. If int, random_state is the seed used by the random number generator; If RandomState instance, random_state is the random number generator; If None, the random number generator is the RandomState instance used by np.random.
 
 ### Attributes
@@ -121,20 +130,30 @@ class SVR(kernel = 2, degree = 3, gamma = 'auto', coef0 = 0.0, cost = 1.0, epsil
 
 
 
-### Examples
+### Example
+* Step 1: go to the Python interface.
+```bash
+# in thundersvm root directory
+cd python
+```
+* Step 2: create a file called ```sk_test.py``` which has the following content.
 ```python
 from thundersvmScikit import *
 from sklearn.datasets import *
-x,y = load_svmlight_file("path to training dataset")
-clf = SVC()
+
+x,y = load_svmlight_file("../dataset/test_dataset.txt")
+clf = SVC(verbose=True, gamma=0.5, cost=100)
 clf.fit(x,y)
 
-x2,y2=load_svmlight_file("path to test dataset")
-clf.predict(x2)
-clf.score(x2,y2)
+x2,y2=load_svmlight_file("../dataset/test_dataset.txt")
+y_predict=clf.predict(x2)
+score=clf.score(x2,y2)
 
-from sklearn.model_selection import *
-scores = cross_val_score(clf,x,y,cv=5)
+print "test score is ", score
+```
+* Step 3: run the python script.
+```bash
+python sk_test.py
 ```
 
 ### Methods
