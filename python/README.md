@@ -128,9 +128,29 @@ class SVR(kernel = 2, degree = 3, gamma = 'auto', coef0 = 0.0, cost = 1.0, epsil
 *intercept_*: array, shape = [n_class * (n_class-1) / 2]\
     Constants in decision function.
 
+### Methods
+By default, the ThunderSVM library (e.g., ```libthundersvm.so```) is stored in ```../build/lib``` of the current working directory.
 
+*fit(X, y)*:\
+Fit the SVM model according to the given training data.
+
+*get_params([deep])*:\
+Get parameters for this estimator.
+
+*predict(X)*:\
+Perform classification on samples in X.
+
+*score(X, y)*:\
+Returns the mean accuracy on the given test data and labels.
+
+*set_params(\*\*params)*:\
+Set the parameters of this estimator.
+
+*decision_function(X)*:\
+Return distance of the samples X to the separating hyperplane. Only for SVC, NuSVC and OneClassSVM.
 
 ### Example
+
 * Step 1: go to the Python interface.
 ```bash
 # in thundersvm root directory
@@ -155,23 +175,3 @@ print "test score is ", score
 ```bash
 python sk_test.py
 ```
-
-### Methods
-*fit(X, y)*:\
-Fit the SVM model according to the given training data.
-
-*get_params([deep])*:\
-Get parameters for this estimator.
-
-*predict(X)*:\
-Perform classification on samples in X.
-
-*score(X, y)*:\
-Returns the mean accuracy on the given test data and labels.
-
-*set_params(****params)*:\
-Set the parameters of this estimator.
-
-*decision_function(X)*:\
-Return distance of the samples X to the separating hyperplane. Only for SVC, NuSVC and OneClassSVM.
-
