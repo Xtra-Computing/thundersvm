@@ -11,7 +11,7 @@ In the following, we describe the formal defination of SVMs. Specifically, a tra
 ```math
 & \underset{\boldsymbol{w}, \boldsymbol{\xi}, b}{\text{argmin}}
 & \frac{1}{2}{||\boldsymbol{w}||^2} + C\sum_{i=1}^{n}{\xi_i}\\
-& \text{subject to \quad}
+& \text{subject to   }
 &  y_i(\boldsymbol{w}\cdot \boldsymbol{x}_i - b) \geq 1 - \xi_i \\
 & & \xi_i \geq 0, \ \forall i \in \{1,...,n\}
 ```
@@ -21,7 +21,7 @@ To handle the non-linearly separable data, SVMs use a mapping function to map th
 ```math
 & \underset{\boldsymbol{\alpha}}{\text{max}}
 & & F(\boldsymbol{\alpha})=\sum_{i=1}^{n}{\alpha_i}-\frac{1}{2}{\boldsymbol{\alpha^T} \boldsymbol{Q} \boldsymbol{\alpha}}\\
-& \text{subject to \quad}
+& \text{subject to  }
 & &  0 \leq \alpha_i \leq C, \forall i \in \{1,...,n\}\\
 & & & \sum_{i=1}^{n}{y_i\alpha_i} = 0
 ```
@@ -56,10 +56,9 @@ and ``$ \eta_i = K(\boldsymbol{x}_{u}, \boldsymbol{x}_{u}) + K(\boldsymbol{x}_{i
 ```
 where ``$ \eta = K(\boldsymbol{x}_{u}, \boldsymbol{x}_{u}) + K(\boldsymbol{x}_{l}, \boldsymbol{x}_{l}) - 2K(\boldsymbol{x}_{u}, \boldsymbol{x}_{l}) $``. To guarantee the update is valid, when ``$ \alpha_{u}' $`` or ``$ \alpha_{l}' $`` exceeds the domain of [0, C], ``$ \alpha_{u}' $`` and ``$ \alpha_{l}' $`` are adjusted into the domain.
 
-**Step 3**: Update the optimality indicators of all instances. The optimality indicator ``$ f_i $`` of the instance ``$ \boldsymbol{x}_i $`` is updated to ``$ f'_i $`` using the following formula:
+**Step 3**: Update the optimality indicators of all the instances. The optimality indicator ``$ f_i $`` of the instance ``$ \boldsymbol{x}_i $`` is updated to ``$ f'_i $`` using the following formula:
 ```math
-f_i' = f_i + (\alpha_{u}' - \alpha_{u})y_{u} K(\boldsymbol{x}_{u}, \boldsymbol{x}_i)\\
-   +\ (\alpha_{l}' - \alpha_{l}) y_{l} K(\boldsymbol{x}_{l}, \boldsymbol{x}_i)
+f_i' = f_i + (\alpha_{u}' - \alpha_{u})y_{u} K(\boldsymbol{x}_{u}, \boldsymbol{x}_i)   +\ (\alpha_{l}' - \alpha_{l}) y_{l} K(\boldsymbol{x}_{l}, \boldsymbol{x}_i)
 ```
 SMO repeats the above steps until the optimal condition is met, i.e., ``$ f_{u} \ge f_{max} $``, where
 ```math
@@ -68,7 +67,7 @@ f_{max} = max\{f_i | \boldsymbol{x}_i \in \mathcal{X}_{lower}\}
 After the optimal condition is met, we obtain the ``$ \boldsymbol{\alpha} $`` values which corresponding to the optimal hyperplane and the SVM with these ``$ \boldsymbol{\alpha} $`` values is considered trained.
 
 ### Prediction
-After the training, the trained SVM is used to predict the label of unseen instances. The label of an instance ``$ \boldsymbol{x}_j $``, denoted by ``$ y_j $``, is predicted by the following formula:
+After the training, the trained SVM is used to predict the labels of unseen instances. The label of an instance ``$ \boldsymbol{x}_j $``, denoted by ``$ y_j $``, is predicted by the following formula:
 ```math
 y_j = \text{sgn} (\sum_{i=1}^{n}y_i\alpha_iK(\boldsymbol{x}_i, \boldsymbol{x}_j) + b)
 ```
@@ -80,8 +79,8 @@ The other SVM training problems implemented in ThunderSVM can be modeled as bina
 * SVM regression: 
 The SVM regression training problem can be modeled as a binary SVM training problem, where each instance in the data set is duplicated, such that each instance is associated with two new training instances: one with label of +1 and the other with label of -1.
 * Multi-class SVM classification: 
-Multi-class SVM classsification problem can be decomposed into a few binary SVM training problems via pair-wise coupling (also known as one-vs-one decomposition).
+The multi-class SVM classsification problem can be decomposed into a few binary SVM training problems via pair-wise coupling (also known as one-vs-one decomposition).
 * Probabilistic SVMs: 
-Training probabilistic SVMs can be modeled as training binary SVMs and then use the decision values of the binary SVMs to fit a sigmoid function in order to obtain probabilities.
+Training probabilistic SVMs can be modeled as training binary SVMs and then using the decision values of the binary SVMs to fit a sigmoid function in order to obtain probabilities.
 * ``$ \nu $``-SVMs: 
-Training ``$ \nu $``-SVMs is also very similar to training binary SVMs. The key difference is that instead of using two training instances to the currently trained model, ``$ \nu $``-SVMs use four training instances. Training ``$ \nu $``-SVMs for regression (``$ \nu $``-SVR) is similar to training SVMs for regression.
+Training ``$ \nu $``-SVMs is also very similar to training binary SVMs. The key difference is that instead of using two training instances to improve the currently trained model, ``$ \nu $``-SVMs use four training instances. Training ``$ \nu $``-SVMs for regression (``$ \nu $``-SVR) is similar to training traditional SVMs for regression.

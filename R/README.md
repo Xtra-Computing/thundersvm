@@ -14,7 +14,14 @@ By default, the directory for storing the training data and results is the worki
 
 *svm_predict_R(test_dataset = 'None', model_file = 'None', out_file = 'None')*
 
-## Examples
+## Example
+* Step 1: go to the R interface.
+```bash
+# in thundersvm root directory
+cd R
+```
+* Step 2: start R in the terminal by typing ```R``` and press the Enter key.
+* Step 3: execute the following code  in R.
 ```R
 source("svm.R")
 svm_train_R(dataset = "../dataset/test_dataset.txt", model_file = "../dataset/test_dataset.txt.model", cost = 100, gamma = 0.5)
@@ -24,18 +31,18 @@ svm_predict_R(test_dataset = "../dataset/test_dataset.txt", model_file = "../dat
 ## Parameters
 *svm_type*: int, optional(default=0)
     set type of SVM (default 0)\
-                    "	0 -- C-SVC		(multi-class classification)"\
-                    "	1 -- nu-SVC		(multi-class classification)"\
-                    "	2 -- one-class SVM"\
-                    "	3 -- epsilon-SVR	(regression)"\
-                    "	4 -- nu-SVR		(regression)"
+                    	0 -- C-SVC		(multi-class classification)\
+                    	1 -- nu-SVC		(multi-class classification)\
+                    	2 -- one-class SVM\
+                    	3 -- epsilon-SVR	(regression)\
+                    	4 -- nu-SVR		(regression)
 
 *kernel*: int, optional(default=2)\
     set type of kernel function\
-                    	0 -- linear: u'*v\
-                    	1 -- polynomial: (gamma*u'*v + coef0)^degree\
-                    	2 -- radial basis function: exp(-gamma*|u-v|^2)\
-                    	3 -- sigmoid: tanh(gamma*u'*v + coef0)\
+                    	0 -- linear: u'\*v\
+                    	1 -- polynomial: (gamma\*u'\*v + coef0)^degree\
+                    	2 -- radial basis function: exp(-gamma\*|u-v|^2)\
+                    	3 -- sigmoid: tanh(gamma\*u'\*v + coef0)\
                     	4 -- precomputed kernel (kernel values in training_set_file)
 
 *degree*: int, optional(default=3)\
@@ -66,19 +73,19 @@ svm_predict_R(test_dataset = "../dataset/test_dataset.txt", model_file = "../dat
     set the parameter C of class i to weight*C, for C-SVC
 
 *verbose*: bool(default=False)\
-    Enable verbose output. Note that this setting takes advantage of a per-process runtime setting in libsvm that, if enabled, may not work properly in a multithreaded context.
+    enable verbose output. Note that this setting takes advantage of a per-process runtime setting; if enabled, ThunderSVM may not work properly in a multithreaded context.
 
 *max_iter*: int, optional (default=-1)\
-    Hard limit on iterations within solver, or -1 for no limit.
+    hard limit on the number of iterations within the solver, or -1 for no limit.
 
 *dataset*: string\
-    dataset path to train.
+    file path to training dataset.
 
 *model_file*: string, optional\
-    file path to save model.
+    file path to save the trained model.
 
 *test_dataset*: string\
-    dataset path to test
+   file path to test set
 
 *out_file*: string, optional\
-    file path to save predict outcomes.
+    file path to save predicted outcomes.

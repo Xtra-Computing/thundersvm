@@ -95,38 +95,38 @@ class SVR(kernel = 2, degree = 3, gamma = 'auto', coef0 = 0.0, cost = 1.0, epsil
     set the parameter C of class i to weight*C, for C-SVC
 
 *shrinking*: boolean, optional (default=False, not supported yet for True)\
-    Whether to use the shrinking heuristic. .
+    whether to use the shrinking heuristic.
 
 *cache_size*: float, optional, not supported yet.\
-    Specify the size of the kernel cache (in MB).
+    specify the size of the kernel cache (in MB).
 
 *verbose*: bool(default=False)\
-    Enable verbose output. Note that this setting takes advantage of a per-process runtime setting in libsvm that, if enabled, may not work properly in a multithreaded context.
+    enable verbose output. Note that this setting takes advantage of a per-process runtime setting; if enabled, ThunderSVM may not work properly in a multithreaded context.
 
 *max_iter*: int, optional (default=-1)\
-    Hard limit on iterations within solver, or -1 for no limit.
+    hard limit on the number of iterations within the solver, or -1 for no limit.
 
 *n_cores*: int, optional (default=-1)\
-    The number of cpu cores to be used, or -1 for maximum.
+    set the number of cpu cores to use, or -1 for maximum.
 
 *decision_function_shape*: ‘ovo’, default=’ovo’, not supported yet for 'ovr'\
-    Only for classifier. Whether to return a one-vs-rest (‘ovr’) decision function of shape (n_samples, n_classes) as all other classifiers, or the original one-vs-one (‘ovo’) decision function of libsvm which has shape (n_samples, n_classes * (n_classes - 1) / 2).
+    only for classifier. Whether to return a one-vs-rest (‘ovr’) decision function of shape (n_samples, n_classes) as all other classifiers, or the original one-vs-one (‘ovo’) decision function of libsvm which has shape (n_samples, n_classes * (n_classes - 1) / 2).
 
 *random_state*: int, RandomState instance or None, optional (default=None), not supported yet\
     The seed of the pseudo random number generator to use when shuffling the data. If int, random_state is the seed used by the random number generator; If RandomState instance, random_state is the random number generator; If None, the random number generator is the RandomState instance used by np.random.
 
 ### Attributes
 *support_vectors_*: array-like, shape = [n_SV, n_features]\
-    Support vectors.
+    support vectors.
 
 *n_support_*: array-like, dtype=int32, shape = [n_class]\
-    Number of support vectors for each class.
+    number of support vectors for each class.
 
 *dual_coef_*: array, shape = [n_class-1, n_SV]\
-    Coefficients of the support vector in the decision function. For multiclass, coefficient for all 1-vs-1 classifiers. The layout of the coefficients in the multiclass case is somewhat non-trivial.
+    coefficients of the support vector in the decision function. For multiclass, coefficient for all 1-vs-1 classifiers. The layout of the coefficients in the multiclass case is somewhat non-trivial.
 
 *intercept_*: array, shape = [n_class * (n_class-1) / 2]\
-    Constants in decision function.
+    constants in decision function.
 
 
 
@@ -158,20 +158,20 @@ python sk_test.py
 
 ### Methods
 *fit(X, y)*:\
-Fit the SVM model according to the given training data.
+fit the SVM model according to the given training data.
 
 *get_params([deep])*:\
-Get parameters for this estimator.
+get parameters for this estimator.
 
 *predict(X)*:\
-Perform classification on samples in X.
+perform classification on samples in X.
 
 *score(X, y)*:\
-Returns the mean accuracy on the given test data and labels.
+returns the mean accuracy on the given test data and labels.
 
 *set_params(****params)*:\
-Set the parameters of this estimator.
+set the parameters of this estimator.
 
 *decision_function(X)*:\
-Return distance of the samples X to the separating hyperplane. Only for SVC, NuSVC and OneClassSVM.
+return distance of the samples X to the separating hyperplane. Only for SVC, NuSVC and OneClassSVM.
 

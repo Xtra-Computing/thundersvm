@@ -6,8 +6,8 @@ This page is dedicated to summarizing some frequently asked questions about Thun
 * **How can I use the source code?** 
    Please refere to [How To](how-to.md) page.
 
-* **What is the format of the input file?** 
-  The file format is the same as the format of files in LibSVM site.
+* **What is the data format of the input file?** 
+  ThunderSVM uses the LibSVM format.
 
 * **Can ThunderSVM run on CPUs?** 
   Yes. Please see [Working without GPUs](get-started.md).

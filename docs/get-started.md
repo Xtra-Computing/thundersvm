@@ -38,7 +38,7 @@ brew install gcc
 brew install cmake
 ```
 
-* Build ThunderSVM. You can specify gcc as the compiler of cmake. ([path_to_g++] is typically g++-7 but may be different in your system).
+* Build ThunderSVM. You can specify gcc as the compiler of cmake. ([path_to_g++] and [path_to_gcc] typically look like ```/usr/local/bin/g++-7``` and ```/usr/local/bin/gcc-7```, respectively.).
 ```
 # in thundersvm root directory
 mkdir build
@@ -97,7 +97,7 @@ cmake .. -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE -DBUILD_SHARED_LIBS=TRUE -DUSE_
 Then, you can open the generated the Visual Studio project file to build ThunderSVM.
 
 ## Training SVMs
-We show some concrete examples of using ThunderSVM. ThunderSVM uses the same command line options as LibSVM, so existing users of LibSVM can use ThunderSVM quickly. For new users of SVMs, the [parameters](parameters.md) page provides explanation for the usage of each option. 
+We show some concrete examples of using ThunderSVM. ThunderSVM uses the same command line options as LibSVM, so existing users of LibSVM can use ThunderSVM easily. For new users of SVMs, the [Parameters](parameters.md) page provides explanation for the usage of each option. 
 
 ### Training SVMs for Classification
 In the following, we provide an example of using ThunderSVM for the MNIST dataset.
@@ -109,26 +109,26 @@ In the following, we provide an example of using ThunderSVM for the MNIST datase
 bunzip2 mnist.scale.bz2
 ```
 
-* Install ThunderSVM. Instructions available in [How To](how-to.md) page.
+* Install ThunderSVM. Instructions available in the previous sections of this page.
 
 * Run ThunderSVM
 ```bash
 ./thundersvm-train -s 0 -t 2 -g 0.125 -c 10 mnist.scale svm.model
 ```
-The meaning of each option can be found in the [parameters](parameters.md) page. The training takes a while to complete. Once completed, you can see the classifier accuracy is 94.32%.
+The meaning of each option can be found in the [Parameters](parameters.md) page. The training takes a while to complete. Once completed, you can see the classifier accuracy is 94.32%.
 
 ### Training SVMs for Regression
-The usage of other SVM algorithms (such as SVM regression) are similar to the above example. The key different is the selection of the options. Let's take Abalone data set as an example.
+The usage of other SVM algorithms (such as SVM regression) is similar to the above example. The key difference is the selection of the options. Let's take the ```Abalone``` data set as an example.
 
 * Download the Abalone data set. The data set is available in [this link](https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/regression/abalone_scale).
 
-* Install ThunderSVM. Instructions available in [How To](how-to.md) page.
+* Install ThunderSVM. Instructions available in the previous sections of this page.
 
 * Run ThunderSVM
 ```bash
 ./thundersvm-train -s 3 -t 2 -g 3.8 -c 1000 abalone_scale svm.model
 ```
-The meaning of each option can be found in the [parameters](parameters.md) page. 
+The meaning of each option can be found in the [Parameters](parameters.md) page. 
 
 ### Interfaces
-ThunderSVM provides python, R and Matlab interface. You can find the instructions in the corresponding subdirectories.
+ThunderSVM provides Python, R and Matlab interfaces. You can find the instructions in the corresponding subdirectories on GitHub.
