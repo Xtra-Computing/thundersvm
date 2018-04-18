@@ -47,6 +47,11 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
     LOG(INFO) << "training start";
     int max_iter = max(100000, ws_size > INT_MAX / 100 ? INT_MAX : 100 * ws_size);
     long long local_iter = 0;
+
+    //avoid infinite loop of repeated local diff
+    int same_local_diff_cnt = 0;
+    float_type previous_local_diff = INFINITY;
+
     for (int iter = 0;; ++iter) {
         //select working set
         f_idx2sort.copy_from(f_idx);
@@ -73,10 +78,18 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
         update_f(f_val, alpha_diff, k_mat_rows, k_mat.n_instances());
         float_type *diff_data = diff.host_data();
         local_iter += diff_data[1];
+        if(abs(diff_data[0] - previous_local_diff) < eps * 0.001){
+            same_local_diff_cnt++;
+        }
+        else{
+            same_local_diff_cnt = 0;
+            previous_local_diff = diff_data[0];
+        }
+
         if (iter % 100 == 0)
             LOG(INFO) << "global iter = " << iter << ", total local iter = " << local_iter << ", diff = "
                       << diff_data[0];
-        if (diff_data[0] < eps || (out_max_iter != -1) && (iter == out_max_iter)) {
+        if ((same_local_diff_cnt >= 10 && local_iter > 100000) || diff_data[0] < eps || (out_max_iter != -1) && (iter == out_max_iter)) {
             rho = calculate_rho(f_val, y, alpha, Cp, Cn);
             LOG(INFO) << "global iter = " << iter << ", total local iter = " << local_iter << ", diff = "
                       << diff_data[0];
