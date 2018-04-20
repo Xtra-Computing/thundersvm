@@ -9,10 +9,10 @@ Interface for Matlab.
 
 ### Methods
 *svm_train_matlab(parameters)*: The format of parameters is the same as libsvm
-	train svm using the parameters.
+	train svm using the parameters. The path of dataset is a relative path to "dataset" dir.
 
 *svm_predict_matlab(parameters)*: The format of parameters is the same as libsvm
-	run svm predict using the parameters.
+	run svm predict using the parameters. The path of dataset is a relative path to "dataset" dir.
 
 ### Examples
 ```Matlab
