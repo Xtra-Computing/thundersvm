@@ -19,8 +19,8 @@ extern "C" {
         DataSet train_dataset;
         char input_file_path[1024] = DATASET_DIR;
         char model_file_path[1024] = DATASET_DIR;
-        strcat(input_file_path, parser.svmtrain_input_file_name.c_str());
-        strcat(model_file_path, parser.model_file_name.c_str());
+        strcpy(input_file_path, parser.svmtrain_input_file_name.c_str());
+        strcpy(model_file_path, parser.model_file_name.c_str());
         train_dataset.load_from_file(input_file_path);
         SvmModel *model = nullptr;
         switch (parser.param_cmd.svm_type) {
@@ -82,9 +82,9 @@ extern "C" {
         char model_file_path[1024] = DATASET_DIR;
         char predict_file_path[1024] = DATASET_DIR;
         char output_file_path[1024] = DATASET_DIR;
-        strcat(model_file_path, parser.svmpredict_model_file_name.c_str());
-        strcat(predict_file_path, parser.svmpredict_input_file.c_str());
-        strcat(output_file_path, parser.svmpredict_output_file.c_str());
+        strcpy(model_file_path, parser.svmpredict_model_file_name.c_str());
+        strcpy(predict_file_path, parser.svmpredict_input_file.c_str());
+        strcpy(output_file_path, parser.svmpredict_output_file.c_str());
         fstream file;
         file.open(model_file_path, std::fstream::in);
         string feature, svm_type;
@@ -156,13 +156,13 @@ extern "C" {
         char model_file_path[1024] = DATASET_DIR;
         strcat(input_file_path, "../R/");
         strcat(model_file_path, "../R/");
-        strcat(input_file_path, dataset[0]);
+        strcpy(input_file_path, dataset[0]);
         if(strcmp(model_file[0], "None") == 0) {
-            strcat(model_file_path, dataset[0]);
+            strcpy(model_file_path, dataset[0]);
             strcat(model_file_path, ".model");
         }
         else
-            strcat(model_file_path, model_file[0]);
+            strcpy(model_file_path, model_file[0]);
         DataSet train_dataset;
         train_dataset.load_from_file(input_file_path);
         SvmModel* model;
@@ -253,9 +253,9 @@ extern "C" {
         strcat(model_file_path, "../R/");
         strcat(predict_file_path, "../R/");
         strcat(output_file_path, "../R/");
-        strcat(model_file_path, model_file[0]);
-        strcat(predict_file_path, test_file[0]);
-        strcat(output_file_path, out_file[0]);
+        strcpy(model_file_path, model_file[0]);
+        strcpy(predict_file_path, test_file[0]);
+        strcpy(output_file_path, out_file[0]);
         fstream file;
         file.open(model_file_path, std::fstream::in);
         string feature, svm_type;

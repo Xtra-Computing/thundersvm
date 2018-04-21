@@ -1,6 +1,14 @@
-if(!file.exists("../build/lib/libthundersvm.so")){
-	print("Please build the library first!")
-	quit()
+if(Sys.info()['sysname'] == 'Windows'){
+	if(!file.exists("../build/bin/Debug/thundersvm.dll")){
+		print("Please build the library first!")
+		quit()
+	}
+	dyn.load("../build/lib/libthundersvm.so")
+} else {
+	if(!file.exists("../build/lib/libthundersvm.so")){
+		print("Please build the library first!")
+		quit()
+	}
 }
 dyn.load("../build/lib/libthundersvm.so")
 svm_train_R <-

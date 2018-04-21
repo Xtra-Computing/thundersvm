@@ -1,6 +1,10 @@
 function svm_train_matlab(a)
     if not(libisloaded('libthundersvm'))
-        loadlibrary('../build/lib/libthundersvm', '../include/thundersvm/svm_matlab_interface.h')
+        if ispc
+            loadlibrary('../build/bin/Debug/thundersvm.dll', '../include/thundersvm/svm_matlab_interface.h')
+        else
+            loadlibrary('../build/lib/libthundersvm', '../include/thundersvm/svm_matlab_interface.h')
+        end
     end
 	str = {'thundersvm-train'}
 	str2 = [str a]

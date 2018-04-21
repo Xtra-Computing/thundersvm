@@ -9,17 +9,17 @@ Interface for Matlab.
 
 ### Methods
 *svm_train_matlab(parameters)*: The format of parameters is the same as libsvm
-	train svm using the parameters. The path of dataset is a relative path to "dataset" dir.
+	train svm using the parameters.
 
 *svm_predict_matlab(parameters)*: The format of parameters is the same as libsvm
-	run svm predict using the parameters. The path of dataset is a relative path to "dataset" dir.
+	run svm predict using the parameters.
 
 ### Examples
 ```Matlab
-n = ["-c", "10", "-g", "0.125", "test_dataset.txt", "test_dataset.model"]
+n = ["-c", "10", "-g", "0.125", "../dataset/test_dataset.txt", "test_dataset.model"]
 m = cellstr(n)
 svm_train_matlab(m)
-n = ["test_dataset.txt", "test_dataset.model", "test_datset.out"]
+n = ["../dataset/test_dataset.txt", "test_dataset.model", "test_datset.out"]
 m = cellstr(n)
 svm_predict_matlab(m)
 ```
