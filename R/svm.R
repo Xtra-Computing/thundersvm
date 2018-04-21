@@ -3,14 +3,14 @@ if(Sys.info()['sysname'] == 'Windows'){
 		print("Please build the library first!")
 		quit()
 	}
-	dyn.load("../build/lib/libthundersvm.so")
+	dyn.load("../build/bin/Debug/thundersvm.dll")
 } else {
 	if(!file.exists("../build/lib/libthundersvm.so")){
 		print("Please build the library first!")
 		quit()
 	}
+	dyn.load("../build/lib/libthundersvm.so")
 }
-dyn.load("../build/lib/libthundersvm.so")
 svm_train_R <-
 function(
 svm_type = 0, kernel = 2,degree = 3,gamma = 'auto',
