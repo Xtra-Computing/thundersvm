@@ -30,10 +30,10 @@ extern "C" {
         DataSet train_dataset;
         char input_file_path[1024] = DATASET_DIR;
         char model_file_path[1024] = DATASET_DIR;
-        strcat(input_file_path, "../python/");
-        strcat(model_file_path, "../python/");
-        strcat(input_file_path, parser.svmtrain_input_file_name.c_str());
-        strcat(model_file_path, parser.model_file_name.c_str());
+//        strcat(input_file_path, "../python/");
+//        strcat(model_file_path, "../python/");
+        strcpy(input_file_path, parser.svmtrain_input_file_name.c_str());
+        strcpy(model_file_path, parser.model_file_name.c_str());
         train_dataset.load_from_file(input_file_path);
         SvmModel *model = nullptr;
         switch (parser.param_cmd.svm_type) {
@@ -119,9 +119,9 @@ extern "C" {
         strcat(model_file_path, "../python/");
         strcat(predict_file_path, "../python/");
         strcat(output_file_path, "../python/");
-        strcat(model_file_path, parser.svmpredict_model_file_name.c_str());
-        strcat(predict_file_path, parser.svmpredict_input_file.c_str());
-        strcat(output_file_path, parser.svmpredict_output_file.c_str());
+        strcpy(model_file_path, parser.svmpredict_model_file_name.c_str());
+        strcpy(predict_file_path, parser.svmpredict_input_file.c_str());
+        strcpy(output_file_path, parser.svmpredict_output_file.c_str());
         fstream file;
         file.open(model_file_path, std::fstream::in);
         string feature, svm_type;
@@ -196,8 +196,8 @@ extern "C" {
         CMDParser parser;
         parser.parse_python(len, option);
         char model_file_path[1024] = DATASET_DIR;
-        strcat(model_file_path, "../python/");
-        strcat(model_file_path, file_name);
+//        strcat(model_file_path, "../python/");
+        strcpy(model_file_path, file_name);
 
         SvmModel *model = nullptr;
         switch (parser.param_cmd.svm_type) {
@@ -255,10 +255,10 @@ extern "C" {
         parser.parse_python(len, option);
         char model_file_path[1024] = DATASET_DIR;
         char output_file_path[1024] = DATASET_DIR;
-        strcat(model_file_path, "../python/");
-        strcat(output_file_path, "../python/");
-        strcat(model_file_path, model_file_name);
-        strcat(output_file_path, output_file_name);
+//        strcat(model_file_path, "../python/");
+//        strcat(output_file_path, "../python/");
+        strcpy(model_file_path, model_file_name);
+        strcpy(output_file_path, output_file_name);
         fstream file;
         file.open(model_file_path, std::fstream::in);
         string feature, svm_type;
