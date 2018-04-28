@@ -83,7 +83,6 @@ SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncArray<float_t
     KernelMatrix k_mat(sv, param);
 
     if (batch_size == -1) {
-        LOG(INFO)<<param.max_mem_size;
         size_t free_mem = param.max_mem_size - SyncMem::get_total_memory_size();
         batch_size = min(size_t(free_mem / sizeof(float_type) / (sv.size() + k_mat.n_features())), size_t(10000));
     }
