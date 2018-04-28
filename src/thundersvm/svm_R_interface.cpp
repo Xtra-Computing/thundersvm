@@ -239,10 +239,34 @@ extern "C" {
                 ind++;
             }
         }
+        vector<float_type> predict_y, test_y;
         model->train(train_dataset, param_cmd);
         model->save_to_file(model_file_path);
-        LOG(INFO) << "training finished";
+        LOG(INFO) << "evaluating training score";
+        predict_y = model->predict(train_dataset.instances(), -1);
+        Metric *metric = nullptr;
+        switch (param_cmd.svm_type) {
+            case SvmParam::C_SVC:
+            case SvmParam::NU_SVC: {
+                metric = new Accuracy();
+                break;
+            }
+            case SvmParam::EPSILON_SVR:
+            case SvmParam::NU_SVR: {
+                metric = new MSE();
+                break;
+            }
+            case SvmParam::ONE_CLASS: {
+            }
+        }
+        if (metric) {
+            std::cout << metric->name() << " = " << metric->score(predict_y, train_dataset.y()) << std::endl;
+        }
         return succeed;
+//        model->train(train_dataset, param_cmd);
+//        model->save_to_file(model_file_path);
+//        LOG(INFO) << "training finished";
+//        return succeed;
     }
 
 
