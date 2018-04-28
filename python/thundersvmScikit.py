@@ -20,6 +20,11 @@ if platform == "linux" or platform == "linux2":
     lib_path = path.join(dirname, '../build/lib/libthundersvm.so')
 elif platform == "win32":
     lib_path = path.join(dirname, '../build/bin/Debug/thundersvm.dll')
+elif platform == "darwin":
+    lib_path = path.join(dirname, '../build/lib/libthundersvm.dylib')
+else :
+    print ("OS not supported!")
+    exit()
 if path.exists(lib_path):
     thundersvm = CDLL(lib_path)
 else :
