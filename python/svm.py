@@ -22,7 +22,7 @@ else :
 	print ("Please build the library first!")
 	exit()
 dataset_path = dirname
-
+'''
 class dataset(object):
     def __init__(self):
         self.obj = lib.DataSet_new()
@@ -30,7 +30,7 @@ class dataset(object):
     def load_from_python(self, arg1, arg2, arg3):
         lib.DataSet_load_from_python(self.obj, arg1, arg2, arg3)
 
-'''
+
 def svm_train(param):
 	param_list = param.split()
 	param_list.insert(0, 'thundersvm-train')
