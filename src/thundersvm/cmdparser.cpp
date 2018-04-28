@@ -49,7 +49,10 @@ void HelpInfo_svmpredict() {
     LOG(INFO) <<
               "Usage: svm-predict [options] test_file model_file output_file\n"
                       "options:\n"
-                      "-b probability_estimates: whether to predict probability estimates, 0 or 1 (default 0); for one-class SVM only 0 is supported\n";
+                      //todo probability prediction
+//                      "-b probability_estimates: whether to predict probability estimates, 0 or 1 (default 0); for one-class SVM only 0 is supported\n"
+                      "-m memory size: constrain the maximum memory size (MB) that thundersvm uses\n"
+                      "-u n: specify which gpu to use (default 0)\n";
     exit(1);
 }
 
@@ -182,6 +185,9 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                     break;
                 case 'u':
                     gpu_id = atoi(argv[i]);
+                    break;
+                case 'm':
+                    param_cmd.max_mem_size = static_cast<size_t>(max(atoi(argv[i]), 0)) << 20;//MB to Byte
                     break;
                 default:
                     fprintf(stderr, "Unknown option: -%c\n", argv[i - 1][1]);

@@ -19,6 +19,7 @@ const char *SvmParam::svm_type_name[6] = {"c_svc", "nu_svc", "one_class", "epsil
                                           "NULL"};  /* svm_type */
 
 void SvmModel::model_setup(const DataSet &dataset, SvmParam &param) {
+    SyncMem::reset_memory_size();
     n_binary_models = n_classes * (n_classes - 1) / 2;
     rho.resize(n_binary_models);
     n_sv.resize(n_classes);
@@ -81,6 +82,11 @@ SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncArray<float_t
     //compute kernel values
     KernelMatrix k_mat(sv, param);
 
+    if (batch_size == -1) {
+        LOG(INFO)<<param.max_mem_size;
+        size_t free_mem = param.max_mem_size - SyncMem::get_total_memory_size();
+        batch_size = min(size_t(free_mem / sizeof(float_type) / (sv.size() + k_mat.n_features())), size_t(10000));
+    }
     auto batch_start = instances.begin();
     auto batch_end = batch_start;
     vector<float_type> predict_y;
@@ -110,11 +116,16 @@ SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncArray<float_t
     }
 }
 
-vector<float_type> SvmModel::predict(const DataSet::node2d &instances, int batch_size) {
+vector<float_type> SvmModel::predict(const DataSet::node2d &instances, int batch_size = -1) {
+//    param.max_mem_size
     dec_values.resize(instances.size() * n_binary_models);
-    predict_dec_values(instances, dec_values, batch_size);
     vector<float_type> dec_values_vec(dec_values.size());
-    memcpy(dec_values_vec.data(), dec_values.host_data(), dec_values.mem_size());
+    dec_values.set_host_data(dec_values_vec.data());
+#ifdef USE_CUDA
+    dec_values.to_device();//reserve space
+#endif
+    predict_dec_values(instances, dec_values, batch_size);
+    dec_values.to_host();//copy back from device
     return dec_values_vec;
 }
 
@@ -310,4 +321,8 @@ int SvmModel::get_working_set_size(int n_instances, int n_features) {
                       (int) min(max2power(free_mem / sizeof(kernel_type) / (n_instances + n_features)), size_t(1024)));
     LOG(INFO) << "working set size = " << ws_size;
     return ws_size;
+}
+
+void SvmModel::set_max_memory_size(size_t size) {
+    this->param.max_mem_size = size;
 }

@@ -88,6 +88,9 @@ public:
     void set_max_iter(int iter);
 
     const SyncArray<float_type> &get_dec_value() const;
+
+    //set max_memory_size during training and prediction
+    void set_max_memory_size(size_t size);
 protected:
 
     /**

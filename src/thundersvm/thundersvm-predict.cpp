@@ -47,6 +47,7 @@ int main(int argc, char **argv) {
         CUDA_CHECK(cudaSetDevice(parser.gpu_id));
 #endif
 
+        model->set_max_memory_size(parser.param_cmd.max_mem_size);
         model->load_from_file(parser.svmpredict_model_file_name);
         file.close();
         file.open(parser.svmpredict_output_file, fstream::out);
@@ -54,7 +55,7 @@ int main(int argc, char **argv) {
         predict_dataset.load_from_file(parser.svmpredict_input_file);
 
         vector<float_type> predict_y;
-        predict_y = model->predict(predict_dataset.instances(), 10000);
+        predict_y = model->predict(predict_dataset.instances(), -1);
         for (int i = 0; i < predict_y.size(); ++i) {
             file << predict_y[i] << std::endl;
         }
@@ -65,7 +66,7 @@ int main(int argc, char **argv) {
         }
     }
     catch (std::bad_alloc &) {
-        LOG(FATAL) << "out of host memory";
+        LOG(FATAL) << "out of memory, you may try \"-m memory size\" to constrain memory usage";
         exit(EXIT_FAILURE);
     }
     catch (std::exception const &x) {

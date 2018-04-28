@@ -23,7 +23,7 @@ The command line options for ThunderSVM are shown below.
 * -n: set the parameter ``$ \nu $`` of ``$ \nu $``-SVC, one-class SVM, and ``$ \nu $``-SVR (``$ \nu \in $``(0, 1), default=0.5)
 * -p: set the ``$ \epsilon $`` in loss function of ``$ \epsilon $``-SVR (default=0.1)
 * -q: enable quiet mode
-* _-m: set cache memory size in MB (default=100)_
+* -m memory size: constrain the maximum memory size (MB) that thundersvm uses
 * -e: set tolerance of termination criterion (default=0.001)
 * _-h: whether to use the shrinking heuristics (0 or 1, default=1)_
 * -b: whether to train probabilistic SVC or SVR (0 or 1, default=0)

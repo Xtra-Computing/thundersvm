@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
             LOG(INFO) << "training finished";
             model->save_to_file(parser.model_file_name);
             LOG(INFO) << "evaluating training score";
-            predict_y = model->predict(train_dataset.instances(), 100);
+            predict_y = model->predict(train_dataset.instances(), -1);
         }
 
         //perform svm testing

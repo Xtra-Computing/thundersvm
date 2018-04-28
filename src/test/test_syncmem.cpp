@@ -5,6 +5,7 @@
 #include "thundersvm/syncmem.h"
 #ifndef _WIN32
 TEST(SyncMemTest, host_allocate){
+    SyncMem::reset_memory_size();
     EXPECT_EQ(SyncMem::get_total_memory_size(), 0);
     //one instance
     SyncMem syncMem(100);
