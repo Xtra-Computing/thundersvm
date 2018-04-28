@@ -4,12 +4,21 @@ if(Sys.info()['sysname'] == 'Windows'){
 		quit()
 	}
 	dyn.load("../build/bin/Debug/thundersvm.dll")
-} else {
+} else if(Sys.info()['sysname'] == 'Linux'){
 	if(!file.exists("../build/lib/libthundersvm.so")){
 		print("Please build the library first!")
 		quit()
 	}
 	dyn.load("../build/lib/libthundersvm.so")
+} else if(Sys.info()['sysname'] == 'Darwin'){
+    	if(!file.exists("../build/lib/libthundersvm.dylib")){
+    		print("Please build the library first!")
+    		quit()
+    	}
+    	dyn.load("../build/lib/libthundersvm.dylib")
+} else{
+    print("OS not supported!")
+    quit()
 }
 svm_train_R <-
 function(
