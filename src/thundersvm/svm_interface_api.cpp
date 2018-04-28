@@ -8,6 +8,7 @@
 #include <thundersvm/model/nusvr.h>
 #include <thundersvm/util/metric.h>
 #include "thundersvm/cmdparser.h"
+#include <thundersvm/svm_interface_api.h>
 using std::fstream;
 using std::stringstream;
 DataSet dataset_python;
@@ -81,7 +82,7 @@ extern "C" {
             }
         }
         if (metric) {
-            std::cout << metric->name() << " = " << metric->score(predict_y, train_dataset.y()) << std::endl;
+            LOG(INFO) << metric->name() << " = " << metric->score(predict_y, train_dataset.y()) << std::endl;
         }
         return;
     }
