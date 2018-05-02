@@ -38,7 +38,7 @@ extern "C" {
                                   int svm_type, int kernel_type, int degree, float gamma, float coef0,
                                   float cost, float nu, float epsilon, float tol, int probability,
                                   int weight_size, int* weight_label, float* weight,
-                                  int verbose, int max_iter, int n_cores,
+                                  int verbose, int max_iter, int n_cores, int max_mem_size,
                                   int* n_features, int* n_classes, int* succeed, SvmModel* model){
         succeed[0] = 1;
         if(verbose)
@@ -104,6 +104,8 @@ extern "C" {
         param_cmd.p = (float_type)epsilon;
         param_cmd.epsilon = (float_type)tol;
         param_cmd.probability = probability;
+        if(max_mem_size != -1)
+            param_cmd.max_mem_size = max_mem_size;
         if(weight_size != 0) {
             param_cmd.nr_weight = weight_size;
             param_cmd.weight = (float_type *) malloc(weight_size * sizeof(float_type));
@@ -134,7 +136,7 @@ extern "C" {
                                  int svm_type, int kernel_type, int degree, float gamma, float coef0,
                                  float cost, float nu, float epsilon, float tol, int probability,
                                  int weight_size, int* weight_label, float* weight,
-                                 int verbose, int max_iter, int n_cores,
+                                 int verbose, int max_iter, int n_cores, int max_mem_size,
                                  int* n_features, int* n_classes, int* succeed, SvmModel* model){
         succeed[0] = 1;
         if(verbose)
@@ -198,6 +200,8 @@ extern "C" {
         param_cmd.p = (float_type)epsilon;
         param_cmd.epsilon = (float_type)tol;
         param_cmd.probability = probability;
+        if(max_mem_size != -1)
+            param_cmd.max_mem_size = max_mem_size;
         if(weight_size != 0) {
             param_cmd.nr_weight = weight_size;
             param_cmd.weight = (float_type *) malloc(weight_size * sizeof(float_type));
@@ -306,4 +310,11 @@ extern "C" {
         }
     }
 
+    void save_to_file_scikit(SvmModel *model, char *path){
+        model->save_to_file(path);
+    }
+
+    void load_from_file_scikit(SvmModel *model, char *path) {
+        model->load_from_file(path);
+    }
 }
