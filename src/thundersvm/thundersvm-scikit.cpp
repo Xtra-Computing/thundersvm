@@ -140,9 +140,9 @@ extern "C" {
                                  int* n_features, int* n_classes, int* succeed, SvmModel* model){
         succeed[0] = 1;
         if(verbose)
-            el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
-        else
             el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "true");
+        else
+            el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
         if((n_cores <= 0) && (n_cores != -1)){
             LOG(ERROR) << "cores number must bigger than 0";
             succeed[0] = -1;
