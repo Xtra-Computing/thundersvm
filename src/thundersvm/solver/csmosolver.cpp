@@ -89,7 +89,8 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
         if (iter % 100 == 0)
             LOG(INFO) << "global iter = " << iter << ", total local iter = " << local_iter << ", diff = "
                       << diff_data[0];
-        if ((same_local_diff_cnt >= 10 && local_iter > 100000) || diff_data[0] < eps || (out_max_iter != -1) && (iter == out_max_iter)) {
+        //training terminates in three conditions: 1. diff stays unchanged; 2. diff is closed to 0; 3. training reaches the limit of iterations.
+        if ((same_local_diff_cnt >= 10 && abs(diff_data[0] - 2.0) > eps) || diff_data[0] < eps || (out_max_iter != -1) && (iter == out_max_iter)) {
             rho = calculate_rho(f_val, y, alpha, Cp, Cn);
             LOG(INFO) << "global iter = " << iter << ", total local iter = " << local_iter << ", diff = "
                       << diff_data[0];

@@ -110,7 +110,7 @@ class SVR(kernel = 2, degree = 3, gamma = 'auto', coef0 = 0.0, cost = 1.0, epsil
     set the number of cpu cores to use, or -1 for maximum.
 
 *max_mem_size*: int, optional (default=-1)\
-	set the maximum memory size(MB) that thundersvm uses, or -1 for no limit.
+	set the maximum memory size (MB) that thundersvm uses, or -1 for no limit.
 
 *decision_function_shape*: ‘ovo’, default=’ovo’, not supported yet for 'ovr'\
     only for classifier. Whether to return a one-vs-rest (‘ovr’) decision function of shape (n_samples, n_classes) as all other classifiers, or the original one-vs-one (‘ovo’) decision function of libsvm which has shape (n_samples, n_classes * (n_classes - 1) / 2).
