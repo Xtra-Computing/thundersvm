@@ -34,7 +34,7 @@ void HelpInfo_svmtrain() {
             "-c cost: set the parameter C of C-SVC, epsilon-SVR, and nu-SVR (default 1)\n"
             "-n nu: set the parameter nu of nu-SVC, one-class SVM, and nu-SVR (default 0.5)\n"
             "-p epsilon: set the epsilon in loss function of epsilon-SVR (default 0.1)\n"
-            "-m memory size: constrain the maximum memory size (MB) that thundersvm uses\n"
+            "-m memory size: constrain the maximum memory size (MB) that thundersvm uses (default 8192)\n"
             "-e epsilon: set tolerance of termination criterion (default 0.001)\n"
             "-b probability_estimates: whether to train a SVC or SVR model for probability estimates, 0 or 1 (default 0)\n"
             "-wi weight: set the parameter C of class i to weight*C, for C-SVC (default 1)\n"
