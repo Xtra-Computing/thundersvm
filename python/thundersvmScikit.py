@@ -88,40 +88,27 @@ class SvmModel(ThundersvmBase):
         thundersvm.get_sv(csr_row, csr_col, csr_data, data_size, c_void_p(self.model))
         dual_coef = (c_float * ((self.n_classes - 1) * self.n_sv))()
         thundersvm.get_coef(dual_coef, self.n_classes, self.n_sv, c_void_p(self.model))
-        self.dual_coef_ = np.empty(0, dtype = float)
-        for index in range(0, (self.n_classes - 1) * self.n_sv):
-            self.dual_coef_ = np.append(self.dual_coef_, dual_coef[index])
+        
+        self.dual_coef_ = np.array([dual_coef[index] for index in range(0, (self.n_classes - 1) * self.n_sv)]).astype(float)
         self.dual_coef_ = np.reshape(self.dual_coef_, (self.n_classes - 1, self.n_sv))
 
         rho_size = int(self.n_classes * (self.n_classes - 1) / 2)
         self.n_binary_model = rho_size
         rho = (c_float * rho_size)()
         thundersvm.get_rho(rho, rho_size, c_void_p(self.model))
-        self.intercept_ = np.empty(0, dtype = float)
-        for index in range(0, rho_size):
-            self.intercept_ = np.append(self.intercept_, rho[index])
-
-        row = []
-        for index in range(0, self.n_sv + 1):
-            row += [csr_row[index]]
-        self.row = np.asarray(row)
-        col = []
-        for index in range(0, data_size[0]):
-            col += [csr_col[index]]
-        self.col = np.asarray(col)
-        data = []
-        for index in range(0, data_size[0]):
-            data += [csr_data[index]]
-        self.data = np.asarray(data)
-
+        self.intercept_ = np.array([rho[index] for index in range(0, rho_size)]).astype(float)
+        
+        self.row  = np.array([csr_row[index] for index in range(0, self.n_sv + 1)])
+        self.col  = np.array([csr_col[index] for index in range(0, data_size[0])])
+        self.data = np.array([csr_data[index] for index in range(0, data_size[0])])
+        
         self.support_vectors_ = sp.csr_matrix((self.data, self.col, self.row))
         if self._sparse == False:
             self.support_vectors_ = self.support_vectors_.toarray(order = 'C')
         n_support_ = (c_int * self.n_classes)()
         thundersvm.get_support_classes(n_support_, self.n_classes, c_void_p(self.model))
-        self.n_support_ = np.empty(0, dtype = int)
-        for index in range(0, self.n_classes):
-            self.n_support_ = np.append(self.n_support_, n_support_[index])
+        
+        self.n_support_ = np.array([n_support_[index] for index in range(0, self.n_classes)]).astype(int)
 
         self.shape_fit_ = X.shape
 
@@ -245,10 +232,8 @@ class SvmModel(ThundersvmBase):
             samples, features, data,
             c_void_p(self.model),
             self.predict_label_ptr)
-        predict_label = []
-        for index in range(0, X.shape[0]):
-            predict_label += [self.predict_label_ptr[index]]
-        self.predict_label = np.asarray(predict_label)
+        
+        self.predict_label = np.array([self.predict_label_ptr[index] for index in range(0, X.shape[0])])
         return self.predict_label
 
     def _sparse_predict(self, X):
@@ -263,9 +248,9 @@ class SvmModel(ThundersvmBase):
             X.shape[0], data, indptr, indices,
             c_void_p(self.model),
             self.predict_label_ptr)
-        predict_label = []
-        for index in range(0, X.shape[0]):
-            predict_label += [self.predict_label_ptr[index]]
+
+        predict_label = [self.predict_label_ptr[index] for index in range(0, X.shape[0])]
+        
         self.predict_label = np.asarray(predict_label)
         return self.predict_label
 
@@ -293,9 +278,7 @@ class SvmModel(ThundersvmBase):
         thundersvm.dense_decision(
             samples, features, data, c_void_p(self.model), dec_size, dec_value_ptr
         )
-        self.dec_values = np.empty(0, dtype = float)
-        for index in range(0, dec_size):
-            self.dec_values = np.append(self.dec_values, dec_value_ptr[index])
+        self.dec_values = np.array([dec_value_ptr[index] for index in range(0, dec_size)]).astype(float)
         self.dec_values = np.reshape(self.dec_values, (X.shape[0], self.n_binary_model))
         return self.dec_values
 
@@ -314,9 +297,7 @@ class SvmModel(ThundersvmBase):
         thundersvm.sparse_decision(
             X.shape[0], data, indptr, indices,
             c_void_p(self.model), dec_size, dec_value_ptr)
-        self.dec_values = np.empty(0, dtype = float)
-        for index in range(0, dec_size):
-            self.dec_values = np.append(self.dec_values, dec_value_ptr[index])
+        self.dec_values = np.array([dec_value_ptr[index] for index in range(0, dec_size)])
         self.dec_values = np.reshape(self.dec_values, (X.shape[0], self.n_binary_model))
         return self.dec_values
 
