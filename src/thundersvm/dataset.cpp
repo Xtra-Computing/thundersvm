@@ -42,10 +42,10 @@ void DataSet::load_from_file(string file_name) {
             //get working area of this thread
             int tid = omp_get_thread_num();
             size_t nstep = (size + nthread - 1) / nthread;
-            size_t sbegin = min(tid * nstep, size);
-            size_t send = min((tid + 1) * nstep, size);
-            char *pbegin = findlastline(head + sbegin, head - 1);
-            char *pend = findlastline(head + send, head - 1);
+            size_t sbegin = min(tid * nstep, size - 1);
+            size_t send = min((tid + 1) * nstep, size - 1);
+            char *pbegin = findlastline(head + sbegin, head);
+            char *pend = findlastline(head + send, head);
 
             //move stream start position to the end of last line
             if (tid == nthread - 1) ifs.seekg(pend - head - send, std::ios_base::cur);
