@@ -21,7 +21,7 @@ template<typename T>
 inline T max2power(T n) {
     return T(pow(2, floor(log2f(float(n)))));
 }
-const int BLOCK_SIZE = 512;
+const int BLOCK_SIZE = 128;
 
 const int NUM_BLOCKS = 32 * 56;
 
