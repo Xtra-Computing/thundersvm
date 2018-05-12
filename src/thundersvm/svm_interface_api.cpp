@@ -179,7 +179,7 @@ extern "C" {
     void thundersvm_train_after_parse(char **option, int len, char *file_name){
         CMDParser parser;
         parser.parse_python(len, option);
-
+	if(!parser.check_parameter()) return;
         char model_file_path[1024] = DATASET_DIR;
 //        strcat(model_file_path, "../python/");
         strcpy(model_file_path, file_name);
