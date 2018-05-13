@@ -43,6 +43,8 @@ python test.py
 ### Usage
 The usage of thundersvm scikit interface is similar to scikit.svm.
 
+This scikit-learn wrapper interface has issues with **Python 3 on Windows** for unknown reasons. If your project uses Python 3, please use our simple Python interface.
+
 ##### SVM classification
 *class SVC(kernel = 2, degree = 3, gamma = 'auto', coef0 = 0.0, cost = 1.0, tol = 0.001, probability = False, class_weight = None, shrinking = False, cache_size = None, verbose = False, max_iter = -1, n_cores = -1, random_state = None, decison_function_shape = 'ovo')*
 
