@@ -78,7 +78,7 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
         update_f(f_val, alpha_diff, k_mat_rows, k_mat.n_instances());
         float_type *diff_data = diff.host_data();
         local_iter += diff_data[1];
-        if(abs(diff_data[0] - previous_local_diff) < eps * 0.001){
+        if(fabs(diff_data[0] - previous_local_diff) < eps * 0.001){
             same_local_diff_cnt++;
         }
         else{
@@ -90,7 +90,7 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
             LOG(INFO) << "global iter = " << iter << ", total local iter = " << local_iter << ", diff = "
                       << diff_data[0];
         //training terminates in three conditions: 1. diff stays unchanged; 2. diff is closed to 0; 3. training reaches the limit of iterations.
-        if ((same_local_diff_cnt >= 10 && abs(diff_data[0] - 2.0) > eps) || diff_data[0] < eps || (out_max_iter != -1) && (iter == out_max_iter)) {
+        if ((same_local_diff_cnt >= 10 && fabs(diff_data[0] - 2.0) > eps) || diff_data[0] < eps || (out_max_iter != -1) && (iter == out_max_iter)) {
             rho = calculate_rho(f_val, y, alpha, Cp, Cn);
             LOG(INFO) << "global iter = " << iter << ", total local iter = " << local_iter << ", diff = "
                       << diff_data[0];
@@ -178,7 +178,7 @@ void CSMOSolver::init_f(const SyncArray<float_type> &alpha, const SyncArray<int>
             idx_vec.push_back(i);
             alpha_diff_vec.push_back(-alpha_data[i] * y_data[i]);
         }
-        if (idx_vec.size() > batch_size || (i == alpha.size() - 1 && idx_vec.size() > 0)) {
+        if (idx_vec.size() > batch_size || (i == alpha.size() - 1 && !idx_vec.empty())) {
             SyncArray<int> idx(idx_vec.size());
             SyncArray<float_type> alpha_diff(idx_vec.size());
             idx.copy_from(idx_vec.data(), idx_vec.size());
