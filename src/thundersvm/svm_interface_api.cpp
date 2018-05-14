@@ -50,7 +50,10 @@ extern "C" {
                 }
             }
         }
-
+		if (parser.param_cmd.kernel_type != SvmParam::LINEAR)
+            if (!parser.gamma_set) {
+                parser.param_cmd.gamma = 1.f / train_dataset.n_features();
+            }
 #ifdef USE_CUDA
         CUDA_CHECK(cudaSetDevice(parser.gpu_id));
 #endif

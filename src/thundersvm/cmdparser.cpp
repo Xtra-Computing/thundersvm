@@ -224,6 +224,7 @@ void CMDParser::parse_python(int argc, char **argv) {
                 break;
             case 'g':
                 param_cmd.gamma = atof(argv[i]);
+				gamma_set = true;
                 break;
             case 'r':
                 param_cmd.coef0 = atof(argv[i]);
