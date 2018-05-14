@@ -49,6 +49,7 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
     diag_.resize(n_instances_);
     switch (param.kernel_type) {
         case SvmParam::RBF:
+        case SvmParam::PRECOMPUTED://precomputed uses rbf as default
             for (int i = 0; i < n_instances_; ++i) {
                 diag_.host_data()[i] = 1;//rbf kernel
             }
@@ -83,6 +84,7 @@ void KernelMatrix::get_rows(const SyncArray<int> &idx,
 #endif
     switch (param.kernel_type) {
         case SvmParam::RBF:
+        case SvmParam::PRECOMPUTED://precomputed uses rbf as default
             RBF_kernel(idx, self_dot_, kernel_rows, idx.size(), n_instances_, param.gamma);
 			break;
         case SvmParam::LINEAR:
@@ -115,6 +117,7 @@ void KernelMatrix::get_rows(const DataSet::node2d &instances,
     }
     switch (param.kernel_type) {
         case SvmParam::RBF:
+        case SvmParam::PRECOMPUTED://precomputed uses rbf as default
             RBF_kernel(self_dot, self_dot_, kernel_rows, instances.size(), n_instances_, param.gamma);
             break;
         case SvmParam::LINEAR:

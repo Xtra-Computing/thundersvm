@@ -299,7 +299,7 @@ bool CMDParser::check_parameter() {
         return false;
     }
     SvmParam::KERNEL_TYPE kernel_type = param_cmd.kernel_type;
-    if (kernel_type < SvmParam::LINEAR || kernel_type > SvmParam::SIGMOID) {
+    if (kernel_type < SvmParam::LINEAR || kernel_type > SvmParam::PRECOMPUTED) {
         LOG(ERROR) << "unknown kernel type";
         return false;
     }

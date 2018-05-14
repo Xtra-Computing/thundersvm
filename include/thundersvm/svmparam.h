@@ -32,7 +32,7 @@ struct SvmParam {
     };
     /// kernel function type
     enum KERNEL_TYPE {
-        LINEAR, POLY, RBF, SIGMOID/*, PRECOMPUTED*/
+        LINEAR, POLY, RBF, SIGMOID, PRECOMPUTED
     };
     SVM_TYPE svm_type;
     KERNEL_TYPE kernel_type;
