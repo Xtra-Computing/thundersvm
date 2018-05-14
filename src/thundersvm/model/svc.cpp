@@ -227,7 +227,7 @@ vector<float_type> SVC::predict_label(const SyncArray<float_type> &dec_values, i
     if (0 == param.probability) {
         //predict y by voting among k(k-1)/2 models
         for (int l = 0; l < n_instances; ++l) {
-            vector<int> votes(n_binary_models, 0);
+            vector<int> votes(n_classes, 0);
             int k = 0;
             for (int i = 0; i < n_classes; ++i) {
                 for (int j = i + 1; j < n_classes; ++j) {
