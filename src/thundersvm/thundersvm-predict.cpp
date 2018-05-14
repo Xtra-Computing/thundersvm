@@ -21,7 +21,11 @@ int main(int argc, char **argv) {
         parser.parse_command_line(argc, argv);
         fstream file;
         file.open(parser.svmpredict_model_file_name, fstream::in);
-		CHECK(file.is_open())<<"file "<<parser.svmpredict_model_file_name<<" not found";
+		if(!file.is_open()){
+			LOG(INFO)<<"file "<<parser.svmpredict_model_file_name<<" not found";
+			exit(1);
+		}
+		//CHECK(file.is_open())<<"file "<<parser.svmpredict_model_file_name<<" not found";
         string feature, svm_type;
         file >> feature >> svm_type;
         CHECK_EQ(feature, "svm_type");

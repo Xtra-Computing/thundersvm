@@ -24,7 +24,11 @@ void DataSet::load_from_file(string file_name) {
     total_count_ = 0;
     n_features_ = 0;
     std::ifstream ifs(file_name, std::ifstream::binary);
-    CHECK(ifs.is_open()) << "file " << file_name << " not found";
+    if(!ifs.is_open()){
+		LOG(INFO)<<"file "<<file_name<<" not found";
+		exit(1);
+	}
+	//CHECK(ifs.is_open()) << "file " << file_name << " not found";
 
     int buffer_size = 16 << 20; //16MB
 	char *buffer = (char *)malloc(buffer_size);

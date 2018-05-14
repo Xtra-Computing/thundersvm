@@ -198,7 +198,11 @@ void SvmModel::save_to_file(string path) {
 void SvmModel::load_from_file(string path) {
     ifstream ifs;
     ifs.open(path.c_str());
-    CHECK(ifs.is_open()) << "file " << path << " not found";
+    if(!ifs.is_open()){
+		LOG(INFO)<<"file "<<path<<" not found";
+		exit(1);
+	}
+	//CHECK(ifs.is_open()) << "file " << path << " not found";
     string feature;
     while (ifs >> feature) {
         if (feature == "svm_type") {
