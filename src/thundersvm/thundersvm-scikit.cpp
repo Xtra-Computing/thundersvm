@@ -125,7 +125,7 @@ extern "C" {
         DataSet predict_dataset;
         predict_dataset.load_from_sparse(row_size, val, row_ptr, col_ptr, (float *)NULL);
         vector<float_type> predict_y;
-        predict_y = model->predict(predict_dataset.instances(), 10000);
+        predict_y = model->predict(predict_dataset.instances(), -1);
         for (int i = 0; i < predict_y.size(); ++i) {
             predict_label[i] = predict_y[i];
         }
@@ -223,7 +223,7 @@ extern "C" {
         DataSet predict_dataset;
         predict_dataset.load_from_dense(row_size, features, data, (float*) NULL);
         vector<float_type> predict_y;
-        predict_y = model->predict(predict_dataset.instances(), 10000);
+        predict_y = model->predict(predict_dataset.instances(), -1);
         for (int i = 0; i < predict_y.size(); ++i) {
             predict_label[i] = predict_y[i];
         }
