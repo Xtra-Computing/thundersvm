@@ -255,8 +255,7 @@ void CMDParser::parse_python(int argc, char **argv) {
                 n_cores = atoi(argv[i]);
                 break;
             case 'q':
-//                    print_func = &print_null;
-                //todo disable logging
+                el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
                 i--;
                 break;
             case 'v':
