@@ -85,12 +85,12 @@ int main(int argc, char **argv) {
             model->train(train_dataset, parser.param_cmd);
             LOG(INFO) << "training finished";
             model->save_to_file(parser.model_file_name);
-            LOG(INFO) << "evaluating training score";
-            predict_y = model->predict(train_dataset.instances(), -1);
+         //   LOG(INFO) << "evaluating training score";
+         //   predict_y = model->predict(train_dataset.instances(), -1);
         }
 
         //perform svm testing
-        std::shared_ptr<Metric> metric;
+        /*std::shared_ptr<Metric> metric;
         switch (parser.param_cmd.svm_type) {
             case SvmParam::C_SVC:
             case SvmParam::NU_SVC: {
@@ -108,6 +108,7 @@ int main(int argc, char **argv) {
         if (metric) {
             std::cout << metric->name() << " = " << metric->score(predict_y, train_dataset.y()) << std::endl;
         }
+		*/
     }
     catch (std::bad_alloc &) {
         LOG(FATAL) << "out of memory, you may try \"-m memory size\" to constrain memory usage";
