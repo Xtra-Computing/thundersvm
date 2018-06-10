@@ -46,18 +46,18 @@ The usage of thundersvm scikit interface is similar to scikit.svm.
 This scikit-learn wrapper interface has issues with **Python 3 on Windows** for unknown reasons. If your project uses Python 3, please use our simple Python interface.
 
 ##### SVM classification
-*class SVC(kernel = 2, degree = 3, gamma = 'auto', coef0 = 0.0, cost = 1.0, tol = 0.001, probability = False, class_weight = None, shrinking = False, cache_size = None, verbose = False, max_iter = -1, n_cores = -1, random_state = None, decison_function_shape = 'ovo')*
+*class SVC(kernel = 2, degree = 3, gamma = 'auto', coef0 = 0.0, C = 1.0, tol = 0.001, probability = False, class_weight = None, shrinking = False, cache_size = None, verbose = False, max_iter = -1, n_jobs = -1, random_state = None, decison_function_shape = 'ovo')*
 
-*class NuSVC(kernel = 2, degree = 3, gamma = 'auto', coef0 = 0.0, nu = 0.5, tol = 0.001, probability = False, shrinking = False, cache_size = None, verbose = False, max_iter = -1, n_cores = -1, random_state = None, decison_function_shape = 'ovo')*
+*class NuSVC(kernel = 2, degree = 3, gamma = 'auto', coef0 = 0.0, nu = 0.5, tol = 0.001, probability = False, shrinking = False, cache_size = None, verbose = False, max_iter = -1, n_jobs = -1, random_state = None, decison_function_shape = 'ovo')*
 
 ##### One-class SVMs
 
-*class OneClassSVM(kernel = 2, degree = 3, gamma = 'auto', coef0 = 0.0, nu = 0.5, tol = 0.001, shrinking = False, cache_size = None, verbose = False, max_iter = -1, n_cores = -1, random_state = None)*
+*class OneClassSVM(kernel = 2, degree = 3, gamma = 'auto', coef0 = 0.0, nu = 0.5, tol = 0.001, shrinking = False, cache_size = None, verbose = False, max_iter = -1, n_jobs = -1, random_state = None)*
 
 ##### SVM regression
-class SVR(kernel = 2, degree = 3, gamma = 'auto', coef0 = 0.0, cost = 1.0, epsilon = 0.1, tol = 0.001, probability = False, shrinking = False, cache_size = None, verbose = False, max_iter = -1, n_cores = -1)
+class SVR(kernel = 2, degree = 3, gamma = 'auto', coef0 = 0.0, C = 1.0, epsilon = 0.1, tol = 0.001, probability = False, shrinking = False, cache_size = None, verbose = False, max_iter = -1, n_jobs = -1)
 
-*class NuSVR(kernel = 2, degree = 3, gamma = 'auto', coef0 = 0.0, nu = 0.5, cost = 1.0, tol = 0.001, probability = False, shrinking = False,  cache_size = None, verbose = False, max_iter = -1, n_cores = -1)*
+*class NuSVR(kernel = 2, degree = 3, gamma = 'auto', coef0 = 0.0, nu = 0.5, C = 1.0, tol = 0.001, probability = False, shrinking = False,  cache_size = None, verbose = False, max_iter = -1, n_jobs = -1)*
 
 
 ### Parameters
@@ -78,7 +78,7 @@ class SVR(kernel = 2, degree = 3, gamma = 'auto', coef0 = 0.0, cost = 1.0, epsil
 *coef0*: float, optional(default=0.0)\
     set coef0 in kernel function
 
-*cost*: float, optional(default=1.0)\
+*C*: float, optional(default=1.0)\
     set the parameter C of C-SVC, epsilon-SVR, and nu-SVR
 
 *nu*: float, optional(default=0.5)\
@@ -108,7 +108,7 @@ class SVR(kernel = 2, degree = 3, gamma = 'auto', coef0 = 0.0, cost = 1.0, epsil
 *max_iter*: int, optional (default=-1)\
     hard limit on the number of iterations within the solver, or -1 for no limit.
 
-*n_cores*: int, optional (default=-1)\
+*n_jobs*: int, optional (default=-1)\
     set the number of cpu cores to use, or -1 for maximum.
 
 *max_mem_size*: int, optional (default=-1)\
@@ -173,7 +173,7 @@ from thundersvmScikit import *
 from sklearn.datasets import *
 
 x,y = load_svmlight_file("../dataset/test_dataset.txt")
-clf = SVC(verbose=True, gamma=0.5, cost=100)
+clf = SVC(verbose=True, gamma=0.5, C=100)
 clf.fit(x,y)
 
 x2,y2=load_svmlight_file("../dataset/test_dataset.txt")
