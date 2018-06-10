@@ -30,7 +30,8 @@ The mission of ThunderSVM is to help users easily and efficiently apply SVMs to 
 
 ### Prerequisites
 * cmake 2.8 or above 
-* gcc 4.8 or above for Linux and MacOS; Visual C++ for Windows
+* gcc 4.8 or above for Linux and MacOS
+* Visual C++ for Windows
 
 If you want to use GPUs, you also need to install CUDA.
 
