@@ -3,13 +3,14 @@
 //
 #include <thundersvm/solver/csmosolver.h>
 #include <thundersvm/kernel/smo_kernel.h>
-#include <limits.h>
+#include <climits>
 
 using namespace svm_kernel;
 
 void
 CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<float_type> &alpha, float_type &rho,
-                  SyncArray<float_type> &f_val, float_type eps, float_type Cp, float_type Cn, int ws_size, int out_max_iter) const {
+                  SyncArray<float_type> &f_val, float_type eps, float_type Cp, float_type Cn, int ws_size,
+                  int out_max_iter) const {
     int n_instances = k_mat.n_instances();
     int q = ws_size / 2;
 
@@ -70,7 +71,7 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
             select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set_last_half);
             k_mat_rows_first_half.copy_from(k_mat_rows_last_half);
             k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
-		}
+        }
         //local smo
         smo_kernel(y, f_val, alpha, alpha_diff, working_set, Cp, Cn, k_mat_rows, k_mat.diag(), n_instances, eps, diff,
                    max_iter);
@@ -78,10 +79,9 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
         update_f(f_val, alpha_diff, k_mat_rows, k_mat.n_instances());
         float_type *diff_data = diff.host_data();
         local_iter += diff_data[1];
-        if(fabs(diff_data[0] - previous_local_diff) < eps * 0.001){
+        if (fabs(diff_data[0] - previous_local_diff) < eps * 0.001) {
             same_local_diff_cnt++;
-        }
-        else{
+        } else {
             same_local_diff_cnt = 0;
             previous_local_diff = diff_data[0];
         }
@@ -91,10 +91,14 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
                       << diff_data[0];
         //todo find some other ways to deal unchanged diff
         //training terminates in three conditions: 1. diff stays unchanged; 2. diff is closed to 0; 3. training reaches the limit of iterations.
-        if ((same_local_diff_cnt >= 10 && fabs(diff_data[0] - 2.0) > eps) || diff_data[0] < eps || (out_max_iter != -1) && (iter == out_max_iter)) {
+        if ((same_local_diff_cnt >= 10 && fabs(diff_data[0] - 2.0) > eps) || diff_data[0] < eps ||
+            (out_max_iter != -1) && (iter == out_max_iter)) {
             rho = calculate_rho(f_val, y, alpha, Cp, Cn);
             LOG(INFO) << "global iter = " << iter << ", total local iter = " << local_iter << ", diff = "
                       << diff_data[0];
+            LOG(INFO) << "training finished";
+            float_type obj = calculate_obj(f_val, alpha, y);
+            LOG(INFO) << "obj = " << obj;
             break;
         }
     }
@@ -202,5 +206,19 @@ CSMOSolver::smo_kernel(const SyncArray<int> &y, SyncArray<float_type> &f_val, Sy
                        SyncArray<float_type> &diff,
                        int max_iter) const {
     c_smo_solve(y, f_val, alpha, alpha_diff, working_set, Cp, Cn, k_mat_rows, k_mat_diag, row_len, eps, diff, max_iter);
+}
+
+float_type CSMOSolver::calculate_obj(const SyncArray<float_type> &f_val, const SyncArray<float_type> &alpha,
+                                     const SyncArray<int> &y) const {
+    //todo use parallel reduction for gpu and cpu
+    int n_instances = f_val.size();
+    float_type obj = 0;
+    const float_type *f_val_data = f_val.host_data();
+    const float_type *alpha_data = alpha.host_data();
+    const int *y_data = y.host_data();
+    for (int i = 0; i < n_instances; ++i) {
+        obj += alpha_data[i] - (f_val_data[i] + y_data[i]) * alpha_data[i] * y_data[i] / 2;
+    }
+    return -obj;
 }
 

@@ -91,6 +91,7 @@ public:
 
     //set max_memory_size during training and prediction
     void set_max_memory_size(size_t size);
+
 protected:
 
     /**
@@ -100,6 +101,7 @@ protected:
      */
     virtual void model_setup(const DataSet &dataset, SvmParam &param);
 
+    ///calculate a proper working set size for training
     int get_working_set_size(int n_instances, int n_features);
 
     SvmParam param;
