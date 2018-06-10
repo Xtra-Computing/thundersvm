@@ -40,8 +40,12 @@ svm_predict(y,x,'test_dataset.txt.model','test_dataset.predict')
 python test.py
 ```
 ## Scikit-learn wrapper interface
+### Prerequisites
+* numpy
+* scipy
+* sklearn
 ### Usage
-The usage of thundersvm scikit interface is similar to scikit.svm.
+The usage of thundersvm scikit interface is similar to sklearn.svm.
 
 This scikit-learn wrapper interface has issues with **Python 3 on Windows** for unknown reasons. If your project uses Python 3, please use our simple Python interface.
 
