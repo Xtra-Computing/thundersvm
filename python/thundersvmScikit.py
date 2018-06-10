@@ -20,8 +20,8 @@ if platform == "linux" or platform == "linux2":
     lib_path = path.join(dirname, '../build/lib/libthundersvm.so')
 elif platform == "win32":
     lib_path = path.join(dirname, '../build/bin/Debug/thundersvm.dll')
-# elif platform == "darwin":
-#     lib_path = path.join(dirname, '../build/lib/libthundersvm.dylib')
+elif platform == "darwin":
+    lib_path = path.join(dirname, '../build/lib/libthundersvm.dylib')
 else :
     print ("OS not supported!")
     exit()
@@ -56,6 +56,7 @@ class SvmModel(ThundersvmBase):
         self.n_jobs = n_jobs
         self.random_state = random_state
         self.max_mem_size = max_mem_size
+        thundersvm.model_new.restype = c_void_p
         self.model = thundersvm.model_new(SVM_TYPE.index(self._impl))
 
     def label_validate(self, y):
