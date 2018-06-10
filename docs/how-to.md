@@ -108,8 +108,7 @@ git rebase upstream/master
 ### Test ThunderSVM
 We recommend our contributors using Linux as the development platform where ThunderSVM is relatively well tested.
 
-Please note that ```cmake .. [-D<options>=<args>]``` produces a  ```CMakeCache.txt``` file. You need to remove it or the whole ```build``` directory, before you can run a new ```cmake``` command with different configurations.
-
+Please note that ```cmake .. [-D<options>=<args>]``` produces a  ```CMakeCache.txt``` file. You need to remove it or the whole ```build``` directory, before you can run a new ```cmake``` command with different configurations. Also please note that the test build will not generate binaries like `thundersvm-train`.
 #### Build test on Linux
 * Clone ThunderSVM repository
 ```bash
