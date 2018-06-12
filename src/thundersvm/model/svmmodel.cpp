@@ -216,7 +216,7 @@ void SvmModel::load_from_file(string path) {
             string value;
             ifs >> value;
             for (int i = 0; i < 6; i++) {
-                if (feature == SvmParam::kernel_type_name[i])
+                if (value == SvmParam::kernel_type_name[i])
                     param.kernel_type = static_cast<SvmParam::KERNEL_TYPE>(i);
             }
         } else if (feature == "degree") {
