@@ -90,25 +90,27 @@ int main(int argc, char **argv) {
         }
 
         //perform svm testing
-        /*std::shared_ptr<Metric> metric;
-        switch (parser.param_cmd.svm_type) {
-            case SvmParam::C_SVC:
-            case SvmParam::NU_SVC: {
-                metric.reset(new Accuracy());
-                break;
+        if(parser.do_cross_validation) {
+            std::shared_ptr<Metric> metric;
+            switch (parser.param_cmd.svm_type) {
+                case SvmParam::C_SVC:
+                case SvmParam::NU_SVC: {
+                    metric.reset(new Accuracy());
+                    break;
+                }
+                case SvmParam::EPSILON_SVR:
+                case SvmParam::NU_SVR: {
+                    metric.reset(new MSE());
+                    break;
+                }
+                case SvmParam::ONE_CLASS: {
+                }
             }
-            case SvmParam::EPSILON_SVR:
-            case SvmParam::NU_SVR: {
-                metric.reset(new MSE());
-                break;
-            }
-            case SvmParam::ONE_CLASS: {
+            if (metric) {
+                std::cout << metric->name() << " = " << metric->score(predict_y, train_dataset.y()) << std::endl;
             }
         }
-        if (metric) {
-            std::cout << metric->name() << " = " << metric->score(predict_y, train_dataset.y()) << std::endl;
-        }
-		*/
+
     }
     catch (std::bad_alloc &) {
         LOG(FATAL) << "out of memory, you may try \"-m memory size\" to constrain memory usage";

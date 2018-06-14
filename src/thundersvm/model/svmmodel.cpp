@@ -33,7 +33,7 @@ vector<float_type> SvmModel::cross_validation(DataSet dataset, SvmParam param, i
     vector<float_type> y_predict_all(dataset.n_instances());
 
     for (int k = 0; k < n_fold; ++k) {
-        LOG(INFO) << n_fold << " fold cross-validation(" << k + 1 << "/" << n_fold << ")";
+        LOG(INFO) << n_fold << " fold cross-validation (" << k + 1 << "/" << n_fold << ")";
         DataSet::node2d x_train, x_test;
         vector<float_type> y_train, y_test;
         vector<int> test_idx;
