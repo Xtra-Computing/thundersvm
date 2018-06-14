@@ -107,7 +107,7 @@ int main(int argc, char **argv) {
                 }
             }
             if (metric) {
-                std::cout << metric->name() << " = " << metric->score(predict_y, train_dataset.y()) << std::endl;
+                std::cout << "Cross " << metric->name() << " = " << metric->score(predict_y, train_dataset.y()) << std::endl;
             }
         }
 
