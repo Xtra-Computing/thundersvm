@@ -100,7 +100,7 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
         second_last_local_diff = last_local_diff;
         last_local_diff = diff_data[0];
 
-        //if (iter % 100 == 0)
+        if (iter % 100 == 0)
             LOG(INFO) << "global iter = " << iter << ", total local iter = " << local_iter << ", diff = "
                       << diff_data[0];
         //todo find some other ways to deal unchanged diff
