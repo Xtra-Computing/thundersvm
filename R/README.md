@@ -71,6 +71,9 @@ svm_predict_R(test_dataset = "../dataset/test_dataset.txt", model_file = "../dat
 
 *class_weight*:  {dict, ‘balanced’}, optional(default=None)\
     set the parameter C of class i to weight*C, for C-SVC
+    
+*cv*: int, optional(default=-1)\
+    specify the number of folds in cross-validation, or -1 for no cross-validation. 
 
 *verbose*: bool(default=False)\
     enable verbose output. Note that this setting takes advantage of a per-process runtime setting; if enabled, ThunderSVM may not work properly in a multithreaded context.

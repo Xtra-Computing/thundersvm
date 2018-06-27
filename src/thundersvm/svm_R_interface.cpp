@@ -134,7 +134,7 @@ extern "C" {
                 int* degree, char** gamma, double* coef0,
                  double* nu, double* cost, double* epsilon,
                  double* tol, int* probability,
-                char** class_weight, int* weight_length,
+                char** class_weight,  int* weight_length,int* n_fold,
                 int* verbose, int* max_iter, int* n_cores, char **model_file){
         int* succeed = new int[1];
         succeed[0] = 1;
@@ -239,28 +239,44 @@ extern "C" {
                 ind++;
             }
         }
-        vector<float_type> predict_y, test_y;
-        model->train(train_dataset, param_cmd);
-        model->save_to_file(model_file_path);
-        LOG(INFO) << "evaluating training score";
-        predict_y = model->predict(train_dataset.instances(), -1);
-        Metric *metric = nullptr;
-        switch (param_cmd.svm_type) {
-            case SvmParam::C_SVC:
-            case SvmParam::NU_SVC: {
-                metric = new Accuracy();
-                break;
-            }
-            case SvmParam::EPSILON_SVR:
-            case SvmParam::NU_SVR: {
-                metric = new MSE();
-                break;
-            }
-            case SvmParam::ONE_CLASS: {
-            }
+
+        int nr_fold = *n_fold;
+        vector<float_type> predict_y;
+        bool do_cross_validation = false;
+        if (nr_fold != -1) {
+            do_cross_validation = true;
+            predict_y = model->cross_validation(train_dataset, param_cmd, nr_fold);
+        } else {
+            model->train(train_dataset, param_cmd);
+            LOG(INFO) << "training finished";
+            model->save_to_file(model_file_path);
+            //   LOG(INFO) << "evaluating training score";
+            //   predict_y = model->predict(train_dataset.instances(), -1);
         }
-        if (metric) {
-            std::cout << metric->name() << " = " << metric->score(predict_y, train_dataset.y()) << std::endl;
+//        vector<float_type> predict_y, test_y;
+//        model->train(train_dataset, param_cmd);
+//        model->save_to_file(model_file_path);
+//        LOG(INFO) << "evaluating training score";
+//        predict_y = model->predict(train_dataset.instances(), -1);
+        if(do_cross_validation) {
+            Metric *metric = nullptr;
+            switch (param_cmd.svm_type) {
+                case SvmParam::C_SVC:
+                case SvmParam::NU_SVC: {
+                    metric = new Accuracy();
+                    break;
+                }
+                case SvmParam::EPSILON_SVR:
+                case SvmParam::NU_SVR: {
+                    metric = new MSE();
+                    break;
+                }
+                case SvmParam::ONE_CLASS: {
+                }
+            }
+            if (metric) {
+                std::cout << metric->name() << " = " << metric->score(predict_y, train_dataset.y()) << std::endl;
+            }
         }
         return succeed;
 //        model->train(train_dataset, param_cmd);
