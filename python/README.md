@@ -3,7 +3,12 @@ We provide both simple Python interface and scikit-learn wrapper interface. Befo
 ## Instructions for building ThunderSVM
 * Please refer to [Installation](http://thundersvm.readthedocs.io/en/latest/how-to.html) for building ThunderSVM.
 
-* Then, under ```./build/lib/``` of the ThunderSVM root directory, you should be able to see a library of ThunderSVM (e.g., ```libthundersvm.so``` on Linux machines).
+* Then, if you want to install the Python package, go to the project root directory and run:
+```
+cd python && python setup.py install
+```
+
+* However, you don't need to install the Python package in order to use it from Python. Thus, under ```./build/lib/``` of the ThunderSVM root directory, you should be able to see a library of ThunderSVM (e.g., ```libthundersvm.so``` on Linux machines).
 
 * After you have successfully done the above two steps, it is ready to start using Python interfaces.
 

@@ -7,20 +7,33 @@ import sys
 from sys import platform
 
 dirname = path.dirname(path.abspath(__file__))
+
 if platform == "linux" or platform == "linux2":
-	lib_path = path.join(dirname, '../build/lib/libthundersvm.so')
+    shared_library_name = "libthundersvm.so"
 elif platform == "win32":
-	lib_path = path.join(dirname, '../build/bin/Debug/thundersvm.dll')
+    shared_library_name = "thundersvm.dll"
 elif platform == "darwin":
-	lib_path = path.join(dirname, '../build/lib/libthundersvm.dylib')
+    shared_library_name = "libthundersvm.dylib"
 else :
-	print ("OS not supported!")
-	exit()
+    print ("OS not supported!")
+    exit()
+
+if path.exists(path.abspath(path.join(dirname, shared_library_name))):
+    lib_path = path.abspath(path.join(dirname, shared_library_name))
+else:
+    if platform == "linux" or platform == "linux2":
+        lib_path = path.join(dirname, '../build/lib/', shared_library_name)
+    elif platform == "win32":
+        lib_path = path.join(dirname, '../build/bin/Debug/', shared_library_name)
+    elif platform == "darwin":
+        lib_path = path.join(dirname, '../build/lib/', shared_library_name)
+
 if path.exists(lib_path):
-	thundersvm = CDLL(lib_path)
+    thundersvm = CDLL(lib_path)
 else :
-	print ("Please build the library first!")
-	exit()
+    print ("Please build the library first!")
+    exit()
+    
 dataset_path = dirname
 '''
 class dataset(object):
