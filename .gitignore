@@ -12,4 +12,7 @@ html
 latex
 logs
 *.pyc
-
+*.dylib
+*.egg-info*
+python/dist/*
+python/build/**
