@@ -63,7 +63,7 @@ The usage of thundersvm scikit interface is similar to sklearn.svm.
 *class OneClassSVM(kernel = 'rbf', degree = 3, gamma = 'auto', coef0 = 0.0, nu = 0.5, tol = 0.001, shrinking = False, cache_size = None, verbose = False, max_iter = -1, n_jobs = -1, random_state = None)*
 
 ##### SVM regression
-class SVR(kernel = 'rbf', degree = 3, gamma = 'auto', coef0 = 0.0, C = 1.0, epsilon = 0.1, tol = 0.001, probability = False, shrinking = False, cache_size = None, verbose = False, max_iter = -1, n_jobs = -1)
+*class SVR(kernel = 'rbf', degree = 3, gamma = 'auto', coef0 = 0.0, C = 1.0, epsilon = 0.1, tol = 0.001, probability = False, shrinking = False, cache_size = None, verbose = False, max_iter = -1, n_jobs = -1)*
 
 *class NuSVR(kernel = 'rbf', degree = 3, gamma = 'auto', coef0 = 0.0, nu = 0.5, C = 1.0, tol = 0.001, probability = False, shrinking = False,  cache_size = None, verbose = False, max_iter = -1, n_jobs = -1)*
 
