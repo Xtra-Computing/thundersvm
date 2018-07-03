@@ -45,6 +45,7 @@ else :
     exit()
 
 SVM_TYPE = ['c_svc', 'nu_svc', 'one_class', 'epsilon_svr', 'nu_svr']
+KERNEL_TYPE = ['linear', 'polynomial', 'rbf', 'sigmoid', 'precomputed']
 
 class SvmModel(ThundersvmBase):
     def __init__(self, kernel, degree,
@@ -92,7 +93,7 @@ class SvmModel(ThundersvmBase):
         else:
             self._gamma = self.gamma
 
-        kernel = self.kernel
+        kernel = KERNEL_TYPE.index(self.kernel)
 
         fit = self._sparse_fit if self._sparse else self._dense_fit
         self.model = thundersvm.model_new(solver_type)

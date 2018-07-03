@@ -69,13 +69,13 @@ class SVR(kernel = 2, degree = 3, gamma = 'auto', coef0 = 0.0, C = 1.0, epsilon 
 
 
 ### Parameters
-*kernel*: int, optional(default=2)\
+*kernel*: string, optional(default='rbf')\
     set type of kernel function\
-                    	0 -- linear: u'\*v\
-                    	1 -- polynomial: (gamma\*u'\*v + coef0)^degree\
-                    	2 -- radial basis function: exp(-gamma\*|u-v|^2)\
-                    	3 -- sigmoid: tanh(gamma\*u'\*v + coef0)\
-                    	4 -- precomputed kernel (kernel values in training_set_file)
+                    	'linear': u'\*v\
+                    	'polynomial': (gamma\*u'\*v + coef0)^degree\
+                    	'rbf': exp(-gamma\*|u-v|^2)\
+                    	'sigmoid': tanh(gamma\*u'\*v + coef0)\
+                    	'precomputed' -- precomputed kernel (kernel values in training_set_file)
 
 *degree*: int, optional(default=3)\
     set degree in kernel function
