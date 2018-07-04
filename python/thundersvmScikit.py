@@ -92,8 +92,11 @@ class SvmModel(ThundersvmBase):
             self._gamma = 1.0 / X.shape[1]
         else:
             self._gamma = self.gamma
-
-        kernel = KERNEL_TYPE.index(self.kernel)
+        if self.kernel not in KERNEL_TYPE:
+            print ("The kernel parameter not recognized, please refer to the document.")
+            exit()
+        else:
+            kernel = KERNEL_TYPE.index(self.kernel)
 
         fit = self._sparse_fit if self._sparse else self._dense_fit
         self.model = thundersvm.model_new(solver_type)
@@ -332,7 +335,7 @@ class SvmModel(ThundersvmBase):
 
 class SVC(SvmModel, ClassifierMixin):
      _impl = 'c_svc'
-     def __init__(self, kernel = 2, degree = 3,
+     def __init__(self, kernel = 'rbf', degree = 3,
                   gamma = 'auto', coef0 = 0.0, C = 1.0,
                   tol = 0.001, probability = False, class_weight = None,
                   shrinking = False, cache_size = None, verbose = False,
@@ -350,7 +353,7 @@ class SVC(SvmModel, ClassifierMixin):
 
 class NuSVC(SvmModel, ClassifierMixin):
     _impl = 'nu_svc'
-    def __init__(self, kernel = 2, degree = 3, gamma = 'auto',
+    def __init__(self, kernel = 'rbf', degree = 3, gamma = 'auto',
                  coef0 = 0.0, nu = 0.5, tol = 0.001,
                  probability = False, shrinking = False, cache_size = None, verbose = False,
                  max_iter = -1, n_jobs = -1, max_mem_size = -1, random_state = None, decison_function_shape = 'ovo'):
@@ -365,7 +368,7 @@ class NuSVC(SvmModel, ClassifierMixin):
 
 class OneClassSVM(SvmModel):
     _impl = 'one_class'
-    def __init__(self, kernel = 2, degree = 3, gamma = 'auto',
+    def __init__(self, kernel = 'rbf', degree = 3, gamma = 'auto',
                  coef0 = 0.0, nu = 0.5, tol = 0.001,
                  shrinking = False, cache_size = None, verbose = False,
                  max_iter = -1, n_jobs = -1, max_mem_size = -1, random_state = None):
@@ -382,7 +385,7 @@ class OneClassSVM(SvmModel):
 
 class SVR(SvmModel, RegressorMixin):
     _impl = 'epsilon_svr'
-    def __init__(self, kernel = 2, degree = 3, gamma = 'auto',
+    def __init__(self, kernel = 'rbf', degree = 3, gamma = 'auto',
                  coef0 = 0.0, C = 1.0, epsilon = 0.1,
                  tol = 0.001, probability = False,
                  shrinking = False, cache_size = None, verbose = False,
@@ -397,7 +400,7 @@ class SVR(SvmModel, RegressorMixin):
 
 class NuSVR(SvmModel, RegressorMixin):
     _impl = 'nu_svr'
-    def __init__(self, kernel = 2, degree = 3, gamma = 'auto',
+    def __init__(self, kernel = 'rbf', degree = 3, gamma = 'auto',
                coef0 = 0.0, nu = 0.5, C = 1.0, tol = 0.001, probability = False,
                shrinking = False, cache_size = None, verbose = False,
                max_iter = -1, n_jobs = -1, max_mem_size = -1):
