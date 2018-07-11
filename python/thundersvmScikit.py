@@ -156,9 +156,9 @@ class SvmModel(ThundersvmBase):
         else:
             weight_size = len(self.class_weight)
         weight_label = (c_int * weight_size)()
-        weight_label[:] = self.class_weight.keys()
+        weight_label[:] = list(self.class_weight.keys())
         weight = (c_float * weight_size)()
-        weight[:] = self.class_weight.values()
+        weight[:] = list(self.class_weight.values())
 
         n_features = (c_int * 1)()
         n_classes = (c_int * 1)()
@@ -198,9 +198,9 @@ class SvmModel(ThundersvmBase):
         else:
             weight_size = len(self.class_weight)
         weight_label = (c_int * weight_size)()
-        weight_label[:] = self.class_weight.keys()
+        weight_label[:] = list(self.class_weight.keys())
         weight = (c_float * weight_size)()
-        weight[:] = self.class_weight.values()
+        weight[:] = list(self.class_weight.values())
 
         n_features = (c_int * 1)()
         n_classes = (c_int * 1)()
