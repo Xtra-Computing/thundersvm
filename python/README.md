@@ -101,7 +101,7 @@ The usage of thundersvm scikit interface is similar to sklearn.svm.
 *probability*: boolean, optional(default=False)\
     whether to train a SVC or SVR model for probability estimates, True or False
 
-*class_weight*:  {dict, ‘balanced’}, optional(default=None)\
+*class_weight*:  {dict}, optional(default=None)\
     set the parameter C of class i to weight*C, for C-SVC
 
 *shrinking*: boolean, optional (default=False, not supported yet for True)\
