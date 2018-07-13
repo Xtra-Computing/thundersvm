@@ -45,7 +45,7 @@ private:
      * @param n_instances the number of instances to be predicted
      * @return final labels of each instances
      */
-    vector<float_type> predict_label(const SyncArray<float_type> &dec_values, int n_instances) const;
+    vector<float_type> predict_label(const SyncArray<float_type> &dec_values, int n_instances) ;
 
     /**
      * perform probability training.

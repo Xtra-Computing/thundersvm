@@ -221,7 +221,7 @@ void SVC::multiclass_probability(const vector<vector<float_type> > &r, vector<fl
     free(Qp);
 }
 
-vector<float_type> SVC::predict_label(const SyncArray<float_type> &dec_values, int n_instances) const {
+vector<float_type> SVC::predict_label(const SyncArray<float_type> &dec_values, int n_instances) {
     vector<float_type> predict_y;
     const float_type *dec_values_data = dec_values.host_data();
     if (0 == param.probability) {
@@ -247,6 +247,7 @@ vector<float_type> SVC::predict_label(const SyncArray<float_type> &dec_values, i
         }
     } else {
         LOG(INFO) << "predict with probability";
+        this->prob_predict.clear();
         for (int l = 0; l < n_instances; ++l) {
             vector<vector<float_type> > r(n_classes, vector<float_type>(n_classes));
             float_type min_prob = 1e-7;
@@ -261,6 +262,7 @@ vector<float_type> SVC::predict_label(const SyncArray<float_type> &dec_values, i
                 }
             vector<float_type> p(n_classes);
             multiclass_probability(r, p);
+            this->prob_predict.insert(prob_predict.end(), p.begin(), p.end());
             int max_prob_class = 0;
             for (int j = 0; j < n_classes; ++j) {
                 if (p[j] > p[max_prob_class])

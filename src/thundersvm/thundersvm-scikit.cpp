@@ -317,4 +317,12 @@ extern "C" {
     void load_from_file_scikit(SvmModel *model, char *path) {
         model->load_from_file(path);
     }
+
+    void get_pro(SvmModel *model, float_type* prob){
+        vector<float> prob_predict;
+        prob_predict = model->get_prob_predict();
+        for(int i = 0; i < prob_predict.size(); i++){
+            prob[i] = prob_predict[i];
+        }
+    }
 }

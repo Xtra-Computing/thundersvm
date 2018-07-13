@@ -318,6 +318,10 @@ const SyncArray<float_type> &SvmModel::get_dec_value() const {
     return dec_values;
 }
 
+const vector<float> &SvmModel::get_prob_predict() const{
+    return prob_predict;
+}
+
 int SvmModel::get_working_set_size(int n_instances, int n_features) {
     size_t free_mem = param.max_mem_size - SyncMem::get_total_memory_size();
     int ws_size = min(max2power(n_instances),

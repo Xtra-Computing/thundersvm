@@ -92,6 +92,7 @@ public:
     //set max_memory_size during training and prediction
     void set_max_memory_size(size_t size);
 
+    const vector<float> &get_prob_predict() const;
 protected:
 
     /**
@@ -152,6 +153,9 @@ protected:
 
     ///only for SVC and NuSVC, decision values
     SyncArray<float_type> dec_values;
+
+    ///the probability for each class in predict
+    vector<float> prob_predict;
 };
 
 #endif //THUNDERSVM_SVMMODEL_H
