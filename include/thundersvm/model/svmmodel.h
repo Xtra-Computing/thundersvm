@@ -87,11 +87,16 @@ public:
     //set max_iter
     void set_max_iter(int iter);
 
+    //return dec_values
     const SyncArray<float_type> &get_dec_value() const;
 
     //set max_memory_size during training and prediction
     void set_max_memory_size(size_t size);
 
+    //return n_binary_models
+    int get_n_binary_models() const;
+
+    //return prob_predict
     const vector<float> &get_prob_predict() const;
 protected:
 

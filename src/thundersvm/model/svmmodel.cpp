@@ -318,6 +318,9 @@ const SyncArray<float_type> &SvmModel::get_dec_value() const {
     return dec_values;
 }
 
+int SvmModel::get_n_binary_models() const{
+    return n_binary_models;
+}
 const vector<float> &SvmModel::get_prob_predict() const{
     return prob_predict;
 }

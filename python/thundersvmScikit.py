@@ -309,6 +309,9 @@ class SvmModel(ThundersvmBase):
 
     def decision_function(self, X):
         X = self._validate_for_predict(X)
+        n_binary_model = (c_int * 1)()
+        thundersvm.get_n_binary_models(c_void_p(self.model), n_binary_model)
+        self.n_binary_model = n_binary_model[0]
         if not(self._impl in ['c_svc', 'nu_svc', 'one_class']):
             print ("Not support decision_function!")
             return
