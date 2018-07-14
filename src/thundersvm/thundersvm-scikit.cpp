@@ -105,7 +105,7 @@ extern "C" {
         param_cmd.epsilon = (float_type)tol;
         param_cmd.probability = probability;
         if(max_mem_size != -1)
-            param_cmd.max_mem_size = max_mem_size;
+            param_cmd.max_mem_size = static_cast<size_t>(max(max_mem_size, 0)) << 20;
         if(weight_size != 0) {
             param_cmd.nr_weight = weight_size;
             param_cmd.weight = (float_type *) malloc(weight_size * sizeof(float_type));
@@ -201,7 +201,7 @@ extern "C" {
         param_cmd.epsilon = (float_type)tol;
         param_cmd.probability = probability;
         if(max_mem_size != -1)
-            param_cmd.max_mem_size = max_mem_size;
+            param_cmd.max_mem_size = static_cast<size_t>(max(max_mem_size, 0)) << 20;
         if(weight_size != 0) {
             param_cmd.nr_weight = weight_size;
             param_cmd.weight = (float_type *) malloc(weight_size * sizeof(float_type));
