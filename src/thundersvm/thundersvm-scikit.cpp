@@ -329,4 +329,8 @@ extern "C" {
     void get_n_binary_models(SvmModel *model, int *n_model){
         n_model[0] = model->get_n_binary_models();
     }
+
+    void get_n_classes(SvmModel *model, int *n_classes){
+        n_classes[0] = model->get_n_classes();
+    }
 }

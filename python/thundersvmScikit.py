@@ -243,31 +243,41 @@ class SvmModel(ThundersvmBase):
         predict = self._sparse_predict if self._sparse else self._dense_predict
         return predict(X)
 
-    def predict_proba(selfself, X):
+    def predict_proba(self, X):
+        n_classes = (c_int * 1)()
+        thundersvm.get_n_classes(c_void_p(self.model), n_classes)
+        self.n_classes = n_classes[0]
         if self.probability == 0:
             print ("Should fit with probability = 1")
             return
         else:
-            X = self._validate_for_predict(X)
             size = X.shape[0] * self.n_classes
-            self.predict_pro_ptr = (c_float * size)()
-            X = np.asarray(X, dtype=np.float64, order='C')
-
-            self.predict_label_ptr = (c_float * X.shape[0])()
             samples = X.shape[0]
-            features = X.shape[1]
-            X_1d = X.ravel()
-
-            data = (c_float * X_1d.size)()
-            data[:] = X_1d
-            thundersvm.dense_predict(
-                samples, features, data,
-                c_void_p(self.model),
-                self.predict_label_ptr)
+            self.predict_pro_ptr = (c_float * size)()
+            X = self._validate_for_predict(X)
+            if self._sparse:
+                self._sparse_predict(X)
+            else :
+                self._dense_predict(X)
+            # size = X.shape[0] * self.n_classes
+            # self.predict_pro_ptr = (c_float * size)()
+            # X = np.asarray(X, dtype=np.float64, order='C')
+            #
+            # self.predict_label_ptr = (c_float * X.shape[0])()
+            # samples = X.shape[0]
+            # features = X.shape[1]
+            # X_1d = X.ravel()
+            #
+            # data = (c_float * X_1d.size)()
+            # data[:] = X_1d
+            # thundersvm.dense_predict(
+            #     samples, features, data,
+            #     c_void_p(self.model),
+            #     self.predict_label_ptr)
             thundersvm.get_pro(c_void_p(self.model),self.predict_pro_ptr)
             self.predict_prob = np.array([self.predict_pro_ptr[index] for index in range(0, size)])
-            self.predict_prob = np.reshape(self.predict_pro, (samples, self.n_classes))
-            return self.predict_pro
+            self.predict_prob = np.reshape(self.predict_prob, (samples, self.n_classes))
+            return self.predict_prob
 
 
 
