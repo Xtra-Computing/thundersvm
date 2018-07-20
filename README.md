@@ -68,7 +68,9 @@ If you use ThunderSVM in your paper, please cite our work ([preprint now availab
 @article{wenthundersvm18,
  author = {Wen, Zeyi and Shi, Jiashuai and He, Bingsheng and Li, Qinbin and Chen, Jian},
  title = {{ThunderSVM}: A Fast {SVM} Library on {GPUs} and {CPUs}},
- journal = {To appear in arxiv},
+ journal = {Journal of Machine Learning Research},
+ volume={18(217)},
+ pages={1--5},
  year = {2018}
 }
 ```
