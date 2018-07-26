@@ -66,10 +66,10 @@ You will see `Accuracy = 0.98` after successful running.
 If you use ThunderSVM in your paper, please cite our work ([preprint now available](https://github.com/zeyiwen/thundersvm/blob/master/thundersvm-full.pdf)).
 ```
 @article{wenthundersvm18,
- author = {Wen, Zeyi and Shi, Jiashuai and He, Bingsheng and Li, Qinbin and Chen, Jian},
+ author = {Wen, Zeyi and Shi, Jiashuai and Li, Qinbin and He, Bingsheng and Chen, Jian},
  title = {{ThunderSVM}: A Fast {SVM} Library on {GPUs} and {CPUs}},
  journal = {Journal of Machine Learning Research},
- volume={19(217)},
+ volume={19},
  pages={1--5},
  year = {2018}
 }
