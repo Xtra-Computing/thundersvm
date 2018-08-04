@@ -72,6 +72,8 @@ class SvmModel(ThundersvmBase):
         self.max_mem_size = max_mem_size
         thundersvm.model_new.restype = c_void_p
         self.model = thundersvm.model_new(SVM_TYPE.index(self._impl))
+        if self.max_mem_size != -1:
+            thundersvm.set_memory_size(c_void_p(self.model), self.max_mem_size)
 
     def label_validate(self, y):
 
@@ -238,7 +240,6 @@ class SvmModel(ThundersvmBase):
         return X
 
     def predict(self, X):
-
         X = self._validate_for_predict(X)
         predict = self._sparse_predict if self._sparse else self._dense_predict
         return predict(X)
@@ -294,7 +295,7 @@ class SvmModel(ThundersvmBase):
         thundersvm.dense_predict(
             samples, features, data,
             c_void_p(self.model),
-            self.predict_label_ptr)
+            self.predict_label_ptr, self.verbose)
         
         self.predict_label = np.array([self.predict_label_ptr[index] for index in range(0, X.shape[0])])
         return self.predict_label
@@ -310,7 +311,7 @@ class SvmModel(ThundersvmBase):
         thundersvm.sparse_predict(
             X.shape[0], data, indptr, indices,
             c_void_p(self.model),
-            self.predict_label_ptr)
+            self.predict_label_ptr, self.verbose)
 
         predict_label = [self.predict_label_ptr[index] for index in range(0, X.shape[0])]
         

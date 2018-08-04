@@ -121,7 +121,11 @@ extern "C" {
         n_classes[0] = model->get_n_classes();
     }
 
-    int sparse_predict(int row_size, float* val, int* row_ptr, int* col_ptr, SvmModel *model, float* predict_label){
+    int sparse_predict(int row_size, float* val, int* row_ptr, int* col_ptr, SvmModel *model, float* predict_label, int verbose){
+        if(verbose)
+            el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "true");
+        else
+            el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
         DataSet predict_dataset;
         predict_dataset.load_from_sparse(row_size, val, row_ptr, col_ptr, (float *)NULL);
         vector<float_type> predict_y;
@@ -219,7 +223,11 @@ extern "C" {
 
     }
 
-    int dense_predict(int row_size, int features, float* data, SvmModel *model, float* predict_label){
+    int dense_predict(int row_size, int features, float* data, SvmModel *model, float* predict_label, int verbose){
+        if(verbose)
+            el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "true");
+        else
+            el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
         DataSet predict_dataset;
         predict_dataset.load_from_dense(row_size, features, data, (float*) NULL);
         vector<float_type> predict_y;
@@ -332,5 +340,9 @@ extern "C" {
 
     void get_n_classes(SvmModel *model, int *n_classes){
         n_classes[0] = model->get_n_classes();
+    }
+
+    void set_memory_size(SvmModel *model, int m_size){
+        model->set_max_memory_size(m_size);
     }
 }
