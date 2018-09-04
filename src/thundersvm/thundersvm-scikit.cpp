@@ -310,9 +310,10 @@ extern "C" {
         DataSet predict_dataset;
         predict_dataset.load_from_dense(row_size, features, data, (float*) NULL);
         model->predict(predict_dataset.instances(), -1);
-        SyncArray<float_type> dec_value_array(value_size);
-        dec_value_array.copy_from(model->get_dec_value());
-        float_type *dec_value_ptr = dec_value_array.host_data();
+        //SyncArray<float_type> dec_value_array(value_size);
+        //dec_value_array.copy_from(model->get_dec_value());
+        const SyncArray<float_type>& dec_value_array = model->get_dec_value();
+        const float_type *dec_value_ptr = dec_value_array.host_data();
         for(int i = 0; i < dec_value_array.size(); i++){
             dec_value[i] = dec_value_ptr[i];
         }
