@@ -48,9 +48,13 @@ mkdir build && cd build && cmake .. && make -j
 ```
 
 ##### ThunderSVM on CPUs
+You could use system bundled eigen (`libeigen3-dev` or `libeigen2-dev` in Ubuntu). You could also get eigen submodule if eigen is not available in your system:
 ```bash
 # in thundersvm root directory
 git submodule init eigen && git submodule update
+```
+and then:
+```bash
 mkdir build && cd build && cmake -DUSE_CUDA=OFF -DUSE_EIGEN=ON .. && make -j
 ```
 If ```make -j``` doesn't work, please simply use ```make```. The number of CPU cores to use can be specified by the ```-o``` option (e.g., ```-o 10```), and refer to [Parameters](http://thundersvm.readthedocs.io/en/latest/parameters.html) for more information.

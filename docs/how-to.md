@@ -113,9 +113,11 @@ Please note that ```cmake .. [-D<options>=<args>]``` produces a  ```CMakeCache.t
 * Clone ThunderSVM repository
 ```bash
 git clone https://github.com/zeyiwen/thundersvm.git
-git submodule update --init src/test/googletest
 ```
-
+* With cmake >= 3.10, you could use system bundled googletest package (`libgtest-dev` in Ubuntu-like OS), or you could add submodule by:
+```bash
+git submodule update --init src/test/googletest
+``
 * Build the binary for testing 
 ```bash
 mkdir build
