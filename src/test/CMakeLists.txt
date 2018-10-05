@@ -1,6 +1,10 @@
-add_subdirectory(googletest)
-include_directories(googletest/googletest/include)
-include_directories(googletest/googlemock/include)
+if (UNIX AND CMAKE_VERSION VERSION_GREATER 3.10)
+	include(GoogleTest)
+else ()
+	add_subdirectory(googletest)
+	include_directories(googletest/googletest/include)
+	include_directories(googletest/googlemock/include)
+endif ()
 
 file(GLOB TEST_SRC *)
 
