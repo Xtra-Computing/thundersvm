@@ -140,7 +140,7 @@ extern "C" {
         CUDA_CHECK(cudaSetDevice(parser.gpu_id));
 #endif
 
-        model->set_max_memory_size(parser.param_cmd.max_mem_size);
+        model->set_max_memory_size_Byte(parser.param_cmd.max_mem_size);
         model->load_from_file(model_file_path);
         file.close();
         file.open(output_file_path, fstream::out);
