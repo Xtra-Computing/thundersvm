@@ -90,9 +90,12 @@ public:
     //return dec_values
     const SyncArray<float_type> &get_dec_value() const;
 
-    //set max_memory_size during training and prediction
+    //set max_memory_size during training and prediction (input unit MB)
     void set_max_memory_size(size_t size);
 
+	//set max_memory_size during training and prediction (input unit Byte)
+	void set_max_memory_size_Byte(size_t size);
+	
     //return n_binary_models
     int get_n_binary_models() const;
 

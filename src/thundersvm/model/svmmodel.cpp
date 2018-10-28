@@ -338,5 +338,10 @@ int SvmModel::get_working_set_size(int n_instances, int n_features) {
 
 void SvmModel::set_max_memory_size(size_t size) {
     if(size > 0)
+		this->param.max_mem_size = static_cast<size_t>(size) << 20;
+}
+
+void SvmModel::set_max_memory_size_Byte(size_t size) {
+	if(size > 0)
 		this->param.max_mem_size = static_cast<size_t>(size);
 }

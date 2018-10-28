@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
         CUDA_CHECK(cudaSetDevice(parser.gpu_id));
 #endif
 
-        model->set_max_memory_size(parser.param_cmd.max_mem_size);
+        model->set_max_memory_size_Byte(parser.param_cmd.max_mem_size);
         model->load_from_file(parser.svmpredict_model_file_name);
         file.close();
         file.open(parser.svmpredict_output_file, fstream::out);
