@@ -2,6 +2,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/e9yoehx7orsrsh89/branch/master?svg=true)](https://ci.appveyor.com/project/shijiashuai/thundersvm/branch/master)
 [![GitHub license](http://dmlc.github.io/img/apache2.svg)](./LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/thundersvm/badge/?version=latest)](https://thundersvm.readthedocs.org)
+[![GitHub issues](https://img.shields.io/github/issues/Xtra-Computing/thundersvm.svg)](https://github.com/zeyiwen/thundersvm/issues)
 
 <div align="center">
 <img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/logo.png" width="240" height="220" align=left/>
