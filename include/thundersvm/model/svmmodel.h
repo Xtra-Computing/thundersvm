@@ -101,6 +101,9 @@ public:
 
     //return prob_predict
     const vector<float> &get_prob_predict() const;
+
+    //get the params, for scikit load params
+    void get_param(char* kernel_type, int* degree, float* gamma, float* coef0, int* probability);
 protected:
 
     /**

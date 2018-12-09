@@ -34,6 +34,10 @@ extern "C" {
         }
     }
 
+    void init_model_param(char* kernel_type, int* degree, float* gamma, float* coef0, int* probability, SvmModel* model){
+        model->get_param(kernel_type, degree, gamma, coef0, probability);
+    }
+
     void sparse_model_scikit(int row_size, float* val, int* row_ptr, int* col_ptr, float* label,
                                   int svm_type, int kernel_type, int degree, float gamma, float coef0,
                                   float cost, float nu, float epsilon, float tol, int probability,

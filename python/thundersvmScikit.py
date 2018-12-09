@@ -373,6 +373,19 @@ class SvmModel(ThundersvmBase):
 
     def load_from_file(self, path):
         thundersvm.load_from_file_scikit(c_void_p(self.model), path.encode('utf-8'))
+        degree = (c_int * 1)()
+        gamma = (c_float * 1)()
+        coef0 = (c_float * 1)()
+        probability = (c_int * 1)()
+        kernel = (c_char * 20)()
+        thundersvm.init_model_param(kernel, degree, gamma,
+                                    coef0, probability,c_void_p(self.model))
+        self.kernel = kernel.value
+        self.degree = degree[0]
+        if gamma[0] != 0.0:
+            self.gamma = gamma[0]
+        self.coef0 = coef0[0]
+        self.probability = probability[0]
 
 
 class SVC(SvmModel, ClassifierMixin):

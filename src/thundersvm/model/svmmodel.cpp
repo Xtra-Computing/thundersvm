@@ -345,3 +345,28 @@ void SvmModel::set_max_memory_size_Byte(size_t size) {
 	if(size > 0)
 		this->param.max_mem_size = static_cast<size_t>(size);
 }
+
+void SvmModel::get_param(char* kernel_type, int* degree, float* gamma, float* coef0, int* probability){
+    switch(param.kernel_type){
+        case 0:
+            strcpy(kernel_type, "linear");
+            break;
+        case 1:
+            strcpy(kernel_type, "polynomial");
+            break;
+        case 2:
+            strcpy(kernel_type, "rbf");
+            kernel_type = (char *)"rbf";
+            break;
+        case 3:
+            strcpy(kernel_type, "sigmoid");
+            break;
+        case 4:
+            strcpy(kernel_type, "precomputed");
+            break;
+    }
+    *degree = param.degree;
+    *gamma = param.gamma;
+    *coef0 = param.coef0;
+    *probability = param.probability;
+}
