@@ -356,7 +356,6 @@ void SvmModel::get_param(char* kernel_type, int* degree, float* gamma, float* co
             break;
         case 2:
             strcpy(kernel_type, "rbf");
-            kernel_type = (char *)"rbf";
             break;
         case 3:
             strcpy(kernel_type, "sigmoid");
