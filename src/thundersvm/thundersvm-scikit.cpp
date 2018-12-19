@@ -43,7 +43,12 @@ extern "C" {
                                   float cost, float nu, float epsilon, float tol, int probability,
                                   int weight_size, int* weight_label, float* weight,
                                   int verbose, int max_iter, int n_cores, int max_mem_size,
+                                  int gpu_id,
                                   int* n_features, int* n_classes, int* succeed, SvmModel* model){
+#ifdef USE_CUDA
+        CUDA_CHECK(cudaSetDevice(gpu_id));
+#endif
+
         succeed[0] = 1;
         if(verbose)
             el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "true");
@@ -145,7 +150,13 @@ extern "C" {
                                  float cost, float nu, float epsilon, float tol, int probability,
                                  int weight_size, int* weight_label, float* weight,
                                  int verbose, int max_iter, int n_cores, int max_mem_size,
+                                 int gpu_id,
                                  int* n_features, int* n_classes, int* succeed, SvmModel* model){
+
+#ifdef USE_CUDA
+        CUDA_CHECK(cudaSetDevice(gpu_id));
+#endif
+
         succeed[0] = 1;
         if(verbose)
             el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "true");
