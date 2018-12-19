@@ -52,7 +52,7 @@ class SvmModel(ThundersvmBase):
                  gamma, coef0, C, nu, epsilon,
                  tol, probability, class_weight,
                  shrinking, cache_size, verbose,
-                 max_iter, n_jobs, max_mem_size, random_state):
+                 max_iter, n_jobs, max_mem_size, random_state,gpu_id):
         self.kernel = kernel
         self.degree = degree
         self.gamma = gamma
@@ -72,6 +72,7 @@ class SvmModel(ThundersvmBase):
         self.max_mem_size = max_mem_size
         thundersvm.model_new.restype = c_void_p
         self.model = thundersvm.model_new(SVM_TYPE.index(self._impl))
+        self.gpu_id = gpu_id
         if self.max_mem_size != -1:
             thundersvm.set_memory_size(c_void_p(self.model), self.max_mem_size)
 
@@ -171,6 +172,7 @@ class SvmModel(ThundersvmBase):
             c_float(self.C), c_float(self.nu), c_float(self.epsilon), c_float(self.tol),
             self.probability, weight_size, weight_label, weight,
             self.verbose, self.max_iter, self.n_jobs, self.max_mem_size,
+            self.gpu_id,
             n_features, n_classes, self._train_succeed, c_void_p(self.model))
         self.n_features = n_features[0]
         self.n_classes = n_classes[0]
@@ -213,6 +215,7 @@ class SvmModel(ThundersvmBase):
                 c_float(self.C), c_float(self.nu), c_float(self.epsilon), c_float(self.tol),
                 self.probability, weight_size, weight_label, weight,
                 self.verbose, self.max_iter, self.n_jobs, self.max_mem_size,
+                self.gpu_id,
                 n_features, n_classes, self._train_succeed, c_void_p(self.model))
         self.n_features = n_features[0]
         self.n_classes = n_classes[0]
@@ -394,7 +397,7 @@ class SVC(SvmModel, ClassifierMixin):
                   gamma = 'auto', coef0 = 0.0, C = 1.0,
                   tol = 0.001, probability = False, class_weight = None,
                   shrinking = False, cache_size = None, verbose = False,
-                  max_iter = -1, n_jobs = -1, max_mem_size = -1, random_state = None, decison_function_shape = 'ovo'):
+                  max_iter = -1, n_jobs = -1, max_mem_size = -1, random_state = None, decison_function_shape = 'ovo', gpu_id=0):
          self.decison_function_shape = decison_function_shape
          super(SVC, self).__init__(
              kernel=kernel, degree=degree, gamma=gamma,
@@ -402,7 +405,7 @@ class SVC(SvmModel, ClassifierMixin):
              tol=tol, probability=probability,
              class_weight=class_weight, shrinking = shrinking,
              cache_size = cache_size, verbose = verbose,
-             max_iter = max_iter, n_jobs = n_jobs, max_mem_size = max_mem_size, random_state = random_state)
+             max_iter = max_iter, n_jobs = n_jobs, max_mem_size = max_mem_size, random_state = random_state, gpu_id=gpu_id)
 
 
 
@@ -411,14 +414,14 @@ class NuSVC(SvmModel, ClassifierMixin):
     def __init__(self, kernel = 'rbf', degree = 3, gamma = 'auto',
                  coef0 = 0.0, nu = 0.5, tol = 0.001,
                  probability = False, shrinking = False, cache_size = None, verbose = False,
-                 max_iter = -1, n_jobs = -1, max_mem_size = -1, random_state = None, decison_function_shape = 'ovo'):
+                 max_iter = -1, n_jobs = -1, max_mem_size = -1, random_state = None, decison_function_shape = 'ovo', gpu_id=0):
         self.decison_function_shape = decison_function_shape
         super(NuSVC, self).__init__(
             kernel = kernel, degree = degree, gamma = gamma,
             coef0 = coef0, C = 0., nu = nu, epsilon= 0.,
             tol = tol, probability = probability, class_weight = None,
             shrinking = shrinking, cache_size = cache_size, verbose = verbose,
-            max_iter = max_iter, n_jobs = n_jobs, max_mem_size = max_mem_size, random_state = random_state
+            max_iter = max_iter, n_jobs = n_jobs, max_mem_size = max_mem_size, random_state = random_state, gpu_id=gpu_id
         )
 
 class OneClassSVM(SvmModel):
@@ -426,13 +429,13 @@ class OneClassSVM(SvmModel):
     def __init__(self, kernel = 'rbf', degree = 3, gamma = 'auto',
                  coef0 = 0.0, nu = 0.5, tol = 0.001,
                  shrinking = False, cache_size = None, verbose = False,
-                 max_iter = -1, n_jobs = -1, max_mem_size = -1, random_state = None):
+                 max_iter = -1, n_jobs = -1, max_mem_size = -1, random_state = None, gpu_id=0):
         super(OneClassSVM, self).__init__(
             kernel = kernel, degree = degree, gamma = gamma,
             coef0 = coef0, C = 0., nu = nu, epsilon = 0.,
             tol = tol, probability= False, class_weight = None,
             shrinking = shrinking, cache_size = cache_size, verbose = verbose,
-            max_iter = max_iter, n_jobs = n_jobs, max_mem_size = max_mem_size, random_state = random_state
+            max_iter = max_iter, n_jobs = n_jobs, max_mem_size = max_mem_size, random_state = random_state, gpu_id=gpu_id
         )
 
     def fit(self, X, y=None):
@@ -444,13 +447,13 @@ class SVR(SvmModel, RegressorMixin):
                  coef0 = 0.0, C = 1.0, epsilon = 0.1,
                  tol = 0.001, probability = False,
                  shrinking = False, cache_size = None, verbose = False,
-                 max_iter = -1, n_jobs = -1,max_mem_size = -1):
+                 max_iter = -1, n_jobs = -1,max_mem_size = -1, gpu_id=0):
         super(SVR, self).__init__(
             kernel = kernel, degree = degree, gamma = gamma,
             coef0 = coef0, C = C, nu = 0., epsilon = epsilon,
             tol = tol, probability = probability, class_weight = None,
             shrinking = shrinking, cache_size = cache_size, verbose = verbose,
-            max_iter = max_iter, n_jobs = n_jobs, max_mem_size = max_mem_size, random_state = None
+            max_iter = max_iter, n_jobs = n_jobs, max_mem_size = max_mem_size, random_state = None, gpu_id=gpu_id
         )
 
 class NuSVR(SvmModel, RegressorMixin):
@@ -458,11 +461,11 @@ class NuSVR(SvmModel, RegressorMixin):
     def __init__(self, kernel = 'rbf', degree = 3, gamma = 'auto',
                coef0 = 0.0, nu = 0.5, C = 1.0, tol = 0.001, probability = False,
                shrinking = False, cache_size = None, verbose = False,
-               max_iter = -1, n_jobs = -1, max_mem_size = -1):
+               max_iter = -1, n_jobs = -1, max_mem_size = -1, gpu_id=0):
         super(NuSVR, self).__init__(
             kernel = kernel, degree = degree, gamma = gamma,
             coef0 = coef0, nu = nu, C = C, epsilon = 0.,
             tol = tol, probability = probability, class_weight = None,
             shrinking = shrinking, cache_size = cache_size, verbose = verbose,
-            max_iter = max_iter, n_jobs = n_jobs, max_mem_size = max_mem_size, random_state = None
+            max_iter = max_iter, n_jobs = n_jobs, max_mem_size = max_mem_size, random_state = None, gpu_id=gpu_id
         )

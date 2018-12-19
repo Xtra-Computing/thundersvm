@@ -122,6 +122,9 @@ The usage of thundersvm scikit interface is similar to sklearn.svm.
 *max_mem_size*: int, optional (default=-1)\
 	set the maximum memory size (MB) that thundersvm uses, or -1 for no limit.
 
+*gpu_id*: int, optional (default=0)\
+	set which gpu to use for training.
+
 *decision_function_shape*: ‘ovo’, default=’ovo’, not supported yet for 'ovr'\
     only for classifier. Whether to return a one-vs-rest (‘ovr’) decision function of shape (n_samples, n_classes) as all other classifiers, or the original one-vs-one (‘ovo’) decision function of libsvm which has shape (n_samples, n_classes * (n_classes - 1) / 2).
 
