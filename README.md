@@ -88,3 +88,8 @@ If you use ThunderSVM in your paper, please cite our work ([preprint now availab
 * This project is hosted by NUS, collaborating with Prof. Jian Chen (South China University of Technology). Initial work of this project was done when Zeyi Wen worked at The University of Melbourne.
 * This work is partially supported by a MoE AcRF Tier 1 grant (T1 251RES1610) in Singapore.
 * We also thank the authors of LibSVM and OHD-SVM which inspire our algorithmic design.
+
+## Selected projects that use ThunderSVM
+ * Scene Graphs for Interpretable Video Anomaly Classification (published in NeurIPS18)
+ * 3D Semantic Segmentation for High-resolution Aerial Survey Derived Point Clouds using Deep Learning (published in SIGSPATIAL’18)
+
