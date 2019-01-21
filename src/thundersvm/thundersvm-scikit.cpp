@@ -162,12 +162,13 @@ extern "C" {
             el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "true");
         else
             el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
-        if((n_cores <= 0) && (n_cores != -1)){
-            LOG(ERROR) << "cores number must bigger than 0";
-            succeed[0] = -1;
-        }
-        else
+
+        if (n_cores > 0) {
             omp_set_num_threads(n_cores);
+        } else if (n_cores != -1) {
+            LOG(ERROR) << "n_jobs must be positive or -1";
+        }
+
         DataSet train_dataset;
         train_dataset.load_from_dense(row_size, features, data, label);
 //        SvmModel* model;
