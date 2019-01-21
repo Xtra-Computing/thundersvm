@@ -143,15 +143,13 @@ extern "C" {
             el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
         else
             el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "true");
-        if(n_cores[0] == -1){
-            omp_set_num_threads(omp_get_num_procs());
-        }
-        else if(n_cores[0] <= 0){
-            LOG(ERROR) << "cores number must bigger than 0";
-        }
-        else{
+
+        if (n_cores[0] > 0) {
             omp_set_num_threads(n_cores[0]);
+        } else if (n_cores[0] != -1) {
+            LOG(ERROR) << "n_cores must be positive or -1";
         }
+
         char input_file_path[1024] = DATASET_DIR;
         char model_file_path[1024] = DATASET_DIR;
         strcat(input_file_path, "../R/");
