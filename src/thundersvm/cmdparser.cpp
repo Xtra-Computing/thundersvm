@@ -150,12 +150,10 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                     HelpInfo_svmtrain();
             }
         }
-        if (n_cores == -1) {
-            omp_set_num_threads(omp_get_max_threads());
-        } else if (n_cores <= 0) {
-            LOG(ERROR) << "cores number must bigger than 0";
-        } else {
+        if (n_cores > 0) {
             omp_set_num_threads(n_cores);
+        } else if (n_cores != -1) {
+            LOG(ERROR) << "the number of cpu cores must be positive or -1";
         }
         if (i >= argc)
             HelpInfo_svmtrain();
@@ -281,12 +279,10 @@ void CMDParser::parse_python(int argc, char **argv) {
                 HelpInfo_svmtrain();
         }
     }
-    if (n_cores == -1) {
-        omp_set_num_threads(omp_get_num_procs());
-    } else if (n_cores <= 0) {
-        LOG(ERROR) << "cores number must bigger than 0";
-    } else {
+    if (n_cores > 0) {
         omp_set_num_threads(n_cores);
+    } else if (n_cores != -1) {
+        LOG(ERROR) << "the number of cpu cores must be positive or -1";
     }
     if (i > argc)
         HelpInfo_svmtrain();
