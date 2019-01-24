@@ -64,7 +64,7 @@ If ```make -j``` doesn't work, please simply use ```make```. The number of CPU c
 You will see `Accuracy = 0.98` after successful running.
 
 ## How to cite ThunderSVM
-If you use ThunderSVM in your paper, please cite our work ([preprint now available](https://github.com/zeyiwen/thundersvm/blob/master/thundersvm-full.pdf)).
+If you use ThunderSVM in your paper, please cite our work ([full version](https://github.com/zeyiwen/thundersvm/blob/master/thundersvm-full.pdf)).
 ```
 @article{wenthundersvm18,
  author = {Wen, Zeyi and Shi, Jiashuai and Li, Qinbin and He, Bingsheng and Chen, Jian},
@@ -81,7 +81,7 @@ If you use ThunderSVM in your paper, please cite our work ([preprint now availab
 * Zeyi Wen, Bingsheng He, Kotagiri Ramamohanarao, Shengliang Lu, and Jiashuai Shi. Efficient Gradient Boosted Decision Tree Training on GPUs. The 32nd IEEE International Parallel and Distributed Processing Symposium (IPDPS), pages 234-243, 2018.
 
 ## Related websites
-* [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) | [SVM<sup>light</sup>](http://svmlight.joachims.org/) | [OHD-SVM](https://github.com/OrcusCZ/OHD-SVM) | [NVIDIA Machine Learning](http://www.nvidia.com/object/machine-learning.html)
+* [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) | [SVM<sup>light</sup>](http://svmlight.joachims.org/) | [OHD-SVM](https://github.com/OrcusCZ/OHD-SVM) | [NVIDIA Machine Learning](http://www.nvidia.com/object/machine-learning.html) | [ThunderGBM](https://github.com/Xtra-Computing/thundergbm)
 
 ## Acknowlegement 
 * We acknowledge NVIDIA for their hardware donations.
