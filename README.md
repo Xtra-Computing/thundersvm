@@ -11,8 +11,8 @@
 </div>
 
 ## What's new
+- We have recently released [ThunderGBM](https://github.com/Xtra-Computing/thundergbm), a fast GBDT and Random Forest library on GPUs.
 - add scikit-learn interface, see [here](https://github.com/zeyiwen/thundersvm/tree/master/python)
-- add quiet mode (-q)
 - pre-built binaries and DLL for Windows x64 on CPUs are [avaliable](https://ci.appveyor.com/project/shijiashuai/thundersvm/branch/master/artifacts)
 ## Overview
 The mission of ThunderSVM is to help users easily and efficiently apply SVMs to solve problems. ThunderSVM exploits GPUs and multi-core CPUs to achieve high efficiency. Key features of ThunderSVM are as follows.
