@@ -70,11 +70,12 @@ class SvmModel(ThundersvmBase):
         self.n_jobs = n_jobs
         self.random_state = random_state
         self.max_mem_size = max_mem_size
-        thundersvm.model_new.restype = c_void_p
-        self.model = thundersvm.model_new(SVM_TYPE.index(self._impl))
         self.gpu_id = gpu_id
-        if self.max_mem_size != -1:
-            thundersvm.set_memory_size(c_void_p(self.model), self.max_mem_size)
+        self.model = None
+        thundersvm.model_new.restype = c_void_p
+        # self.model = thundersvm.model_new(SVM_TYPE.index(self._impl))
+        # if self.max_mem_size != -1:
+        #     thundersvm.set_memory_size(c_void_p(self.model), self.max_mem_size)
 
     def label_validate(self, y):
 
@@ -83,6 +84,7 @@ class SvmModel(ThundersvmBase):
     def fit(self, X, y):
         if self.model is not None:
             thundersvm.model_free(c_void_p(self.model))
+            self.model = None
         sparse = sp.isspmatrix(X)
         self._sparse = sparse and not callable(self.kernel)
         X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
@@ -102,7 +104,10 @@ class SvmModel(ThundersvmBase):
             kernel = KERNEL_TYPE.index(self.kernel)
 
         fit = self._sparse_fit if self._sparse else self._dense_fit
+        thundersvm.model_new.restype = c_void_p
         self.model = thundersvm.model_new(solver_type)
+        if self.max_mem_size != -1:
+            thundersvm.set_memory_size(c_void_p(self.model), self.max_mem_size)
         fit(X, y, solver_type, kernel)
         if self._train_succeed[0] == -1:
             print ("Training failed!")
@@ -375,6 +380,11 @@ class SvmModel(ThundersvmBase):
         thundersvm.save_to_file_scikit(c_void_p(self.model), path.encode('utf-8'))
 
     def load_from_file(self, path):
+        if self.model is None:
+            thundersvm.model_new.restype = c_void_p
+            self.model = thundersvm.model_new(SVM_TYPE.index(self._impl))
+            if self.max_mem_size != -1:
+                thundersvm.set_memory_size(c_void_p(self.model), self.max_mem_size)
         thundersvm.load_from_file_scikit(c_void_p(self.model), path.encode('utf-8'))
         degree = (c_int * 1)()
         gamma = (c_float * 1)()
