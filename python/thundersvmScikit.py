@@ -407,8 +407,8 @@ class SVC(SvmModel, ClassifierMixin):
                   gamma = 'auto', coef0 = 0.0, C = 1.0,
                   tol = 0.001, probability = False, class_weight = None,
                   shrinking = False, cache_size = None, verbose = False,
-                  max_iter = -1, n_jobs = -1, max_mem_size = -1, random_state = None, decison_function_shape = 'ovo', gpu_id=0):
-         self.decison_function_shape = decison_function_shape
+                  max_iter = -1, n_jobs = -1, max_mem_size = -1, random_state = None, decision_function_shape = 'ovo', gpu_id=0):
+         self.decision_function_shape = decision_function_shape
          super(SVC, self).__init__(
              kernel=kernel, degree=degree, gamma=gamma,
              coef0=coef0, C=C, nu=0., epsilon=0.,
@@ -424,8 +424,8 @@ class NuSVC(SvmModel, ClassifierMixin):
     def __init__(self, kernel = 'rbf', degree = 3, gamma = 'auto',
                  coef0 = 0.0, nu = 0.5, tol = 0.001,
                  probability = False, shrinking = False, cache_size = None, verbose = False,
-                 max_iter = -1, n_jobs = -1, max_mem_size = -1, random_state = None, decison_function_shape = 'ovo', gpu_id=0):
-        self.decison_function_shape = decison_function_shape
+                 max_iter = -1, n_jobs = -1, max_mem_size = -1, random_state = None, decision_function_shape = 'ovo', gpu_id=0):
+        self.decision_function_shape = decision_function_shape
         super(NuSVC, self).__init__(
             kernel = kernel, degree = degree, gamma = gamma,
             coef0 = coef0, C = 0., nu = nu, epsilon= 0.,

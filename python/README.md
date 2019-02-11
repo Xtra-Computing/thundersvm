@@ -54,9 +54,9 @@ The usage of thundersvm scikit interface is similar to sklearn.svm.
 
 
 ##### SVM classification
-*class SVC(kernel = 'rbf', degree = 3, gamma = 'auto', coef0 = 0.0, C = 1.0, tol = 0.001, probability = False, class_weight = None, shrinking = False, cache_size = None, verbose = False, max_iter = -1, n_jobs = -1, max_mem_size = -1, random_state = None, decison_function_shape = 'ovo')*
+*class SVC(kernel = 'rbf', degree = 3, gamma = 'auto', coef0 = 0.0, C = 1.0, tol = 0.001, probability = False, class_weight = None, shrinking = False, cache_size = None, verbose = False, max_iter = -1, n_jobs = -1, max_mem_size = -1, random_state = None, decision_function_shape = 'ovo')*
 
-*class NuSVC(kernel = 'rbf', degree = 3, gamma = 'auto', coef0 = 0.0, nu = 0.5, tol = 0.001, probability = False, shrinking = False, cache_size = None, verbose = False, max_iter = -1, n_jobs = -1, max_mem_size = -1, random_state = None, decison_function_shape = 'ovo')*
+*class NuSVC(kernel = 'rbf', degree = 3, gamma = 'auto', coef0 = 0.0, nu = 0.5, tol = 0.001, probability = False, shrinking = False, cache_size = None, verbose = False, max_iter = -1, n_jobs = -1, max_mem_size = -1, random_state = None, decision_function_shape = 'ovo')*
 
 ##### One-class SVMs
 
