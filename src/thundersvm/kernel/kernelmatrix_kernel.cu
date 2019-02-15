@@ -58,7 +58,7 @@ namespace svm_kernel {
                     const float_type *coef1 = &coef[(j - 1) * total_sv];
                     const float_type *coef2 = &coef[i * total_sv];
                     const kernel_type *k_values = &k_mat[idx * total_sv];
-                    kernel_type sum = 0;
+                    double sum = 0;
                     for (int l = 0; l < ci; ++l) {
                         sum += coef1[si + l] * k_values[si + l];
                     }

@@ -130,7 +130,7 @@ namespace svm_kernel {
                     const float_type *coef1 = &coef_data[(j - 1) * total_sv];
                     const float_type *coef2 = &coef_data[i * total_sv];
                     const kernel_type *k_values = &k_mat_data[idx * total_sv];
-                    kernel_type sum = 0;
+                    double sum = 0;
 #pragma omp parallel for reduction(+:sum)
                     for (int l = 0; l < ci; ++l) {
                         sum += coef1[si + l] * k_values[si + l];
