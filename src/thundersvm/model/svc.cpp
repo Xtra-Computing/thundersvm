@@ -239,7 +239,7 @@ vector<float_type> SVC::predict_label(const SyncArray<float_type> &dec_values, i
                 }
             }
             int maxVoteClass = 0;
-            for (int i = 0; i < n_classes; ++i) {
+            for (int i = 1; i < n_classes; ++i) {
                 if (votes[i] > votes[maxVoteClass])
                     maxVoteClass = i;
             }

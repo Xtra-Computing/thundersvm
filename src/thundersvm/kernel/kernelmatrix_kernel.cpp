@@ -149,7 +149,7 @@ namespace svm_kernel {
     void dns_csr_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_mat, const SyncArray<kernel_type> &csr_val,
                      const SyncArray<int> &csr_row_ptr, const SyncArray<int> &csr_col_ind, int nnz,
                      SyncArray<kernel_type> &result) {
-        Eigen::Map<const Eigen::MatrixXf> denseMat(dense_mat.host_data(), k, n);
+        Eigen::Map<const Eigen::Matrix<kernel_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>> denseMat(dense_mat.host_data(), k, n);
         Eigen::Map<const Eigen::SparseMatrix<kernel_type, Eigen::RowMajor>> sparseMat(m, k, nnz, csr_row_ptr.host_data(),
                                                                                 csr_col_ind.host_data(),
                                                                                 csr_val.host_data());
@@ -177,7 +177,7 @@ namespace svm_kernel {
 
     void dns_dns_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_mat,
                      const SyncArray<kernel_type> &origin_dense, SyncArray<kernel_type> &result){
-        Eigen::Map<const Eigen::MatrixXf> denseMat(dense_mat.host_data(), k, n);
+        Eigen::Map<const Eigen::Matrix<kernel_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>> denseMat(dense_mat.host_data(), k, n);
         Eigen::Map<const Eigen::Matrix<kernel_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>
                 originDenseMat(origin_dense.host_data(), m, k);
         Eigen::Matrix<kernel_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> retMat = originDenseMat * denseMat;

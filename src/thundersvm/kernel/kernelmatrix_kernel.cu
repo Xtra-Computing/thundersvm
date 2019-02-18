@@ -144,10 +144,19 @@ namespace svm_kernel {
         }
         kernel_type one(1);
         kernel_type zero(0);
+#ifdef USE_DOUBLE
+        cusparseDcsrmm2(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
+                        m, n, k, nnz, &one, descr, csr_val.device_data(), csr_row_ptr.device_data(),
+                        csr_col_ind.device_data(),
+                        dense_mat.device_data(), n, &zero, result.device_data(), m);
+#else//kernel type is float
         cusparseScsrmm2(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
                         m, n, k, nnz, &one, descr, csr_val.device_data(), csr_row_ptr.device_data(),
                         csr_col_ind.device_data(),
                         dense_mat.device_data(), n, &zero, result.device_data(), m);
+#endif
+
+
         //cusparseScsrmm return row-major matrix, so no transpose is needed
     }
 }

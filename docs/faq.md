@@ -3,6 +3,9 @@ Frequently Asked Questions (FAQs)
 This page is dedicated to summarizing some frequently asked questions about ThunderSVM.
 
 ## FAQs of users
+* **Why does ThunderSVM have large errors? My data set is not normalized.** 
+   To reduce the errors, you need to add ``-DUSE_DOUBLE=ON`` in cmake (e.g., ``cmake -DUSE_DOUBLE=ON ..``). The reason is that ThunderSVM uses ``float`` to store kernel values for better efficiency. For problems require high precision, you need to tell ThunderSVM to use ``double``.
+
 * **How can I use the source code?** 
    Please refere to [How To](how-to.md) page.
 
