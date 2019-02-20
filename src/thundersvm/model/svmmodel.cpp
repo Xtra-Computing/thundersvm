@@ -276,7 +276,12 @@ void SvmModel::load_from_file(string path) {
                 string tuple;
                 while (ss >> tuple) {
                     sv.back().emplace_back(0, 0);
+//todo use streaming operator >> here to avoid ifdef
+#ifdef USE_DOUBLE
+                    CHECK_EQ(sscanf(tuple.c_str(), "%d:%lf", &sv.back().back().index, &sv.back().back().value), 2)
+#else
                     CHECK_EQ(sscanf(tuple.c_str(), "%d:%f", &sv.back().back().index, &sv.back().back().value), 2)
+#endif
                         << "error when loading model file";
                 };
             }
