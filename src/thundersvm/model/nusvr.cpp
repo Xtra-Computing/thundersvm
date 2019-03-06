@@ -34,6 +34,10 @@ void NuSVR::train(const DataSet &dataset, SvmParam param) {
     NuSMOSolver solver(true);
     solver.solve(kernelMatrix, y, alpha_2, rho.host_data()[0], f_val, param.epsilon, param.C, param.C, ws_size, max_iter);
     save_svr_coef(alpha_2, dataset.instances());
+
+    if(param.kernel_type == SvmParam::LINEAR){
+        compute_linear_coef_single_model(dataset.n_features());
+    }
 }
 
 void NuSVR::model_setup(const DataSet &dataset, SvmParam &param) {

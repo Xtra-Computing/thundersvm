@@ -81,6 +81,9 @@ public:
     //return coef
     const SyncArray<float_type> &get_coef() const;
 
+    //return linear_coef
+    const SyncArray<float_type> &get_linear_coef() const;
+
     //return rho
     const SyncArray<float_type> &get_rho() const;
 
@@ -102,6 +105,7 @@ public:
     //return prob_predict
     const vector<float> &get_prob_predict() const;
 
+    void compute_linear_coef_single_model(size_t n_feature);
     //get the params, for scikit load params
     void get_param(char* kernel_type, int* degree, float* gamma, float* coef0, int* probability);
 protected:
@@ -128,6 +132,10 @@ protected:
      */
 
     SyncArray<float_type> coef;
+
+
+    ///weights assigned to the features. Only available in the case of a linear kernel
+    SyncArray<float_type> linear_coef;
     /**
      * support vectors of this model. The support vectors is grouped in classes 0,1,2,.... The sequence of them in each
      * group is as they appear in original dataset. A training instance is saved as a support vector IFF it is a

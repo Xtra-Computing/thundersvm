@@ -34,6 +34,10 @@ void SVR::train(const DataSet &dataset, SvmParam param) {
     CSMOSolver solver;
     solver.solve(kernelMatrix, y, alpha_2, rho.host_data()[0], f_val, param.epsilon, param.C, param.C, ws_size, max_iter);
     save_svr_coef(alpha_2, dataset.instances());
+
+    if(param.kernel_type == SvmParam::LINEAR){
+        compute_linear_coef_single_model(dataset.n_features());
+    }
 }
 
 void SVR::save_svr_coef(const SyncArray<float_type> &alpha_2, const DataSet::node2d &instances) {

@@ -49,6 +49,10 @@ void OneClassSVC::train(const DataSet &dataset, SvmParam param) {
     n_total_sv = sv.size();
     coef.resize(coef_vec.size());
     coef.copy_from(coef_vec.data(), coef_vec.size());
+
+    if(param.kernel_type == SvmParam::LINEAR){
+        compute_linear_coef_single_model(dataset.n_features());
+    }
 }
 
 vector<float_type> OneClassSVC::predict(const DataSet::node2d &instances, int batch_size) {

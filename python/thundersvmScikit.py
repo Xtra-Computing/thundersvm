@@ -128,6 +128,13 @@ class SvmModel(ThundersvmBase):
         self.n_binary_model = rho_size
         rho = (c_float * rho_size)()
         thundersvm.get_rho(rho, rho_size, c_void_p(self.model))
+
+        if self.kernel == 'linear':
+            coef = (c_float * (self.n_binary_model * self.n_sv))()
+            thundersvm.get_linear_coef(coef, self.n_binary_model, self.n_features, c_void_p(self.model))
+            self.coef_ = np.array([coef[index] for index in range(0, self.n_binary_model * self.n_features)]).astype(float)
+            self.coef_ = np.reshape(self.coef_, (self.n_binary_model, self.n_features))
+
         self.intercept_ = np.array([rho[index] for index in range(0, rho_size)]).astype(float)
         
         self.row  = np.array([csr_row[index] for index in range(0, self.n_sv + 1)])

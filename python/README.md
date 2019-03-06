@@ -141,6 +141,9 @@ The usage of thundersvm scikit interface is similar to sklearn.svm.
 *dual_coef_*: array, shape = [n_class-1, n_SV]\
     coefficients of the support vector in the decision function. For multiclass, coefficient for all 1-vs-1 classifiers. The layout of the coefficients in the multiclass case is somewhat non-trivial.
 
+*coef_*: array, shape = [n_class * (n_class-1)/2, n_features]\
+    Weights assigned to the features (coefficients in the primal problem). This is only available in the case of a linear kernel.
+    
 *intercept_*: array, shape = [n_class * (n_class-1) / 2]\
     constants in decision function.
 

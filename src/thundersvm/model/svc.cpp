@@ -106,6 +106,26 @@ void SVC::train(const DataSet &dataset, SvmParam param) {
         }
     }
 
+    ///TODO: Use coef instead of alpha_data to compute linear_coef_data
+    if(param.kernel_type == SvmParam::LINEAR){
+        int k = 0;
+        linear_coef.resize(n_binary_models * dataset_.n_features());
+        float_type *linear_coef_data = linear_coef.host_data();
+        for (int i = 0; i < n_classes; i++){
+            for (int j = i + 1; j < n_classes; j++){
+                const float_type *alpha_data = alpha[k].host_data();
+                DataSet::node2d ins = dataset_.instances(i, j);//get instances of class i and j
+                for(int iid = 0; iid < ins.size(); iid++) {
+                    for (int fid = 0; fid < ins[iid].size(); fid++) {
+                        if(alpha_data[iid] != 0)
+                            linear_coef_data[k * dataset_.n_features() + ins[iid][fid].index - 1] += alpha_data[iid] * ins[iid][fid].value;
+                    }
+                }
+                k++;
+            }
+        }
+    }
+
     //train probability
     if (1 == param.probability) {
         LOG(INFO) << "performing probability train";

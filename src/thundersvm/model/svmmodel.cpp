@@ -310,6 +310,10 @@ const SyncArray<float_type> &SvmModel::get_coef() const {
     return coef;
 }
 
+const SyncArray<float_type> &SvmModel::get_linear_coef() const {
+    return linear_coef;
+}
+
 const SyncArray<float_type> &SvmModel::get_rho() const {
     return rho;
 }
@@ -374,3 +378,14 @@ void SvmModel::get_param(char* kernel_type, int* degree, float* gamma, float* co
     *coef0 = param.coef0;
     *probability = param.probability;
 }
+
+void SvmModel::compute_linear_coef_single_model(size_t n_feature){
+    linear_coef.resize(n_feature);
+    float_type* linear_coef_data = linear_coef.host_data();
+    float_type* coef_data = coef.host_data();
+    for(int i = 0; i < n_total_sv; i++){
+        for(int j = 0; j < sv[i].size(); j++){
+            linear_coef_data[sv[i][j].index - 1] += coef_data[i] * sv[i][j].value;
+        }
+    }
+};

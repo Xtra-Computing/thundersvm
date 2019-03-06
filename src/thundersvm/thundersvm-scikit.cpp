@@ -298,6 +298,15 @@ extern "C" {
         }
     }
 
+    void get_linear_coef(float* linear_coef, int n_binary_model, int n_feature, SvmModel* model){
+        SyncArray<float_type > coef(n_binary_model * n_feature);
+        coef.copy_from(model->get_linear_coef());
+        float_type * coef_ptr = coef.host_data();
+        for(int i = 0; i < coef.size(); i++){
+            linear_coef[i] = coef_ptr[i];
+        }
+    }
+
     void get_rho(float* rho_, int rho_size, SvmModel* model){
         SyncArray<float_type > rho(rho_size);
         rho.copy_from(model->get_rho());
