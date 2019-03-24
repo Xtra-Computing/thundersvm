@@ -77,6 +77,10 @@ class SvmModel(ThundersvmBase):
         # if self.max_mem_size != -1:
         #     thundersvm.set_memory_size(c_void_p(self.model), self.max_mem_size)
 
+    def __del__(self):
+        if self.model is not None:
+            thundersvm.model_free(c_void_p(self.model))
+
     def label_validate(self, y):
 
         return column_or_1d(y, warn=True).astype(np.float64)
