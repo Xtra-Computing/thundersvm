@@ -37,6 +37,17 @@ The mission of ThunderSVM is to help users easily and efficiently apply SVMs to 
 If you want to use GPUs, you also need to install CUDA.
 
 * [CUDA](https://developer.nvidia.com/cuda-downloads) 7.5 or above
+### Quick Install
+#### For Linux with CUDA 9.0
+```bash
+pip3 install thundersvm
+```
+##### Example
+```python
+from thundersvm import SVC
+clf = SVC()
+clf.fit(x, y)
+```
 ### Download
 ```bash
 git clone https://github.com/zeyiwen/thundersvm.git
