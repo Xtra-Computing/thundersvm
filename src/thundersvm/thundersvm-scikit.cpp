@@ -368,4 +368,8 @@ extern "C" {
     void set_memory_size(SvmModel *model, int m_size){
         model->set_max_memory_size(m_size);
     }
+
+    void get_sv_max_index(SvmModel *model, int *n_feature){
+        n_feature[0] = model->get_sv_max_index();
+    }
 }

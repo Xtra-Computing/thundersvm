@@ -283,6 +283,8 @@ void SvmModel::load_from_file(string path) {
                     CHECK_EQ(sscanf(tuple.c_str(), "%d:%f", &sv.back().back().index, &sv.back().back().value), 2)
 #endif
                         << "error when loading model file";
+                    if(sv.back().back().index > sv_max_index)
+                        sv_max_index = sv.back().back().index;
                 };
             }
             ifs.close();
@@ -388,4 +390,8 @@ void SvmModel::compute_linear_coef_single_model(size_t n_feature){
             linear_coef_data[sv[i][j].index - 1] += coef_data[i] * sv[i][j].value;
         }
     }
-};
+}
+
+int SvmModel::get_sv_max_index() const{
+    return sv_max_index;
+}

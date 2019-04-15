@@ -108,6 +108,9 @@ public:
     void compute_linear_coef_single_model(size_t n_feature);
     //get the params, for scikit load params
     void get_param(char* kernel_type, int* degree, float* gamma, float* coef0, int* probability);
+
+    //return sv_max_index
+    int get_sv_max_index() const;
 protected:
 
     /**
@@ -175,6 +178,9 @@ protected:
 
     ///the probability for each class in predict
     vector<float> prob_predict;
+
+    ///the maximum index of support vectors, used for scikit load svs
+    int sv_max_index = 0;
 };
 
 #endif //THUNDERSVM_SVMMODEL_H
