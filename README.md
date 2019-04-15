@@ -23,7 +23,7 @@ The mission of ThunderSVM is to help users easily and efficiently apply SVMs to 
 
 **Why accelerate SVMs**: A [survey](https://www.kaggle.com/amberthomas/kaggle-2017-survey-results) conducted by Kaggle in 2017 shows that 26% of the data mining and machine learning practitioners are users of SVMs.
 
-[Documentations](http://thundersvm.readthedocs.io) | [Installation](http://thundersvm.readthedocs.io/en/latest/how-to.html) | [API Reference (doxygen)](http://zeyiwen.github.io/thundersvm/)
+[Documentations](http://thundersvm.readthedocs.io) | [Installation](http://thundersvm.readthedocs.io/en/latest/how-to.html) | [API Reference (doxygen)](http://Xtra-Computing.github.io/thundersvm/)
 ## Contents
 - [Getting Started](https://github.com/zeyiwen/thundersvm#getting-started)
 - [Working without GPUs](http://thundersvm.readthedocs.io/en/latest/get-started.html#working-without-gpus-a-name-withoutgpu-a)
