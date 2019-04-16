@@ -38,9 +38,23 @@ If you want to use GPUs, you also need to install CUDA.
 
 * [CUDA](https://developer.nvidia.com/cuda-downloads) 7.5 or above
 ### Quick Install
-#### For Linux with CUDA 9.0
+Download the Python wheel file (For Python3 or above).
+
+* For Linux
+
+    * [CUDA 9.0 - linux_x86_64](https://www.comp.nus.edu.sg/~wenzy/pip-pack/svm/thundersvm-cu90-0.2.0-py3-none-linux_x86_64.whl)
+    
+    * [CPU - linux_x86_64](https://www.comp.nus.edu.sg/~wenzy/pip-pack/svm/thundersvm-cpu-0.2.0-py3-none-linux_x86_64.whl)
+
+* For Windows (64bit)
+    
+    * [CUDA 10.0 - win64](https://www.comp.nus.edu.sg/~wenzy/pip-pack/svm/thundersvm-cu10-0.2.0-py3-none-win_amd64.whl)
+    
+    * [CPU - win64](https://www.comp.nus.edu.sg/~wenzy/pip-pack/svm/thundersvm-cpu-0.2.0-py3-none-win_amd64.whl)
+
+Install the Python wheel file.
 ```bash
-pip3 install thundersvm
+pip install thundersvm-cu90-0.2.0-py3-none-linux_x86_64.whl
 ```
 ##### Example
 ```python
