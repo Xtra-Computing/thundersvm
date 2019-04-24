@@ -12,38 +12,6 @@ cd python && python setup.py install
 
 * After you have successfully done the above two steps, it is ready to start using Python interfaces.
 
-## Simple Python interface
-### Methods
-By default, the directory for storing the training data and results is the working directory; the ThunderSVM library (e.g., ```libthundersvm.so```) is stored in ```../build/lib``` of the current working directory.
-
-*svm_read_problem('file_name')*:\
-	read data from *file_name*.\
-*return: (labels, instances)*
-
-*svm_train(labels, instances, 'model_file_name', parameters)*:\
-	train the SVM model and save the result to *model_file_name*.
-
-*svm_predict(labels, instances, 'model_file_name', 'output_file_name', parameters)*:\
-	use the SVM model saved in *model_file_name* to predict the labels of the given instances and store the results to *output_file_name*.
-
-### Example
-* Step 1: go to the Python interface.
-```bash
-# in thundersvm root directory
-cd python
-```
-* Step 2: create a file called ```test.py``` which has the following content.
-```python
-from svm import *
-y,x = svm_read_problem('../dataset/test_dataset.txt')
-svm_train(y,x,'test_dataset.txt.model','-c 100 -g 0.5')
-y,x=svm_read_problem('../dataset/test_dataset.txt')
-svm_predict(y,x,'test_dataset.txt.model','test_dataset.predict')
-```
-* Step 3: run the python script.
-```bash
-python test.py
-```
 ## Scikit-learn wrapper interface
 ### Prerequisites
 * numpy
@@ -183,7 +151,7 @@ cd python
 ```
 * Step 2: create a file called ```sk_test.py``` which has the following content.
 ```python
-from thundersvmScikit import *
+from thundersvm import *
 from sklearn.datasets import *
 
 x,y = load_svmlight_file("../dataset/test_dataset.txt")
@@ -195,9 +163,42 @@ y_predict=clf.predict(x2)
 score=clf.score(x2,y2)
 clf.save_to_file('./model')
 
-print "test score is ", score
+print ("test score is ", score)
 ```
 * Step 3: run the python script.
 ```bash
 python sk_test.py
+```
+
+## Simple Python interface
+### Methods
+By default, the directory for storing the training data and results is the working directory; the ThunderSVM library (e.g., ```libthundersvm.so```) is stored in ```../build/lib``` of the current working directory.
+
+*svm_read_problem('file_name')*:\
+	read data from *file_name*.\
+*return: (labels, instances)*
+
+*svm_train(labels, instances, 'model_file_name', parameters)*:\
+	train the SVM model and save the result to *model_file_name*.
+
+*svm_predict(labels, instances, 'model_file_name', 'output_file_name', parameters)*:\
+	use the SVM model saved in *model_file_name* to predict the labels of the given instances and store the results to *output_file_name*.
+
+### Example
+* Step 1: go to the Python interface.
+```bash
+# in thundersvm root directory
+cd python
+```
+* Step 2: create a file called ```test.py``` which has the following content.
+```python
+from svm import *
+y,x = svm_read_problem('../dataset/test_dataset.txt')
+svm_train(y,x,'test_dataset.txt.model','-c 100 -g 0.5')
+y,x=svm_read_problem('../dataset/test_dataset.txt')
+svm_predict(y,x,'test_dataset.txt.model','test_dataset.predict')
+```
+* Step 3: run the python script.
+```bash
+python test.py
 ```

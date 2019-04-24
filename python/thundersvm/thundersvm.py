@@ -40,8 +40,19 @@ else:
 if path.exists(lib_path):
     thundersvm = CDLL(lib_path)
 else:
-    raise FileNotFoundError("Please build the library first!")
+    #try the build directory
+    if platform == "linux" or platform == "linux2":
+        lib_path = path.join(dirname, "../../build/lib", shared_library_name)
+    elif platform == "win32":
+        lib_path = path.join(dirname, "../../build/lib", shared_library_name)
+    elif platform == "darwin":
+        lib_path = path.join(dirname, "../../build/lib", shared_library_name)
 
+    if path.exists(lib_path):
+        thundersvm = CDLL(lib_path)
+    else:
+        raise FileNotFoundError("Please build the library first!")
+print(lib_path)
 SVM_TYPE = ['c_svc', 'nu_svc', 'one_class', 'epsilon_svr', 'nu_svr']
 KERNEL_TYPE = ['linear', 'polynomial', 'rbf', 'sigmoid', 'precomputed']
 

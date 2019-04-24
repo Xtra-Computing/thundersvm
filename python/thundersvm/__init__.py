@@ -9,4 +9,4 @@
  * Description :
 """
 name = "thundersvm"
-from .thundersvmScikit import *
+from .thundersvm import *
