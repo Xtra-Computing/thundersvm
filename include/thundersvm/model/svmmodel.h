@@ -105,7 +105,7 @@ public:
     //return prob_predict
     const vector<float> &get_prob_predict() const;
 
-    void compute_linear_coef_single_model(size_t n_feature);
+    void compute_linear_coef_single_model(size_t n_feature, const bool zero_based);
     //get the params, for scikit load params
     void get_param(char* kernel_type, int* degree, float* gamma, float* coef0, int* probability);
 

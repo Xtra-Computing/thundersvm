@@ -51,7 +51,7 @@ void OneClassSVC::train(const DataSet &dataset, SvmParam param) {
     coef.copy_from(coef_vec.data(), coef_vec.size());
 
     if(param.kernel_type == SvmParam::LINEAR){
-        compute_linear_coef_single_model(dataset.n_features());
+        compute_linear_coef_single_model(dataset.n_features(), dataset.is_zero_based());
     }
 }
 

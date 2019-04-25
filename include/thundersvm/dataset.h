@@ -80,6 +80,7 @@ public:
 
     const vector<int> original_index(int y_i, int y_j) const;
 
+	const bool is_zero_based() const;
 private:
     vector<float_type> y_;
     node2d instances_;
@@ -89,5 +90,6 @@ private:
     vector<int> count_; //the number of instances of each class
     vector<int> label_;
     vector<int> perm_;
+	bool zero_based = 0; //is zero_based format dataset?
 };
 #endif //THUNDERSVM_DATASET_H

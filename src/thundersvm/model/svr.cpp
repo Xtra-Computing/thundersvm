@@ -36,7 +36,7 @@ void SVR::train(const DataSet &dataset, SvmParam param) {
     save_svr_coef(alpha_2, dataset.instances());
 
     if(param.kernel_type == SvmParam::LINEAR){
-        compute_linear_coef_single_model(dataset.n_features());
+        compute_linear_coef_single_model(dataset.n_features(), dataset.is_zero_based());
     }
 }
 

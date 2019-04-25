@@ -77,6 +77,7 @@ void DataSet::load_from_file(string file_name) {
                     float v;
                     CHECK_EQ(sscanf(tuple.c_str(), "%d:%f", &i, &v), 2) << "read error, using [index]:[value] format";
                     instances_thread[tid].back().emplace_back(i, v);
+					if(i == 0 && zero_based == 0) zero_based = 1;
                     if (i > local_feature[tid]) local_feature[tid] = i;
                 };
 
@@ -158,7 +159,7 @@ void DataSet::load_from_dense(int row_size, int features, float* data, float* la
         if(label != NULL)
             y_.push_back(label[i]);
         instances_.emplace_back();
-        for(int j = 0; j < features; j++){
+        for(int j = 1; j <= features; j++){
             ind = j;
             v = data[off];
             off++;
@@ -285,4 +286,6 @@ const vector<float_type> &DataSet::y() const {
     return y_;
 }
 
-
+const bool DataSet::is_zero_based() const{
+	return zero_based;
+}
