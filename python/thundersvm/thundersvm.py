@@ -52,7 +52,6 @@ else:
         thundersvm = CDLL(lib_path)
     else:
         raise FileNotFoundError("Please build the library first!")
-print(lib_path)
 SVM_TYPE = ['c_svc', 'nu_svc', 'one_class', 'epsilon_svr', 'nu_svr']
 KERNEL_TYPE = ['linear', 'polynomial', 'rbf', 'sigmoid', 'precomputed']
 
