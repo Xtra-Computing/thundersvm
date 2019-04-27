@@ -142,7 +142,7 @@ class SvmModel(ThundersvmBase):
         thundersvm.get_rho(rho, rho_size, c_void_p(self.model))
 
         if self.kernel == 'linear':
-            coef = (c_float * (self.n_binary_model * self.n_sv))()
+            coef = (c_float * (self.n_binary_model * self.n_features))()
             thundersvm.get_linear_coef(coef, self.n_binary_model, self.n_features, c_void_p(self.model))
             self.coef_ = np.array([coef[index] for index in range(0, self.n_binary_model * self.n_features)]).astype(float)
             self.coef_ = np.reshape(self.coef_, (self.n_binary_model, self.n_features))
