@@ -49,6 +49,7 @@ void SVR::save_svr_coef(const SyncArray<float_type> &alpha_2, const DataSet::nod
         float_type alpha_i = alpha_2_data[i] - alpha_2_data[i + n_instances];
         if (alpha_i != 0) {
             sv.push_back(instances[i]);
+            sv_indices.push_back(i);
             coef_vec.push_back(alpha_i);
         }
     }

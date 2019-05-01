@@ -68,6 +68,7 @@ void SVC::train(const DataSet &dataset, SvmParam param) {
             if (is_sv[original_index[j]]) {
                 n_sv_data[i]++;
                 sv.push_back(i_instances[j]);
+                sv_indices.push_back(original_index[j]);
             }
         }
     }

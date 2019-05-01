@@ -111,6 +111,9 @@ public:
 
     //return sv_max_index
     int get_sv_max_index() const;
+
+    //return sv_indices
+    const vector<int> &get_sv_ind() const;
 protected:
 
     /**
@@ -146,6 +149,8 @@ protected:
      */
 
     DataSet::node2d sv;
+    ///the indices of support vectors
+    vector<int> sv_indices;
     ///the number of support vectors for each class
     SyncArray<int> n_sv;
 

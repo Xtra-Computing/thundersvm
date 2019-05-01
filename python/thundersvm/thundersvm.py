@@ -129,7 +129,8 @@ class SvmModel(ThundersvmBase):
         csr_col = (c_int * (self.n_sv * self.n_features))()
         csr_data = (c_float * (self.n_sv * self.n_features))()
         data_size = (c_int * 1)()
-        thundersvm.get_sv(csr_row, csr_col, csr_data, data_size, c_void_p(self.model))
+        sv_indices = (c_int * self.n_sv)()
+        thundersvm.get_sv(csr_row, csr_col, csr_data, data_size, sv_indices, c_void_p(self.model))
         self.row  = np.array([csr_row[index] for index in range(0, self.n_sv + 1)])
         self.col  = np.array([csr_col[index] for index in range(0, data_size[0])])
         self.data = np.array([csr_data[index] for index in range(0, data_size[0])])
@@ -137,6 +138,7 @@ class SvmModel(ThundersvmBase):
         self.support_vectors_ = sp.csr_matrix((self.data, self.col, self.row))
         if self._sparse == False:
             self.support_vectors_ = self.support_vectors_.toarray(order = 'C')
+        self.support_ = np.array([sv_indices[index] for index in range(0, self.n_sv)]).astype(int)
 
         dual_coef = (c_float * ((self.n_classes - 1) * self.n_sv))()
         thundersvm.get_coef(dual_coef, self.n_classes, self.n_sv, c_void_p(self.model))

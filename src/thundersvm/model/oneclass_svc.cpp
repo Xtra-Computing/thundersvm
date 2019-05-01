@@ -40,6 +40,7 @@ void OneClassSVC::train(const DataSet &dataset, SvmParam param) {
     for (int i = 0; i < n_instances; ++i) {
         if (alpha_data[i] != 0) {
             sv.push_back(dataset.instances()[i]);
+            sv_indices.push_back(i);
             coef_vec.push_back(alpha_data[i]);
         }
     }

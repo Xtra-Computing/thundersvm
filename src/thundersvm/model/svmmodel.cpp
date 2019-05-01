@@ -324,6 +324,10 @@ int SvmModel::get_n_classes() const {
     return n_classes;
 }
 
+const vector<int> &SvmModel::get_sv_ind() const {
+    return sv_indices;
+}
+
 void SvmModel::set_max_iter(int iter) {
     max_iter = iter;
 }

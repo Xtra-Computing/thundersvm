@@ -100,6 +100,9 @@ The usage of thundersvm scikit interface is similar to sklearn.svm.
     The seed of the pseudo random number generator to use when shuffling the data. If int, random_state is the seed used by the random number generator; If RandomState instance, random_state is the random number generator; If None, the random number generator is the RandomState instance used by np.random.
 
 ### Attributes
+*support_*: array-like, shape = [n_SV]\
+    indices of support vectors.
+
 *support_vectors_*: array-like, shape = [n_SV, n_features]\
     support vectors.
 

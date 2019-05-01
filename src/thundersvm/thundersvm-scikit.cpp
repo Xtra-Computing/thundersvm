@@ -260,7 +260,7 @@ extern "C" {
         return;
     }
 
-    void get_sv(int* row, int* col, float* data, int* data_size, SvmModel* model){
+    void get_sv(int* row, int* col, float* data, int* data_size, int* sv_indices, SvmModel* model){
         DataSet::node2d svs = model->svs();
         row[0] = 0;
         int data_ind = 0;
@@ -277,6 +277,11 @@ extern "C" {
             }
         }
         data_size[0] = data_ind;
+
+        vector<int> sv_index = model->get_sv_ind();
+        for(int i = 0; i < sv_index.size(); i++){
+            sv_indices[i] = sv_index[i];
+        }
         return ;
     }
 
