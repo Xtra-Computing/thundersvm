@@ -221,7 +221,7 @@ extern "C" {
             param_cmd.max_mem_size = static_cast<size_t>(max(max_mem_size, 0)) << 20;
         if(weight_size != 0) {
             param_cmd.nr_weight = weight_size;
-            param_cmd.weight = (float_type *) malloc(weight_size * sizeof(float_type));
+            param_cmd.weight = (float_type *) malloc(weight_size * sizeof(double));
             param_cmd.weight_label = (int *) malloc(weight_size * sizeof(int));
             for (int i = 0; i < weight_size; i++) {
                 param_cmd.weight[i] = weight[i];

@@ -185,12 +185,30 @@ class SvmModel(ThundersvmBase):
         if self.class_weight is None:
             weight_size = 0
             self.class_weight = dict()
+            weight_label = (c_int * weight_size)()
+            weight_label[:] = list(self.class_weight.keys())
+            weight = (c_float * weight_size)()
+            weight[:] = list(self.class_weight.values())
+        elif self.class_weight == 'balanced':
+            y_unique = np.unique(y)
+            y_count = np.bincount(y.astype(int))
+            weight_label_list = []
+            weight_list = []
+            for n in range(0, len(y_count)):
+                if y_count[n] != 0:
+                    weight_label_list.append(n)
+                    weight_list.append(samples/(len(y_unique)*y_count[n]))
+            weight_size=len(weight_list)
+            weight_label = (c_int * weight_size)()
+            weight_label[:] = weight_label_list
+            weight = (c_float * weight_size)()
+            weight[:] = weight_list
         else:
             weight_size = len(self.class_weight)
-        weight_label = (c_int * weight_size)()
-        weight_label[:] = list(self.class_weight.keys())
-        weight = (c_float * weight_size)()
-        weight[:] = list(self.class_weight.values())
+            weight_label = (c_int * weight_size)()
+            weight_label[:] = list(self.class_weight.keys())
+            weight = (c_float * weight_size)()
+            weight[:] = list(self.class_weight.values())
 
         n_features = (c_int * 1)()
         n_classes = (c_int * 1)()
@@ -228,12 +246,30 @@ class SvmModel(ThundersvmBase):
         if self.class_weight is None:
             weight_size = 0
             self.class_weight = dict()
+            weight_label = (c_int * weight_size)()
+            weight_label[:] = list(self.class_weight.keys())
+            weight = (c_float * weight_size)()
+            weight[:] = list(self.class_weight.values())
+        elif self.class_weight == 'balanced':
+            y_unique = np.unique(y)
+            y_count = np.bincount(y.astype(int))
+            weight_label_list = []
+            weight_list = []
+            for n in range(0, len(y_count)):
+                if y_count[n] != 0:
+                    weight_label_list.append(n)
+                    weight_list.append(X.shape[0]/(len(y_unique)*y_count[n]))
+            weight_size=len(weight_list)
+            weight_label = (c_int * weight_size)()
+            weight_label[:] = weight_label_list
+            weight = (c_float * weight_size)()
+            weight[:] = weight_list
         else:
             weight_size = len(self.class_weight)
-        weight_label = (c_int * weight_size)()
-        weight_label[:] = list(self.class_weight.keys())
-        weight = (c_float * weight_size)()
-        weight[:] = list(self.class_weight.values())
+            weight_label = (c_int * weight_size)()
+            weight_label[:] = list(self.class_weight.keys())
+            weight = (c_float * weight_size)()
+            weight[:] = list(self.class_weight.values())
 
         n_features = (c_int * 1)()
         n_classes = (c_int * 1)()
