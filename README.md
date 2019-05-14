@@ -43,7 +43,7 @@ Download the Python wheel file (For Python3 or above).
 
 * For Linux
 
-    * [CUDA 9.0 - linux_x86_64](https://www.comp.nus.edu.sg/~wenzy/pip-pack/svm/thundersvm-cu90-0.2.0-py3-none-linux_x86_64.whl)
+    * `pip install thundersvm` for CUDA 9.0 - linux_x86_64 
     
     * [CPU - linux_x86_64](https://www.comp.nus.edu.sg/~wenzy/pip-pack/svm/thundersvm-cpu-0.2.0-py3-none-linux_x86_64.whl)
 
