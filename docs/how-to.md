@@ -157,3 +157,28 @@ cmake .. -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE -DBUILD_SHARED_LIBS=TRUE -DBUIL
 cmake --build . --target runtest
 ```
 You need to change the Visual Studio version if you are using a different version of Visual Studio. Visual Studio can be downloaded from [this link](https://www.visualstudio.com/vs/). The above commands generate some Visual Studio project files, open the Visual Studio project to build ThunderSVM. Please note that CMake should be 3.4 or above for Windows.
+
+#### Build python wheel file
+You have to ensure the repository is identical to the latest one.
+* Clone ThunderSVM repository
+```bash
+git clone https://github.com/zeyiwen/thundersvm.git
+```
+* Build the binary
+```base
+cd thundersvm
+mkdir build && cd build && cmake .. && make -j
+```
+* Build the python wheel file
+    - change directory to python
+    `cd ../python`
+    - update the version you are going to release in [setup.py](https://github.com/Xtra-Computing/thundersvm/blob/1d320932c66e60610669165db25aa4a83e118a70/python/setup.py#L21)
+```bash
+python3 setup.py bdist_wheel
+```
+* Upload the wheel file to [Pypi.org](https://pypi.org)
+```sybase
+twine upload dist/* --verbose
+```
+* [Recommended] Draw a new release on [Release](https://github.com/Xtra-Computing/thundersvm/releases)
+    * state the bug fixed or new functions.
