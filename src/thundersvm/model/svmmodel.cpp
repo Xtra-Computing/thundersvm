@@ -405,3 +405,7 @@ void SvmModel::compute_linear_coef_single_model(size_t n_feature, const bool zer
 int SvmModel::get_sv_max_index() const{
     return sv_max_index;
 }
+
+const vector<int> &SvmModel::get_label() const{
+    return label;
+}

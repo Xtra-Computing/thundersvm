@@ -61,8 +61,21 @@ int main(int argc, char **argv) {
 
         vector<float_type> predict_y;
         predict_y = model->predict(predict_dataset.instances(), -1);
-        for (int i = 0; i < predict_y.size(); ++i) {
-            file << predict_y[i] << std::endl;
+        vector<int> label;
+        label = model->get_label();
+        vector<float> prob_predict;
+        prob_predict = model->get_prob_predict();
+        file<<"labels ";
+        for (int i = 0; i < label.size(); i++){
+            file<<label[i]<<" ";
+        }
+        file<<std::endl;
+        for (int i = 0; i < predict_y.size(); i++) {
+            file << predict_y[i]<<" ";
+            for(int j = 0; j < label.size(); j++){
+                file<<prob_predict[label.size() * i + j]<<" ";
+            }
+            file << std::endl;
         }
         file.close();
 

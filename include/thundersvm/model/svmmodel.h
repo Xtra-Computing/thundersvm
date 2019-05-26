@@ -114,6 +114,9 @@ public:
 
     //return sv_indices
     const vector<int> &get_sv_ind() const;
+
+    //return label
+    const vector<int> &get_label() const;
 protected:
 
     /**
