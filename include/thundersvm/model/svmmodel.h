@@ -117,6 +117,9 @@ public:
 
     //return label
     const vector<int> &get_label() const;
+
+    //return param.probability
+    const bool is_prob() const;
 protected:
 
     /**
