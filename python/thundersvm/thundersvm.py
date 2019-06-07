@@ -14,8 +14,6 @@ from sklearn.utils.validation import _num_samples
 from ctypes import *
 from os import path, curdir
 from sys import platform
-
-
 dirname = path.dirname(path.abspath(__file__))
 
 if platform == "linux" or platform == "linux2":
@@ -24,7 +22,7 @@ elif platform == "win32":
     shared_library_name = "thundersvm.dll"
 elif platform == "darwin":
     shared_library_name = "libthundersvm.dylib"
-else :
+else:
     raise EnvironmentError("OS not supported!")
 
 if path.exists(path.abspath(path.join(dirname, shared_library_name))):
@@ -40,7 +38,7 @@ else:
 if path.exists(lib_path):
     thundersvm = CDLL(lib_path)
 else:
-    #try the build directory
+    # try the build directory
     if platform == "linux" or platform == "linux2":
         lib_path = path.join(dirname, "../../build/lib", shared_library_name)
     elif platform == "win32":
@@ -55,12 +53,13 @@ else:
 SVM_TYPE = ['c_svc', 'nu_svc', 'one_class', 'epsilon_svr', 'nu_svr']
 KERNEL_TYPE = ['linear', 'polynomial', 'rbf', 'sigmoid', 'precomputed']
 
+
 class SvmModel(ThundersvmBase):
     def __init__(self, kernel, degree,
                  gamma, coef0, C, nu, epsilon,
                  tol, probability, class_weight,
                  shrinking, cache_size, verbose,
-                 max_iter, n_jobs, max_mem_size, random_state,gpu_id):
+                 max_iter, n_jobs, max_mem_size, random_state, gpu_id):
         self.kernel = kernel
         self.degree = degree
         self.gamma = gamma
@@ -104,13 +103,12 @@ class SvmModel(ThundersvmBase):
 
         solver_type = SVM_TYPE.index(self._impl)
 
-
         if self.gamma == 'auto':
             self._gamma = 1.0 / X.shape[1]
         else:
             self._gamma = self.gamma
         if self.kernel not in KERNEL_TYPE:
-            print ("The kernel parameter not recognized, please refer to the document.")
+            print("The kernel parameter not recognized, please refer to the document.")
             exit()
         else:
             kernel = KERNEL_TYPE.index(self.kernel)
@@ -122,7 +120,7 @@ class SvmModel(ThundersvmBase):
             thundersvm.set_memory_size(c_void_p(self.model), self.max_mem_size)
         fit(X, y, solver_type, kernel)
         if self._train_succeed[0] == -1:
-            print ("Training failed!")
+            print("Training failed!")
             return
         self.n_sv = thundersvm.n_sv(c_void_p(self.model))
         csr_row = (c_int * (self.n_sv + 1))()
@@ -131,19 +129,20 @@ class SvmModel(ThundersvmBase):
         data_size = (c_int * 1)()
         sv_indices = (c_int * self.n_sv)()
         thundersvm.get_sv(csr_row, csr_col, csr_data, data_size, sv_indices, c_void_p(self.model))
-        self.row  = np.array([csr_row[index] for index in range(0, self.n_sv + 1)])
-        self.col  = np.array([csr_col[index] for index in range(0, data_size[0])])
+        self.row = np.array([csr_row[index] for index in range(0, self.n_sv + 1)])
+        self.col = np.array([csr_col[index] for index in range(0, data_size[0])])
         self.data = np.array([csr_data[index] for index in range(0, data_size[0])])
 
         self.support_vectors_ = sp.csr_matrix((self.data, self.col, self.row))
         if self._sparse == False:
-            self.support_vectors_ = self.support_vectors_.toarray(order = 'C')
+            self.support_vectors_ = self.support_vectors_.toarray(order='C')
         self.support_ = np.array([sv_indices[index] for index in range(0, self.n_sv)]).astype(int)
 
         dual_coef = (c_float * ((self.n_classes - 1) * self.n_sv))()
         thundersvm.get_coef(dual_coef, self.n_classes, self.n_sv, c_void_p(self.model))
 
-        self.dual_coef_ = np.array([dual_coef[index] for index in range(0, (self.n_classes - 1) * self.n_sv)]).astype(float)
+        self.dual_coef_ = np.array([dual_coef[index] for index in range(0, (self.n_classes - 1) * self.n_sv)]).astype(
+            float)
         self.dual_coef_ = np.reshape(self.dual_coef_, (self.n_classes - 1, self.n_sv))
 
         rho_size = int(self.n_classes * (self.n_classes - 1) / 2)
@@ -155,11 +154,9 @@ class SvmModel(ThundersvmBase):
         if self.kernel == 'linear':
             coef = (c_float * (self.n_binary_model * self.n_features))()
             thundersvm.get_linear_coef(coef, self.n_binary_model, self.n_features, c_void_p(self.model))
-            self.coef_ = np.array([coef[index] for index in range(0, self.n_binary_model * self.n_features)]).astype(float)
+            self.coef_ = np.array([coef[index] for index in range(0, self.n_binary_model * self.n_features)]).astype(
+                float)
             self.coef_ = np.reshape(self.coef_, (self.n_binary_model, self.n_features))
-
-
-
 
         n_support_ = (c_int * self.n_classes)()
         thundersvm.get_support_classes(n_support_, self.n_classes, c_void_p(self.model))
@@ -172,16 +169,14 @@ class SvmModel(ThundersvmBase):
 
     def _dense_fit(self, X, y, solver_type, kernel):
 
-        X = np.asarray(X, dtype=np.float64, order='C')
+        X = np.asarray(X, dtype=np.float32, order='C')
         samples = X.shape[0]
         features = X.shape[1]
         X_1d = X.ravel()
-        data = (c_float * X_1d.size)()
-        data[:] = X_1d
+        data = X_1d.ctypes.data_as(POINTER(c_float))
         kernel_type = kernel
-        label = (c_float * y.size)()
-        label[:] = y
-
+        y = np.asarray(y, dtype=np.float32, order='C')
+        label = y.ctypes.data_as(POINTER(c_float))
         if self.class_weight is None:
             weight_size = 0
             self.class_weight = dict()
@@ -197,8 +192,8 @@ class SvmModel(ThundersvmBase):
             for n in range(0, len(y_count)):
                 if y_count[n] != 0:
                     weight_label_list.append(n)
-                    weight_list.append(samples/(len(y_unique)*y_count[n]))
-            weight_size=len(weight_list)
+                    weight_list.append(samples / (len(y_unique) * y_count[n]))
+            weight_size = len(weight_list)
             weight_label = (c_int * weight_size)()
             weight_label[:] = weight_label_list
             weight = (c_float * weight_size)()
@@ -224,24 +219,15 @@ class SvmModel(ThundersvmBase):
         self.n_features = n_features[0]
         self.n_classes = n_classes[0]
 
-
-
-
     def _sparse_fit(self, X, y, solver_type, kernel):
-        X.data = np.asarray(X.data, dtype=np.float64, order='C')
+        X.data = np.asarray(X.data, dtype=np.float32, order='C')
         X.sort_indices()
-
         kernel_type = kernel
-
-
-        data = (c_float * X.data.size)()
-        data[:] = X.data
-        indices = (c_int * X.indices.size)()
-        indices[:] = X.indices
-        indptr = (c_int * X.indptr.size)()
-        indptr[:] = X.indptr
-        label = (c_float * y.size)()
-        label[:] = y
+        data = X.data.ctypes.data_as(POINTER(c_float))
+        indices = X.indices.ctypes.data_as(POINTER(c_int32))
+        indptr = X.indptr.ctypes.data_as(POINTER(c_int32))
+        y = np.asarray(y, dtype=np.int32, order='C')
+        label = y.ctypes.data_as(POINTER(c_int32))
 
         if self.class_weight is None:
             weight_size = 0
@@ -258,8 +244,8 @@ class SvmModel(ThundersvmBase):
             for n in range(0, len(y_count)):
                 if y_count[n] != 0:
                     weight_label_list.append(n)
-                    weight_list.append(X.shape[0]/(len(y_unique)*y_count[n]))
-            weight_size=len(weight_list)
+                    weight_list.append(X.shape[0] / (len(y_unique) * y_count[n]))
+            weight_size = len(weight_list)
             weight_label = (c_int * weight_size)()
             weight_label[:] = weight_label_list
             weight = (c_float * weight_size)()
@@ -284,11 +270,6 @@ class SvmModel(ThundersvmBase):
             n_features, n_classes, self._train_succeed, c_void_p(self.model))
         self.n_features = n_features[0]
         self.n_classes = n_classes[0]
-
-
-
-
-
 
     def _validate_for_predict(self, X):
         # check_is_fitted(self, 'support_')
@@ -317,7 +298,7 @@ class SvmModel(ThundersvmBase):
         thundersvm.get_n_classes(c_void_p(self.model), n_classes)
         self.n_classes = n_classes[0]
         if self.probability == 0:
-            print ("Should fit with probability = 1")
+            print("Should fit with probability = 1")
             return
         else:
             size = X.shape[0] * self.n_classes
@@ -326,7 +307,7 @@ class SvmModel(ThundersvmBase):
             X = self._validate_for_predict(X)
             if self._sparse:
                 self._sparse_predict(X)
-            else :
+            else:
                 self._dense_predict(X)
             # size = X.shape[0] * self.n_classes
             # self.predict_pro_ptr = (c_float * size)()
@@ -343,12 +324,10 @@ class SvmModel(ThundersvmBase):
             #     samples, features, data,
             #     c_void_p(self.model),
             #     self.predict_label_ptr)
-            thundersvm.get_pro(c_void_p(self.model),self.predict_pro_ptr)
+            thundersvm.get_pro(c_void_p(self.model), self.predict_pro_ptr)
             self.predict_prob = np.array([self.predict_pro_ptr[index] for index in range(0, size)])
             self.predict_prob = np.reshape(self.predict_prob, (samples, self.n_classes))
             return self.predict_prob
-
-
 
     def _dense_predict(self, X):
 
@@ -391,8 +370,8 @@ class SvmModel(ThundersvmBase):
         n_binary_model = (c_int * 1)()
         thundersvm.get_n_binary_models(c_void_p(self.model), n_binary_model)
         self.n_binary_model = n_binary_model[0]
-        if not(self._impl in ['c_svc', 'nu_svc', 'one_class']):
-            print ("Not support decision_function!")
+        if not (self._impl in ['c_svc', 'nu_svc', 'one_class']):
+            print("Not support decision_function!")
             return
         if self._sparse:
             dec_func = self._sparse_decision_function(X)
@@ -416,8 +395,6 @@ class SvmModel(ThundersvmBase):
         self.dec_values = np.array([dec_value_ptr[index] for index in range(0, dec_size)]).astype(float)
         self.dec_values = np.reshape(self.dec_values, (X.shape[0], self.n_binary_model))
         return self.dec_values
-
-
 
     def _sparse_decision_function(self, X):
         X.data = np.asarray(X.data, dtype=np.float64, order='C')
@@ -452,7 +429,7 @@ class SvmModel(ThundersvmBase):
         probability = (c_int * 1)()
         kernel = (c_char * 20)()
         thundersvm.init_model_param(kernel, degree, gamma,
-                                    coef0, probability,c_void_p(self.model))
+                                    coef0, probability, c_void_p(self.model))
         n_classes = (c_int * 1)()
         thundersvm.get_n_classes(c_void_p(self.model), n_classes)
         self.n_classes = n_classes[0]
@@ -471,8 +448,8 @@ class SvmModel(ThundersvmBase):
         data_size = (c_int * 1)()
         sv_indices = (c_int * self.n_sv)()
         thundersvm.get_sv(csr_row, csr_col, csr_data, data_size, sv_indices, c_void_p(self.model))
-        self.row  = np.array([csr_row[index] for index in range(0, self.n_sv + 1)])
-        self.col  = np.array([csr_col[index] for index in range(0, data_size[0])])
+        self.row = np.array([csr_row[index] for index in range(0, self.n_sv + 1)])
+        self.col = np.array([csr_col[index] for index in range(0, data_size[0])])
         self.data = np.array([csr_data[index] for index in range(0, data_size[0])])
         self.support_vectors_ = sp.csr_matrix((self.data, self.col, self.row))
         # if self._sparse == False:
@@ -480,7 +457,8 @@ class SvmModel(ThundersvmBase):
         self.support_ = np.array([sv_indices[index] for index in range(0, self.n_sv)]).astype(int)
         dual_coef = (c_float * ((self.n_classes - 1) * self.n_sv))()
         thundersvm.get_coef(dual_coef, self.n_classes, self.n_sv, c_void_p(self.model))
-        self.dual_coef_ = np.array([dual_coef[index] for index in range(0, (self.n_classes - 1) * self.n_sv)]).astype(float)
+        self.dual_coef_ = np.array([dual_coef[index] for index in range(0, (self.n_classes - 1) * self.n_sv)]).astype(
+            float)
         self.dual_coef_ = np.reshape(self.dual_coef_, (self.n_classes - 1, self.n_sv))
 
         rho_size = int(self.n_classes * (self.n_classes - 1) / 2)
@@ -505,79 +483,86 @@ class SvmModel(ThundersvmBase):
 
 class SVC(SvmModel, ClassifierMixin):
     _impl = 'c_svc'
-    def __init__(self, kernel = 'rbf', degree = 3,
-                 gamma = 'auto', coef0 = 0.0, C = 1.0,
-                 tol = 0.001, probability = False, class_weight = None,
-                 shrinking = False, cache_size = None, verbose = False,
-                 max_iter = -1, n_jobs = -1, max_mem_size = -1, random_state = None, decision_function_shape = 'ovo', gpu_id=0):
+
+    def __init__(self, kernel='rbf', degree=3,
+                 gamma='auto', coef0=0.0, C=1.0,
+                 tol=0.001, probability=False, class_weight=None,
+                 shrinking=False, cache_size=None, verbose=False,
+                 max_iter=-1, n_jobs=-1, max_mem_size=-1, random_state=None, decision_function_shape='ovo', gpu_id=0):
         self.decision_function_shape = decision_function_shape
         super(SVC, self).__init__(
             kernel=kernel, degree=degree, gamma=gamma,
             coef0=coef0, C=C, nu=0., epsilon=0.,
             tol=tol, probability=probability,
-            class_weight=class_weight, shrinking = shrinking,
-            cache_size = cache_size, verbose = verbose,
-            max_iter = max_iter, n_jobs = n_jobs, max_mem_size = max_mem_size, random_state = random_state, gpu_id=gpu_id)
-
+            class_weight=class_weight, shrinking=shrinking,
+            cache_size=cache_size, verbose=verbose,
+            max_iter=max_iter, n_jobs=n_jobs, max_mem_size=max_mem_size, random_state=random_state, gpu_id=gpu_id)
 
 
 class NuSVC(SvmModel, ClassifierMixin):
     _impl = 'nu_svc'
-    def __init__(self, kernel = 'rbf', degree = 3, gamma = 'auto',
-                 coef0 = 0.0, nu = 0.5, tol = 0.001,
-                 probability = False, shrinking = False, cache_size = None, verbose = False,
-                 max_iter = -1, n_jobs = -1, max_mem_size = -1, random_state = None, decision_function_shape = 'ovo', gpu_id=0):
+
+    def __init__(self, kernel='rbf', degree=3, gamma='auto',
+                 coef0=0.0, nu=0.5, tol=0.001,
+                 probability=False, shrinking=False, cache_size=None, verbose=False,
+                 max_iter=-1, n_jobs=-1, max_mem_size=-1, random_state=None, decision_function_shape='ovo', gpu_id=0):
         self.decision_function_shape = decision_function_shape
         super(NuSVC, self).__init__(
-            kernel = kernel, degree = degree, gamma = gamma,
-            coef0 = coef0, C = 0., nu = nu, epsilon= 0.,
-            tol = tol, probability = probability, class_weight = None,
-            shrinking = shrinking, cache_size = cache_size, verbose = verbose,
-            max_iter = max_iter, n_jobs = n_jobs, max_mem_size = max_mem_size, random_state = random_state, gpu_id=gpu_id
+            kernel=kernel, degree=degree, gamma=gamma,
+            coef0=coef0, C=0., nu=nu, epsilon=0.,
+            tol=tol, probability=probability, class_weight=None,
+            shrinking=shrinking, cache_size=cache_size, verbose=verbose,
+            max_iter=max_iter, n_jobs=n_jobs, max_mem_size=max_mem_size, random_state=random_state, gpu_id=gpu_id
         )
+
 
 class OneClassSVM(SvmModel):
     _impl = 'one_class'
-    def __init__(self, kernel = 'rbf', degree = 3, gamma = 'auto',
-                 coef0 = 0.0, nu = 0.5, tol = 0.001,
-                 shrinking = False, cache_size = None, verbose = False,
-                 max_iter = -1, n_jobs = -1, max_mem_size = -1, random_state = None, gpu_id=0):
+
+    def __init__(self, kernel='rbf', degree=3, gamma='auto',
+                 coef0=0.0, nu=0.5, tol=0.001,
+                 shrinking=False, cache_size=None, verbose=False,
+                 max_iter=-1, n_jobs=-1, max_mem_size=-1, random_state=None, gpu_id=0):
         super(OneClassSVM, self).__init__(
-            kernel = kernel, degree = degree, gamma = gamma,
-            coef0 = coef0, C = 0., nu = nu, epsilon = 0.,
-            tol = tol, probability= False, class_weight = None,
-            shrinking = shrinking, cache_size = cache_size, verbose = verbose,
-            max_iter = max_iter, n_jobs = n_jobs, max_mem_size = max_mem_size, random_state = random_state, gpu_id=gpu_id
+            kernel=kernel, degree=degree, gamma=gamma,
+            coef0=coef0, C=0., nu=nu, epsilon=0.,
+            tol=tol, probability=False, class_weight=None,
+            shrinking=shrinking, cache_size=cache_size, verbose=verbose,
+            max_iter=max_iter, n_jobs=n_jobs, max_mem_size=max_mem_size, random_state=random_state, gpu_id=gpu_id
         )
 
     def fit(self, X, y=None):
         super(OneClassSVM, self).fit(X, np.ones(_num_samples(X)))
 
+
 class SVR(SvmModel, RegressorMixin):
     _impl = 'epsilon_svr'
-    def __init__(self, kernel = 'rbf', degree = 3, gamma = 'auto',
-                 coef0 = 0.0, C = 1.0, epsilon = 0.1,
-                 tol = 0.001, probability = False,
-                 shrinking = False, cache_size = None, verbose = False,
-                 max_iter = -1, n_jobs = -1,max_mem_size = -1, gpu_id=0):
+
+    def __init__(self, kernel='rbf', degree=3, gamma='auto',
+                 coef0=0.0, C=1.0, epsilon=0.1,
+                 tol=0.001, probability=False,
+                 shrinking=False, cache_size=None, verbose=False,
+                 max_iter=-1, n_jobs=-1, max_mem_size=-1, gpu_id=0):
         super(SVR, self).__init__(
-            kernel = kernel, degree = degree, gamma = gamma,
-            coef0 = coef0, C = C, nu = 0., epsilon = epsilon,
-            tol = tol, probability = probability, class_weight = None,
-            shrinking = shrinking, cache_size = cache_size, verbose = verbose,
-            max_iter = max_iter, n_jobs = n_jobs, max_mem_size = max_mem_size, random_state = None, gpu_id=gpu_id
+            kernel=kernel, degree=degree, gamma=gamma,
+            coef0=coef0, C=C, nu=0., epsilon=epsilon,
+            tol=tol, probability=probability, class_weight=None,
+            shrinking=shrinking, cache_size=cache_size, verbose=verbose,
+            max_iter=max_iter, n_jobs=n_jobs, max_mem_size=max_mem_size, random_state=None, gpu_id=gpu_id
         )
+
 
 class NuSVR(SvmModel, RegressorMixin):
     _impl = 'nu_svr'
-    def __init__(self, kernel = 'rbf', degree = 3, gamma = 'auto',
-                 coef0 = 0.0, nu = 0.5, C = 1.0, tol = 0.001, probability = False,
-                 shrinking = False, cache_size = None, verbose = False,
-                 max_iter = -1, n_jobs = -1, max_mem_size = -1, gpu_id=0):
+
+    def __init__(self, kernel='rbf', degree=3, gamma='auto',
+                 coef0=0.0, nu=0.5, C=1.0, tol=0.001, probability=False,
+                 shrinking=False, cache_size=None, verbose=False,
+                 max_iter=-1, n_jobs=-1, max_mem_size=-1, gpu_id=0):
         super(NuSVR, self).__init__(
-            kernel = kernel, degree = degree, gamma = gamma,
-            coef0 = coef0, nu = nu, C = C, epsilon = 0.,
-            tol = tol, probability = probability, class_weight = None,
-            shrinking = shrinking, cache_size = cache_size, verbose = verbose,
-            max_iter = max_iter, n_jobs = n_jobs, max_mem_size = max_mem_size, random_state = None, gpu_id=gpu_id
+            kernel=kernel, degree=degree, gamma=gamma,
+            coef0=coef0, nu=nu, C=C, epsilon=0.,
+            tol=tol, probability=probability, class_weight=None,
+            shrinking=shrinking, cache_size=cache_size, verbose=verbose,
+            max_iter=max_iter, n_jobs=n_jobs, max_mem_size=max_mem_size, random_state=None, gpu_id=gpu_id
         )
