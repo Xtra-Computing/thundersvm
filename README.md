@@ -24,10 +24,10 @@ The mission of ThunderSVM is to help users easily and efficiently apply SVMs to 
 
 **Why accelerate SVMs**: A [survey](https://www.kaggle.com/amberthomas/kaggle-2017-survey-results) conducted by Kaggle in 2017 shows that 26% of the data mining and machine learning practitioners are users of SVMs.
 
-[Documentations](http://thundersvm.readthedocs.io) | [Installation](http://thundersvm.readthedocs.io/en/latest/how-to.html) | [API Reference (doxygen)](http://Xtra-Computing.github.io/thundersvm/)
+[Documentations](docs/index.md) | [Installation](docs/how-to.md#install-thundersvm) | [API Reference (doxygen)](http://Xtra-Computing.github.io/thundersvm/)
 ## Contents
 - [Getting Started](https://github.com/zeyiwen/thundersvm#getting-started)
-- [Working without GPUs](http://thundersvm.readthedocs.io/en/latest/get-started.html#working-without-gpus-a-name-withoutgpu-a)
+- [Working without GPUs](docs/get-started.md#working-without-gpus)
 ## Getting Started
 
 ### Prerequisites
@@ -67,7 +67,7 @@ clf.fit(x, y)
 ```bash
 git clone https://github.com/zeyiwen/thundersvm.git
 ```
-### Build on Linux (build [instructions](http://thundersvm.readthedocs.io/en/latest/get-started.html#installation) for MacOS and Windows)
+### Build on Linux (build [instructions](docs/get-started.md#installation-for-macos) for MacOS and Windows)
 ##### ThunderSVM on GPUs
 ```bash
 cd thundersvm
@@ -80,7 +80,7 @@ mkdir build && cd build && cmake .. && make -j
 git submodule init eigen && git submodule update
 mkdir build && cd build && cmake -DUSE_CUDA=OFF -DUSE_EIGEN=ON .. && make -j
 ```
-If ```make -j``` doesn't work, please simply use ```make```. The number of CPU cores to use can be specified by the ```-o``` option (e.g., ```-o 10```), and refer to [Parameters](http://thundersvm.readthedocs.io/en/latest/parameters.html) for more information.
+If ```make -j``` doesn't work, please simply use ```make```. The number of CPU cores to use can be specified by the ```-o``` option (e.g., ```-o 10```), and refer to [Parameters](docs/parameters.md) for more information.
 
 ### Quick Start
 ```bash
