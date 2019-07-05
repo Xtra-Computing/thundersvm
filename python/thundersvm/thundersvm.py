@@ -226,8 +226,8 @@ class SvmModel(ThundersvmBase):
         data = X.data.ctypes.data_as(POINTER(c_float))
         indices = X.indices.ctypes.data_as(POINTER(c_int32))
         indptr = X.indptr.ctypes.data_as(POINTER(c_int32))
-        y = np.asarray(y, dtype=np.int32, order='C')
-        label = y.ctypes.data_as(POINTER(c_int32))
+        y = np.asarray(y, dtype=np.float32, order='C')
+        label = y.ctypes.data_as(POINTER(c_float))
 
         if self.class_weight is None:
             weight_size = 0
