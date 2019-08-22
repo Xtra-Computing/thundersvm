@@ -88,10 +88,6 @@ class SvmModel(ThundersvmBase):
         if self.model is not None:
             thundersvm.model_free(c_void_p(self.model))
 
-    def label_validate(self, y):
-
-        return column_or_1d(y, warn=True).astype(np.float64)
-
     def fit(self, X, y):
         if self.model is not None:
             thundersvm.model_free(c_void_p(self.model))
@@ -99,7 +95,7 @@ class SvmModel(ThundersvmBase):
         sparse = sp.isspmatrix(X)
         self._sparse = sparse and not callable(self.kernel)
         X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
-        y = self.label_validate(y)
+        y = self.column_or_1d(y, warn=True).astype(np.float64)
 
         solver_type = SVM_TYPE.index(self._impl)
 
@@ -129,40 +125,39 @@ class SvmModel(ThundersvmBase):
         data_size = (c_int * 1)()
         sv_indices = (c_int * self.n_sv)()
         thundersvm.get_sv(csr_row, csr_col, csr_data, data_size, sv_indices, c_void_p(self.model))
-        self.row = np.array([csr_row[index] for index in range(0, self.n_sv + 1)])
-        self.col = np.array([csr_col[index] for index in range(0, data_size[0])])
-        self.data = np.array([csr_data[index] for index in range(0, data_size[0])])
+        self.row = np.frombuffer(csr_row, dtype=np.int32)
+        self.col = np.frombuffer(csr_col, dtype=np.int32)[:data_size[0]]
+        self.data = np.frombuffer(csr_data, dtype=np.float32)[:data_size[0]]
 
         self.support_vectors_ = sp.csr_matrix((self.data, self.col, self.row))
-        if self._sparse == False:
+        if not self._sparse:
             self.support_vectors_ = self.support_vectors_.toarray(order='C')
-        self.support_ = np.array([sv_indices[index] for index in range(0, self.n_sv)]).astype(int)
+        self.support_ = np.frombuffer(sv_indices, dtype=np.int32).astype(int)
 
         dual_coef = (c_float * ((self.n_classes - 1) * self.n_sv))()
         thundersvm.get_coef(dual_coef, self.n_classes, self.n_sv, c_void_p(self.model))
 
-        self.dual_coef_ = np.array([dual_coef[index] for index in range(0, (self.n_classes - 1) * self.n_sv)]).astype(
-            float)
-        self.dual_coef_ = np.reshape(self.dual_coef_, (self.n_classes - 1, self.n_sv))
+        self.dual_coef_ = np.frombuffer(dual_coef, dtype=np.float32)\
+            .astype(float)\
+            .reshape((self.n_classes - 1, self.n_sv))
 
         rho_size = int(self.n_classes * (self.n_classes - 1) / 2)
         self.n_binary_model = rho_size
         rho = (c_float * rho_size)()
         thundersvm.get_rho(rho, rho_size, c_void_p(self.model))
-        self.intercept_ = np.array([rho[index] for index in range(0, rho_size)]).astype(float)
+        self.intercept_ = np.frombuffer(rho, dtype=np.float32).astype(float)
 
         if self.kernel == 'linear':
             coef = (c_float * (self.n_binary_model * self.n_features))()
             thundersvm.get_linear_coef(coef, self.n_binary_model, self.n_features, c_void_p(self.model))
-            self.coef_ = np.array([coef[index] for index in range(0, self.n_binary_model * self.n_features)]).astype(
-                float)
-            self.coef_ = np.reshape(self.coef_, (self.n_binary_model, self.n_features))
+            self.coef_ = np.frombuffer(coef, dtype=np.float32)\
+                .astype(float)\
+                .reshape((self.n_binary_model, self.n_features))
 
         n_support_ = (c_int * self.n_classes)()
         thundersvm.get_support_classes(n_support_, self.n_classes, c_void_p(self.model))
 
-        self.n_support_ = np.array([n_support_[index] for index in range(0, self.n_classes)]).astype(int)
-
+        self.n_support_ = np.frombuffer(n_support_, dtype=np.int32).astype(int)
         self.shape_fit_ = X.shape
 
         return self
@@ -325,8 +320,8 @@ class SvmModel(ThundersvmBase):
             #     c_void_p(self.model),
             #     self.predict_label_ptr)
             thundersvm.get_pro(c_void_p(self.model), self.predict_pro_ptr)
-            self.predict_prob = np.array([self.predict_pro_ptr[index] for index in range(0, size)])
-            self.predict_prob = np.reshape(self.predict_prob, (samples, self.n_classes))
+            self.predict_prob = np.frombuffer(self.predict_pro_ptr, dtype=np.float32)\
+                .reshape((samples, self.n_classes))
             return self.predict_prob
 
     def _dense_predict(self, X):
@@ -344,7 +339,7 @@ class SvmModel(ThundersvmBase):
             c_void_p(self.model),
             self.predict_label_ptr, self.verbose)
 
-        self.predict_label = np.array([self.predict_label_ptr[index] for index in range(0, X.shape[0])])
+        self.predict_label = np.frombuffer(self.predict_label_ptr, dtype=np.float32)
         return self.predict_label
 
     def _sparse_predict(self, X):
@@ -360,9 +355,7 @@ class SvmModel(ThundersvmBase):
             c_void_p(self.model),
             self.predict_label_ptr, self.verbose)
 
-        predict_label = [self.predict_label_ptr[index] for index in range(0, X.shape[0])]
-
-        self.predict_label = np.asarray(predict_label)
+        self.predict_label = np.frombuffer(self.predict_label_ptr, dtype=np.float32)
         return self.predict_label
 
     def decision_function(self, X):
@@ -392,8 +385,9 @@ class SvmModel(ThundersvmBase):
         thundersvm.dense_decision(
             samples, features, data, c_void_p(self.model), dec_size, dec_value_ptr
         )
-        self.dec_values = np.array([dec_value_ptr[index] for index in range(0, dec_size)]).astype(float)
-        self.dec_values = np.reshape(self.dec_values, (X.shape[0], self.n_binary_model))
+        self.dec_values = np.frombuffer(dec_value_ptr, dtype=np.float32)\
+            .astype(float)\
+            .reshape((X.shape[0], self.n_binary_model))
         return self.dec_values
 
     def _sparse_decision_function(self, X):
@@ -410,7 +404,8 @@ class SvmModel(ThundersvmBase):
             X.shape[0], data, indptr, indices,
             c_void_p(self.model), dec_size, dec_value_ptr)
         self.dec_values = np.array([dec_value_ptr[index] for index in range(0, dec_size)])
-        self.dec_values = np.reshape(self.dec_values, (X.shape[0], self.n_binary_model))
+        self.dec_values = np.frombuffer(dec_value_ptr, dtype=np.float32)\
+            .reshape((X.shape[0], self.n_binary_model))
         return self.dec_values
 
     def save_to_file(self, path):
@@ -435,8 +430,7 @@ class SvmModel(ThundersvmBase):
         self.n_classes = n_classes[0]
         n_support_ = (c_int * self.n_classes)()
         thundersvm.get_support_classes(n_support_, self.n_classes, c_void_p(self.model))
-        self.n_support_ = np.array([n_support_[index] for index in range(0, self.n_classes)]).astype(int)
-
+        self.n_support_ = np.frombuffer(n_support_).astype(int)
         self.n_sv = thundersvm.n_sv(c_void_p(self.model))
 
         n_feature = (c_int * 1)()
@@ -448,24 +442,24 @@ class SvmModel(ThundersvmBase):
         data_size = (c_int * 1)()
         sv_indices = (c_int * self.n_sv)()
         thundersvm.get_sv(csr_row, csr_col, csr_data, data_size, sv_indices, c_void_p(self.model))
-        self.row = np.array([csr_row[index] for index in range(0, self.n_sv + 1)])
-        self.col = np.array([csr_col[index] for index in range(0, data_size[0])])
-        self.data = np.array([csr_data[index] for index in range(0, data_size[0])])
+        self.row = np.frombuffer(csr_row, dtype=np.int32)
+        self.col = np.frombuffer(csr_col, dtype=np.int32)
+        self.data = np.frombuffer(csr_data, dtype=np.float32)
         self.support_vectors_ = sp.csr_matrix((self.data, self.col, self.row))
         # if self._sparse == False:
         #     self.support_vectors_ = self.support_vectors_.toarray(order = 'C')
-        self.support_ = np.array([sv_indices[index] for index in range(0, self.n_sv)]).astype(int)
+        self.support_ = np.frombuffer(sv_indices, dtype=np.int32)
         dual_coef = (c_float * ((self.n_classes - 1) * self.n_sv))()
         thundersvm.get_coef(dual_coef, self.n_classes, self.n_sv, c_void_p(self.model))
-        self.dual_coef_ = np.array([dual_coef[index] for index in range(0, (self.n_classes - 1) * self.n_sv)]).astype(
-            float)
-        self.dual_coef_ = np.reshape(self.dual_coef_, (self.n_classes - 1, self.n_sv))
+        self.dual_coef_ = np.frombuffer(dual_coef, dtype=np.float32)\
+            .astype(float)\
+            .reshape((self.n_classes - 1, self.n_sv))
 
         rho_size = int(self.n_classes * (self.n_classes - 1) / 2)
         self.n_binary_model = rho_size
         rho = (c_float * rho_size)()
         thundersvm.get_rho(rho, rho_size, c_void_p(self.model))
-        self.intercept_ = np.array([rho[index] for index in range(0, rho_size)]).astype(float)
+        self.intercept_ = np.frombuffer(rho, dtype=np.float32).astype(float)
 
         # if self.kernel == 'linear':
         #     coef = (c_float * (self.n_binary_model * self.n_sv))()
