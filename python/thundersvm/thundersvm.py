@@ -403,7 +403,6 @@ class SvmModel(ThundersvmBase):
         thundersvm.sparse_decision(
             X.shape[0], data, indptr, indices,
             c_void_p(self.model), dec_size, dec_value_ptr)
-        self.dec_values = np.array([dec_value_ptr[index] for index in range(0, dec_size)])
         self.dec_values = np.frombuffer(dec_value_ptr, dtype=np.float32)\
             .reshape((X.shape[0], self.n_binary_model))
         return self.dec_values
@@ -430,7 +429,7 @@ class SvmModel(ThundersvmBase):
         self.n_classes = n_classes[0]
         n_support_ = (c_int * self.n_classes)()
         thundersvm.get_support_classes(n_support_, self.n_classes, c_void_p(self.model))
-        self.n_support_ = np.frombuffer(n_support_).astype(int)
+        self.n_support_ = np.frombuffer(n_support_, dtype=np.int32).astype(int)
         self.n_sv = thundersvm.n_sv(c_void_p(self.model))
 
         n_feature = (c_int * 1)()
