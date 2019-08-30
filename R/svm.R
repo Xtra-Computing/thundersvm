@@ -1,26 +1,22 @@
 check_location <- function(){
-	if(Sys.info()['sysname'] == 'Windows'){
-		if(!file.exists("../build/bin/Debug/thundersvm.dll")){
-			print("Please build the library first!")
-			quit()
-		}
-		dyn.load("../build/bin/Debug/thundersvm.dll")
-	} else if(Sys.info()['sysname'] == 'Linux'){
-		if(!file.exists("../build/lib/libthundersvm.so")){
-			print("Please build the library first!")
-			quit()
-		}
-		dyn.load("../build/lib/libthundersvm.so")
-	} else if(Sys.info()['sysname'] == 'Darwin'){
-		if(!file.exists("../build/lib/libthundersvm.dylib")){
-			print("Please build the library first!")
-			quit()
-		}
-		dyn.load("../build/lib/libthundersvm.dylib")
-	} else{
-	    print("OS not supported!")
-	    quit()
-	}
+  if(Sys.info()['sysname'] == 'Windows'){
+    if(!file.exists("../build/bin/Debug/thundersvm.dll")){
+      stop("Please build the library first!")
+    }
+    dyn.load("../build/bin/Debug/thundersvm.dll")
+  } else if(Sys.info()['sysname'] == 'Linux'){
+    if(!file.exists("../build/lib/libthundersvm.so")){
+      stop("Please build the library first!")
+    }
+    dyn.load("../build/lib/libthundersvm.so")
+  } else if(Sys.info()['sysname'] == 'Darwin'){
+    if(!file.exists("../build/lib/libthundersvm.dylib")){
+      stop("Please build the library first!")
+    }
+    dyn.load("../build/lib/libthundersvm.dylib")
+  } else{
+    stop("OS not supported!")
+  }
 }
 check_location() # Run this when the file is sourced
 	
