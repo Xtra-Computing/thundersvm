@@ -1,17 +1,17 @@
 check_location <- function(){
   if(Sys.info()['sysname'] == 'Windows'){
     if(!file.exists("../build/bin/Debug/thundersvm.dll")){
-      stop("Please build the library first!")
+      stop("Please build the library first (or check you called this while your workspace is set to the thundersvm/R/ directory)!")
     }
     dyn.load("../build/bin/Debug/thundersvm.dll")
   } else if(Sys.info()['sysname'] == 'Linux'){
     if(!file.exists("../build/lib/libthundersvm.so")){
-      stop("Please build the library first!")
+      stop("Please build the library first (or check you called this while your workspace is set to the thundersvm/R/ directory)!")
     }
     dyn.load("../build/lib/libthundersvm.so")
   } else if(Sys.info()['sysname'] == 'Darwin'){
     if(!file.exists("../build/lib/libthundersvm.dylib")){
-      stop("Please build the library first!")
+      stop("Please build the library first (or check you called this while your workspace is set to the thundersvm/R/ directory)!")
     }
     dyn.load("../build/lib/libthundersvm.dylib")
   } else{
