@@ -13,20 +13,20 @@
 
 ## What's new
 - We have recently released [ThunderGBM](https://github.com/Xtra-Computing/thundergbm), a fast GBDT and Random Forest library on GPUs.
-- add scikit-learn interface, see [here](https://github.com/zeyiwen/thundersvm/tree/master/python)
+- add scikit-learn interface, see [here](https://github.com/Xtra-Computing/thundersvm/tree/master/python)
 - pre-built binaries and DLL for Windows x64 on CPUs are [avaliable](https://ci.appveyor.com/project/shijiashuai/thundersvm/branch/master/artifacts)
 ## Overview
 The mission of ThunderSVM is to help users easily and efficiently apply SVMs to solve problems. ThunderSVM exploits GPUs and multi-core CPUs to achieve high efficiency. Key features of ThunderSVM are as follows.
 * Support all functionalities of LibSVM such as one-class SVMs, SVC, SVR and probabilistic SVMs.
 * Use same command line options as LibSVM.
-* Support Python, R and Matlab interfaces.
+* Support [Python](python/), [R](R/) and [Matlab](Matlab/) interfaces.
 * Supported Operating Systems: Linux, Windows and MacOS.
 
 **Why accelerate SVMs**: A [survey](https://www.kaggle.com/amberthomas/kaggle-2017-survey-results) conducted by Kaggle in 2017 shows that 26% of the data mining and machine learning practitioners are users of SVMs.
 
 [Documentations](docs/index.md) | [Installation](docs/how-to.md#install-thundersvm) | [API Reference (doxygen)](http://Xtra-Computing.github.io/thundersvm/)
 ## Contents
-- [Getting Started](https://github.com/zeyiwen/thundersvm#getting-started)
+- [Getting Started](https://github.com/Xtra-Computing/thundersvm#getting-started)
 - [Working without GPUs](docs/get-started.md#working-without-gpus)
 ## Getting Started
 
@@ -38,6 +38,7 @@ The mission of ThunderSVM is to help users easily and efficiently apply SVMs to 
 If you want to use GPUs, you also need to install CUDA.
 
 * [CUDA](https://developer.nvidia.com/cuda-downloads) 7.5 or above
+
 ### Quick Install
 Download the Python wheel file (For Python3 or above).
 
@@ -65,7 +66,7 @@ clf.fit(x, y)
 ```
 ### Download
 ```bash
-git clone https://github.com/zeyiwen/thundersvm.git
+git clone https://github.com/Xtra-Computing/thundersvm.git
 ```
 ### Build on Linux (build [instructions](docs/get-started.md#installation-for-macos) for MacOS and Windows)
 ##### ThunderSVM on GPUs
@@ -73,6 +74,13 @@ git clone https://github.com/zeyiwen/thundersvm.git
 cd thundersvm
 mkdir build && cd build && cmake .. && make -j
 ```
+
+If you run into issues that can be traced back to your version of gcc, use `cmake` with a version flag to force gcc 6. That would look like this:
+
+```bash
+cmake -DCMAKE_C_COMPILER=gcc-6 -DCMAKE_CXX_COMPILER=g++-6 ..
+```
+
 
 ##### ThunderSVM on CPUs
 ```bash
