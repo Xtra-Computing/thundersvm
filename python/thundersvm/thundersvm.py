@@ -95,7 +95,7 @@ class SvmModel(ThundersvmBase):
         sparse = sp.isspmatrix(X)
         self._sparse = sparse and not callable(self.kernel)
         X, y = check_X_y(X, y, dtype=np.float64, order='C', accept_sparse='csr')
-        y = self.column_or_1d(y, warn=True).astype(np.float64)
+        y = column_or_1d(y, warn=True).astype(np.float64)
 
         solver_type = SVM_TYPE.index(self._impl)
 
