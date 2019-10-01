@@ -126,4 +126,5 @@ If you use ThunderSVM in your paper, please cite our work ([full version](https:
 ## Selected projects that use ThunderSVM
  * Scene Graphs for Interpretable Video Anomaly Classification (published in NeurIPS18)
  * 3D Semantic Segmentation for High-resolution Aerial Survey Derived Point Clouds using Deep Learning (published in SIGSPATIAL’18)
+ * Accounting for part pose estimation uncertainties during trajectory generation for part pick-up using mobile manipulators. (published in International Conference on Robotics and Automation (ICRA), 2019).
 
