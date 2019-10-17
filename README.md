@@ -105,7 +105,7 @@ If you use ThunderSVM in your paper, please cite our work ([full version](https:
  title = {{ThunderSVM}: A Fast {SVM} Library on {GPUs} and {CPUs}},
  journal = {Journal of Machine Learning Research},
  volume={19},
- pages={1--5},
+ pages={797--801},
  year = {2018}
 }
 ```
