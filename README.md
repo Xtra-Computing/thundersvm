@@ -46,13 +46,13 @@ Download the Python wheel file (For Python3 or above).
 
     * `pip install thundersvm` for CUDA 9.0 - linux_x86_64 
     
-    * [CPU - linux_x86_64](https://www.comp.nus.edu.sg/~wenzy/pip-pack/svm/thundersvm-cpu-0.2.0-py3-none-linux_x86_64.whl)
+    * [CPU - linux_x86_64](python/dist//thundersvm-cpu-0.2.0-py3-none-linux_x86_64.whl)
 
 * For Windows (64bit)
     
-    * [CUDA 10.0 - win64](https://www.comp.nus.edu.sg/~wenzy/pip-pack/svm/thundersvm-cu10-0.2.0-py3-none-win_amd64.whl)
+    * [CUDA 10.0 - win64](python/dist//thundersvm-cu10-0.2.0-py3-none-win_amd64.whl)
     
-    * [CPU - win64](https://www.comp.nus.edu.sg/~wenzy/pip-pack/svm/thundersvm-cpu-0.2.0-py3-none-win_amd64.whl)
+    * [CPU - win64](python/dist/thundersvm-cpu-0.2.0-py3-none-win_amd64.whl)
 
 Install the Python wheel file.
 ```bash
