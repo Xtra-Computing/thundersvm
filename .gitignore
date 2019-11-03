@@ -8,6 +8,7 @@
 dataset/*
 !dataset/*.sh
 !dataset/test_dataset.txt
+!scripts/*.sh
 html
 latex
 logs
