@@ -27,7 +27,7 @@ else:
 if not path.exists(path.join(dirname, "thundersvm", path.basename(lib_path))):
     copyfile(lib_path, path.join(dirname, "thundersvm", path.basename(lib_path)))
 setuptools.setup(name="thundersvm" + os.environ['BUILD_TAG'],
-                 version="0.3.3",
+                 version="0.3.4",
                  packages=["thundersvm"],
                  package_dir={"python": "thundersvm"},
                  description="A Fast SVM Library on GPUs and CPUs",
