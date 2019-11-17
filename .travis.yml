@@ -26,7 +26,7 @@ jobs:
         - CUDA_SHORT=10.1
         - UBUNTU_VERSION=ubuntu1804
         - BUILD_TAG=-cuda10.1
-      dist: bionic
+      dist: xenial
       language: python
       before_deploy:
         - ./scripts/build_gpu_wheel.sh
