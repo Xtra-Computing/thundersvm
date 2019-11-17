@@ -18,6 +18,8 @@ class SVR : public SvmModel {
 public:
     void train(const DataSet &dataset, SvmParam param) override;
 
+    ~SVR() override = default;
+
 protected:
     void model_setup(const DataSet &dataset, SvmParam &param) override;
 

@@ -21,6 +21,7 @@ public:
 
     vector<float_type> predict(const DataSet::node2d &instances, int batch_size) override;
 
+    ~SVC() override = default;
 protected:
     /**
      * train a binary SVC model \f$SVM_{i,j}\f$ for class i and class j.

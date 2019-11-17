@@ -14,6 +14,8 @@ class NuSVR : public SVR {
 public:
     void train(const DataSet &dataset, SvmParam param) override;
 
+    ~NuSVR() override = default;
+
 protected:
     void model_setup(const DataSet &dataset, SvmParam &param) override;
 

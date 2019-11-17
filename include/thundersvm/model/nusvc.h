@@ -11,6 +11,9 @@
  * @brief Nu-Support Vector Machine for classification
  */
 class NuSVC : public SVC {
+public:
+    ~NuSVC() override = default;
+
 protected:
     void train_binary(const DataSet &dataset, int i, int j, SyncArray<float_type> &alpha, float_type &rho) override;
 
