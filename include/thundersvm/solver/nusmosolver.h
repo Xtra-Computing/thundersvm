@@ -13,6 +13,7 @@
 class NuSMOSolver : public CSMOSolver {
 public:
     explicit NuSMOSolver(bool for_svr) : for_svr(for_svr) {};
+    ~NuSMOSolver() override = default;
 protected:
     float_type
     calculate_rho(const SyncArray<float_type> &f_val, const SyncArray<int> &y, SyncArray<float_type> &alpha,

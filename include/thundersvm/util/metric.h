@@ -15,12 +15,16 @@ public:
     virtual string name() = 0;
 
     virtual float_type score(const vector<float_type> &predict_y, const vector<float_type> &ground_truth_y) = 0;
+
+    virtual ~Metric() = default;
 };
 
 /**
  * @brief Accuracy
  */
 class Accuracy : public Metric {
+public:
+    ~Accuracy() override = default;
     string name() override;
 
     /**
@@ -36,6 +40,8 @@ class Accuracy : public Metric {
  * @brief Mean Squared Error
  */
 class MSE : public Metric {
+public:
+    ~MSE() override = default;
     string name() override;
 
     /**

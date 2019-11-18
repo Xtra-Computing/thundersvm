@@ -16,6 +16,8 @@ public:
 
     vector<float_type> predict(const DataSet::node2d &instances, int batch_size) override;
 
+    ~OneClassSVC() override = default;
+
 protected:
     void model_setup(const DataSet &dataset, SvmParam &param) override;
 

@@ -275,7 +275,9 @@ extern "C" {
             if (metric) {
                 std::cout << metric->name() << " = " << metric->score(predict_y, train_dataset.y()) << std::endl;
             }
+            delete metric;
         }
+        delete model;
         return succeed;
 //        model->train(train_dataset, param_cmd);
 //        model->save_to_file(model_file_path);
@@ -333,5 +335,7 @@ extern "C" {
         if (metric) {
             LOG(INFO) << metric->name() << " = " << metric->score(predict_y, predict_dataset.y());
         }
+        delete model;
+        delete metric;
     }
 }

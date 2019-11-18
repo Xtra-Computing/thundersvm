@@ -98,7 +98,7 @@ public:
 
 	//set max_memory_size during training and prediction (input unit Byte)
 	void set_max_memory_size_Byte(size_t size);
-	
+
     //return n_binary_models
     int get_n_binary_models() const;
 
@@ -120,6 +120,9 @@ public:
 
     //return param.probability
     const bool is_prob() const;
+
+    virtual ~SvmModel() = default;
+
 protected:
 
     /**

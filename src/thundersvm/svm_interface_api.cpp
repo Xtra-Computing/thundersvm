@@ -87,6 +87,8 @@ extern "C" {
         if (metric) {
             LOG(INFO) << metric->name() << " = " << metric->score(predict_y, train_dataset.y()) << std::endl;
         }
+        delete model;
+        delete metric;
         return;
     }
     void thundersvm_train(int argc, char **argv) {
@@ -97,7 +99,7 @@ extern "C" {
         parser.param_cmd.kernel_type = SvmParam::RBF;
         parser.param_cmd.C = 100;
         parser.param_cmd.gamma = 0;
-        parser.param_cmd.nu = 0.1; 
+        parser.param_cmd.nu = 0.1;
         parser.param_cmd.epsilon = 0.001;
         */
         DataSet train_dataset;
@@ -155,6 +157,8 @@ extern "C" {
         if (metric) {
             LOG(INFO) << metric->name() << " = " << metric->score(predict_y, predict_dataset.y());
         }
+        delete model;
+        delete metric;
     }
 
     void thundersvm_predict(int argc, char **argv){
@@ -174,11 +178,11 @@ extern "C" {
         predict_dataset.load_from_file(predict_file_path);
         thundersvm_predict_sub(predict_dataset, parser, model_file_path, output_file_path);
     }
-    
+
     void load_from_python_interface(float *y, char **x, int len){
         dataset_python.load_from_python(y, x, len);
     }
-    
+
     void thundersvm_train_after_parse(char **option, int len, char *file_name){
         CMDParser parser;
         parser.parse_python(len, option);
