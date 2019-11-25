@@ -44,7 +44,7 @@ brew install cmake
 # in thundersvm root directory
 mkdir build
 cd build
-cmake -DCMAKE_CXX_COMPILER=[path_to_g++] -DCMAKE_C_COMPILER=[path_to_gcc] -DUSE_CUDA=ON -DUSE_EIGEN=OFF ..
+cmake -DCMAKE_CXX_COMPILER=[path_to_g++] -DCMAKE_C_COMPILER=[path_to_gcc] -DUSE_CUDA=OFF -DUSE_EIGEN=ON ..
 make -j
 ```
 
