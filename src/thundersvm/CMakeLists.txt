@@ -24,3 +24,6 @@ endif ()
 
 target_link_libraries(${PROJECT_NAME}-train ${LINK_LIBRARY} ${PROJECT_LIB_NAME})
 target_link_libraries(${PROJECT_NAME}-predict ${LINK_LIBRARY} ${PROJECT_LIB_NAME})
+
+install(TARGETS ${PROJECT_LIB_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+install(TARGETS ${PROJECT_NAME}-train ${PROJECT_NAME}-predict DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
