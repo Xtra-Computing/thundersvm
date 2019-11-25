@@ -31,20 +31,27 @@ If ```make -j``` doesn't work, please use ```make``` instead.
 #### Installation for MacOS
 * Clone ThunderSVM repository
 ```bash
-git clone https://github.com/zeyiwen/thundersvm.git
+git clone --recursive https://github.com/zeyiwen/thundersvm.git
 ```
-You need to Install ```CMake``` and ```gcc``` for MacOS. If you don't have Homebrew, [here](https://brew.sh/) is its website.
+You need to Install ```CMake``` and ```libomp``` for MacOS. If you don't have Homebrew, [here](https://brew.sh/) is its website.
 ```bash
-brew install gcc
-brew install cmake
+brew install cmake libomp
 ```
 
-* Build ThunderSVM. You can specify gcc as the compiler of cmake. ([path_to_g++] and [path_to_gcc] typically look like ```/usr/local/bin/g++-7``` and ```/usr/local/bin/gcc-7```, respectively.).
+* Build ThunderSVM
 ```
 # in thundersvm root directory
 mkdir build
 cd build
-cmake -DCMAKE_CXX_COMPILER=[path_to_g++] -DCMAKE_C_COMPILER=[path_to_gcc] -DUSE_CUDA=OFF -DUSE_EIGEN=ON ..
+cmake \
+  -DUSE_CUDA=OFF \
+  -DUSE_EIGEN=ON \
+  -DOpenMP_C_FLAGS="-Xpreprocessor -fopenmp -I/usr/local/opt/libomp/include" \
+  -DOpenMP_C_LIB_NAMES=omp \
+  -DOpenMP_CXX_FLAGS="-Xpreprocessor -fopenmp -I/usr/local/opt/libomp/include" \
+  -DOpenMP_CXX_LIB_NAMES=omp \
+  -DOpenMP_omp_LIBRARY=/usr/local/opt/libomp/lib/libomp.dylib \
+  ..
 make -j
 ```
 
