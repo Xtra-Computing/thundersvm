@@ -2,56 +2,8 @@
 This page is for key instructions of intalling, using and contributing to ThunderSVM. ThunderSVM has been used by many users, and everyone can contribute to ThunderSVM to make it better.
 
 ## Install ThunderSVM
-To use ThunderSVM, we need to install the following software:
 
-* ```cmake``` 2.8 or above
-* ```gcc``` 4.8 or above for Linux and MacOS; ```Visual C++``` for Windows
-
-If you want to use GPUs, you also need to install CUDA.
-
-* [CUDA](https://developer.nvidia.com/cuda-downloads) 7.5 or above
-
-After installing the above software, you can start compiling ThunderSVM.
-
-* Clone ThunderSVM repository
-```bash
-git clone https://github.com/zeyiwen/thundersvm.git
-```
-
-If you don't have a GPU or want to run ThunderSVM purely on CPUs, you need to add a submodule to ThunderSVM by the following command. Please refer to [Working without GPUs](http://thundersvm.readthedocs.io/en/latest/get-started.html#working-without-gpus-a-name-withoutgpu-a) for more information.
-```bash
-# in thundersvm root directory
-git submodule init eigen && git submodule update
-```
-
-* Build the executable for Linux, use the following commands.
-```bash
-cd thundersvm
-mkdir build
-cd build
-cmake ..
-make -j
-```
-If ```make -j``` doesn't work, please simply use ```make``` instead.
-
-* Build for MacOS, use the following commands (```[path_to_g++]``` and ```[path_to_gcc]``` typically look like ```/usr/local/bin/g++-7``` and ```/usr/local/bin/gcc-7```, respectively.).
-```
-# in thundersvm root directory
-mkdir build
-cd build
-cmake -DCMAKE_CXX_COMPILER=[path_to_g++] -DCMAKE_C_COMPILER=[path_to_gcc] -DUSE_CUDA=ON -DUSE_EIGEN=OFF ..
-make -j
-```
-
-* Build the executable for Windows, use the following example commands. You need to change the Visual Studio version if you are using a different version of Visual Studio.
-```bash
-mkdir build
-cd build
-cmake ..  -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE -DBUILD_SHARED_LIBS=TRUE -G "Visual Studio 14 2015 Win64"
-```
-The above commands generate some Visual Studio project files, open the Visual Studio project in the ```build``` directory to start building ThunderSVM on Windows. Please note that CMake should be 3.4 or above for Windows.
-
-You can now use ThunderSVM, and the options of executing ThunderSVM are available [here](parameters.html). Please refer to [Getting Started](get-started.html) for some examples of training SVMs using ThunderSVM.
+Please refer to [Getting Started](get-started.html) for installation and some examples of training SVMs using ThunderSVM.
 
 ## How can I do grid search?
    Since ThunderSVM supports cross-validation, you can write a simple grid.sh script like the following one. Then run ``` sh grid.sh [dataset]```.  You may modify the script to meet your needs. Indeed, ThunderSVM supports the same command line parameters as LIBSVM. So the script grid.py in LIBSVM can be used for ThunderSVM with minor modifications.
@@ -100,7 +52,7 @@ At this point, make sure you have generated the documents of ThunderSVM. You can
 ## Contribute to ThunderSVM
 You need to fetch the latest version of ThunderSVM before submitting a pull request.
 ```bash
-git remote add upstream https://github.com/zeyiwen/thundersvm.git
+git remote add upstream https://github.com/Xtra-Computing/thundersvm.git
 git fetch upstream
 git rebase upstream/master
 ```
@@ -112,11 +64,11 @@ Please note that ```cmake .. [-D<options>=<args>]``` produces a  ```CMakeCache.t
 #### Build test on Linux
 * Clone ThunderSVM repository
 ```bash
-git clone https://github.com/zeyiwen/thundersvm.git
+git clone https://github.com/Xtra-Computing/thundersvm.git
 git submodule update --init src/test/googletest
 ```
 
-* Build the binary for testing 
+* Build the binary for testing
 ```bash
 mkdir build
 cd build
@@ -128,12 +80,12 @@ If ```make -j runtest``` doesn't work, please use ```make runtest``` instead. Ma
 #### Build test on MacOS
 * Clone ThunderSVM repository
 ```bash
-git clone https://github.com/zeyiwen/thundersvm.git
+git clone https://github.com/Xtra-Computing/thundersvm.git
 git submodule init eigen && git submodule update
 git submodule update --init src/test/googletest
 ```
 
-* Build the binary for testing 
+* Build the binary for testing
 ```bash
 mkdir build
 cd build
@@ -145,7 +97,7 @@ Where ```[path_to_g++]``` and ```[path_to_gcc]``` typically look like ```/usr/lo
 #### Build test on Windows
 * Clone ThunderSVM repository
 ```bash
-git clone https://github.com/zeyiwen/thundersvm.git
+git clone https://github.com/Xtra-Computing/thundersvm.git
 git submodule update --init src/test/googletest
 ```
 
@@ -162,7 +114,7 @@ You need to change the Visual Studio version if you are using a different versio
 You have to ensure the repository is identical to the latest one.
 * Clone ThunderSVM repository
 ```bash
-git clone https://github.com/zeyiwen/thundersvm.git
+git clone https://github.com/Xtra-Computing/thundersvm.git
 ```
 * Build the binary
 ```base

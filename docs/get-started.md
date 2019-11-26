@@ -13,10 +13,10 @@ If you want to use GPUs, you also need to install CUDA.
 
 ## Installation
 If you don't have GPUs, please go to [Working without GPUs](#working-without-gpus-a-name-withoutgpu-a) in later section of this page.
-#### Installation for  Linux
+#### Installation for Linux
 * Clone ThunderSVM repository
 ```bash
-git clone https://github.com/zeyiwen/thundersvm.git
+git clone https://github.com/Xtra-Computing/thundersvm.git
 ```
 
 * Build ThunderSVM
@@ -31,7 +31,7 @@ If ```make -j``` doesn't work, please use ```make``` instead.
 #### Installation for MacOS
 * Clone ThunderSVM repository
 ```bash
-git clone --recursive https://github.com/zeyiwen/thundersvm.git
+git clone --recursive https://github.com/Xtra-Computing/thundersvm.git
 ```
 You need to Install ```CMake``` and ```libomp``` for MacOS. If you don't have Homebrew, [here](https://brew.sh/) is its website.
 ```bash
@@ -58,7 +58,7 @@ make -j
 #### Installation for Windows
 * Clone ThunderSVM repository
 ```bash
-git clone https://github.com/zeyiwen/thundersvm.git
+git clone https://github.com/Xtra-Computing/thundersvm.git
 ```
 
 * Create a Visual Studio project
@@ -74,11 +74,11 @@ If you don't have GPUs, ThunderSVM can run purely on CPUs. The number of CPU cor
 
 * Clone ThunderSVM repository
 ```bash
-git clone https://github.com/zeyiwen/thundersvm.git
+git clone https://github.com/Xtra-Computing/thundersvm.git
 ```
 
-* Get Eigen Library. ThunderSVM uses [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) for matrix calculation. To use Eigen, just 
-initialize the submodule. 
+* Get Eigen Library. ThunderSVM uses [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) for matrix calculation. To use Eigen, just
+initialize the submodule.
 ```bash
 # in thundersvm root directory
 git submodule init eigen && git submodule update
@@ -105,7 +105,7 @@ cmake .. -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE -DBUILD_SHARED_LIBS=TRUE -DUSE_
 Then, you can open the generated the Visual Studio project file to build ThunderSVM.
 
 ## Training SVMs
-We show some concrete examples of using ThunderSVM. ThunderSVM uses the same command line options as LibSVM, so existing users of LibSVM can use ThunderSVM easily. For new users of SVMs, the [Parameters](parameters.md) page provides explanation for the usage of each option. 
+We show some concrete examples of using ThunderSVM. ThunderSVM uses the same command line options as LibSVM, so existing users of LibSVM can use ThunderSVM easily. For new users of SVMs, the [Parameters](parameters.md) page provides explanation for the usage of each option.
 
 ### Training SVMs for Classification
 In the following, we provide an example of using ThunderSVM for the MNIST dataset.
@@ -136,7 +136,7 @@ The usage of other SVM algorithms (such as SVM regression) is similar to the abo
 ```bash
 ./thundersvm-train -s 3 -t 2 -g 3.8 -c 1000 abalone_scale svm.model
 ```
-The meaning of each option can be found in the [Parameters](parameters.md) page. 
+The meaning of each option can be found in the [Parameters](parameters.md) page.
 
 ### Interfaces
 ThunderSVM provides Python, R and Matlab interfaces. You can find the instructions in the corresponding subdirectories on GitHub.
