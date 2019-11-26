@@ -12,7 +12,7 @@ class bdist_wheel(_bdist_wheel):
     def finalize_options(self):
         _bdist_wheel.finalize_options(self)
         self.root_is_pure = False
-            
+
 dirname = path.dirname(path.abspath(__file__))
 
 if platform == "linux" or platform == "linux2":
@@ -33,7 +33,7 @@ setuptools.setup(name="thundersvm" + os.environ['BUILD_TAG'],
                  description="A Fast SVM Library on GPUs and CPUs",
                  long_description="The mission of ThunderSVM is to help users easily and efficiently apply SVMs to solve problems. ThunderSVM exploits GPUs and multi-core CPUs to achieve high efficiency",
                  long_description_content_type="text/plain",
-                 url="https://github.com/zeyiwen/thundersvm",
+                 url="https://github.com/Xtra-Computing/thundersvm",
                  package_data={"thundersvm": [path.basename(lib_path)]},
                  setup_requires=['wheel'],
                  install_requires=['numpy', 'scipy', 'scikit-learn'],

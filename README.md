@@ -2,36 +2,35 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/e9yoehx7orsrsh89/branch/master?svg=true)](https://ci.appveyor.com/project/shijiashuai/thundersvm/branch/master)
 [![GitHub license](https://img.shields.io/badge/license-apache2-yellowgreen)](./LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/thundersvm/badge/?version=latest)](https://thundersvm.readthedocs.org)
-[![GitHub issues](https://img.shields.io/github/issues/Xtra-Computing/thundersvm.svg)](https://github.com/zeyiwen/thundersvm/issues)
+[![GitHub issues](https://img.shields.io/github/issues/Xtra-Computing/thundersvm.svg)](https://github.com/Xtra-Computing/thundersvm/issues)
 [![PyPI version](https://badge.fury.io/py/thundersvm.svg)](https://badge.fury.io/py/thundersvm)
 
 <div align="center">
-<img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/logo.png" width="240" height="220" align=left/>
-<img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/lang-logo.png" width="250" height="200" align=left/>
-<img src="https://github.com/zeyiwen/thundersvm/raw/master/docs/_static/overall.png" width="250" height="200" align=left/>
+<img src="https://github.com/Xtra-Computing/thundersvm/raw/master/docs/_static/logo.png" width="240" height="220" align=left/>
+<img src="https://github.com/Xtra-Computing/thundersvm/raw/master/docs/_static/lang-logo.png" width="250" height="200" align=left/>
+<img src="https://github.com/Xtra-Computing/thundersvm/raw/master/docs/_static/overall.png" width="250" height="200" align=left/>
 </div>
 
 ## What's new
 - We have recently released [ThunderGBM](https://github.com/Xtra-Computing/thundergbm), a fast GBDT and Random Forest library on GPUs.
 - add scikit-learn interface, see [here](https://github.com/Xtra-Computing/thundersvm/tree/master/python)
-- pre-built binaries and DLL for Windows x64 on CPUs are [avaliable](https://ci.appveyor.com/project/shijiashuai/thundersvm/branch/master/artifacts)
 ## Overview
 The mission of ThunderSVM is to help users easily and efficiently apply SVMs to solve problems. ThunderSVM exploits GPUs and multi-core CPUs to achieve high efficiency. Key features of ThunderSVM are as follows.
 * Support all functionalities of LibSVM such as one-class SVMs, SVC, SVR and probabilistic SVMs.
 * Use same command line options as LibSVM.
-* Support [Python](python/), [R](R/) and [Matlab](Matlab/) interfaces.
+* Support [Python](python/), [R](R/), [Matlab](Matlab/) and [Ruby](https://github.com/ankane/thundersvm) interfaces.
 * Supported Operating Systems: Linux, Windows and MacOS.
 
 **Why accelerate SVMs**: A [survey](https://www.kaggle.com/amberthomas/kaggle-2017-survey-results) conducted by Kaggle in 2017 shows that 26% of the data mining and machine learning practitioners are users of SVMs.
 
-[Documentations](docs/index.md) | [Installation](docs/how-to.md#install-thundersvm) | [API Reference (doxygen)](http://Xtra-Computing.github.io/thundersvm/)
+[Documentation](docs/index.md) | [Installation](docs/get-started.md#installation) | [API Reference (doxygen)](http://Xtra-Computing.github.io/thundersvm/)
 ## Contents
 - [Getting Started](https://github.com/Xtra-Computing/thundersvm#getting-started)
 - [Working without GPUs](docs/get-started.md#working-without-gpus)
 ## Getting Started
 
 ### Prerequisites
-* cmake 2.8 or above 
+* cmake 2.8 or above
 * gcc 4.8 or above for Linux and MacOS
 * Visual C++ for Windows
 
@@ -44,14 +43,14 @@ Download the Python wheel file (For Python3 or above).
 
 * For Linux
 
-    * `pip install thundersvm` for CUDA 9.0 - linux_x86_64 
-    
+    * `pip install thundersvm` for CUDA 9.0 - linux_x86_64
+
     * [CPU - linux_x86_64](https://github.com/Xtra-Computing/thundersvm/blob/d38af58e0ceb7e5d948f3ef7d2c241ba50133ee6/python/dist/thundersvm-cpu-0.2.0-py3-none-linux_x86_64.whl)
 
 * For Windows (64bit)
-    
+
     * [CUDA 10.0 - win64](https://github.com/Xtra-Computing/thundersvm/blob/d38af58e0ceb7e5d948f3ef7d2c241ba50133ee6/python/dist/thundersvm-cu10-0.2.0-py3-none-win_amd64.whl)
-    
+
     * [CPU - win64](https://github.com/Xtra-Computing/thundersvm/blob/d38af58e0ceb7e5d948f3ef7d2c241ba50133ee6/python/dist/thundersvm-cpu-0.2.0-py3-none-win_amd64.whl)
 
 Install the Python wheel file.
@@ -98,7 +97,7 @@ If ```make -j``` doesn't work, please simply use ```make```. The number of CPU c
 You will see `Accuracy = 0.98` after successful running.
 
 ## How to cite ThunderSVM
-If you use ThunderSVM in your paper, please cite our work ([full version](https://github.com/zeyiwen/thundersvm/blob/master/thundersvm-full.pdf)).
+If you use ThunderSVM in your paper, please cite our work ([full version](https://github.com/Xtra-Computing/thundersvm/blob/master/thundersvm-full.pdf)).
 ```
 @article{wenthundersvm18,
  author = {Wen, Zeyi and Shi, Jiashuai and Li, Qinbin and He, Bingsheng and Chen, Jian},
@@ -117,7 +116,7 @@ If you use ThunderSVM in your paper, please cite our work ([full version](https:
 ## Related websites
 * [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) | [SVM<sup>light</sup>](http://svmlight.joachims.org/) | [OHD-SVM](https://github.com/OrcusCZ/OHD-SVM) | [NVIDIA Machine Learning](http://www.nvidia.com/object/machine-learning.html) | [ThunderGBM](https://github.com/Xtra-Computing/thundergbm)
 
-## Acknowlegement 
+## Acknowledgement
 * We acknowledge NVIDIA for their hardware donations.
 * This project is hosted by NUS, collaborating with Prof. Jian Chen (South China University of Technology). Initial work of this project was done when Zeyi Wen worked at The University of Melbourne.
 * This work is partially supported by a MoE AcRF Tier 1 grant (T1 251RES1610) in Singapore.
