@@ -26,7 +26,9 @@ else:
 
 if not path.exists(path.join(dirname, "thundersvm", path.basename(lib_path))):
     copyfile(lib_path, path.join(dirname, "thundersvm", path.basename(lib_path)))
-setuptools.setup(name="thundersvm" + os.environ['BUILD_TAG'],
+
+build_tag = os.environ.get['BUILD_TAG', '']
+setuptools.setup(name="thundersvm" + build_tag,
                  version="0.3.4",
                  packages=["thundersvm"],
                  package_dir={"python": "thundersvm"},
