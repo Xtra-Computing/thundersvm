@@ -55,6 +55,13 @@ jobs:
         - BUILD_TAG=-cpu
       before_deploy:
         - ./scripts/build_cpu_wheel.sh
+    - name: macos-cpu
+      os: osx
+      language: bash
+      env:
+        - BUILD_TAG=-cpu
+      before_deploy:
+        - ./scripts/build_cpu_wheel.sh
 script:
   - ./scripts/build_cputest.sh
 deploy:
