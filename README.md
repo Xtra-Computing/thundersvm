@@ -124,6 +124,16 @@ If you use ThunderSVM in your paper, please cite our work ([full version](https:
 
 ## Selected projects that use ThunderSVM
  * Scene Graphs for Interpretable Video Anomaly Classification (published in NeurIPS18)
- * 3D Semantic Segmentation for High-resolution Aerial Survey Derived Point Clouds using Deep Learning (published in SIGSPATIAL’18)
- * Accounting for part pose estimation uncertainties during trajectory generation for part pick-up using mobile manipulators. (published in International Conference on Robotics and Automation (ICRA), 2019).
+ * Sampling Bias in Deep Active Classification: An Empirical Study. (in arXiv preprint arXiv:1909.09389, 2019).
+* Machine Learning-Based Fast Banknote Serial Number Recognition Using Knowledge Distillation and Bayesian Optimization. (published in Sensors 19.19:4218, 2019).
+* Texture Selection for Automatic Music Genre Classification. (in arXiv preprint arXiv:1905.11959, 2019).
+* Classification for Device-free Localization based on Deep Neural Networks. (in Diss. The University of Aizu, 2019).
+* An accurate and robust approach of device-free localization with convolutional autoencoder. (published in IEEE Internet of Things Journal 6.3:5825-5840, 2019).
+* Accounting for part pose estimation uncertainties during trajectory generation for part pick-up using mobile manipulators. (published in IEEE International Conference on Robotics and Automation (ICRA), 2019).
+* 3D semantic segmentation for high-resolution aerial survey derived point clouds using deep learning. (published in ACM SIGSPATIAL International Conference on Advances in Geographic Information Systems, 2018).
+* Performance Comparison of Machine Learning Models for DDoS Attacks Detection. (published in IEEE International Computer Science and Engineering Conference (ICSEC), 2018).
+* Evolving Switch Architecture toward Accommodating In-Network Intelligence. (published in IEEE Communications Magazine 58.1: 33-39, 2020).
+* Kernel machines that adapt to GPUs for effective large batch training. (in arXiv preprint arXiv:1806.06144, 2018).
+* Genetic improvement of GPU code. (published in IEEE/ACM International Workshop on Genetic Improvement (GI), 2019). The source code of ThunderSVM is used as a benchmark.
+* Dynamic Multi-Resolution Data Storage. (published in IEEE/ACM International Symposium on Microarchitecture, 2019). The source code of ThunderSVM is used as a benchmark.
 
