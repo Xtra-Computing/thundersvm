@@ -1,6 +1,18 @@
-add_subdirectory(googletest)
-include_directories(googletest/googletest/include)
-include_directories(googletest/googlemock/include)
+
+find_package(GTest)
+if (GTEST_FOUND)
+    message(STATUS "Linking to GTest system library")
+    set (GTEST_LIBRARIES GTest::GTest)
+else (GTEST_FOUND)
+    if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/googletest/CMakeLists.txt")
+        message(FATAL_ERROR "Missing '${CMAKE_CURRENT_SOURCE_DIR}/googletest' submodule! Either supply an external googletest or check out the git submodules.")
+    endif ()
+    message(STATUS "Compiling googletest from source in submodule")
+    add_subdirectory(googletest)
+    include_directories(googletest/googletest/include)
+    include_directories(googletest/googlemock/include)
+    set (GTEST_LIBRARIES gtest)
+endif ()
 
 file(GLOB TEST_SRC *)
 
@@ -9,5 +21,4 @@ if (USE_CUDA)
 else ()
     add_executable(${PROJECT_TEST_NAME} ${TEST_SRC})
 endif ()
-target_link_libraries(${PROJECT_TEST_NAME} ${PROJECT_LIB_NAME} ${LINK_LIBRARY} gtest)
-
+target_link_libraries(${PROJECT_TEST_NAME} ${PROJECT_LIB_NAME} ${LINK_LIBRARY} ${GTEST_LIBRARIES})
