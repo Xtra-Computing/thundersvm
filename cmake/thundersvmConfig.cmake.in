@@ -1,5 +1,7 @@
 @PACKAGE_INIT@
 
+find_dependency(OpenMP)
+
 if (@USE_EIGEN@)
     if (@Eigen3_FOUND@)
         find_dependency(Eigen3)
