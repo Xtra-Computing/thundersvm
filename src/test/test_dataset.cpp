@@ -3,7 +3,7 @@
 //
 #include "gtest/gtest.h"
 #include "thundersvm/dataset.h"
-#include <config.h>
+#include <thundersvm/config.h>
 TEST(SvmProblemTest, load_dataset){
     DataSet dataSet;
     dataSet.load_from_file(DATASET_DIR "test_dataset.txt");

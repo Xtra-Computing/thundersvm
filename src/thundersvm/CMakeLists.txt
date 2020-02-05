@@ -50,7 +50,7 @@ install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION bin
     INCLUDES DESTINATION include)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/thundersvm DESTINATION include/)
-install(FILES ${CMAKE_BINARY_DIR}/config.h DESTINATION include/thundersvm/)
+install(FILES ${CMAKE_BINARY_DIR}/thundersvm/config.h DESTINATION include/thundersvm/)
 
 install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}Config.cmake

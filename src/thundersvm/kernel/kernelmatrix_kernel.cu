@@ -4,7 +4,7 @@
 #include <thundersvm/syncarray.h>
 #include <cusparse.h>
 #include "thundersvm/kernel/kernelmatrix_kernel.h"
-#include <config.h>
+#include <thundersvm/config.h>
 
 namespace svm_kernel {
     __global__ void
