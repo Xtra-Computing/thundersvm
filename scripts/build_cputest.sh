@@ -24,7 +24,7 @@ osx)
    ;;
 windows)
     export PATH=${MSBUILD_PATH}:$PATH
-    cmake -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE -DBUILD_SHARED_LIBS=TRUE -DUSE_CUDA=OFF -DBUILD_TESTS=ON -G "Visual Studio 14 2015 Win64" ..
+    cmake -DBUILD_SHARED_LIBS=TRUE -DUSE_CUDA=OFF -DBUILD_TESTS=ON -G "Visual Studio 14 2015 Win64" ..
     ;;
 esac
 
