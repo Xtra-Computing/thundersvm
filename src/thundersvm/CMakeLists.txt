@@ -43,6 +43,10 @@ configure_package_config_file(
     ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}Config.cmake
     INSTALL_DESTINATION lib/cmake/)
 
+install(TARGETS ${PROJECT_NAME}-train ${PROJECT_NAME}-predict
+    RUNTIME DESTINATION bin
+    BUNDLE DESTINATION bin)
+
 install(TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}Targets
     ARCHIVE DESTINATION lib
