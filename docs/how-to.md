@@ -89,7 +89,7 @@ git submodule update --init src/test/googletest
 ```bash
 mkdir build
 cd build
-cmake .. -DCMAKE_CXX_COMPILER=[path_to_g++]/usr/local/bin/g++-7 -DCMAKE_C_COMPILER=[path_to_gcc] -DUSE_CUDA=OFF -DUSE_EIGEN=ON -DBUILD_TESTS=ON
+cmake .. -DCMAKE_CXX_COMPILER=[path_to_g++]/usr/local/bin/g++-7 -DCMAKE_C_COMPILER=[path_to_gcc] -DUSE_CUDA=OFF -DBUILD_TESTS=ON
 make -j runtest
 ```
 Where ```[path_to_g++]``` and ```[path_to_gcc]``` typically look like ```/usr/local/bin/g++-7``` and ```/usr/local/bin/gcc-7```, respectively.

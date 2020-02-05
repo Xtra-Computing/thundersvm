@@ -2,7 +2,7 @@
 
 find_dependency(OpenMP)
 
-if (@USE_EIGEN@)
+if (NOT @USE_CUDA@)
     if (@Eigen3_FOUND@)
         find_dependency(Eigen3)
     endif ()

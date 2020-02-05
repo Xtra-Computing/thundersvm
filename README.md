@@ -85,7 +85,7 @@ cmake -DCMAKE_C_COMPILER=gcc-6 -DCMAKE_CXX_COMPILER=g++-6 ..
 ```bash
 # in thundersvm root directory
 git submodule init eigen && git submodule update
-mkdir build && cd build && cmake -DUSE_CUDA=OFF -DUSE_EIGEN=ON .. && make -j
+mkdir build && cd build && cmake -DUSE_CUDA=OFF .. && make -j
 ```
 If ```make -j``` doesn't work, please simply use ```make```. The number of CPU cores to use can be specified by the ```-o``` option (e.g., ```-o 10```), and refer to [Parameters](docs/parameters.md) for more information.
 

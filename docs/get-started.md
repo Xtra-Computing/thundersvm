@@ -45,7 +45,7 @@ mkdir build
 cd build
 cmake \
   -DUSE_CUDA=OFF \
-  -DUSE_EIGEN=ON \
+  \
   -DOpenMP_C_FLAGS="-Xpreprocessor -fopenmp -I/usr/local/opt/libomp/include" \
   -DOpenMP_C_LIB_NAMES=omp \
   -DOpenMP_CXX_FLAGS="-Xpreprocessor -fopenmp -I/usr/local/opt/libomp/include" \
@@ -88,21 +88,21 @@ git submodule init eigen && git submodule update
 * Build without GPUs for Linux
 ```bash
 # in thundersvm root directory
-mkdir build && cd build && cmake -DUSE_CUDA=OFF -DUSE_EIGEN=ON .. && make -j
+mkdir build && cd build && cmake -DUSE_CUDA=OFF .. && make -j
 ```
 If ```make -j``` doesn't work, please simply use ```make```. Now ThunderSVM will work solely on CPUs and does not rely on CUDA.
 
 * Build without GPUs for MacOS
 ```bash
 # in thundersvm root directory
-mkdir build && cd build && cmake -DCMAKE_CXX_COMPILER=[path_to_g++] -DCMAKE_C_COMPILER=[path_to_gcc] -DUSE_CUDA=OFF -DUSE_EIGEN=ON .. && make -j
+mkdir build && cd build && cmake -DCMAKE_CXX_COMPILER=[path_to_g++] -DCMAKE_C_COMPILER=[path_to_gcc] -DUSE_CUDA=OFF .. && make -j
 ```
 
 * Build without GPUs for Windows
 ```bash
 mkdir build
 cd build
-cmake .. -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE -DBUILD_SHARED_LIBS=TRUE -DUSE_CUDA=OFF -DUSE_EIGEN=ON -G "Visual Studio 14 2015 Win64"
+cmake .. -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE -DBUILD_SHARED_LIBS=TRUE -DUSE_CUDA=OFF -G "Visual Studio 14 2015 Win64"
 ```
 Then, you can open the generated the Visual Studio project file to build ThunderSVM.
 

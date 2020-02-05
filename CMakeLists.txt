@@ -11,7 +11,6 @@ endif()
 
 option(BUILD_SHARED_LIBS "Build as a shared library" ON)
 option(USE_CUDA "Compile with CUDA" ON)
-option(USE_EIGEN "Compile with Eigen" OFF)
 option(BUILD_TESTS "Build Tests" OFF)
 option(USE_DOUBLE "Use double as kernel_type" OFF)
 
@@ -21,13 +20,10 @@ endif()
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif ()
+
 find_package(Threads)
 find_package(OpenMP REQUIRED)
 add_definitions("-DELPP_NO_LOG_TO_FILE")
-
-if (USE_CUDA AND USE_EIGEN)
-    message (FATAL_ERROR "CUDA and Eigen are mutually exclusive. Please specify either USE_CUDA or USE_EIGEN, not both.")
-endif ()
 
 if (USE_CUDA)
     message("Compile with CUDA")
@@ -39,9 +35,6 @@ if (USE_CUDA)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_MWAITXINTRIN_H_INCLUDED -D_FORCE_INLINES")
 else ()
     message("Compile without CUDA")
-endif ()
-
-if (USE_EIGEN)
     find_package (Eigen3 3.3 NO_MODULE)
     if (Eigen3_FOUND)
         message("using external Eigen3 for acceleration")
