@@ -5,7 +5,7 @@
 #ifndef THUNDERSVM_CLION_CUDA_H
 #define THUNDERSVM_CLION_CUDA_H
 
-#include <config.h>
+#include <thundersvm/config.h>
 #ifdef __JETBRAINS_IDE__
 #ifdef USE_CUDA
 #include "math.h"

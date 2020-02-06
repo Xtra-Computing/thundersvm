@@ -73,7 +73,7 @@ set(COMMON_INCLUDES ${PROJECT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR})
 
 
 set(DATASET_DIR ${PROJECT_SOURCE_DIR}/dataset/)
-configure_file(include/thundersvm/config.h.in config.h)
+configure_file(include/thundersvm/config.h.in thundersvm/config.h)
 
 set(PROJECT_LIB_NAME ${PROJECT_NAME})
 include_directories(${COMMON_INCLUDES})

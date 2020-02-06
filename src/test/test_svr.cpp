@@ -2,7 +2,7 @@
 // Created by jiashuai on 17-10-5.
 //
 #include <gtest/gtest.h>
-#include <config.h>
+#include <thundersvm/config.h>
 #include <thundersvm/model/nusvr.h>
 #include <thundersvm/util/metric.h>
 

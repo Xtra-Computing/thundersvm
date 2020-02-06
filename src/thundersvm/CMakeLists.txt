@@ -43,6 +43,10 @@ configure_package_config_file(
     ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}Config.cmake
     INSTALL_DESTINATION lib/cmake/)
 
+install(TARGETS ${PROJECT_NAME}-train ${PROJECT_NAME}-predict
+    RUNTIME DESTINATION bin
+    BUNDLE DESTINATION bin)
+
 install(TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}Targets
     ARCHIVE DESTINATION lib
@@ -50,7 +54,7 @@ install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION bin
     INCLUDES DESTINATION include)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/thundersvm DESTINATION include/)
-install(FILES ${CMAKE_BINARY_DIR}/config.h DESTINATION include/thundersvm/)
+install(FILES ${CMAKE_BINARY_DIR}/thundersvm/config.h DESTINATION include/thundersvm/)
 
 install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}Config.cmake

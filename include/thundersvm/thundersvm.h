@@ -8,7 +8,7 @@
 #include "util/log.h"
 #include <string>
 #include <vector>
-#include <config.h>
+#include <thundersvm/config.h>
 #include "math.h"
 #include "util/common.h"
 using std::string;
