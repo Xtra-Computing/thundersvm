@@ -89,7 +89,7 @@ git submodule update --init src/test/googletest
 ```bash
 mkdir build
 cd build
-cmake .. -DCMAKE_CXX_COMPILER=[path_to_g++]/usr/local/bin/g++-7 -DCMAKE_C_COMPILER=[path_to_gcc] -DUSE_CUDA=OFF -DUSE_EIGEN=ON -DBUILD_TESTS=ON
+cmake .. -DCMAKE_CXX_COMPILER=[path_to_g++]/usr/local/bin/g++-7 -DCMAKE_C_COMPILER=[path_to_gcc] -DUSE_CUDA=OFF -DBUILD_TESTS=ON
 make -j runtest
 ```
 Where ```[path_to_g++]``` and ```[path_to_gcc]``` typically look like ```/usr/local/bin/g++-7``` and ```/usr/local/bin/gcc-7```, respectively.
@@ -105,7 +105,7 @@ git submodule update --init src/test/googletest
 ```bash
 mkdir build
 cd build
-cmake .. -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE -DBUILD_SHARED_LIBS=TRUE -DBUILD_TESTS=ON -G "Visual Studio 14 2015 Win64"
+cmake .. -DBUILD_SHARED_LIBS=TRUE -DBUILD_TESTS=ON -G "Visual Studio 14 2015 Win64"
 cmake --build . --target runtest
 ```
 You need to change the Visual Studio version if you are using a different version of Visual Studio. Visual Studio can be downloaded from [this link](https://www.visualstudio.com/vs/). The above commands generate some Visual Studio project files, open the Visual Studio project to build ThunderSVM. Please note that CMake should be 3.4 or above for Windows.

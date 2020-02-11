@@ -26,7 +26,7 @@ windows)
     wget -q http://developer.download.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.243_426.00_win10.exe
     ./cuda_10.1.243_426.00_win10.exe -s nvcc_10.1 cusparse_dev_10.1
     export PATH=${MSBUILD_PATH}:$PATH
-    cmake -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE -DBUILD_SHARED_LIBS=TRUE -DCUDA_TOOLKIT_ROOT_DIR="/c/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.1" -G "Visual Studio 14 2015 Win64" ..
+    cmake -DBUILD_SHARED_LIBS=TRUE -DCUDA_TOOLKIT_ROOT_DIR="/c/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.1" -G "Visual Studio 14 2015 Win64" ..
     choco install python --version=3.6.3
     python -m pip install --upgrade pip
     pip install wheel
