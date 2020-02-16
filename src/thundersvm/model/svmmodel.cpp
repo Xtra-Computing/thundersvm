@@ -131,143 +131,157 @@ vector<float_type> SvmModel::predict(const DataSet::node2d &instances, int batch
     return dec_values_vec;
 }
 
-
 void SvmModel::save_to_file(string path) {
     ofstream fs_model;
     fs_model.open(path.c_str(), std::ios_base::out | std::ios_base::trunc);
     CHECK(fs_model.is_open()) << "create file " << path << "failed";
+    fs_model << save_to_string();
+    fs_model.close();
+}
+
+string SvmModel::save_to_string() {
+    std::ostringstream s_model;
     const SvmParam &param = this->param;
-    fs_model << "svm_type " << SvmParam::svm_type_name[param.svm_type] << endl;
-    fs_model << "kernel_type " << SvmParam::kernel_type_name[param.kernel_type] << endl;
+    s_model << "svm_type " << SvmParam::svm_type_name[param.svm_type] << endl;
+    s_model << "kernel_type " << SvmParam::kernel_type_name[param.kernel_type] << endl;
     if (param.kernel_type == SvmParam::POLY)
-        fs_model << "degree " << param.degree << endl;
+        s_model << "degree " << param.degree << endl;
     if (param.kernel_type == SvmParam::POLY
         || param.kernel_type == SvmParam::RBF
         || param.kernel_type == SvmParam::SIGMOID)
-        fs_model << "gamma " << param.gamma << endl;
+        s_model << "gamma " << param.gamma << endl;
     if (param.kernel_type == SvmParam::POLY || param.kernel_type == SvmParam::SIGMOID)
-        fs_model << "coef0 " << param.coef0 << endl;
-    fs_model << "nr_class " << n_classes << endl;
-    fs_model << "total_sv " << sv.size() << endl;
-    fs_model << "rho ";
+        s_model << "coef0 " << param.coef0 << endl;
+    s_model << "nr_class " << n_classes << endl;
+    s_model << "total_sv " << sv.size() << endl;
+    s_model << "rho ";
     for (int i = 0; i < n_binary_models; ++i) {
-        fs_model << rho.host_data()[i] << " ";
+        s_model << rho.host_data()[i] << " ";
     }
-    fs_model << endl;
+    s_model << endl;
     if (param.svm_type == SvmParam::NU_SVC || param.svm_type == SvmParam::C_SVC) {
-        fs_model << "label ";
+        s_model << "label ";
         for (int i = 0; i < n_classes; ++i) {
-            fs_model << label[i] << " ";
+            s_model << label[i] << " ";
         }
-        fs_model << endl;
-        fs_model << "nr_sv ";
+        s_model << endl;
+        s_model << "nr_sv ";
         for (int i = 0; i < n_classes; ++i) {
-            fs_model << n_sv.host_data()[i] << " ";
+            s_model << n_sv.host_data()[i] << " ";
         }
-        fs_model << endl;
+        s_model << endl;
     }
     if (param.probability == 1) {
-        fs_model << "probA ";
+        s_model << "probA ";
         for (int i = 0; i < n_binary_models; ++i) {
-            fs_model << probA[i] << " ";
+            s_model << probA[i] << " ";
         }
-        fs_model << endl;
-        fs_model << "probB ";
+        s_model << endl;
+        s_model << "probB ";
         for (int i = 0; i < n_binary_models; ++i) {
-            fs_model << probB[i] << " ";
+            s_model << probB[i] << " ";
         }
-        fs_model << endl;
+        s_model << endl;
     }
-    fs_model << "SV " << endl;
+    s_model << "SV " << endl;
     const float_type *coef_data = coef.host_data();
     for (int i = 0; i < sv.size(); i++) {
         for (int j = 0; j < n_classes - 1; ++j) {
-            fs_model << setprecision(16) << coef_data[j * sv.size() + i] << " ";
+            s_model << setprecision(16) << coef_data[j * sv.size() + i] << " ";
         }
 
         vector<DataSet::node> p = sv[i];
         int k = 0;
 //        if (param.kernel_type == SvmParam::PRECOMPUTED)
-//            fs_model << "0:" << p[k].value << " ";
+//            s_model << "0:" << p[k].value << " ";
 //        else
         for (; k < p.size(); k++) {
-            fs_model << p[k].index << ":" << setprecision(8) << p[k].value << " ";
+            s_model << p[k].index << ":" << setprecision(8) << p[k].value << " ";
         }
-        fs_model << endl;
+        s_model << endl;
     }
-    fs_model.close();
+
+    return s_model.str();
 }
 
 void SvmModel::load_from_file(string path) {
+	//CHECK(ifs.is_open()) << "file " << path << " not found";
     ifstream ifs;
     ifs.open(path.c_str());
     if(!ifs.is_open()){
 		LOG(INFO)<<"file "<<path<<" not found";
 		exit(1);
 	}
-	//CHECK(ifs.is_open()) << "file " << path << " not found";
+    std::stringstream sstr;
+    sstr << ifs.rdbuf();
+    load_from_string(sstr.str());
+    ifs.close();
+}
+
+void SvmModel::load_from_string(string data) {
+    stringstream iss(data);
     string feature;
-    while (ifs >> feature) {
+    while (iss >> feature) {
         if (feature == "svm_type") {
             string value;
-            ifs >> value;
+            iss >> value;
             for (int i = 0; i < 6; i++) {
                 if (value == SvmParam::svm_type_name[i])
                     param.svm_type = static_cast<SvmParam::SVM_TYPE>(i);
             }
         } else if (feature == "kernel_type") {
             string value;
-            ifs >> value;
+            iss >> value;
             for (int i = 0; i < 6; i++) {
                 if (value == SvmParam::kernel_type_name[i])
                     param.kernel_type = static_cast<SvmParam::KERNEL_TYPE>(i);
             }
         } else if (feature == "degree") {
-            ifs >> param.degree;
+            iss >> param.degree;
         } else if (feature == "nr_class") {
-            ifs >> n_classes;
+            iss >> n_classes;
             n_binary_models = n_classes * (n_classes - 1) / 2;
             rho.resize(n_binary_models);
             n_sv.resize(n_classes);
         } else if (feature == "coef0") {
-            ifs >> param.coef0;
+            iss >> param.coef0;
         } else if (feature == "gamma") {
-            ifs >> param.gamma;
+            iss >> param.gamma;
 
         } else if (feature == "total_sv") {
-            ifs >> n_total_sv;
+            iss >> n_total_sv;
         } else if (feature == "rho") {
             for (int i = 0; i < n_binary_models; ++i) {
-                ifs >> rho.host_data()[i];
+                iss >> rho.host_data()[i];
             }
         } else if (feature == "label") {
             label = vector<int>(n_classes);
             for (int i = 0; i < n_classes; ++i) {
-                ifs >> label[i];
+                iss >> label[i];
             }
         } else if (feature == "nr_sv") {
             for (int i = 0; i < n_classes; ++i) {
-                ifs >> n_sv.host_data()[i];
+                iss >> n_sv.host_data()[i];
             }
         } else if (feature == "probA") {
             param.probability = 1;
             probA = vector<float_type>(n_binary_models);
             for (int i = 0; i < n_binary_models; ++i) {
-                ifs >> probA[i];
+                iss >> probA[i];
             }
         } else if (feature == "probB") {
             probB = vector<float_type>(n_binary_models);
             for (int i = 0; i < n_binary_models; ++i) {
-                ifs >> probB[i];
+                iss >> probB[i];
             }
         } else if (feature == "SV") {
             sv.clear();
             coef.resize((n_classes - 1) * n_total_sv);
             float_type *coef_data = coef.host_data();
             string line;
-            getline(ifs, line);
+            getline(iss, line);
             for (int i = 0; i < n_total_sv; i++) {
-                getline(ifs, line);
+                getline(iss, line);
                 stringstream ss(line);
                 for (int j = 0; j < n_classes - 1; ++j) {
                     ss >> coef_data[j * n_total_sv + i];
@@ -287,7 +301,6 @@ void SvmModel::load_from_file(string path) {
                         sv_max_index = sv.back().back().index;
                 };
             }
-            ifs.close();
         }
     }
     if (param.svm_type != SvmParam::C_SVC && param.svm_type != SvmParam::NU_SVC) {

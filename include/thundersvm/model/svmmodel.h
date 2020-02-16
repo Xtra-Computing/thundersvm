@@ -66,6 +66,17 @@ public:
      */
     virtual void load_from_file(string path);
 
+    /**
+     * save SvmModel to a string
+     */
+    virtual string save_to_string();
+
+    /**
+     * load SvmModel from a string created by save_to_string.
+     * @param data string created by save_to_string
+     */
+    virtual void load_from_string(string data);
+
     //return n_total_sv
     int total_sv() const;
 

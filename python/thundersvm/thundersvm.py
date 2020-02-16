@@ -408,7 +408,18 @@ class SvmModel(ThundersvmBase):
         return self.dec_values
 
     def save_to_file(self, path):
+        if self.model is None:
+          raise ValueError("Cannot serialize model before fitting")
         thundersvm.save_to_file_scikit(c_void_p(self.model), path.encode('utf-8'))
+
+    def save_to_string(self):
+        if self.model is None:
+          raise ValueError("Cannot serialize model before fitting")
+        thundersvm.save_to_string_scikit.restype = c_void_p
+        sp = thundersvm.save_to_string_scikit(c_void_p(self.model))
+        retval = string_at(sp)
+        thundersvm.free_string(cast(sp, c_void_p))
+        return retval
 
     def load_from_file(self, path):
         if self.model is None:
@@ -417,6 +428,18 @@ class SvmModel(ThundersvmBase):
             if self.max_mem_size != -1:
                 thundersvm.set_memory_size(c_void_p(self.model), self.max_mem_size)
         thundersvm.load_from_file_scikit(c_void_p(self.model), path.encode('utf-8'))
+        self._post_load_init()
+
+    def load_from_string(self, data):
+        if self.model is None:
+            thundersvm.model_new.restype = c_void_p
+            self.model = thundersvm.model_new(SVM_TYPE.index(self._impl))
+            if self.max_mem_size != -1:
+                thundersvm.set_memory_size(c_void_p(self.model), self.max_mem_size)
+        thundersvm.load_from_string_scikit(c_void_p(self.model), data)
+        self._post_load_init()
+    
+    def _post_load_init(self):
         degree = (c_int * 1)()
         gamma = (c_float * 1)()
         coef0 = (c_float * 1)()
@@ -466,13 +489,27 @@ class SvmModel(ThundersvmBase):
         #     self.coef_ = np.array([coef[index] for index in range(0, self.n_binary_model * self.n_features)]).astype(float)
         #     self.coef_ = np.reshape(self.coef_, (self.n_binary_model, self.n_features))
 
-        self.kernel = kernel.value
+        self.kernel = kernel.value.decode()
         self.degree = degree[0]
         if gamma[0] != 0.0:
             self.gamma = gamma[0]
         self.coef0 = coef0[0]
         self.probability = probability[0]
 
+    def __getstate__(self):
+      state = self.__dict__.copy()
+      state['predict_label_ptr'] = None
+      state['_train_succeed'] = None
+      if state['model'] is not None:
+        state['_saved_as_str'] = self.save_to_string()
+        state['model'] = None
+      return state
+
+    def __setstate__(self, state):
+      self.__dict__.update(state)
+      if '_saved_as_str' in state:
+        self.load_from_string(state['_saved_as_str']) 
+    
 
 class SVC(SvmModel, ClassifierMixin):
     _impl = 'c_svc'
@@ -490,6 +527,7 @@ class SVC(SvmModel, ClassifierMixin):
             class_weight=class_weight, shrinking=shrinking,
             cache_size=cache_size, verbose=verbose,
             max_iter=max_iter, n_jobs=n_jobs, max_mem_size=max_mem_size, random_state=random_state, gpu_id=gpu_id)
+
 
 
 class NuSVC(SvmModel, ClassifierMixin):
@@ -559,3 +597,4 @@ class NuSVR(SvmModel, RegressorMixin):
             shrinking=shrinking, cache_size=cache_size, verbose=verbose,
             max_iter=max_iter, n_jobs=n_jobs, max_mem_size=max_mem_size, random_state=None, gpu_id=gpu_id
         )
+
