@@ -354,6 +354,26 @@ extern "C" {
         model->load_from_file(path);
     }
 
+   char* save_to_string_scikit(SvmModel *model){
+        string s = model->save_to_string();
+        // Copy the bytes to the heap so we can send to Python
+        char* buf = (char *)malloc(s.length());
+        memcpy(buf, s.c_str(), s.length());
+        return buf;
+    }
+
+    /* Because we allocate the string returned by save_to_string_scikit on the
+     * heap with malloc, we provide free_string as a way of cleaning up from
+     * python code */
+    void free_string(char* s) {
+        free(s);
+    }
+
+    void load_from_string_scikit(SvmModel *model, char *mstring) {
+        string s(mstring);
+        model->load_from_string(mstring);
+    }
+
     void get_pro(SvmModel *model, float* prob){
         vector<float> prob_predict;
         prob_predict = model->get_prob_predict();
