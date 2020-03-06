@@ -58,13 +58,12 @@ script:
 before_deploy:
   - if [ $BUILD_TAG == "-cpu" && ]; then ./scripts/build_gpu_wheel.sh; else ./scripts/build_cpu_wheel.sh; fi
 
-
-
 deploy:
   provider: releases
+  token: ${GITHUB_API_TOKEN}
   edge: true
-  api_key: $GITHUB_API_TOKEN
   file: "python/dist/*"
+  file_glob: true
+  skip_cleanup: true
   on:
-    repo: guillaumedsde/thundersvm
     tags: true
