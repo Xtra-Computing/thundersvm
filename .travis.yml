@@ -1,35 +1,35 @@
+_build_cuda: &build_cuda
+  script:
+    - ./scripts/build_cputest.sh
+  before_deploy:
+    - ./scripts/build_gpu_wheel.sh
+
+_build_cpu: &build_cpu
+  script:
+    - ./scripts/build_cputest.sh
+  before_deploy:
+    - ./scripts/build_cpu_wheel.sh
+
+
+
+os: linux
+dist: xenial
+
+language: python
+python:
+  - "3.6"
+  - "3.7"
+  - "3.8"
+env:
+  - BUILD_TAG=-cpu
+  - CUDA=8.0.61-1 CUDA_SHORT=8.0 UBUNTU_VERSION=ubuntu1604 BUILD_TAG=-cuda8.0
+  - CUDA=9.2.148-1 CUDA_SHORT=9.2 UBUNTU_VERSION=ubuntu1604 BUILD_TAG=-cuda9.2
+  - CUDA=10.1.105-1 CUDA_SHORT=10.1 UBUNTU_VERSION=ubuntu1804 BUILD_TAG=-cuda10.1
+
+<<: *build_cpu
+
 jobs:
   include:
-    - name: ubuntu-cuda8.0
-      env:
-        - CUDA=8.0.61-1
-        - CUDA_SHORT=8.0
-        - UBUNTU_VERSION=ubuntu1604
-        - BUILD_TAG=-cuda8.0
-      dist: xenial
-      language: python
-      before_deploy:
-        - ./scripts/build_gpu_wheel.sh
-    - name: ubuntu-cuda9.2
-      env:
-        - CUDA=9.2.148-1
-        - CUDA_SHORT=9.2
-        - UBUNTU_VERSION=ubuntu1604
-        - BUILD_TAG=-cuda9.2
-      dist: xenial
-      language: python
-      before_deploy:
-        - ./scripts/build_gpu_wheel.sh
-    - name: ubuntu-cuda10.1
-      env:
-        - CUDA=10.1.105-1
-        - CUDA_SHORT=10.1
-        - UBUNTU_VERSION=ubuntu1804
-        - BUILD_TAG=-cuda10.1
-      dist: xenial
-      language: python
-      before_deploy:
-        - ./scripts/build_gpu_wheel.sh
     - name: windows-cuda10.1
       os: windows
       language: bash
@@ -37,15 +37,7 @@ jobs:
         - MSBUILD_PATH="/c/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/MSBuild/15.0/Bin"
         - PATH=/c/Python36:/c/Python36/Scripts:$PATH
         - BUILD_TAG=-cuda10.1
-      before_deploy:
-        - ./scripts/build_gpu_wheel.sh
-    - name: ubuntu-cpu
-      env:
-        - BUILD_TAG=-cpu
-      dist: bionic
-      language: python
-      before_deploy:
-        - ./scripts/build_cpu_wheel.sh
+      <<: *build_cuda
     - name: windows-cpu
       os: windows
       language: bash
@@ -53,17 +45,19 @@ jobs:
         - MSBUILD_PATH="/c/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/MSBuild/15.0/Bin"
         - PATH=/c/Python36:/c/Python36/Scripts:$PATH
         - BUILD_TAG=-cpu
-      before_deploy:
-        - ./scripts/build_cpu_wheel.sh
+      <<: *build_cpu
     - name: macos-cpu
       os: osx
       language: bash
       env:
         - BUILD_TAG=-cpu
-      before_deploy:
-        - ./scripts/build_cpu_wheel.sh
+      <<: *build_cpu
+
 script:
   - ./scripts/build_cputest.sh
+before_deploy:
+  - if [ $BUILD_TAG == "-cpu" && ]; then ./scripts/build_gpu_wheel.sh; else ./scripts/build_cpu_wheel.sh; fi
+
 deploy:
   provider: releases
   token: ${GITHUB_API_TOKEN}
