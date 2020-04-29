@@ -438,7 +438,7 @@ class SvmModel(ThundersvmBase):
                 thundersvm.set_memory_size(c_void_p(self.model), self.max_mem_size)
         thundersvm.load_from_string_scikit(c_void_p(self.model), data)
         self._post_load_init()
-    
+
     def _post_load_init(self):
         degree = (c_int * 1)()
         gamma = (c_float * 1)()
@@ -483,11 +483,12 @@ class SvmModel(ThundersvmBase):
         thundersvm.get_rho(rho, rho_size, c_void_p(self.model))
         self.intercept_ = np.frombuffer(rho, dtype=np.float32).astype(float)
 
-        # if self.kernel == 'linear':
-        #     coef = (c_float * (self.n_binary_model * self.n_sv))()
-        #     thundersvm.get_linear_coef(coef, self.n_binary_model, self.n_features, c_void_p(self.model))
-        #     self.coef_ = np.array([coef[index] for index in range(0, self.n_binary_model * self.n_features)]).astype(float)
-        #     self.coef_ = np.reshape(self.coef_, (self.n_binary_model, self.n_features))
+        if self.kernel == 'linear':
+            coef = (c_float * (self.n_binary_model * self.n_features))()
+            thundersvm.get_linear_coef(coef, self.n_binary_model, self.n_features, c_void_p(self.model))
+            self.coef_ = np.frombuffer(coef, dtype=np.float32) \
+                .astype(float) \
+                .reshape((self.n_binary_model, self.n_features))
 
         self.kernel = kernel.value.decode()
         self.degree = degree[0]
@@ -508,8 +509,8 @@ class SvmModel(ThundersvmBase):
     def __setstate__(self, state):
       self.__dict__.update(state)
       if '_saved_as_str' in state:
-        self.load_from_string(state['_saved_as_str']) 
-    
+        self.load_from_string(state['_saved_as_str'])
+
 
 class SVC(SvmModel, ClassifierMixin):
     _impl = 'c_svc'

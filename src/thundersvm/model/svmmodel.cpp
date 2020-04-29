@@ -183,6 +183,14 @@ string SvmModel::save_to_string() {
         }
         s_model << endl;
     }
+    if (param.kernel_type == SvmParam::LINEAR) {
+        s_model << "coef " << endl;
+        const float_type *linear_coef_data = linear_coef.host_data();
+        for (int i = 0; i < linear_coef.size(); i++) {
+            s_model << setprecision(16) << linear_coef_data[i] << " ";
+        }
+        s_model << endl;
+    }
     s_model << "SV " << endl;
     const float_type *coef_data = coef.host_data();
     for (int i = 0; i < sv.size(); i++) {
@@ -273,6 +281,20 @@ void SvmModel::load_from_string(string data) {
             probB = vector<float_type>(n_binary_models);
             for (int i = 0; i < n_binary_models; ++i) {
                 iss >> probB[i];
+            }
+        } else if (feature == "coef"){
+            string line;
+            getline(iss, line);
+            getline(iss, line);
+            int size = 0;
+            for (int i = 0; line[i] !='\0'; i++){
+                if(line[i] == ' ')
+                    size++;
+            }
+            linear_coef.resize(size);
+            stringstream ss(line);
+            for(int i = 0; i < size; i++){
+                ss >> linear_coef.host_data()[i];
             }
         } else if (feature == "SV") {
             sv.clear();
