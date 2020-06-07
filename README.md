@@ -4,6 +4,7 @@
 [![Documentation Status](https://readthedocs.org/projects/thundersvm/badge/?version=latest)](https://thundersvm.readthedocs.org)
 [![GitHub issues](https://img.shields.io/github/issues/Xtra-Computing/thundersvm.svg)](https://github.com/Xtra-Computing/thundersvm/issues)
 [![PyPI version](https://badge.fury.io/py/thundersvm.svg)](https://badge.fury.io/py/thundersvm)
+[![Downloads](https://pepy.tech/badge/thundersvm)](https://pepy.tech/project/thundersvm)
 
 <div align="center">
 <img src="https://github.com/Xtra-Computing/thundersvm/raw/master/docs/_static/logo.png" width="240" height="220" align=left/>
