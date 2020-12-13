@@ -31,7 +31,11 @@ add_definitions("-DELPP_NO_LOG_TO_FILE")
 if (USE_CUDA)
     message("Compile with CUDA")
     find_package(CUDA REQUIRED QUIET)
-    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -std=c++11 -Wno-deprecated-gpu-targets)
+    if (CUDA_VERSION VERSION_LESS "11.0")
+      set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -std=c++11 -Wno-deprecated-gpu-targets)
+    else ()
+      set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -std=c++14 -Wno-deprecated-gpu-targets)
+    endif ()
     list(APPEND LINK_LIBRARY ${CUDA_cusparse_LIBRARY})
 
     # Correct error for GCC 5 and CUDA 7.5
