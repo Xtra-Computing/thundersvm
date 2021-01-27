@@ -124,8 +124,8 @@ If you use ThunderSVM in your paper, please cite our work ([full version](https:
 * We also thank the authors of LibSVM and OHD-SVM which inspire our algorithmic design.
 
 ## Selected projects that use ThunderSVM
- * Scene Graphs for Interpretable Video Anomaly Classification (published in NeurIPS18)
- * Sampling Bias in Deep Active Classification: An Empirical Study. (in arXiv preprint arXiv:1909.09389, 2019).
+* Scene Graphs for Interpretable Video Anomaly Classification (published in NeurIPS18)
+* Sampling Bias in Deep Active Classification: An Empirical Study. (in arXiv preprint arXiv:1909.09389, 2019).
 * Machine Learning-Based Fast Banknote Serial Number Recognition Using Knowledge Distillation and Bayesian Optimization. (published in Sensors 19.19:4218, 2019).
 * Texture Selection for Automatic Music Genre Classification. (in arXiv preprint arXiv:1905.11959, 2019).
 * Classification for Device-free Localization based on Deep Neural Networks. (in Diss. The University of Aizu, 2019).
@@ -137,4 +137,13 @@ If you use ThunderSVM in your paper, please cite our work ([full version](https:
 * Kernel machines that adapt to GPUs for effective large batch training. (in arXiv preprint arXiv:1806.06144, 2018).
 * Genetic improvement of GPU code. (published in IEEE/ACM International Workshop on Genetic Improvement (GI), 2019). The source code of ThunderSVM is used as a benchmark.
 * Dynamic Multi-Resolution Data Storage. (published in IEEE/ACM International Symposium on Microarchitecture, 2019). The source code of ThunderSVM is used as a benchmark.
-
+* Hyperparameter Estimation in SVM with GPU Acceleration for Prediction of Protein-Protein Interactions. (published in IEEE International Conference on Big Data, 2019).
+* Block-Sparse Coding Based Machine Learning Approach for Dependable Device-Free Localization in IoT Environment. (published in IEEE Internet of Things Journal, 2020).
+* An adaptive trust boundary protection for IIoT networks using deep-learning feature extraction based semi-supervised model. (published in IEEE Transactions on Industrial Informatics, 2020).
+* Performance Prediction for Multi-Application Concurrency on GPUs. (published in IEEE International Symposium on Performance Analysis of Systems and Software (ISPASS), 2020).
+* Tensorsvm: accelerating kernel machines with tensor engine. (published in ACM International Conference on Supercomputing (ICS), 2020).
+* GEVO: GPU Code Optimization Using Evolutionary Computation. (published in ACM Transactions on Architecture and Code Optimization (TACO), 2020).
+* CRISPRpred (SEQ): a sequence-based method for sgRNA on target activity prediction using traditional machine learning. (published in BMC bioinformatics, 2020).
+* Prediction of gas concentration using gated recurrent neural networks. (published in IEEE International Conference on Artificial Intelligence Circuits and Systems (AICAS), 2020).
+* Dynamic Multi-Resolution Data Storage. (published in IEEE Communications Magazine, 2020).
+* Design powerful predictor for mRNA subcellular location prediction in Homo sapiens. (published in Briefings in Bioinformatics, 2021).
