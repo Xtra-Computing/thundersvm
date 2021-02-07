@@ -66,6 +66,7 @@ void CMDParser::parse_command_line(int argc, char **argv) {
 #else
     bin_name = bin_name.substr(bin_name.find_last_of("/") + 1);
 #endif
+    bool quiet = false;
     if (bin_name == "thundersvm-train" || bin_name == "thundersvm-train.exe") {
         // parse options
         for (i = 1; i < argc; i++) {
@@ -124,7 +125,7 @@ void CMDParser::parse_command_line(int argc, char **argv) {
                     n_cores = atoi(argv[i]);
                     break;
                 case 'q':
-                    el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
+                    quiet = true;
                     i--;
                     break;
                 case 'v':
@@ -206,12 +207,14 @@ void CMDParser::parse_command_line(int argc, char **argv) {
         svmpredict_output_file = argv[i + 2];
         svmpredict_model_file_name = argv[i + 1];
     }
+    el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, quiet ? "false" : "true");
 }
 
 void CMDParser::parse_python(int argc, char **argv) {
     //todo: refactor this function, since it overlaps parse_command_line too much
     param_cmd.weight_label = NULL;
     param_cmd.weight = NULL;
+    bool quiet = false;
     int i;
     for (i = 0; i < argc; i++) {
         if (argv[i][0] != '-') break;
@@ -261,7 +264,7 @@ void CMDParser::parse_python(int argc, char **argv) {
                 n_cores = atoi(argv[i]);
                 break;
             case 'q':
-                el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, "false");
+                quiet = true;
                 i--;
                 break;
             case 'v':
@@ -294,6 +297,7 @@ void CMDParser::parse_python(int argc, char **argv) {
     }
     if (i > argc)
         HelpInfo_svmtrain();
+    el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Enabled, quiet ? "false" : "true");
 }
 
 bool CMDParser::check_parameter() {
