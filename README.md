@@ -166,6 +166,4 @@ If you use ThunderSVM in your paper, please cite our work ([full version](https:
 
 [21] Prediction of gas concentration using gated recurrent neural networks. (published in IEEE International Conference on Artificial Intelligence Circuits and Systems (AICAS), 2020).
 
-[22] Dynamic Multi-Resolution Data Storage. (published in IEEE Communications Magazine, 2020).
-
-[23] Design powerful predictor for mRNA subcellular location prediction in Homo sapiens. (published in Briefings in Bioinformatics, 2021).
+[22] Design powerful predictor for mRNA subcellular location prediction in Homo sapiens. (published in Briefings in Bioinformatics, 2021).
