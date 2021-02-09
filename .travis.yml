@@ -48,6 +48,7 @@ jobs:
       <<: *build_cpu
     - name: macos-cpu
       os: osx
+      osx_image: xcode10.2
       language: bash
       env:
         - BUILD_TAG=-cpu
