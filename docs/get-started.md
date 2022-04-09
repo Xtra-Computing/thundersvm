@@ -69,6 +69,8 @@ cmake .. -DBUILD_SHARED_LIBS=TRUE -G "Visual Studio 14 2015 Win64"
 ```
 You need to change the Visual Studio version if you are using a different version of Visual Studio. Visual Studio can be downloaded from [this link](https://www.visualstudio.com/vs/). The above commands generate some Visual Studio project files, open the Visual Studio project to build ThunderSVM. Please note that CMake should be 3.4 or above for Windows.
 
+If getting CMake Error regarding CMakeLists.txt, replace ".." with the path corresponding to your ThunderSVM installation where CMakeLists.txt exists (Ex: C:\users\...\thundersvm).
+
 After you execute `cmake .. -DBUILD_SHARED_LIBS=TRUE -G "Visual Studio 14 2015 Win64"`, you can find a project "thundersvm.sln" under build directory. You can double click it to open it with Visual Studio. Then you should build the solution inside Visual Studio. You can refer to this [this link](https://docs.microsoft.com/en-us/visualstudio/ide/building-and-cleaning-projects-and-solutions-in-visual-studio?view=vs-2019). After you build the project, you should be able to use the python interface.
 
 #### Working without GPUs<a name="withoutGPU"></a>
