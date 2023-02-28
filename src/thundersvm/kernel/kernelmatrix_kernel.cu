@@ -131,7 +131,7 @@ namespace svm_kernel {
     cusparseHandle_t handle;
     cusparseMatDescr_t descr;
     bool cusparse_init;
-
+    //m for instance; n for get_rows num; k for feature num; nnz for number of nonzero
     void dns_csr_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_mat, const SyncArray<kernel_type> &csr_val,
                      const SyncArray<int> &csr_row_ptr, const SyncArray<int> &csr_col_ind, int nnz,
                      SyncArray<kernel_type> &result) {
@@ -168,8 +168,13 @@ namespace svm_kernel {
         void *p_buffer = nullptr;
         cudaMalloc((void**)&p_buffer, buffer_size);
 
+        
+        //cusparseSpMM_preprocess(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
+        //            &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1, p_buffer);
         cusparseSpMM(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
-                    &one, matA, matB, &zero, matC, data_type, CUSPARSE_CSRMM_ALG1, p_buffer);
+                    &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1, p_buffer);
+        //cusparseSpMM(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
+        //            &one, matA, matB, &zero, matC, data_type, CUSPARSE_CSRMM_ALG1, p_buffer);
 
         cudaFree(p_buffer);
         cusparseDestroySpMat(matA);
