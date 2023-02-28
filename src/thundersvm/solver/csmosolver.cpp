@@ -14,13 +14,16 @@ typedef std::chrono::high_resolution_clock Clock;
 #define TINT(x_) std::chrono::duration_cast<std::chrono::microseconds>(x_##_t1 - x_##_t0).count()
 
 using namespace svm_kernel;
-
+long long time1 = 0;
+long long time2 = 0;
+long long time3 = 0;
 void
 CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<float_type> &alpha, float_type &rho,
                   SyncArray<float_type> &f_val, float_type eps, float_type Cp, float_type Cn, int ws_size,
                   int out_max_iter) const {
     int n_instances = k_mat.n_instances();
     int q = ws_size / 2;
+
 
     SyncArray<int> working_set(ws_size);
     SyncArray<int> working_set_first_half(q);
@@ -152,6 +155,8 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
     
     LOG(INFO)<<"select workset time is "<<select_time/1e6;
     LOG(INFO)<<"get rows time is "<<get_rows_time/1e6;
+    LOG(INFO)<<"convert csr to dns time is "<<time1/1e6;
+    LOG(INFO)<<"calculating matrix time is "<<time2/1e6;
     LOG(INFO)<<"local smo time is "<<local_smo_time/1e6;
     TEND(CSMOSolver)
     TPRINT(CSMOSolver,"loop time is :")

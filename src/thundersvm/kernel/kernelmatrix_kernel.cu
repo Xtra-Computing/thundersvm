@@ -100,6 +100,8 @@ namespace svm_kernel {
                         const SyncArray<int> &data_row_idx, SyncArray<kernel_type> &data_rows, int m, int n) {
         SAFE_KERNEL_LAUNCH(kernel_get_working_set_ins, val.device_data(), col_ind.device_data(), row_ptr.device_data(),
                            data_row_idx.device_data(), data_rows.device_data(), m, n);
+        //test
+        cudaDeviceSynchronize();
 
     }
 
@@ -180,6 +182,9 @@ namespace svm_kernel {
         cusparseDestroySpMat(matA);
         cusparseDestroyDnMat(matB);
         cusparseDestroyDnMat(matC);
+
+        //test
+        cudaDeviceSynchronize();
 
 #else
 

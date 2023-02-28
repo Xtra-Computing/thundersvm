@@ -47,6 +47,8 @@ public:
 
     ///the number of non-zero features of all instances
     size_t nnz() const {return nnz_;};//number of nonzero
+
+    
 private:
     KernelMatrix &operator=(const KernelMatrix &) const;
 

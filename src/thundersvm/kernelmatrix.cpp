@@ -13,6 +13,9 @@ typedef std::chrono::high_resolution_clock Clock;
 #define TPRINT(x_, str) printf("%-20s \t%.6f\t sec\n", str, std::chrono::duration_cast<std::chrono::microseconds>(x_##_t1 - x_##_t0).count()/1e6);
 #define TINT(x_) std::chrono::duration_cast<std::chrono::microseconds>(x_##_t1 - x_##_t0).count()
 
+extern long long time1;
+extern long long time2;
+extern long long time3;
 using namespace svm_kernel;
 KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
     n_instances_ = instances.size();
@@ -150,6 +153,7 @@ KernelMatrix::dns_csr_mul(const SyncArray<kernel_type> &dense_mat, int n_rows, S
     CHECK_EQ(dense_mat.size(), n_rows * n_features_) << "dense matrix features doesn't match";
     svm_kernel::dns_csr_mul(n_instances_, n_rows, n_features_, dense_mat, val_, row_ptr_, col_ind_, nnz_, result);
 }
+
 #ifndef USE_CUDA
 void
 KernelMatrix::csr_csr_mul(const SyncArray<kernel_type> &ws_val, int n_rows, const SyncArray<int> &ws_col_ind,
@@ -168,8 +172,17 @@ KernelMatrix::dns_dns_mul(const SyncArray<kernel_type> &dense_mat, int n_rows,
 void KernelMatrix::get_dot_product_dns_csr(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const {
     SyncArray<kernel_type> data_rows(idx.size() * n_features_);
     data_rows.mem_set(0);
+    TDEF(part1)
+    TSTART(part1)
     get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size(), n_features_);
+    TEND(part1)
+    time1+=TINT(part1);
+
+    TDEF(part2)
+    TSTART(part2)
     dns_csr_mul(data_rows, idx.size(), dot_product);
+    TEND(part2)
+    time2+=TINT(part2);
 }
 
 void KernelMatrix::get_dot_product(const DataSet::node2d &instances, SyncArray<kernel_type> &dot_product) const {
