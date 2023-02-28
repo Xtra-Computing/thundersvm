@@ -5,6 +5,14 @@
 #include <thundersvm/kernel/smo_kernel.h>
 #include <climits>
 
+#include <chrono>
+typedef std::chrono::high_resolution_clock Clock;
+#define TDEF(x_) std::chrono::high_resolution_clock::time_point x_##_t0, x_##_t1;
+#define TSTART(x_) x_##_t0 = Clock::now();
+#define TEND(x_) x_##_t1 = Clock::now();
+#define TPRINT(x_, str) printf("%-20s \t%.6f\t sec\n", str, std::chrono::duration_cast<std::chrono::microseconds>(x_##_t1 - x_##_t0).count()/1e6);
+#define TINT(x_) std::chrono::duration_cast<std::chrono::microseconds>(x_##_t1 - x_##_t0).count()
+
 using namespace svm_kernel;
 
 void
@@ -55,13 +63,24 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
     int swap_local_diff_cnt = 0;
     float_type last_local_diff = INFINITY;
     float_type second_last_local_diff = INFINITY;
+   
 
+    long long select_time = 0;
+    long long local_smo_time = 0;
+    
+    TDEF(CSMOSolver)
+    TDEF(select)
+    TDEF(local_smo)
+
+    TSTART(CSMOSolver)
     for (int iter = 0;; ++iter) {
         //select working set
         f_idx2sort.copy_from(f_idx);
         f_val2sort.copy_from(f_val);
         sort_f(f_val2sort, f_idx2sort);
         vector<int> ws_indicator(n_instances, 0);
+
+        TSTART(select)
         if (0 == iter) {
             select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set);
             k_mat.get_rows(working_set, k_mat_rows);
@@ -75,9 +94,14 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
             k_mat_rows_first_half.copy_from(k_mat_rows_last_half);
             k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
         }
+        TEND(select)
+        select_time+=TINT(select);
         //local smo
+        TSTART(local_smo)
         smo_kernel(y, f_val, alpha, alpha_diff, working_set, Cp, Cn, k_mat_rows, k_mat.diag(), n_instances, eps, diff,
                    max_iter);
+        TEND(local_smo)
+        local_smo_time+=TINT(local_smo);
         //update f
         update_f(f_val, alpha_diff, k_mat_rows, k_mat.n_instances());
         float_type *diff_data = diff.host_data();
@@ -118,6 +142,13 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
             break;
         }
     }
+    
+    LOG(INFO)<<"select workset time is "<<select_time/1e6;
+    LOG(INFO)<<"local smo time is "<<local_smo_time/1e6;
+    TEND(CSMOSolver)
+    TPRINT(CSMOSolver,"loop time is :")
+
+
 }
 
 void
