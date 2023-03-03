@@ -242,19 +242,27 @@ namespace svm_kernel {
         int *d_column_indices = d_column_indices_.device_data();
         kernel_type *d_mat_x = d_mat_x_.device_data();
         
-        kernel_type *d_vector_y;
-        cudaMalloc((void**)&d_vector_y,m*n*sizeof(kernel_type));
-
-
+        //kernel_type *d_vector_y;
+        //cudaMalloc((void**)&d_vector_y,m*n*sizeof(kernel_type));
+        
+        SyncArray<kernel_type> tmp_res(m*n);
+        kernel_type *d_vector_y = tmp_res.device_data();
+        
+        void* d_temp_storage = NULL;
+        size_t temp_storage_bytes = 0;
+        cub::DeviceSpmv::CsrMV(d_temp_storage, temp_storage_bytes, d_values,
+                                d_row_offsets, d_column_indices, d_mat_x, d_vector_y,
+                                m, n, nnz);
+        cudaMalloc(&d_temp_storage, temp_storage_bytes);
         int i;
         for(i=0;i<n;i++){
 
-            void* d_temp_storage = NULL;
-            size_t temp_storage_bytes = 0;
-            cub::DeviceSpmv::CsrMV(d_temp_storage, temp_storage_bytes, d_values,
-                                   d_row_offsets, d_column_indices, d_mat_x+i*k, d_vector_y+i*m,
-                                    m, n, nnz);
-            cudaMalloc(&d_temp_storage, temp_storage_bytes);
+            //void* d_temp_storage = NULL;
+            //size_t temp_storage_bytes = 0;
+            //cub::DeviceSpmv::CsrMV(d_temp_storage, temp_storage_bytes, d_values,
+            //                       d_row_offsets, d_column_indices, d_mat_x+i*k, d_vector_y+i*m,
+            //                        m, n, nnz);
+            //cudaMalloc(&d_temp_storage, temp_storage_bytes);
             cub::DeviceSpmv::CsrMV( d_temp_storage, temp_storage_bytes, d_values,
                                     d_row_offsets, d_column_indices, d_mat_x+i*k, d_vector_y+i*m,
                                     m, n, nnz);
@@ -264,7 +272,7 @@ namespace svm_kernel {
         cudaDeviceSynchronize();
         //matrix trans
 
-        //cudaFree(d_vector_y);
+
         
         
 #else
