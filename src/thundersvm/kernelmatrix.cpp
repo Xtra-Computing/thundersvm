@@ -13,9 +13,6 @@ typedef std::chrono::high_resolution_clock Clock;
 #define TPRINT(x_, str) printf("%-20s \t%.6f\t sec\n", str, std::chrono::duration_cast<std::chrono::microseconds>(x_##_t1 - x_##_t0).count()/1e6);
 #define TINT(x_) std::chrono::duration_cast<std::chrono::microseconds>(x_##_t1 - x_##_t0).count()
 
-extern long long time1;
-extern long long time2;
-extern long long time3;
 using namespace svm_kernel;
 KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
     n_instances_ = instances.size();
@@ -54,7 +51,6 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
     self_dot_.copy_from(csr_self_dot.data(), self_dot_.size());
 
     nnz_ = csr_val.size();//number of nonzero
-
     //pre-compute diagonal elements
 
     diag_.resize(n_instances_);
@@ -84,6 +80,10 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
 void KernelMatrix::get_rows(const SyncArray<int> &idx,
                             SyncArray<kernel_type> &kernel_rows) const {//compute multiple rows of kernel matrix according to idx
     CHECK_GE(kernel_rows.size(), idx.size() * n_instances_) << "kernel_rows memory is too small";
+
+
+    //check values 
+    //LOG(INFO)<<idx.size()<<" "<<n_instances_<<" "<<n_features_<<" "<<nnz_;
 #ifdef USE_CUDA
     get_dot_product_dns_csr(idx, kernel_rows);
 #else
@@ -172,17 +172,9 @@ KernelMatrix::dns_dns_mul(const SyncArray<kernel_type> &dense_mat, int n_rows,
 void KernelMatrix::get_dot_product_dns_csr(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const {
     SyncArray<kernel_type> data_rows(idx.size() * n_features_);
     data_rows.mem_set(0);
-    TDEF(part1)
-    TSTART(part1)
     get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size(), n_features_);
-    TEND(part1)
-    time1+=TINT(part1);
 
-    TDEF(part2)
-    TSTART(part2)
     dns_csr_mul(data_rows, idx.size(), dot_product);
-    TEND(part2)
-    time2+=TINT(part2);
 }
 
 void KernelMatrix::get_dot_product(const DataSet::node2d &instances, SyncArray<kernel_type> &dot_product) const {

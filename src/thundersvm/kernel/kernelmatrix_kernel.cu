@@ -172,8 +172,6 @@ namespace svm_kernel {
 #else//kernel type is float
         cudaDataType data_type = CUDA_R_32F;
 #endif
-        //TDEF(alloc)
-        //TSTART(alloc)
         cusparseCreateCsr(&matA, m, k, nnz, (void*)csr_row_ptr.device_data(), (void*)csr_col_ind.device_data(),
                           (void*)csr_val.device_data(), CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
                           CUSPARSE_INDEX_BASE_ZERO, data_type);
@@ -189,8 +187,6 @@ namespace svm_kernel {
         void *p_buffer = nullptr;
         cudaMalloc((void**)&p_buffer, buffer_size);
         cudaDeviceSynchronize();
-        //TEND(alloc)
-        //time1+=TINT(alloc);
         
         TDEF(cu)
         TSTART(cu)
@@ -204,7 +200,6 @@ namespace svm_kernel {
         cudaDeviceSynchronize();
         TEND(cu)
         time3+=TINT(cu);
-        //TSTART(alloc)
         cudaFree(p_buffer);
         cusparseDestroySpMat(matA);
         cusparseDestroyDnMat(matB);
@@ -213,8 +208,6 @@ namespace svm_kernel {
         //test
         cudaDeviceSynchronize();
 
-        //TEND(alloc)
-        //time1+=TINT(alloc);
 
         //try cub
         
@@ -276,8 +269,6 @@ namespace svm_kernel {
         //                        m, n, nnz);
         //cudaMalloc(&d_temp_storage, temp_storage_bytes);
     
-        //TDEF(cub)
-        //TSTART(cub)
         //for(int i=0;i<n;i++){
 
         //    cub::DeviceSpmv::CsrMV( d_temp_storage, temp_storage_bytes, d_values,
@@ -287,8 +278,6 @@ namespace svm_kernel {
         //    cudaDeviceSynchronize();
         //}
         //cudaDeviceSynchronize();
-        //TEND(cub)
-        //time1+=TINT(cub);
 
         //copy 
         //result.copy_from(tmp_res);
