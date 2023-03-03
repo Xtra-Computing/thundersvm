@@ -188,8 +188,6 @@ namespace svm_kernel {
         cudaMalloc((void**)&p_buffer, buffer_size);
         cudaDeviceSynchronize();
         
-        TDEF(cu)
-        TSTART(cu)
         //cusparseSpMM_preprocess(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
         //            &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1, p_buffer);
         cusparseSpMM(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
@@ -198,8 +196,6 @@ namespace svm_kernel {
         //            &one, matA, matB, &zero, matC, data_type, CUSPARSE_CSRMM_ALG1, p_buffer);
         
         cudaDeviceSynchronize();
-        TEND(cu)
-        time3+=TINT(cu);
         cudaFree(p_buffer);
         cusparseDestroySpMat(matA);
         cusparseDestroyDnMat(matB);

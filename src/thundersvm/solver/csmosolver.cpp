@@ -84,7 +84,6 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
         sort_f(f_val2sort, f_idx2sort);
         vector<int> ws_indicator(n_instances, 0);
 
-        TSTART(select)
         if (0 == iter) {
             select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set);
             TSTART(getrows)
@@ -104,8 +103,6 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
             TEND(getrows)
             get_rows_time += TINT(getrows);
         }
-        TEND(select)
-        select_time+=TINT(select);
         //local smo
         TSTART(local_smo)
         smo_kernel(y, f_val, alpha, alpha_diff, working_set, Cp, Cn, k_mat_rows, k_mat.diag(), n_instances, eps, diff,
@@ -153,10 +150,7 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
         }
     }
     
-    LOG(INFO)<<"select workset time is "<<select_time/1e6;
     LOG(INFO)<<"get rows time is "<<get_rows_time/1e6;
-    LOG(INFO)<<"convert csr to dns time is "<<time1/1e6;
-    LOG(INFO)<<"calculating matrix time is "<<time2/1e6;
     LOG(INFO)<<"local smo time is "<<local_smo_time/1e6;
     TEND(CSMOSolver)
     TPRINT(CSMOSolver,"loop time is :")
