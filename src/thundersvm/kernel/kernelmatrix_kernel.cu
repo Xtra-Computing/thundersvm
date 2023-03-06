@@ -16,7 +16,10 @@ typedef std::chrono::high_resolution_clock Clock;
 #define TINT(x_) std::chrono::duration_cast<std::chrono::microseconds>(x_##_t1 - x_##_t0).count()
 extern long long time1;
 extern long long time3;
+
+using namespace cub;
 namespace svm_kernel {
+    CachingDeviceAllocator  g_allocator(2, 3, 11, CachingDeviceAllocator::INVALID_SIZE, true, false); 
     __global__ void
     kernel_get_working_set_ins(const kernel_type *val, const int *col_ind, const int *row_ptr, const int *data_row_idx,
                                kernel_type *data_rows,
@@ -116,8 +119,6 @@ namespace svm_kernel {
                         const SyncArray<int> &data_row_idx, SyncArray<kernel_type> &data_rows, int m, int n) {
         SAFE_KERNEL_LAUNCH(kernel_get_working_set_ins, val.device_data(), col_ind.device_data(), row_ptr.device_data(),
                            data_row_idx.device_data(), data_rows.device_data(), m, n);
-        //test
-        cudaDeviceSynchronize();
 
     }
 
@@ -185,8 +186,8 @@ namespace svm_kernel {
                                 &buffer_size);
 
         void *p_buffer = nullptr;
-        cudaMalloc((void**)&p_buffer, buffer_size);
-        cudaDeviceSynchronize();
+        g_allocator.DeviceAllocate(&p_buffer, buffer_size);
+        //cudaMalloc((void**)&p_buffer, buffer_size);
         
         //cusparseSpMM_preprocess(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
         //            &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1, p_buffer);
@@ -195,81 +196,87 @@ namespace svm_kernel {
         //cusparseSpMM(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
         //            &one, matA, matB, &zero, matC, data_type, CUSPARSE_CSRMM_ALG1, p_buffer);
         
-        cudaDeviceSynchronize();
-        cudaFree(p_buffer);
+        //cudaFree(p_buffer);
+        g_allocator.DeviceFree(p_buffer);
         cusparseDestroySpMat(matA);
         cusparseDestroyDnMat(matB);
         cusparseDestroyDnMat(matC);
 
         //test
-        cudaDeviceSynchronize();
 
 
         //try cub
         
         //def
-        //SyncArray<kernel_type> d_values_;
-        //SyncArray<int> d_column_indices_;//index of each value of all the instances
-        //SyncArray<int> d_row_offsets_;//the start positions of the instances
-        //SyncArray<kernel_type> d_mat_x_;
-        //SyncArray<kernel_type> d_mat_xt;
-        ////kernel_type *d_vector_y = result.device_data();
+//        SyncArray<kernel_type> d_values_;
+//        SyncArray<int> d_column_indices_;//index of each value of all the instances
+//        SyncArray<int> d_row_offsets_;//the start positions of the instances
+//        SyncArray<kernel_type> d_mat_x_;
+//        SyncArray<kernel_type> d_mat_xt;
+//        //kernel_type *d_vector_y = result.device_data();
+//
+//        //resize
+//        d_values_.resize(csr_val.size());
+//        d_column_indices_.resize(csr_col_ind.size());
+//        d_row_offsets_.resize(csr_row_ptr.size());
+//        d_mat_x_.resize(dense_mat.size());
+//        d_mat_xt.resize(dense_mat.size());
+//        //copy
+//        d_values_.copy_from(csr_val );
+//        d_column_indices_.copy_from(csr_col_ind);
+//        d_row_offsets_.copy_from(csr_row_ptr);
+//        d_mat_x_.copy_from(dense_mat);
+//        d_mat_xt.copy_from(dense_mat);
+//
+//
+//        kernel_type *d_values = d_values_.device_data();
+//        int *d_row_offsets = d_row_offsets_.device_data();
+//        int *d_column_indices = d_column_indices_.device_data();
+//
+//        kernel_type* h_mat_x = d_mat_x_.host_data();
+//        kernel_type* h_mat_xt = d_mat_xt.host_data();
+//
+//        //trans
+//
+//        for(int i=0;i<n;i++){
+//            for(int j=0;j<k;j++){
+//                h_mat_x[i*k+j] = h_mat_xt[j*n+i];
+//            }
+//
+//        }
+//        //for(int i = 0;i<5;i++){
+//        //    LOG(INFO)<<dense_mat.host_data()[i*n+1]<<" "<<h_mat_x[i+1*k];
+//        //}
+//        //LOG(INFO)<<"done";
+//
+//
+//        kernel_type *d_mat_x = d_mat_x_.device_data();
+//        
+//        kernel_type *d_vector_y;
+//        //cudaMalloc((void**)&d_vector_y,m*n*sizeof(kernel_type));
+//        cudaMallocManaged((void**)&d_vector_y,m*n*sizeof(kernel_type));
+//            
+//        //SyncArray<kernel_type> tmp_res(m*n);
+//        //kernel_type *d_vector_y = tmp_res.device_data();
+//        //kernel_type *h_tmp = tmp_res.host_data();
+//        void* d_temp_storage = NULL;
+//        size_t temp_storage_bytes = 0;
+//        cub::DeviceSpmv::CsrMV(d_temp_storage, temp_storage_bytes, d_values,
+//                                d_row_offsets, d_column_indices, d_mat_x, d_vector_y,
+//                                m, k, nnz);
+//        cudaMalloc(&d_temp_storage, temp_storage_bytes);
+//        
+//        cub::DeviceSpmv::CsrMV(d_temp_storage, temp_storage_bytes, d_values,
+//                                d_row_offsets, d_column_indices, d_mat_x, d_vector_y,
+//                                m, k, nnz);
+//        //check
 
-        ////resize
-        //d_values_.resize(csr_val.size());
-        //d_column_indices_.resize(csr_col_ind.size());
-        //d_row_offsets_.resize(csr_row_ptr.size());
-        //d_mat_x_.resize(dense_mat.size());
-        //d_mat_xt.resize(dense_mat.size());
-        ////copy
-        //d_values_.copy_from(csr_val );
-        //d_column_indices_.copy_from(csr_col_ind);
-        //d_row_offsets_.copy_from(csr_row_ptr);
-        //d_mat_x_.copy_from(dense_mat);
-        //d_mat_xt.copy_from(dense_mat);
 
-
-        //kernel_type *d_values = d_values_.device_data();
-        //int *d_row_offsets = d_row_offsets_.device_data();
-        //int *d_column_indices = d_column_indices_.device_data();
-
-        //kernel_type* h_mat_x = d_mat_x_.host_data();
-        //kernel_type* h_mat_xt = d_mat_xt.host_data();
-
-        ////trans
-
-        //for(int i=0;i<n;i++){
-        //    for(int j=0;j<k;j++){
-        //        h_mat_x[i*k+j] = h_mat_xt[j*n+i];
-        //    }
-
-        //}
-        ////for(int i = 0;i<5;i++){
-        ////    LOG(INFO)<<dense_mat.host_data()[i*n+1]<<" "<<h_mat_x[i+1*k];
-        ////}
-        ////LOG(INFO)<<"done";
-
-
-        //kernel_type *d_mat_x = d_mat_x_.device_data();
-        //
-        ////kernel_type *d_vector_y;
-        ////cudaMalloc((void**)&d_vector_y,m*n*sizeof(kernel_type));
-        //
-        //SyncArray<kernel_type> tmp_res(m*n);
-        //kernel_type *d_vector_y = tmp_res.device_data();
-        //kernel_type *h_tmp = tmp_res.host_data();
-        //void* d_temp_storage = NULL;
-        //size_t temp_storage_bytes = 0;
-        //cub::DeviceSpmv::CsrMV(d_temp_storage, temp_storage_bytes, d_values,
-        //                        d_row_offsets, d_column_indices, d_mat_x, d_vector_y,
-        //                        m, n, nnz);
-        //cudaMalloc(&d_temp_storage, temp_storage_bytes);
-    
         //for(int i=0;i<n;i++){
 
         //    cub::DeviceSpmv::CsrMV( d_temp_storage, temp_storage_bytes, d_values,
         //                            d_row_offsets, d_column_indices, d_mat_x+i*k, d_vector_y+i*m,
-        //                            m, n, nnz);
+        //                            m, k, nnz);
         //    
         //    cudaDeviceSynchronize();
         //}
