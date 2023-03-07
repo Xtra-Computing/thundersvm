@@ -86,6 +86,7 @@ void KernelMatrix::get_rows(const SyncArray<int> &idx,
     //LOG(INFO)<<idx.size()<<" "<<n_instances_<<" "<<n_features_<<" "<<nnz_;
 #ifdef USE_CUDA
     get_dot_product_dns_csr(idx, kernel_rows);
+
 #else
 	if(n_features_ < 1000000)
 		get_dot_product_dns_csr(idx, kernel_rows);
@@ -171,7 +172,7 @@ KernelMatrix::dns_dns_mul(const SyncArray<kernel_type> &dense_mat, int n_rows,
 #endif
 void KernelMatrix::get_dot_product_dns_csr(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const {
     SyncArray<kernel_type> data_rows(idx.size() * n_features_);
-    data_rows.mem_set(0);
+    //data_rows.mem_set(0);
     get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size(), n_features_);
 
     dns_csr_mul(data_rows, idx.size(), dot_product);
