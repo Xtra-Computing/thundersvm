@@ -168,43 +168,104 @@ namespace svm_kernel {
 
         cusparseSpMatDescr_t matA;
         cusparseDnMatDescr_t matB, matC;
+        
 #ifdef USE_DOUBLE
         cudaDataType data_type = CUDA_R_64F;
 #else//kernel type is float
         cudaDataType data_type = CUDA_R_32F;
 #endif
+
         cusparseCreateCsr(&matA, m, k, nnz, (void*)csr_row_ptr.device_data(), (void*)csr_col_ind.device_data(),
                           (void*)csr_val.device_data(), CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
                           CUSPARSE_INDEX_BASE_ZERO, data_type);
-        cusparseCreateDnMat(&matB, n, k, n, (void*)dense_mat.device_data(), data_type, CUSPARSE_ORDER_COL);
-        //cusparseCreateDnMat(&matB, n, k, n, (void*)dense_mat.device_data(), data_type, CUSPARSE_ORDER_ROW);
-        cusparseCreateDnMat(&matC, m, n, m, (void*)result.device_data(), data_type, CUSPARSE_ORDER_COL);
+        //cusparseCreateDnMat(&matB, n, k, n, (void*)dense_mat.device_data(), data_type, CUSPARSE_ORDER_COL);
+        //cusparseCreateDnMat(&matC, m, n, m, (void*)result.device_data(), data_type, CUSPARSE_ORDER_COL);
+        
 
-        size_t buffer_size = 0;
-        cusparseSpMM_bufferSize(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
-                                &one, matA, matB, &zero, matC, data_type, CUSPARSE_CSRMM_ALG1,
-                                &buffer_size);
+        
+        //size_t buffer_size = 0;
+        //cusparseSpMM_bufferSize(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
+        //                        &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1,
+        //                        &buffer_size);
 
-        void *p_buffer = nullptr;
-        g_allocator.DeviceAllocate(&p_buffer, buffer_size);
+        // LOG(INFO)<<"tmp storage is "<<buffer_size;
+
+        //void *p_buffer = nullptr;
+        //g_allocator.DeviceAllocate(&p_buffer, buffer_size);
+        
         //cudaMalloc((void**)&p_buffer, buffer_size);
         
         //cusparseSpMM_preprocess(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
         //            &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1, p_buffer);
-        cusparseSpMM(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
-                    &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1, p_buffer);
         //cusparseSpMM(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
-        //            &one, matA, matB, &zero, matC, data_type, CUSPARSE_CSRMM_ALG1, p_buffer);
+        //            &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1, p_buffer);
         
         //cudaFree(p_buffer);
-        g_allocator.DeviceFree(p_buffer);
+        //g_allocator.DeviceFree(p_buffer);
+        // cusparseDestroySpMat(matA);
+        //cusparseDestroyDnMat(matB);
+        //cusparseDestroyDnMat(matC);
+
+
+        //test ror major
+
+        //store tmp result and tmp trans dense_mat
+        cusparseDnMatDescr_t matB2,matC2;
+        // LOG(INFO)<<"m is "<<m<<" n is "<<n;
+        SyncArray<kernel_type> tmp_result(m*n);
+        SyncArray<kernel_type> tmp_dense1(n*k);
+        SyncArray<kernel_type> tmp_dense2(k*n);
+
+        tmp_dense2.copy_from(dense_mat);
+        
+        kernel_type* h_tmp1 = tmp_dense1.host_data();
+        kernel_type* h_tmp2 = tmp_dense2.host_data();
+
+        for(int i=0;i<n;i++){
+            for(int j=0;j<k;j++){
+                h_tmp1[i*k+j] = h_tmp2[j*n+i];
+            }
+
+        }
+        cusparseCreateDnMat(&matB2, n, k, k, (void*)tmp_dense1.device_data(), data_type, CUSPARSE_ORDER_ROW);//CUSPARSE_ORDER_ROW
+        cusparseCreateDnMat(&matC2, m, n, n, (void*)tmp_result.device_data(), data_type, CUSPARSE_ORDER_ROW);
+        //test row major
+        size_t buffer_size2 = 0;
+        cusparseSpMM_bufferSize(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
+                                &one, matA, matB2, &zero, matC2, data_type, CUSPARSE_SPMM_CSR_ALG2,
+                                &buffer_size2);
+
+        void *p_buffer2 = nullptr;
+        g_allocator.DeviceAllocate(&p_buffer2, buffer_size2);
+        
+        cusparseSpMM(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
+                    &one, matA, matB2, &zero, matC2, data_type, CUSPARSE_SPMM_CSR_ALG2, p_buffer2);
+
+
+        g_allocator.DeviceFree(p_buffer2);
         cusparseDestroySpMat(matA);
-        cusparseDestroyDnMat(matB);
-        cusparseDestroyDnMat(matC);
-
-        //test
+        cusparseDestroyDnMat(matB2);
+        cusparseDestroyDnMat(matC2);
 
 
+
+        
+        //check result
+        kernel_type* h_res = result.host_data();
+        kernel_type* h_tmp = tmp_result.host_data();
+        kernel_type diff = 0;
+        for(int i = 0;i<n;i++){
+            for(int j= 0;j<m;j++){
+                h_res[i*m+j] = h_tmp[j*n+i];
+                //diff+=fabs(h_res[i*m+j]-h_tmp[j*n+i]);
+                //LOG(INFO)<<"result is "<<h_res[i*m+j]<<" tmp res is "<<h_tmp[j*n+i];
+            }
+        }
+        //LOG(INFO)<<"diff is "<<diff;
+
+        result.device_data();
+            
+        
         //try cub
         
         //def
