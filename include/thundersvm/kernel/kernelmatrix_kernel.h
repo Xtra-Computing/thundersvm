@@ -42,6 +42,10 @@ namespace svm_kernel {
     void dns_csr_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_mat, const SyncArray<kernel_type> &csr_val,
                      const SyncArray<int> &csr_row_ptr, const SyncArray<int> &csr_col_ind, int nnz,
                      SyncArray<kernel_type> &result);
+
+    // gpu dns dns mul function
+    void dns_dns_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_a,const SyncArray<kernel_type> &dense_b,kernel_type beta, 
+                         SyncArray<kernel_type> &result);
 #ifndef USE_CUDA
     void csr_csr_mul(int m, int n, int k, const SyncArray<kernel_type> &ws_val, const SyncArray<int> &ws_col_ind,
                      const SyncArray<int> &ws_row_ptr, const SyncArray<kernel_type> &csr_val,

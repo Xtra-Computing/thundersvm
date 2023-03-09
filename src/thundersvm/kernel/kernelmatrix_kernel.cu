@@ -6,6 +6,7 @@
 #include "thundersvm/kernel/kernelmatrix_kernel.h"
 #include <thundersvm/config.h>
 
+#include <cublas_v2.h>
 #include <cub/cub.cuh>
 #include <chrono>
 typedef std::chrono::high_resolution_clock Clock;
@@ -175,34 +176,34 @@ namespace svm_kernel {
         cudaDataType data_type = CUDA_R_32F;
 #endif
 
-        // cusparseCreateCsr(&matA, m, k, nnz, (void*)csr_row_ptr.device_data(), (void*)csr_col_ind.device_data(),
-        //                   (void*)csr_val.device_data(), CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
-        //                   CUSPARSE_INDEX_BASE_ZERO, data_type);
-        // cusparseCreateDnMat(&matB, n, k, n, (void*)dense_mat.device_data(), data_type, CUSPARSE_ORDER_COL);
-        // cusparseCreateDnMat(&matC, m, n, m, (void*)result.device_data(), data_type, CUSPARSE_ORDER_COL);
+        cusparseCreateCsr(&matA, m, k, nnz, (void*)csr_row_ptr.device_data(), (void*)csr_col_ind.device_data(),
+                          (void*)csr_val.device_data(), CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
+                          CUSPARSE_INDEX_BASE_ZERO, data_type);
+        cusparseCreateDnMat(&matB, n, k, n, (void*)dense_mat.device_data(), data_type, CUSPARSE_ORDER_COL);
+        cusparseCreateDnMat(&matC, m, n, m, (void*)result.device_data(), data_type, CUSPARSE_ORDER_COL);
         
 
         
-        // size_t buffer_size = 0;
-        // cusparseSpMM_bufferSize(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
-        //                        &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1,
-        //                        &buffer_size);
+        size_t buffer_size = 0;
+        cusparseSpMM_bufferSize(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
+                               &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1,
+                               &buffer_size);
 
-        // void *p_buffer = nullptr;
-        // g_allocator.DeviceAllocate(&p_buffer, buffer_size);
+        void *p_buffer = nullptr;
+        g_allocator.DeviceAllocate(&p_buffer, buffer_size);
         
-        // cudaMalloc((void**)&p_buffer, buffer_size);
+        cudaMalloc((void**)&p_buffer, buffer_size);
         
-        // cusparseSpMM_preprocess(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
-        //            &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1, p_buffer);
-        // cusparseSpMM(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
-        //            &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1, p_buffer);
+        //cusparseSpMM_preprocess(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
+        //           &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1, p_buffer);
+        cusparseSpMM(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
+                   &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1, p_buffer);
         
-        // cudaFree(p_buffer);
-        // g_allocator.DeviceFree(p_buffer);
-        // cusparseDestroySpMat(matA);
-        // cusparseDestroyDnMat(matB);
-        // cusparseDestroyDnMat(matC);
+        cudaFree(p_buffer);
+        g_allocator.DeviceFree(p_buffer);
+        cusparseDestroySpMat(matA);
+        cusparseDestroyDnMat(matB);
+        cusparseDestroyDnMat(matC);
 
 
         //test ror major
@@ -267,98 +268,98 @@ namespace svm_kernel {
         //try cub
         
         //def
-       SyncArray<kernel_type> d_values_;
-       SyncArray<int> d_column_indices_;//index of each value of all the instances
-       SyncArray<int> d_row_offsets_;//the start positions of the instances
-       SyncArray<kernel_type> d_mat_x_;
-       SyncArray<kernel_type> d_mat_xt;
-       //kernel_type *d_vector_y = result.device_data();
+       //SyncArray<kernel_type> d_values_;
+       //SyncArray<int> d_column_indices_;//index of each value of all the instances
+       //SyncArray<int> d_row_offsets_;//the start positions of the instances
+       //SyncArray<kernel_type> d_mat_x_;
+       //SyncArray<kernel_type> d_mat_xt;
+       ////kernel_type *d_vector_y = result.device_data();
 
-       //resize
-       d_values_.resize(csr_val.size());
-       d_column_indices_.resize(csr_col_ind.size());
-       d_row_offsets_.resize(csr_row_ptr.size());
-       d_mat_x_.resize(dense_mat.size());
-       d_mat_xt.resize(dense_mat.size());
-       //copy
-       d_values_.copy_from(csr_val );
-       d_column_indices_.copy_from(csr_col_ind);
-       d_row_offsets_.copy_from(csr_row_ptr);
-       d_mat_x_.copy_from(dense_mat);
-       d_mat_xt.copy_from(dense_mat);
+       ////resize
+       //d_values_.resize(csr_val.size());
+       //d_column_indices_.resize(csr_col_ind.size());
+       //d_row_offsets_.resize(csr_row_ptr.size());
+       //d_mat_x_.resize(dense_mat.size());
+       //d_mat_xt.resize(dense_mat.size());
+       ////copy
+       //d_values_.copy_from(csr_val );
+       //d_column_indices_.copy_from(csr_col_ind);
+       //d_row_offsets_.copy_from(csr_row_ptr);
+       //d_mat_x_.copy_from(dense_mat);
+       //d_mat_xt.copy_from(dense_mat);
 
 
-       kernel_type *d_values = d_values_.device_data();
-       int *d_row_offsets = d_row_offsets_.device_data();
-       int *d_column_indices = d_column_indices_.device_data();
+       //kernel_type *d_values = d_values_.device_data();
+       //int *d_row_offsets = d_row_offsets_.device_data();
+       //int *d_column_indices = d_column_indices_.device_data();
 
-       kernel_type* h_mat_x = d_mat_x_.host_data();
-       kernel_type* h_mat_xt = d_mat_xt.host_data();
+       //kernel_type* h_mat_x = d_mat_x_.host_data();
+       //kernel_type* h_mat_xt = d_mat_xt.host_data();
 
-       //trans
+       ////trans
 
-       TDEF(trans)
-       TSTART(trans)
-       for(int i=0;i<n;i++){
-           for(int j=0;j<k;j++){
-               h_mat_x[i*k+j] = h_mat_xt[j*n+i];
-           }
+       //TDEF(trans)
+       //TSTART(trans)
+       //for(int i=0;i<n;i++){
+       //    for(int j=0;j<k;j++){
+       //        h_mat_x[i*k+j] = h_mat_xt[j*n+i];
+       //    }
 
-       }
-       TEND(trans)
-       time1+=TINT(trans);
-       //for(int i = 0;i<5;i++){
-       //    LOG(INFO)<<dense_mat.host_data()[i*n+1]<<" "<<h_mat_x[i+1*k];
        //}
-       //LOG(INFO)<<"done";
+       //TEND(trans)
+       //time1+=TINT(trans);
+       ////for(int i = 0;i<5;i++){
+       ////    LOG(INFO)<<dense_mat.host_data()[i*n+1]<<" "<<h_mat_x[i+1*k];
+       ////}
+       ////LOG(INFO)<<"done";
 
 
-       kernel_type *d_mat_x = d_mat_x_.device_data();
-       
-       // kernel_type *d_vector_y;
-       //cudaMalloc((void**)&d_vector_y,m*n*sizeof(kernel_type));
-       // cudaMallocManaged((void**)&d_vector_y,m*n*sizeof(kernel_type));
-           
-       SyncArray<kernel_type> tmp_res(m*n);
-       kernel_type *d_vector_y = tmp_res.device_data();
-       //kernel_type *h_tmp = tmp_res.host_data();
-       void* d_temp_storage = NULL;
-       size_t temp_storage_bytes = 0;
-       cub::DeviceSpmv::CsrMV(d_temp_storage, temp_storage_bytes, d_values,
-                               d_row_offsets, d_column_indices, d_mat_x, d_vector_y,
-                               m, k, nnz);
+       //kernel_type *d_mat_x = d_mat_x_.device_data();
+       //
+       //// kernel_type *d_vector_y;
+       ////cudaMalloc((void**)&d_vector_y,m*n*sizeof(kernel_type));
+       //// cudaMallocManaged((void**)&d_vector_y,m*n*sizeof(kernel_type));
+       //    
+       //SyncArray<kernel_type> tmp_res(m*n);
+       //kernel_type *d_vector_y = tmp_res.device_data();
+       ////kernel_type *h_tmp = tmp_res.host_data();
+       //void* d_temp_storage = NULL;
+       //size_t temp_storage_bytes = 0;
+       //cub::DeviceSpmv::CsrMV(d_temp_storage, temp_storage_bytes, d_values,
+       //                        d_row_offsets, d_column_indices, d_mat_x, d_vector_y,
+       //                        m, k, nnz);
 
-       g_allocator.DeviceAllocate(&d_temp_storage, temp_storage_bytes);
-       
-       // cub::DeviceSpmv::CsrMV(d_temp_storage, temp_storage_bytes, d_values,
-       //                         d_row_offsets, d_column_indices, d_mat_x, d_vector_y,
-       //                         m, k, nnz);
-       
+       //g_allocator.DeviceAllocate(&d_temp_storage, temp_storage_bytes);
+       //
+       //// cub::DeviceSpmv::CsrMV(d_temp_storage, temp_storage_bytes, d_values,
+       ////                         d_row_offsets, d_column_indices, d_mat_x, d_vector_y,
+       ////                         m, k, nnz);
+       //
 
 
-        for(int i=0;i<n;i++){
+       // for(int i=0;i<n;i++){
 
-           cub::DeviceSpmv::CsrMV( d_temp_storage, temp_storage_bytes, d_values,
-                                   d_row_offsets, d_column_indices, d_mat_x+i*k, d_vector_y+i*m,
-                                   m, k, nnz);
-           
-        }
-        
-        cudaDeviceSynchronize();
-        //copy 
-        result.copy_from(tmp_res);
-        //check
-        // kernel_type *h_res = result.host_data();
-        // kernel_type *h_tmp = tmp_res.host_data();
-        // //
-        // float r = 0;
-        // for(int i = 0;i<n*k;i++){
-        //    // r+=fabs(h_tmp[i]);
-        //    r +=fabs(h_res[i]-h_tmp[i]);
-        // }
-        // LOG(INFO)<<"n is "<<n<<" k is "<<k<<" res sum is "<<r;
-        
-        g_allocator.DeviceFree(d_temp_storage);
+       //    cub::DeviceSpmv::CsrMV( d_temp_storage, temp_storage_bytes, d_values,
+       //                            d_row_offsets, d_column_indices, d_mat_x+i*k, d_vector_y+i*m,
+       //                            m, k, nnz);
+       //    
+       // }
+       // 
+       // cudaDeviceSynchronize();
+       // //copy 
+       // result.copy_from(tmp_res);
+       // //check
+       // // kernel_type *h_res = result.host_data();
+       // // kernel_type *h_tmp = tmp_res.host_data();
+       // // //
+       // // float r = 0;
+       // // for(int i = 0;i<n*k;i++){
+       // //    // r+=fabs(h_tmp[i]);
+       // //    r +=fabs(h_res[i]-h_tmp[i]);
+       // // }
+       // // LOG(INFO)<<"n is "<<n<<" k is "<<k<<" res sum is "<<r;
+       // 
+       // g_allocator.DeviceFree(d_temp_storage);
         
 
 
@@ -382,4 +383,24 @@ namespace svm_kernel {
 
 #endif // if CUDART_VERSION >= 11000
     }
+    cublasHandle_t handle_blas;
+    bool cublas_init;
+    void dns_dns_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_a,const SyncArray<kernel_type> &dense_b,kernel_type beta, 
+                     SyncArray<kernel_type> &result){
+
+        if (!cublas_init) {
+            cublasCreate(&handle_blas);
+            cublas_init = true;
+        }
+
+        kernel_type alpha=1.0;
+        const kernel_type* d_dense_a = dense_a.device_data();
+        const kernel_type* d_dense_b = dense_b.device_data();
+
+        cublasSgemm(handle_blas,CUBLAS_OP_T,CUBLAS_OP_N, m, n, k,&alpha,dense_a.device_data(), k, dense_b.device_data(), k,&beta, result.device_data(), m);
+        
+
+    }
 }
+
+

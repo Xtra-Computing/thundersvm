@@ -86,7 +86,6 @@ void KernelMatrix::get_rows(const SyncArray<int> &idx,
     //LOG(INFO)<<idx.size()<<" "<<n_instances_<<" "<<n_features_<<" "<<nnz_;
 #ifdef USE_CUDA
     get_dot_product_dns_csr(idx, kernel_rows);
-
 #else
 	if(n_features_ < 1000000)
 		get_dot_product_dns_csr(idx, kernel_rows);
@@ -110,6 +109,97 @@ void KernelMatrix::get_rows(const SyncArray<int> &idx,
             break;
     }
 }
+
+
+//new method 
+
+void KernelMatrix::get_sparse_dense_rows(const SyncArray<int> &idx, SparseData &sparse,DenseData &dense,SyncArray<kernel_type> &kernel_rows) const {
+     CHECK_GE(kernel_rows.size(), idx.size() * n_instances_) << "kernel_rows memory is too small";
+
+
+    //check values 
+    // LOG(INFO)<<" check sparse matrix shape is "<<sparse.row<<" "<<sparse.col<<" "<<sparse.is_use;
+#ifdef USE_CUDA
+    get_dot_product_dns_csr_dns_dns(idx, sparse,dense,kernel_rows);
+#else
+    LOG(INFO)<<"no implementing !!!!!!!!!!!!!";
+//    get_dot_product_dns_dns(idx, kernel_rows);
+#endif
+    switch (param.kernel_type) {
+        case SvmParam::RBF:
+        case SvmParam::PRECOMPUTED://precomputed uses rbf as default
+            RBF_kernel(idx, self_dot_, kernel_rows, idx.size(), n_instances_, param.gamma);
+            break;
+        case SvmParam::LINEAR:
+            //do nothing
+            break;
+        case SvmParam::POLY:
+            poly_kernel(kernel_rows, param.gamma, param.coef0, param.degree, kernel_rows.size());
+            break;
+        case SvmParam::SIGMOID:
+            sigmoid_kernel(kernel_rows, param.gamma, param.coef0, kernel_rows.size());
+            break;
+    }
+}
+
+void KernelMatrix::get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,SparseData &sparse,DenseData &dense,SyncArray<kernel_type> &dot_product) const{
+
+
+    //首先分别得到用来和稀疏矩阵和稠密矩阵相乘的两个稠密矩阵
+    SyncArray<kernel_type> sparse_data_rows(idx.size() * sparse.col);
+    sparse_data_rows.mem_set(0);
+
+   
+
+    //for sparse
+   
+    get_working_set_ins(sparse.val_, sparse.col_ind_, sparse.row_ptr_, idx, sparse_data_rows, idx.size(), sparse.col); //col-major
+    dns_csr_mul_part(sparse_data_rows, idx.size(), sparse,dot_product);
+    // get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size(), n_features_);
+    
+
+    //for dense 先简单的cpu实现
+    const int *data_row_idx_data = idx.host_data();
+
+    if(dense.is_use){
+         SyncArray<kernel_type> dense_data_rows(idx.size() * dense.col);
+        dense_data_rows.mem_set(0);
+        kernel_type* h_dense_data_rows = dense_data_rows.host_data();
+
+        kernel_type* h_dense = dense.val.host_data();
+
+        #pragma omp parallel for
+        for (int i=0;i<idx.size();i++){
+            int row = data_row_idx_data[i];
+            for (int j=0;j<dense.col;j++){
+                h_dense_data_rows[i*dense.col+j] = h_dense[row*dense.col+j];
+            }
+        }
+        //计算得到结果
+        kernel_type beta = 1.0;
+        dns_dns_mul_part(dense_data_rows,idx.size(),dense,dot_product,beta);
+
+    }
+    
+
+    
+
+
+}
+
+void KernelMatrix::dns_csr_mul_part(const SyncArray<kernel_type> &dense_mat, int n_rows, SparseData &sparse,SyncArray<kernel_type> &result) const{
+    CHECK_EQ(dense_mat.size(), n_rows * sparse.col) << "dense matrix features doesn't match";
+
+    svm_kernel::dns_csr_mul(n_instances_, n_rows, sparse.col, dense_mat, sparse.val_, sparse.row_ptr_, sparse.col_ind_, sparse.val_.size(), result);
+}
+
+void KernelMatrix::dns_dns_mul_part(const SyncArray<kernel_type> &dense_mat, int n_rows,DenseData &dense,SyncArray<kernel_type> &result,kernel_type beta) const{
+
+    svm_kernel::dns_dns_mul(n_instances_, n_rows, dense.col, dense.val,dense_mat,beta,result);
+}
+
+
+
 
 void KernelMatrix::get_rows(const DataSet::node2d &instances,
                             SyncArray<kernel_type> &kernel_rows) const {//compute the whole (sub-) kernel matrix of the given instances.
@@ -172,7 +262,7 @@ KernelMatrix::dns_dns_mul(const SyncArray<kernel_type> &dense_mat, int n_rows,
 #endif
 void KernelMatrix::get_dot_product_dns_csr(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const {
     SyncArray<kernel_type> data_rows(idx.size() * n_features_);
-    //data_rows.mem_set(0);
+    data_rows.mem_set(0);
     get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size(), n_features_);
 
     dns_csr_mul(data_rows, idx.size(), dot_product);
