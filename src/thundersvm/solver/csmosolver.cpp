@@ -110,7 +110,7 @@ void CSR_DenseCSR(const KernelMatrix &k_mat, DenseData &dense,SparseData &sparse
 
         ratio = 1.0l*total_csr/row_sum_num;
 
-        if (ratio > 0.02 || 1.0l*col_num[i].num/m > 0.3 ||total_csr * 8 > total_dense){
+        if (ratio > 0.05 || 1.0l*col_num[i].num/m > 0.5 ||total_csr * 4 > total_dense){
             break;
         }
 
@@ -257,12 +257,17 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
    
 
     //矩阵划分
+    long long part = 0;
+    TDEF(part)
+    TSTART(part)
     SparseData sparse_mat;
     DenseData dense_mat;
     CSR_DenseCSR(k_mat,dense_mat,sparse_mat);
-
+    TEND(part)
+    part+=TINT(part);
     LOG(INFO)<<"sparse matrix shape is "<<sparse_mat.row<<" "<<sparse_mat.col<<" "<<sparse_mat.is_use;
     LOG(INFO)<<"dense matrix shape is "<<dense_mat.row<<" "<<dense_mat.col<<" "<<dense_mat.is_use;
+    LOG(INFO)<<"matrix partition time is  "<<part/1e6;
 
 
     long long select_time = 0;
