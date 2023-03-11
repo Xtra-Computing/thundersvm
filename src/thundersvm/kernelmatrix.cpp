@@ -86,6 +86,7 @@ void KernelMatrix::get_rows(const SyncArray<int> &idx,
     //LOG(INFO)<<idx.size()<<" "<<n_instances_<<" "<<n_features_<<" "<<nnz_;
 #ifdef USE_CUDA
     get_dot_product_dns_csr(idx, kernel_rows);
+    //get_dot_product_csr_csr_cuda(idx, kernel_rows);
 #else
 	if(n_features_ < 1000000)
 		get_dot_product_dns_csr(idx, kernel_rows);
@@ -149,15 +150,13 @@ void KernelMatrix::get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,Spa
     SyncArray<kernel_type> sparse_data_rows(idx.size() * sparse.col);
     sparse_data_rows.mem_set(0);
 
-   
-
     //for sparse
    
     get_working_set_ins(sparse.val_, sparse.col_ind_, sparse.row_ptr_, idx, sparse_data_rows, idx.size(), sparse.col); //col-major
     dns_csr_mul_part(sparse_data_rows, idx.size(), sparse,dot_product);
     // get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size(), n_features_);
     
-
+    cudaDeviceSynchronize();
     //for dense 先简单的cpu实现
     const int *data_row_idx_data = idx.host_data();
 
@@ -180,10 +179,6 @@ void KernelMatrix::get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,Spa
         dns_dns_mul_part(dense_data_rows,idx.size(),dense,dot_product,beta);
 
     }
-    
-
-    
-
 
 }
 
@@ -196,6 +191,21 @@ void KernelMatrix::dns_csr_mul_part(const SyncArray<kernel_type> &dense_mat, int
 void KernelMatrix::dns_dns_mul_part(const SyncArray<kernel_type> &dense_mat, int n_rows,DenseData &dense,SyncArray<kernel_type> &result,kernel_type beta) const{
 
     svm_kernel::dns_dns_mul(n_instances_, n_rows, dense.col, dense.val,dense_mat,beta,result);
+}
+
+
+void KernelMatrix::get_dot_product_csr_csr_cuda(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const{
+    //得到workingset的csr稀疏矩阵,首先得到dense转化为k*n
+    //然后使用cusparse转化为csr格式
+    SyncArray<kernel_type> data_rows(idx.size() * n_features_);
+    data_rows.mem_set(0);
+    //列存储所以为k*n
+    get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size(), n_features_);
+
+    //cusparse csr csr
+    svm_kernel::csr_csr_mul_cuda(n_instances_, idx.size(), n_features_, data_rows, val_, row_ptr_, col_ind_, nnz_, dot_product);
+
+
 }
 
 

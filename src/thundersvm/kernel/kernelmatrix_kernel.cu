@@ -20,7 +20,7 @@ extern long long time3;
 
 using namespace cub;
 namespace svm_kernel {
-    CachingDeviceAllocator  g_allocator(2, 3, 11, CachingDeviceAllocator::INVALID_SIZE, true, false); 
+    
     __global__ void
     kernel_get_working_set_ins(const kernel_type *val, const int *col_ind, const int *row_ptr, const int *data_row_idx,
                                kernel_type *data_rows,
@@ -190,17 +190,46 @@ namespace svm_kernel {
                                &buffer_size);
 
         void *p_buffer = nullptr;
-        g_allocator.DeviceAllocate(&p_buffer, buffer_size);
         
         cudaMalloc((void**)&p_buffer, buffer_size);
         
-        //cusparseSpMM_preprocess(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
-        //           &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1, p_buffer);
+        cusparseSpMM_preprocess(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
+                   &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1, p_buffer);
         cusparseSpMM(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
                    &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1, p_buffer);
+
+
+
+        // cudaGraph_t     graph;
+        // cudaStream_t    stream;
+        // cudaGraphExec_t graph_exec;
+        // cudaStreamCreate(&stream);
+        // cusparseSetStream(handle, stream);
+        // cudaStreamBeginCapture(stream, cudaStreamCaptureModeGlobal);
+
+        // cusparseSpMM(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
+        //            &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1, p_buffer);
+       
+        // cudaStreamEndCapture(stream, &graph);
+        // cudaDeviceSynchronize();
+        // cudaGetLastError();
+        // cudaGraphInstantiateWithFlags(&graph_exec, graph, 0);
+
+        // //==========================================================================
+        // // GRAPH EXECUTION
+        // //==========================================================================
+
+        // cudaGraphLaunch(graph_exec, stream);
+
+        // // destroy graph
+        // cudaDeviceSynchronize();
+        // cudaGraphExecDestroy(graph_exec);
+        // cudaGraphDestroy(graph);
+        // cudaStreamDestroy(stream);
+
         
         cudaFree(p_buffer);
-        g_allocator.DeviceFree(p_buffer);
+        
         cusparseDestroySpMat(matA);
         cusparseDestroyDnMat(matB);
         cusparseDestroyDnMat(matC);
@@ -383,6 +412,7 @@ namespace svm_kernel {
 
 #endif // if CUDART_VERSION >= 11000
     }
+
     cublasHandle_t handle_blas;
     bool cublas_init;
     void dns_dns_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_a,const SyncArray<kernel_type> &dense_b,kernel_type beta, 
@@ -401,6 +431,173 @@ namespace svm_kernel {
         
 
     }
+
+    //
+    void csr_csr_mul_cuda(int m, int n, int k, const SyncArray<kernel_type> &dense_mat, const SyncArray<kernel_type> &csr_val,
+                     const SyncArray<int> &csr_row_ptr, const SyncArray<int> &csr_col_ind, int nnz,
+                     SyncArray<kernel_type> &result){
+
+        if (!cusparse_init) {
+            cusparseCreate(&handle);
+            cusparseCreateMatDescr(&descr);
+            cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);
+            cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
+            cusparse_init = true;
+        }
+
+        
+        kernel_type alpha(1);
+        kernel_type beta(0);
+        cudaDataType data_type = CUDA_R_32F;
+        cusparseOperation_t opA = CUSPARSE_OPERATION_NON_TRANSPOSE;
+        cusparseOperation_t opB = CUSPARSE_OPERATION_NON_TRANSPOSE;
+
+        cusparseSpMatDescr_t matA, matB, matC;
+        
+        cusparseDnMatDescr_t tmp_mat,result_mat;
+
+        
+
+        void* dBuffer = NULL;
+        size_t bufferSize = 0;
+
+        void*  dBuffer1 = NULL, *dBuffer2 = NULL,*dBuffer3 = NULL;
+        size_t bufferSize1 = 0, bufferSize2 = 0 ,bufferSize3= 0;
+
+        
+
+        int *tmp_csr_row;
+        cudaMalloc((void**) &tmp_csr_row,(k + 1) * sizeof(int));
+
+        //create matrix
+        cusparseCreateCsr(&matA, m, k, nnz, (void*)csr_row_ptr.device_data(), (void*)csr_col_ind.device_data(),
+                          (void*)csr_val.device_data(), CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
+                          CUSPARSE_INDEX_BASE_ZERO, data_type);
+
+        cusparseCreateCsr(&matB, k, n, 0,
+                                      tmp_csr_row, NULL, NULL,
+                                      CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
+                                      CUSPARSE_INDEX_BASE_ZERO, data_type);
+
+        cusparseCreateCsr(&matC, m, n, 0,
+                                      NULL, NULL, NULL,
+                                      CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
+                                      CUSPARSE_INDEX_BASE_ZERO, data_type);
+
+        cusparseCreateDnMat(&result_mat, m, n, m, (void*)result.device_data(),
+                                        data_type, CUSPARSE_ORDER_COL);
+     
+        //dense转化为csr格式, shape k*n
+        
+        cusparseCreateDnMat(&tmp_mat, k, n, n, (void*)dense_mat.device_data(), data_type, CUSPARSE_ORDER_ROW);
+
+        cusparseDenseToSparse_bufferSize(
+                                        handle, tmp_mat, matB,
+                                        CUSPARSE_DENSETOSPARSE_ALG_DEFAULT,
+                                        &bufferSize);
+        cudaMalloc((void**)&dBuffer, bufferSize);
+
+
+        cusparseDenseToSparse_analysis(handle, tmp_mat, matB,
+                                        CUSPARSE_DENSETOSPARSE_ALG_DEFAULT,
+                                        dBuffer);
+
+        int64_t num_rows_tmp, num_cols_tmp, nnz_tmp;
+        int *d_csr_columns;
+        
+        kernel_type* d_csr_values;
+
+        cusparseSpMatGetSize(matB, &num_rows_tmp, &num_cols_tmp,&nnz_tmp);
+        
+        cudaMalloc((void**) &d_csr_columns, nnz_tmp * sizeof(int));
+        cudaMalloc((void**) &d_csr_values,  nnz_tmp * sizeof(kernel_type));
+        
+
+        cusparseCsrSetPointers(matB, tmp_csr_row, d_csr_columns,d_csr_values);
+        cusparseDenseToSparse_convert(handle, tmp_mat, matB,
+                                        CUSPARSE_DENSETOSPARSE_ALG_DEFAULT,
+                                        dBuffer);
+
+
+        //csr csr mul
+
+        cusparseSpGEMMDescr_t spgemmDesc;
+        cusparseSpGEMM_createDescr(&spgemmDesc);
+
+        cusparseSpGEMM_workEstimation(handle, opA, opB,
+                                      &alpha, matA, matB, &beta, matC,
+                                      data_type, CUSPARSE_SPGEMM_DEFAULT,
+                                      spgemmDesc, &bufferSize1, NULL);
+        cudaMalloc((void**) &dBuffer1, bufferSize1);
+
+        cusparseSpGEMM_workEstimation(handle, opA, opB,
+                                      &alpha, matA, matB, &beta, matC,
+                                      data_type, CUSPARSE_SPGEMM_DEFAULT,
+                                      spgemmDesc, &bufferSize1, dBuffer1);
+
+        cusparseSpGEMM_compute(handle, opA, opB,
+                               &alpha, matA, matB, &beta, matC,
+                               data_type, CUSPARSE_SPGEMM_DEFAULT,
+                               spgemmDesc, &bufferSize2, NULL);
+
+        cudaMalloc((void**) &dBuffer2, bufferSize2);
+
+        cusparseSpGEMM_compute(handle, opA, opB,
+                                           &alpha, matA, matB, &beta, matC,
+                                           data_type, CUSPARSE_SPGEMM_DEFAULT,
+                                           spgemmDesc, &bufferSize2, dBuffer2);
+
+        int64_t C_num_rows1, C_num_cols1, C_nnz1;
+        cusparseSpMatGetSize(matC, &C_num_rows1, &C_num_cols1,&C_nnz1);
+
+        int *dC_csrOffsets,*dC_columns;
+        kernel_type* dC_values;
+
+        cudaMalloc((void**) &dC_csrOffsets, (m+1) * sizeof(int));
+        cudaMalloc((void**) &dC_columns, C_nnz1 * sizeof(int));
+        cudaMalloc((void**) &dC_values,  C_nnz1 * sizeof(kernel_type));
+        cusparseCsrSetPointers(matC, dC_csrOffsets, dC_columns, dC_values);
+        cusparseSpGEMM_copy(handle, opA, opB,
+                            &alpha, matA, matB, &beta, matC,
+                            data_type, CUSPARSE_SPGEMM_DEFAULT, spgemmDesc);
+
+
+        //csr to dns
+
+        cusparseSparseToDense_bufferSize(
+                                        handle, matC, result_mat,
+                                        CUSPARSE_SPARSETODENSE_ALG_DEFAULT,
+                                        &bufferSize3);
+        cudaMalloc(&dBuffer3, bufferSize3);
+        
+        cusparseSparseToDense(handle, matC, result_mat,
+                                          CUSPARSE_SPARSETODENSE_ALG_DEFAULT,
+                                          dBuffer3);
+        
+
+
+        cusparseDestroySpMat(matA);
+        cusparseDestroySpMat(matB);
+        cusparseDestroySpMat(matC);
+        cusparseSpGEMM_destroyDescr(spgemmDesc);
+        cusparseDestroyDnMat(result_mat);
+        cudaFree(dBuffer);
+        cudaFree(dBuffer1);
+        cudaFree(dBuffer2);
+        cudaFree(dBuffer3);
+        cudaFree(tmp_csr_row);
+        cudaFree(d_csr_columns);
+        cudaFree(d_csr_values);
+        cusparseDestroyDnMat(tmp_mat);
+        cudaFree(dBuffer);
+        cudaFree(dC_csrOffsets);
+        cudaFree(dC_columns);
+        cudaFree(dC_values);
+
+
+
+
+    } 
 }
 
 

@@ -117,5 +117,6 @@ class KernelMatrix{
         void get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,SparseData &sparse,DenseData &dense,SyncArray<kernel_type> &dot_product) const;
         void dns_csr_mul_part(const SyncArray<kernel_type> &dense_mat, int n_rows,SparseData &sparse,SyncArray<kernel_type> &result) const;
         void dns_dns_mul_part(const SyncArray<kernel_type> &dense_mat, int n_rows,DenseData &dense,SyncArray<kernel_type> &result,kernel_type beta) const;
+        void get_dot_product_csr_csr_cuda(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const;
 };
 #endif //THUNDERSVM_KERNELMATRIX_H
