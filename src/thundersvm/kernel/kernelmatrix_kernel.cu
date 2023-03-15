@@ -174,7 +174,41 @@ namespace svm_kernel {
         cudaDataType data_type = CUDA_R_64F;
 #else//kernel type is float
         cudaDataType data_type = CUDA_R_32F;
-#endif
+#endif  
+
+        //set L2 cache Persistence
+
+        // cudaStream_t stream;
+        // cudaStreamCreate(&stream);                                                               
+
+        // //声明设备属性变量
+        // cudaDeviceProp prop; 
+        // //获取设备属性                                                                  
+        // cudaGetDeviceProperties(&prop, 0); 
+        // //预留L2持久访问的缓存大小
+        // size_t size = min(int(prop.l2CacheSize * 0.75), prop.persistingL2CacheMaxSize);
+        // //设置预留L2持久访问缓存大小
+        // cudaDeviceSetLimit(cudaLimitPersistingL2CacheSize, size);                                  
+
+        // //定义持久访问的数据大小
+        // size_t window_size = prop.accessPolicyMaxWindowSize;                        
+        // //声明CUDA流属性数据结构
+        // cudaStreamAttrValue stream_attribute; 
+        // //全局内存数据指针
+        // stream_attribute.accessPolicyWindow.base_ptr = (void*)(csr_val.device_data());              
+        // //持久访问的数据大小
+        // stream_attribute.accessPolicyWindow.num_bytes = window_size;                               
+        // //缓存命中率
+        // stream_attribute.accessPolicyWindow.hitRatio = window_size/csr_val.size();                                        
+        // //缓存命中
+        // stream_attribute.accessPolicyWindow.hitProp = cudaAccessPropertyPersisting;               
+        // //缓存未命中
+        // stream_attribute.accessPolicyWindow.missProp = cudaAccessPropertyStreaming;                
+        
+        // // 将上面的属性设置给CUDA流stream
+        // cudaStreamSetAttribute(stream, cudaStreamAttributeAccessPolicyWindow, &stream_attribute);
+
+        // cusparseSetStream(handle,stream);
 
         cusparseCreateCsr(&matA, m, k, nnz, (void*)csr_row_ptr.device_data(), (void*)csr_col_ind.device_data(),
                           (void*)csr_val.device_data(), CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
@@ -182,7 +216,11 @@ namespace svm_kernel {
         cusparseCreateDnMat(&matB, n, k, n, (void*)dense_mat.device_data(), data_type, CUSPARSE_ORDER_COL);
         cusparseCreateDnMat(&matC, m, n, m, (void*)result.device_data(), data_type, CUSPARSE_ORDER_COL);
         
-
+        // cudaEvent_t start_event, stop_event;
+        // float cuda_elapsed_ms  = 0;
+        // cudaEventCreate(&start_event);
+        // cudaEventCreate(&stop_event);
+        // cudaEventRecord(start_event, NULL);
         
         size_t buffer_size = 0;
         cusparseSpMM_bufferSize(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
@@ -199,7 +237,21 @@ namespace svm_kernel {
                    &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1, p_buffer);
 
 
+        // //将内存访问大小设为0，禁用持久访问
+        // stream_attribute.accessPolicyWindow.num_bytes = 0;                                          
+        // // 覆盖CUDA流的访问策略属性
+        // cudaStreamSetAttribute(stream, cudaStreamAttributeAccessPolicyWindow, &stream_attribute);   
+        // //删除L2中的所有持久性行
+        // cudaCtxResetPersistingL2Cache();
+        // cudaStreamDestroy(stream);
 
+        // cudaEventRecord(stop_event, NULL);
+        // cudaEventSynchronize(stop_event);
+        // cudaEventElapsedTime(&cuda_elapsed_ms, start_event,stop_event);
+        // LOG(INFO)<<"csr dns mul time is "<<cuda_elapsed_ms;
+
+
+        //graph capture
         // cudaGraph_t     graph;
         // cudaStream_t    stream;
         // cudaGraphExec_t graph_exec;
@@ -294,7 +346,7 @@ namespace svm_kernel {
         // result.device_data();
             
         
-        //try cub
+        //try cub SpMV
         
         //def
        //SyncArray<kernel_type> d_values_;
@@ -486,6 +538,8 @@ namespace svm_kernel {
 
         cusparseCreateDnMat(&result_mat, m, n, m, (void*)result.device_data(),
                                         data_type, CUSPARSE_ORDER_COL);
+
+        
      
         //dense转化为csr格式, shape k*n
         
@@ -519,6 +573,12 @@ namespace svm_kernel {
                                         dBuffer);
 
 
+        //timing
+        cudaEvent_t start_event, stop_event;
+        float cuda_elapsed_ms  = 0;
+        cudaEventCreate(&start_event);
+        cudaEventCreate(&stop_event);
+        cudaEventRecord(start_event, NULL);
         //csr csr mul
 
         cusparseSpGEMMDescr_t spgemmDesc;
@@ -561,7 +621,10 @@ namespace svm_kernel {
                             &alpha, matA, matB, &beta, matC,
                             data_type, CUSPARSE_SPGEMM_DEFAULT, spgemmDesc);
 
-
+        cudaEventRecord(stop_event, NULL);
+        cudaEventSynchronize(stop_event);
+        cudaEventElapsedTime(&cuda_elapsed_ms, start_event,stop_event);
+        LOG(INFO)<<"csr csr mul time is "<<cuda_elapsed_ms;
         //csr to dns
 
         cusparseSparseToDense_bufferSize(
@@ -574,7 +637,7 @@ namespace svm_kernel {
                                           CUSPARSE_SPARSETODENSE_ALG_DEFAULT,
                                           dBuffer3);
         
-
+        
 
         cusparseDestroySpMat(matA);
         cusparseDestroySpMat(matB);
