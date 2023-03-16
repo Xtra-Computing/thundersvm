@@ -14,11 +14,20 @@ if [ $1 -eq 1 ];then
 
 echo "run data1"
 ./bin/thundersvm-train -c 100 -g 0.5 ../dataset/data1
-./bin/thundersvm-predict ../dataset/data1 data1.model data1.predict
+#./bin/thundersvm-predict ../dataset/data1 data1.model data1.predict
 rm -rf data1*
 fi
 
 if [ $1 -eq 2 ];then
+
+echo "run a1a"
+./bin/thundersvm-train -c 100 -g 0.5 ../dataset/a1a
+./bin/thundersvm-predict ../dataset/a1a a1a.model a1a.predict
+rm -rf a1a*
+fi
+
+
+if [ $1 -eq 3 ];then
 
 echo "run a9a"
 ./bin/thundersvm-train -c 100 -g 0.5 ../dataset/a9a
@@ -26,11 +35,33 @@ echo "run a9a"
 rm -rf a9a*
 fi
 
+if [ $1 -eq 4 ];then
 
-if [ $1 -eq 3 ];then
+echo "run real-sim"
+./bin/thundersvm-train -c 100 -g 0.5 ../dataset/real-sim
+./bin/thundersvm-predict ../dataset/real-sim real-sim.model real-sim.predict
+rm -rf real-sim*
+fi
 
-echo "run mnist"
-./bin/thundersvm-train -c 100 -g 0.5 ../dataset/mnist.scale
-./bin/thundersvm-predict ../dataset/mnist.scale mnist.scale.model mnist.scale.predict
-rm -rf mnist*
+if [ $1 -eq 5 ];then
+
+echo "run w8a"
+./bin/thundersvm-train -c 100 -g 0.5 ../dataset/w8a
+./bin/thundersvm-predict ../dataset/w8a w8a.model w8a.predict
+rm -rf w8a*
+fi
+
+if [ $1 -eq 6 ];then
+
+echo "run SUSY"
+./bin/thundersvm-train -c 100 -g 0.5 ../dataset/SUSY
+./bin/thundersvm-predict ../dataset/SUSY SUSY.model SUSY.predict
+rm -rf SUSY*
+fi
+
+if [$1 -eq 7];then
+echo "run url_combined_normalized"
+./bin/thundersvm-train -c 100 -g 0.5 ../dataset/url_combined_normalized
+./bin/thundersvm-predict ../dataset/url_combined_normalized url_combined_normalized.model url_combined_normalized.predict
+rm -rf url_combined_normalized*
 fi
