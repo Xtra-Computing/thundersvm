@@ -4,6 +4,7 @@
 #include <thundersvm/svmparam.h>
 #include "thundersvm/kernelmatrix.h"
 #include "thundersvm/kernel/kernelmatrix_kernel.h"
+#include <cusparse.h>
 
 #include <chrono>
 typedef std::chrono::high_resolution_clock Clock;
@@ -111,6 +112,51 @@ void KernelMatrix::get_rows(const SyncArray<int> &idx,
     }
 }
 
+void KernelMatrix::get_dot_product_dns_bsr(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product,
+                                            SyncArray<kernel_type> &bsr_val,SyncArray<int> &bsr_offset,SyncArray<int> &bsr_col) const{
+    SyncArray<kernel_type> data_rows(idx.size() * n_features_);
+    data_rows.mem_set(0);
+    get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size(), n_features_);
+
+    svm_kernel::bsr_dns_mul(n_instances_, idx.size(), n_features_, data_rows, bsr_val,
+                     bsr_offset, bsr_col,
+                     dot_product);
+
+}
+//bsr dns mul
+void KernelMatrix::get_rows_bsr(const SyncArray<int> &idx, SyncArray<kernel_type> &kernel_rows,
+                                SyncArray<kernel_type> &bsr_val,SyncArray<int> &bsr_offset,SyncArray<int> &bsr_col) const{
+
+    CHECK_GE(kernel_rows.size(), idx.size() * n_instances_) << "kernel_rows memory is too small";
+
+
+    //check values 
+    //LOG(INFO)<<idx.size()<<" "<<n_instances_<<" "<<n_features_<<" "<<nnz_;
+#ifdef USE_CUDA
+    get_dot_product_dns_bsr(idx, kernel_rows,bsr_val,bsr_offset,bsr_col);
+    //get_dot_product_csr_csr_cuda(idx, kernel_rows);
+#else
+    LOG(INFO)<<"no implementing !!!!!!!!!!!!!";
+//    get_dot_product_dns_dns(idx, kernel_rows);
+#endif
+    switch (param.kernel_type) {
+        case SvmParam::RBF:
+        case SvmParam::PRECOMPUTED://precomputed uses rbf as default
+            RBF_kernel(idx, self_dot_, kernel_rows, idx.size(), n_instances_, param.gamma);
+            break;
+        case SvmParam::LINEAR:
+            //do nothing
+            break;
+        case SvmParam::POLY:
+            poly_kernel(kernel_rows, param.gamma, param.coef0, param.degree, kernel_rows.size());
+            break;
+        case SvmParam::SIGMOID:
+            sigmoid_kernel(kernel_rows, param.gamma, param.coef0, kernel_rows.size());
+            break;
+    }
+
+}
+
 
 //new method 
 
@@ -207,6 +253,80 @@ void KernelMatrix::get_dot_product_csr_csr_cuda(const SyncArray<int> &idx, SyncA
 
 
 }
+
+//get bsr format
+
+void KernelMatrix::get_bsr(int blockSize,SyncArray<kernel_type> &bsr_val,SyncArray<int> &bsr_offset,SyncArray<int> &bsr_col) const{
+
+    cusparseMatDescr_t descrA;
+    cusparseCreateMatDescr(&descrA);
+    cusparseSetMatType(descrA, CUSPARSE_MATRIX_TYPE_GENERAL );
+
+    cusparseMatDescr_t descrC;
+    cusparseCreateMatDescr(&descrC);
+    cusparseSetMatType(descrC, CUSPARSE_MATRIX_TYPE_GENERAL );
+
+    cusparseDirection_t dir = CUSPARSE_DIRECTION_COLUMN;
+
+    //n_instances_ for row ,n_features_ for col
+    //block row and block col
+    int mb = (n_instances_ + blockSize-1)/blockSize;
+    int nb = (n_features_+blockSize-1)/blockSize;
+
+    int bufferSize;
+    int base, nnzb;
+
+    void *pBuffer;
+
+    cusparseHandle_t handle = NULL;
+    cusparseCreate(&handle);
+
+    cusparseScsr2gebsr_bufferSize(handle, dir, n_instances_, n_features_,descrA, 
+                                    val_.device_data(), row_ptr_.device_data(), col_ind_.device_data(),
+                                    blockSize, blockSize,&bufferSize);
+    cudaMalloc((void**)&pBuffer, bufferSize);
+
+    //cudaMalloc((void**)&bsrRowPtrC, sizeof(int) *(mb+1));
+    bsr_offset.resize(mb+1);
+    int* d_bsr_offset = bsr_offset.device_data();
+
+    int *nnzTotalDevHostPtr = &nnzb;
+    cusparseXcsr2gebsrNnz(handle, dir, n_instances_, n_features_,
+                            descrA, row_ptr_.device_data(), col_ind_.device_data(),
+                            descrC, d_bsr_offset, blockSize, blockSize,
+                            nnzTotalDevHostPtr,
+                            pBuffer);
+
+    if (NULL != nnzTotalDevHostPtr){
+        nnzb = *nnzTotalDevHostPtr;
+    }
+    else{
+        cudaMemcpy(&nnzb, d_bsr_offset+mb, sizeof(int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(&base, d_bsr_offset, sizeof(int), cudaMemcpyDeviceToHost);
+        nnzb -= base;
+    }
+    //LOG(INFO)<<"blockSize is "<<blockSize<<" mb is "<<mb<<" nb is "<<nb<<" nnzb is"<<nnzb;
+    // cudaMalloc((void**)&bsrColIndC, sizeof(int)*nnzb);
+    // cudaMalloc((void**)&bsrValC, sizeof(float)*(rowBlockDim*colBlockDim)*nnzb);
+    bsr_col.resize(nnzb);
+    bsr_val.resize((blockSize*blockSize)*nnzb);
+    kernel_type* d_bsr_val = bsr_val.device_data();
+    int* d_bsr_col = bsr_col.device_data();
+
+    cusparseScsr2gebsr(handle, dir, n_instances_, n_features_,
+                        descrA,
+                        val_.device_data(), row_ptr_.device_data(), col_ind_.device_data(),
+                        descrC,
+                        d_bsr_val, d_bsr_offset, d_bsr_col,
+                        blockSize, blockSize,
+                        pBuffer);
+
+    cudaFree(pBuffer);
+    cusparseDestroy(handle);
+
+}
+
+
 
 
 

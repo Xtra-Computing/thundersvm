@@ -260,15 +260,22 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
     long long part = 0;
     TDEF(part)
     TSTART(part)
-    SparseData sparse_mat;
-    DenseData dense_mat;
-    CSR_DenseCSR(k_mat,dense_mat,sparse_mat);
+    //SparseData sparse_mat;
+    //DenseData dense_mat;
+    //CSR_DenseCSR(k_mat,dense_mat,sparse_mat);
     TEND(part)
     part+=TINT(part);
-    LOG(INFO)<<"sparse matrix shape is "<<sparse_mat.row<<" "<<sparse_mat.col<<" "<<sparse_mat.is_use;
-    LOG(INFO)<<"dense matrix shape is "<<dense_mat.row<<" "<<dense_mat.col<<" "<<dense_mat.is_use;
-    LOG(INFO)<<"matrix partition time is  "<<part/1e6;
+    //LOG(INFO)<<"sparse matrix shape is "<<sparse_mat.row<<" "<<sparse_mat.col<<" "<<sparse_mat.is_use;
+    //LOG(INFO)<<"dense matrix shape is "<<dense_mat.row<<" "<<dense_mat.col<<" "<<dense_mat.is_use;
+    //LOG(INFO)<<"matrix partition time is  "<<part/1e6;
+    LOG(INFO)<<"sparse ratio is "<<1.0*k_mat.nnz()/(n_instances*k_mat.n_features());
 
+    //csr to dsr convert
+    SyncArray<int> bsr_col(1);
+    SyncArray<int> bsr_offset(1);
+    SyncArray<kernel_type> bsr_val(1);
+    int blockSize = 2;
+    k_mat.get_bsr(blockSize,bsr_val,bsr_offset,bsr_col);
 
     long long select_time = 0;
     long long local_smo_time = 0;
@@ -291,19 +298,20 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
             //k_mat.get_rows(working_set, k_mat_rows);
 
             //test new funciton 
-            //SyncArray<kernel_type> k_test(ws_size * k_mat.n_instances());
-            k_mat.get_sparse_dense_rows(working_set,sparse_mat,dense_mat,k_mat_rows);
-
+            // SyncArray<kernel_type> k_test(ws_size * k_mat.n_instances());
+            //k_mat.get_sparse_dense_rows(working_set,sparse_mat,dense_mat,k_mat_rows);
+            k_mat.get_rows_bsr(working_set, k_mat_rows,bsr_val,bsr_offset,bsr_col);
             //check
-            //kernel_type* t1 = k_mat_rows.host_data();
-            //kernel_type* t2 = k_test.host_data();
-            //float r = 0.0;
-            //for (int i = 0; i < 10; ++i)
-            //{
+            // kernel_type* t1 = k_mat_rows.host_data();
+            // kernel_type* t2 = k_test.host_data();
+            // float r = 0.0;
+            // for (int i = 0; i < ws_size * k_mat.n_instances(); ++i)
+            // {
                 /* code */
-              //  r+=fabs(t1[i]-t2[i]);
-            //}
-            //LOG(INFO)<<"diff is "<<r;
+                // LOG(INFO)<<t1[i]<<" "<<t2[i];
+            //    r+=fabs(t1[i]-t2[i]);
+            // }
+            // LOG(INFO)<<"avg diff is "<<r/ws_size * k_mat.n_instances();
             TEND(getrows)
             get_rows_time +=TINT(getrows);
         } else {
@@ -315,8 +323,9 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
             select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set_last_half);
             k_mat_rows_first_half.copy_from(k_mat_rows_last_half);
             TSTART(getrows)
-            k_mat.get_sparse_dense_rows(working_set_last_half,sparse_mat,dense_mat,k_mat_rows_last_half);
-            //k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
+            //k_mat.get_sparse_dense_rows(working_set_last_half,sparse_mat,dense_mat,k_mat_rows_last_half);
+            k_mat.get_rows_bsr(working_set_last_half, k_mat_rows_last_half,bsr_val,bsr_offset,bsr_col);
+            // k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
             TEND(getrows)
             get_rows_time += TINT(getrows);
         }
@@ -369,7 +378,7 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
     
     LOG(INFO)<<"get rows time is "<<get_rows_time/1e6;
     LOG(INFO)<<"local smo time is "<<local_smo_time/1e6;
-    LOG(INFO)<<"trans time is "<<time1/1e6;
+    // LOG(INFO)<<"trans time is "<<time1/1e6;
     TEND(CSMOSolver)
     TPRINT(CSMOSolver,"loop time is :")
 

@@ -465,6 +465,10 @@ namespace svm_kernel {
 #endif // if CUDART_VERSION >= 11000
     }
 
+
+
+    //dns dns mul
+
     cublasHandle_t handle_blas;
     bool cublas_init;
     void dns_dns_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_a,const SyncArray<kernel_type> &dense_b,kernel_type beta, 
@@ -484,7 +488,7 @@ namespace svm_kernel {
 
     }
 
-    //
+    //csr csr mul
     void csr_csr_mul_cuda(int m, int n, int k, const SyncArray<kernel_type> &dense_mat, const SyncArray<kernel_type> &csr_val,
                      const SyncArray<int> &csr_row_ptr, const SyncArray<int> &csr_col_ind, int nnz,
                      SyncArray<kernel_type> &result){
@@ -661,6 +665,40 @@ namespace svm_kernel {
 
 
     } 
+
+
+    //bsr dns mul
+
+    void bsr_dns_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_mat, const SyncArray<kernel_type> &bsr_val,
+                     const SyncArray<int> &bsr_row_ptr, const SyncArray<int> &bsr_col_ind, 
+                     SyncArray<kernel_type> &result) {
+        if (!cusparse_init) {
+            cusparseCreate(&handle);
+            cusparseCreateMatDescr(&descr);
+            cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);
+            cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
+            cusparse_init = true;
+        }
+        kernel_type alpha(1);
+        kernel_type beta(0);
+
+        cusparseDirection_t dir = CUSPARSE_DIRECTION_COLUMN;
+
+        int nnzb = bsr_col_ind.size();
+        int mb = bsr_row_ptr.size()-1;
+        int blockSize = sqrt(bsr_val.size()/nnzb);
+        int nb = (k+blockSize-1)/blockSize;
+        //mul
+        cusparseSbsrmm(handle,
+               dir,
+               CUSPARSE_OPERATION_NON_TRANSPOSE,
+               CUSPARSE_OPERATION_TRANSPOSE,
+               mb, n, nb, nnzb, &alpha,
+               descr, bsr_val.device_data(), bsr_row_ptr.device_data(), bsr_col_ind.device_data(), blockSize,
+               dense_mat.device_data(), n,
+               &beta, result.device_data(), m);
+    }
+
 }
 
 
