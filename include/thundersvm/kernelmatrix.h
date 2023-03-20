@@ -86,6 +86,12 @@ class KernelMatrix{
         void get_bsr(int blockSize,SyncArray<kernel_type> &bsr_val,SyncArray<int> &bsr_offset,SyncArray<int> &bsr_col) const;
         void get_rows_bsr(const SyncArray<int> &idx, SyncArray<kernel_type> &kernel_rows,
                                         SyncArray<kernel_type> &bsr_val,SyncArray<int> &bsr_offset,SyncArray<int> &bsr_col) const;
+        //csc 
+        void get_csc(SyncArray<kernel_type> &csc_val,SyncArray<int> &csc_offset,SyncArray<int> &csc_col) const;
+
+        void get_rows_csc(const SyncArray<int> &idx, SyncArray<kernel_type> &kernel_rows,
+                                        SyncArray<kernel_type> &csc_val,SyncArray<int> &csc_offset,SyncArray<int> &csc_col) const;
+
     private:
         KernelMatrix &operator=(const KernelMatrix &) const;
 
@@ -125,5 +131,9 @@ class KernelMatrix{
         void get_dot_product_csr_csr_cuda(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const;
         void get_dot_product_dns_bsr(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product,
                                                     SyncArray<kernel_type> &bsr_val,SyncArray<int> &bsr_offset,SyncArray<int> &bsr_col) const;
+
+        void get_dot_product_dns_csc(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product,
+                                                    SyncArray<kernel_type> &csc_val,SyncArray<int> &csc_offset,SyncArray<int> &csc_col) const;
+    
 };
 #endif //THUNDERSVM_KERNELMATRIX_H

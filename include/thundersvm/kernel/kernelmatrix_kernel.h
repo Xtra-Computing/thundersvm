@@ -52,6 +52,11 @@ namespace svm_kernel {
     void bsr_dns_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_mat, const SyncArray<kernel_type> &bsr_val,
                          const SyncArray<int> &bsr_row_ptr, const SyncArray<int> &bsr_col_ind, 
                                               SyncArray<kernel_type> &result);
+    void csc_dns_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_mat, const SyncArray<kernel_type> &csc_val,
+                         const SyncArray<int> &csc_row_ptr, const SyncArray<int> &csc_col_ind, int nnz, 
+                                              SyncArray<kernel_type> &result);
+    
+
 #ifndef USE_CUDA
     void csr_csr_mul(int m, int n, int k, const SyncArray<kernel_type> &ws_val, const SyncArray<int> &ws_col_ind,
                      const SyncArray<int> &ws_row_ptr, const SyncArray<kernel_type> &csr_val,

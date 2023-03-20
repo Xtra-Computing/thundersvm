@@ -305,7 +305,7 @@ void KernelMatrix::get_bsr(int blockSize,SyncArray<kernel_type> &bsr_val,SyncArr
         cudaMemcpy(&base, d_bsr_offset, sizeof(int), cudaMemcpyDeviceToHost);
         nnzb -= base;
     }
-    //LOG(INFO)<<"blockSize is "<<blockSize<<" mb is "<<mb<<" nb is "<<nb<<" nnzb is"<<nnzb;
+    LOG(INFO)<<"blockSize is "<<blockSize<<" mb is "<<mb<<" nb is "<<nb<<" nnzb is "<<nnzb;
     // cudaMalloc((void**)&bsrColIndC, sizeof(int)*nnzb);
     // cudaMalloc((void**)&bsrValC, sizeof(float)*(rowBlockDim*colBlockDim)*nnzb);
     bsr_col.resize(nnzb);
@@ -326,6 +326,98 @@ void KernelMatrix::get_bsr(int blockSize,SyncArray<kernel_type> &bsr_val,SyncArr
 
 }
 
+
+//get csc format
+
+void KernelMatrix::get_csc(SyncArray<kernel_type> &csc_val,SyncArray<int> &csc_offset,SyncArray<int> &csc_col) const{
+    cusparseHandle_t handle;
+    cusparseMatDescr_t descr;
+    cusparseCreate(&handle);
+    cusparseCreateMatDescr(&descr);
+    cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);
+    cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
+
+    cudaDataType data_type = CUDA_R_32F;
+
+
+    size_t buffer_size = 0;
+    cusparseCsr2cscEx2_bufferSize(
+        handle, n_instances_, n_features_, nnz_, val_.device_data(),
+        row_ptr_.device_data(), col_ind_.device_data(), csc_val.device_data(),
+        csc_col.device_data(), csc_offset.device_data(), data_type,
+        CUSPARSE_ACTION_NUMERIC, CUSPARSE_INDEX_BASE_ZERO,
+        CUSPARSE_CSR2CSC_ALG1, &buffer_size);
+
+    // SyncArray<char> tmp_buffer(buffer_size);
+    void *tmp_buffer;
+    // LOG(INFO)<<"matrix row is "<<row_ptr_.size()<<" matrix col is "<<col_ind_.size()<<" nnz is "<<val_.size()<<" buffer_size is "<<buffer_size;
+    // LOG(INFO)<<"csc matrix row is "<<csc_offset.size()<<" matrix col is "<<csc_col.size()<<" nnz is "<<csc_val.size();
+    cudaMalloc((void**)&tmp_buffer, buffer_size);
+    cusparseCsr2cscEx2(
+        handle, n_instances_, n_features_, nnz_, val_.device_data(),
+        row_ptr_.device_data(), col_ind_.device_data(), csc_val.device_data(),
+        csc_col.device_data(), csc_offset.device_data(), data_type,
+        CUSPARSE_ACTION_NUMERIC, CUSPARSE_INDEX_BASE_ZERO,
+        CUSPARSE_CSR2CSC_ALG1, tmp_buffer);
+   
+    cudaDeviceSynchronize();
+
+    cudaFree(tmp_buffer);
+    cusparseDestroy(handle);
+    cusparseDestroyMatDescr(descr);
+
+    std::atexit([]() { SyncMem::clear_cache(); });
+
+}
+
+
+void KernelMatrix::get_rows_csc(const SyncArray<int> &idx, SyncArray<kernel_type> &kernel_rows,
+                        SyncArray<kernel_type> &csc_val,SyncArray<int> &csc_offset,SyncArray<int> &csc_col) const{
+
+
+    CHECK_GE(kernel_rows.size(), idx.size() * n_instances_) << "kernel_rows memory is too small";
+
+
+    //check values 
+    //LOG(INFO)<<idx.size()<<" "<<n_instances_<<" "<<n_features_<<" "<<nnz_;
+#ifdef USE_CUDA
+    get_dot_product_dns_csc(idx, kernel_rows,csc_val,csc_offset,csc_col);
+    //get_dot_product_csr_csr_cuda(idx, kernel_rows);
+#else
+    LOG(INFO)<<"no implementing !!!!!!!!!!!!!";
+//    get_dot_product_dns_dns(idx, kernel_rows);
+#endif
+    switch (param.kernel_type) {
+        case SvmParam::RBF:
+        case SvmParam::PRECOMPUTED://precomputed uses rbf as default
+            RBF_kernel(idx, self_dot_, kernel_rows, idx.size(), n_instances_, param.gamma);
+            break;
+        case SvmParam::LINEAR:
+            //do nothing
+            break;
+        case SvmParam::POLY:
+            poly_kernel(kernel_rows, param.gamma, param.coef0, param.degree, kernel_rows.size());
+            break;
+        case SvmParam::SIGMOID:
+            sigmoid_kernel(kernel_rows, param.gamma, param.coef0, kernel_rows.size());
+            break;
+    }
+
+}
+
+
+void KernelMatrix::get_dot_product_dns_csc(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product,
+                                            SyncArray<kernel_type> &csc_val,SyncArray<int> &csc_offset,SyncArray<int> &csc_col) const{
+
+    SyncArray<kernel_type> data_rows(idx.size() * n_features_);
+    data_rows.mem_set(0);
+    get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size(), n_features_);
+
+    svm_kernel::csc_dns_mul(n_instances_, idx.size(), n_features_, data_rows, csc_val,
+                     csc_offset, csc_col, nnz_,
+                     dot_product);
+
+}
 
 
 
