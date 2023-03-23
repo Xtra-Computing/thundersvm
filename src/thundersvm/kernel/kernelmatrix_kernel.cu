@@ -40,6 +40,20 @@ namespace svm_kernel {
         }
     }
 
+
+    __global__ void
+    kernel_get_working_set_ins_dns(const kernel_type *val, const int *data_row_idx,
+                               kernel_type *data_rows,
+                               int m, int n) {
+        KERNEL_LOOP(i, m) {
+            int row = data_row_idx[i];
+            for (int j = 0; j < n; ++j) {
+
+                data_rows[i*n + j] = val[row*n+j]; // row-major for cublas
+            }
+        }
+    }
+
     __global__ void
     kernel_RBF_kernel(const kernel_type *self_dot0, const kernel_type *self_dot1, kernel_type *dot_product, int m, int n,
                       kernel_type gamma) {
@@ -121,8 +135,16 @@ namespace svm_kernel {
         SAFE_KERNEL_LAUNCH(kernel_get_working_set_ins, val.device_data(), col_ind.device_data(), row_ptr.device_data(),
                            data_row_idx.device_data(), data_rows.device_data(), m, n);
 
-        
 
+
+    }
+
+    void
+    get_working_set_ins_dns(const SyncArray<kernel_type> &val, 
+                            const SyncArray<int> &data_row_idx, SyncArray<kernel_type> &data_rows, int m, int n){
+
+        SAFE_KERNEL_LAUNCH(kernel_get_working_set_ins_dns, val.device_data(),
+                           data_row_idx.device_data(), data_rows.device_data(), m, n);
     }
 
     void

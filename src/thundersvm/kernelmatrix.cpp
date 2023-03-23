@@ -201,56 +201,49 @@ void KernelMatrix::get_sparse_dense_rows(const SyncArray<int> &idx, SparseData &
 }
 
 void KernelMatrix::get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,SparseData &sparse,DenseData &dense,SyncArray<kernel_type> &dot_product) const{
+    
+    
+    //首先分别得到用来和稀疏矩阵和稠密矩阵相乘的两个稠密矩阵
     TDEF(dot_product)
     TSTART(dot_product)
-
-    //首先分别得到用来和稀疏矩阵和稠密矩阵相乘的两个稠密矩阵
     SyncArray<kernel_type> sparse_data_rows(idx.size() * sparse.col);
     sparse_data_rows.mem_set(0);
+    
 
     //for sparse
     TDEF(sparse)
     TSTART(sparse)
     get_working_set_ins(sparse.val_, sparse.col_ind_, sparse.row_ptr_, idx, sparse_data_rows, idx.size(), sparse.col); //col-major
     dns_csr_mul_part(sparse_data_rows, idx.size(), sparse,dot_product);
-    // get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size(), n_features_);
+    
     
     cudaDeviceSynchronize();
+
     TEND(sparse)
     time1+=TINT(sparse);
     //for dense 先简单的cpu实现
-    const int *data_row_idx_data = idx.host_data();
-    
-     
-    if(dense.is_use){
-         SyncArray<kernel_type> dense_data_rows(idx.size() * dense.col);
-        dense_data_rows.mem_set(0);
-        kernel_type* h_dense_data_rows = dense_data_rows.host_data();
 
-        kernel_type* h_dense = dense.val.host_data();
+    if(dense.is_use){
         
+        SyncArray<kernel_type> dense_data_rows(idx.size() * dense.col);
+        dense_data_rows.mem_set(0);
+
+
         TDEF(dense)
         TSTART(dense)
-        #pragma omp parallel for
-        for (int i=0;i<idx.size();i++){
-            int row = data_row_idx_data[i];
-            for (int j=0;j<dense.col;j++){
-                h_dense_data_rows[i*dense.col+j] = h_dense[row*dense.col+j];
-            }
-        }
-        
+        get_working_set_ins_dns(dense.val, idx, dense_data_rows, idx.size(), dense.col);
         //计算得到结果
         kernel_type beta = 1.0;
         dns_dns_mul_part(dense_data_rows,idx.size(),dense,dot_product,beta);
 
         cudaDeviceSynchronize();
+
         TEND(dense)
         time2+=TINT(dense);
 
-        TEND(dot_product)
-        time4+=TINT(dot_product);
-
     }
+    
+    
 
 }
 

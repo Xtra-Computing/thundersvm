@@ -55,6 +55,9 @@ namespace svm_kernel {
     void csc_dns_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_mat, const SyncArray<kernel_type> &csc_val,
                          const SyncArray<int> &csc_row_ptr, const SyncArray<int> &csc_col_ind, int nnz, 
                                               SyncArray<kernel_type> &result);
+    void
+        get_working_set_ins_dns(const SyncArray<kernel_type> &val, 
+                                    const SyncArray<int> &data_row_idx, SyncArray<kernel_type> &data_rows, int m, int n);
     
 
 #ifndef USE_CUDA
