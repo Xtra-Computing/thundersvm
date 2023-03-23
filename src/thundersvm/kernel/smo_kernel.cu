@@ -267,6 +267,8 @@ namespace svm_kernel {
                                             (y.device_data(), f_val.device_data(), alpha.device_data(), alpha_diff.device_data(),
                                                     working_set.device_data(), ws_size, Cp, Cn, k_mat_rows.device_data(), k_mat_diag.device_data(),
                                                     row_len, eps, diff.device_data(), max_iter);
+
+        cudaDeviceSynchronize();
     }
 
     void nu_smo_solve(const SyncArray<int> &y, SyncArray<float_type> &f_val, SyncArray<float_type> &alpha,

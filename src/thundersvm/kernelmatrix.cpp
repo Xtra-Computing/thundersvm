@@ -15,6 +15,10 @@ typedef std::chrono::high_resolution_clock Clock;
 #define TINT(x_) std::chrono::duration_cast<std::chrono::microseconds>(x_##_t1 - x_##_t0).count()
 
 using namespace svm_kernel;
+extern long long time1;
+extern long long time2;
+extern long long time3;
+extern long long time4;
 KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
     n_instances_ = instances.size();
     n_features_ = 0;
@@ -167,11 +171,15 @@ void KernelMatrix::get_sparse_dense_rows(const SyncArray<int> &idx, SparseData &
     //check values 
     // LOG(INFO)<<" check sparse matrix shape is "<<sparse.row<<" "<<sparse.col<<" "<<sparse.is_use;
 #ifdef USE_CUDA
+    
     get_dot_product_dns_csr_dns_dns(idx, sparse,dense,kernel_rows);
+    
 #else
     LOG(INFO)<<"no implementing !!!!!!!!!!!!!";
 //    get_dot_product_dns_dns(idx, kernel_rows);
 #endif
+    TDEF(kernel)
+    TSTART(kernel)
     switch (param.kernel_type) {
         case SvmParam::RBF:
         case SvmParam::PRECOMPUTED://precomputed uses rbf as default
@@ -187,32 +195,42 @@ void KernelMatrix::get_sparse_dense_rows(const SyncArray<int> &idx, SparseData &
             sigmoid_kernel(kernel_rows, param.gamma, param.coef0, kernel_rows.size());
             break;
     }
+    cudaDeviceSynchronize();
+    TEND(kernel)
+    time3+=TINT(kernel);
 }
 
 void KernelMatrix::get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,SparseData &sparse,DenseData &dense,SyncArray<kernel_type> &dot_product) const{
-
+    TDEF(dot_product)
+    TSTART(dot_product)
 
     //首先分别得到用来和稀疏矩阵和稠密矩阵相乘的两个稠密矩阵
     SyncArray<kernel_type> sparse_data_rows(idx.size() * sparse.col);
     sparse_data_rows.mem_set(0);
 
     //for sparse
-   
+    TDEF(sparse)
+    TSTART(sparse)
     get_working_set_ins(sparse.val_, sparse.col_ind_, sparse.row_ptr_, idx, sparse_data_rows, idx.size(), sparse.col); //col-major
     dns_csr_mul_part(sparse_data_rows, idx.size(), sparse,dot_product);
     // get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size(), n_features_);
     
     cudaDeviceSynchronize();
+    TEND(sparse)
+    time1+=TINT(sparse);
     //for dense 先简单的cpu实现
     const int *data_row_idx_data = idx.host_data();
-
+    
+     
     if(dense.is_use){
          SyncArray<kernel_type> dense_data_rows(idx.size() * dense.col);
         dense_data_rows.mem_set(0);
         kernel_type* h_dense_data_rows = dense_data_rows.host_data();
 
         kernel_type* h_dense = dense.val.host_data();
-
+        
+        TDEF(dense)
+        TSTART(dense)
         #pragma omp parallel for
         for (int i=0;i<idx.size();i++){
             int row = data_row_idx_data[i];
@@ -220,9 +238,17 @@ void KernelMatrix::get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,Spa
                 h_dense_data_rows[i*dense.col+j] = h_dense[row*dense.col+j];
             }
         }
+        
         //计算得到结果
         kernel_type beta = 1.0;
         dns_dns_mul_part(dense_data_rows,idx.size(),dense,dot_product,beta);
+
+        cudaDeviceSynchronize();
+        TEND(dense)
+        time2+=TINT(dense);
+
+        TEND(dot_product)
+        time4+=TINT(dot_product);
 
     }
 
@@ -239,185 +265,6 @@ void KernelMatrix::dns_dns_mul_part(const SyncArray<kernel_type> &dense_mat, int
     svm_kernel::dns_dns_mul(n_instances_, n_rows, dense.col, dense.val,dense_mat,beta,result);
 }
 
-
-void KernelMatrix::get_dot_product_csr_csr_cuda(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const{
-    //得到workingset的csr稀疏矩阵,首先得到dense转化为k*n
-    //然后使用cusparse转化为csr格式
-    SyncArray<kernel_type> data_rows(idx.size() * n_features_);
-    data_rows.mem_set(0);
-    //列存储所以为k*n
-    get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size(), n_features_);
-
-    //cusparse csr csr
-    svm_kernel::csr_csr_mul_cuda(n_instances_, idx.size(), n_features_, data_rows, val_, row_ptr_, col_ind_, nnz_, dot_product);
-
-
-}
-
-//get bsr format
-
-void KernelMatrix::get_bsr(int blockSize,SyncArray<kernel_type> &bsr_val,SyncArray<int> &bsr_offset,SyncArray<int> &bsr_col) const{
-
-    cusparseMatDescr_t descrA;
-    cusparseCreateMatDescr(&descrA);
-    cusparseSetMatType(descrA, CUSPARSE_MATRIX_TYPE_GENERAL );
-
-    cusparseMatDescr_t descrC;
-    cusparseCreateMatDescr(&descrC);
-    cusparseSetMatType(descrC, CUSPARSE_MATRIX_TYPE_GENERAL );
-
-    cusparseDirection_t dir = CUSPARSE_DIRECTION_COLUMN;
-
-    //n_instances_ for row ,n_features_ for col
-    //block row and block col
-    int mb = (n_instances_ + blockSize-1)/blockSize;
-    int nb = (n_features_+blockSize-1)/blockSize;
-
-    int bufferSize;
-    int base, nnzb;
-
-    void *pBuffer;
-
-    cusparseHandle_t handle = NULL;
-    cusparseCreate(&handle);
-
-    cusparseScsr2gebsr_bufferSize(handle, dir, n_instances_, n_features_,descrA, 
-                                    val_.device_data(), row_ptr_.device_data(), col_ind_.device_data(),
-                                    blockSize, blockSize,&bufferSize);
-    cudaMalloc((void**)&pBuffer, bufferSize);
-
-    //cudaMalloc((void**)&bsrRowPtrC, sizeof(int) *(mb+1));
-    bsr_offset.resize(mb+1);
-    int* d_bsr_offset = bsr_offset.device_data();
-
-    int *nnzTotalDevHostPtr = &nnzb;
-    cusparseXcsr2gebsrNnz(handle, dir, n_instances_, n_features_,
-                            descrA, row_ptr_.device_data(), col_ind_.device_data(),
-                            descrC, d_bsr_offset, blockSize, blockSize,
-                            nnzTotalDevHostPtr,
-                            pBuffer);
-
-    if (NULL != nnzTotalDevHostPtr){
-        nnzb = *nnzTotalDevHostPtr;
-    }
-    else{
-        cudaMemcpy(&nnzb, d_bsr_offset+mb, sizeof(int), cudaMemcpyDeviceToHost);
-        cudaMemcpy(&base, d_bsr_offset, sizeof(int), cudaMemcpyDeviceToHost);
-        nnzb -= base;
-    }
-    LOG(INFO)<<"blockSize is "<<blockSize<<" mb is "<<mb<<" nb is "<<nb<<" nnzb is "<<nnzb;
-    // cudaMalloc((void**)&bsrColIndC, sizeof(int)*nnzb);
-    // cudaMalloc((void**)&bsrValC, sizeof(float)*(rowBlockDim*colBlockDim)*nnzb);
-    bsr_col.resize(nnzb);
-    bsr_val.resize((blockSize*blockSize)*nnzb);
-    kernel_type* d_bsr_val = bsr_val.device_data();
-    int* d_bsr_col = bsr_col.device_data();
-
-    cusparseScsr2gebsr(handle, dir, n_instances_, n_features_,
-                        descrA,
-                        val_.device_data(), row_ptr_.device_data(), col_ind_.device_data(),
-                        descrC,
-                        d_bsr_val, d_bsr_offset, d_bsr_col,
-                        blockSize, blockSize,
-                        pBuffer);
-
-    cudaFree(pBuffer);
-    cusparseDestroy(handle);
-
-}
-
-
-//get csc format
-
-void KernelMatrix::get_csc(SyncArray<kernel_type> &csc_val,SyncArray<int> &csc_offset,SyncArray<int> &csc_col) const{
-    cusparseHandle_t handle;
-    cusparseMatDescr_t descr;
-    cusparseCreate(&handle);
-    cusparseCreateMatDescr(&descr);
-    cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);
-    cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
-
-    cudaDataType data_type = CUDA_R_32F;
-
-
-    size_t buffer_size = 0;
-    cusparseCsr2cscEx2_bufferSize(
-        handle, n_instances_, n_features_, nnz_, val_.device_data(),
-        row_ptr_.device_data(), col_ind_.device_data(), csc_val.device_data(),
-        csc_col.device_data(), csc_offset.device_data(), data_type,
-        CUSPARSE_ACTION_NUMERIC, CUSPARSE_INDEX_BASE_ZERO,
-        CUSPARSE_CSR2CSC_ALG1, &buffer_size);
-
-    // SyncArray<char> tmp_buffer(buffer_size);
-    void *tmp_buffer;
-    // LOG(INFO)<<"matrix row is "<<row_ptr_.size()<<" matrix col is "<<col_ind_.size()<<" nnz is "<<val_.size()<<" buffer_size is "<<buffer_size;
-    // LOG(INFO)<<"csc matrix row is "<<csc_offset.size()<<" matrix col is "<<csc_col.size()<<" nnz is "<<csc_val.size();
-    cudaMalloc((void**)&tmp_buffer, buffer_size);
-    cusparseCsr2cscEx2(
-        handle, n_instances_, n_features_, nnz_, val_.device_data(),
-        row_ptr_.device_data(), col_ind_.device_data(), csc_val.device_data(),
-        csc_col.device_data(), csc_offset.device_data(), data_type,
-        CUSPARSE_ACTION_NUMERIC, CUSPARSE_INDEX_BASE_ZERO,
-        CUSPARSE_CSR2CSC_ALG1, tmp_buffer);
-   
-    cudaDeviceSynchronize();
-
-    cudaFree(tmp_buffer);
-    cusparseDestroy(handle);
-    cusparseDestroyMatDescr(descr);
-
-    std::atexit([]() { SyncMem::clear_cache(); });
-
-}
-
-
-void KernelMatrix::get_rows_csc(const SyncArray<int> &idx, SyncArray<kernel_type> &kernel_rows,
-                        SyncArray<kernel_type> &csc_val,SyncArray<int> &csc_offset,SyncArray<int> &csc_col) const{
-
-
-    CHECK_GE(kernel_rows.size(), idx.size() * n_instances_) << "kernel_rows memory is too small";
-
-
-    //check values 
-    //LOG(INFO)<<idx.size()<<" "<<n_instances_<<" "<<n_features_<<" "<<nnz_;
-#ifdef USE_CUDA
-    get_dot_product_dns_csc(idx, kernel_rows,csc_val,csc_offset,csc_col);
-    //get_dot_product_csr_csr_cuda(idx, kernel_rows);
-#else
-    LOG(INFO)<<"no implementing !!!!!!!!!!!!!";
-//    get_dot_product_dns_dns(idx, kernel_rows);
-#endif
-    switch (param.kernel_type) {
-        case SvmParam::RBF:
-        case SvmParam::PRECOMPUTED://precomputed uses rbf as default
-            RBF_kernel(idx, self_dot_, kernel_rows, idx.size(), n_instances_, param.gamma);
-            break;
-        case SvmParam::LINEAR:
-            //do nothing
-            break;
-        case SvmParam::POLY:
-            poly_kernel(kernel_rows, param.gamma, param.coef0, param.degree, kernel_rows.size());
-            break;
-        case SvmParam::SIGMOID:
-            sigmoid_kernel(kernel_rows, param.gamma, param.coef0, kernel_rows.size());
-            break;
-    }
-
-}
-
-
-void KernelMatrix::get_dot_product_dns_csc(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product,
-                                            SyncArray<kernel_type> &csc_val,SyncArray<int> &csc_offset,SyncArray<int> &csc_col) const{
-
-    SyncArray<kernel_type> data_rows(idx.size() * n_features_);
-    data_rows.mem_set(0);
-    get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size(), n_features_);
-
-    svm_kernel::csc_dns_mul(n_instances_, idx.size(), n_features_, data_rows, csc_val,
-                     csc_offset, csc_col, nnz_,
-                     dot_product);
-
-}
 
 
 
@@ -484,10 +331,16 @@ KernelMatrix::dns_dns_mul(const SyncArray<kernel_type> &dense_mat, int n_rows,
 #endif
 void KernelMatrix::get_dot_product_dns_csr(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const {
     SyncArray<kernel_type> data_rows(idx.size() * n_features_);
+
+    TDEF(sparse)
+    TSTART(sparse)
     data_rows.mem_set(0);
     get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size(), n_features_);
-
     dns_csr_mul(data_rows, idx.size(), dot_product);
+
+    cudaDeviceSynchronize();
+    TEND(sparse)
+    time1+=TINT(sparse);
 }
 
 void KernelMatrix::get_dot_product(const DataSet::node2d &instances, SyncArray<kernel_type> &dot_product) const {
