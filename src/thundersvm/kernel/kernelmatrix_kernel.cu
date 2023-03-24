@@ -49,7 +49,9 @@ namespace svm_kernel {
             int row = data_row_idx[i];
             for (int j = 0; j < n; ++j) {
 
-                data_rows[i*n + j] = val[row*n+j]; // row-major for cublas
+                //data_rows[i*n + j] = val[row*n+j]; // row-major for cublas
+
+                data_rows[i + j*m] = val[row*n+j]; // col-major for cublas
             }
         }
     }
@@ -267,7 +269,10 @@ namespace svm_kernel {
         const kernel_type* d_dense_a = dense_a.device_data();
         const kernel_type* d_dense_b = dense_b.device_data();
 
-        cublasSgemm(handle_blas,CUBLAS_OP_T,CUBLAS_OP_N, m, n, k,&alpha,dense_a.device_data(), k, dense_b.device_data(), k,&beta, result.device_data(), m);
+        // cublasSgemm(handle_blas,CUBLAS_OP_T,CUBLAS_OP_N, m, n, k,&alpha,dense_a.device_data(), k, dense_b.device_data(), k,&beta, result.device_data(), m);
+
+        //dense b :k*n
+        cublasSgemm(handle_blas,CUBLAS_OP_T,CUBLAS_OP_T, m, n, k,&alpha,dense_a.device_data(), k, dense_b.device_data(), n,&beta, result.device_data(), m);
         
 
     }
