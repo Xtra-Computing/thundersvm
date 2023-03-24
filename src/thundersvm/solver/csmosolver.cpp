@@ -4,7 +4,7 @@
 #include <thundersvm/solver/csmosolver.h>
 #include <thundersvm/kernel/smo_kernel.h>
 #include <climits>
-
+#include <numeric> 
 #include <chrono>
 typedef std::chrono::high_resolution_clock Clock;
 #define TDEF(x_) std::chrono::high_resolution_clock::time_point x_##_t0, x_##_t1;
@@ -61,28 +61,25 @@ void CSR_DenseCSR(const KernelMatrix &k_mat, DenseData &dense,SparseData &sparse
     /*计算每一列的稀疏程度
     然后根据阈值划分为稀疏矩阵和稠密矩阵*/
 
-    Node* col_num = new Node[n+10];
-
-    for (int i=0;i<n;i++) {
-        col_num[i].num=0;
-        col_num[i].x=i;
-    }
-
-
-    for (int i=0;i<m;i++){
-        int csr_row_begin = csr_row_ptr[i];
-        int csr_row_end = csr_row_ptr[i+1];
-        for (int j=csr_row_begin;j<csr_row_end;j++){
-            col_num[csr_col_ind[j]].num++;
+    // Calculate the number of non-zero elements in each column
+    std::vector<int> col_num(n, 0);
+    #pragma omp parallel for
+    for (int i = 0; i < m; i++) {
+        for (int j = csr_row_ptr[i]; j < csr_row_ptr[i + 1]; j++) {
+            #pragma omp atomic
+            col_num[csr_col_ind[j]]++;
         }
     }
 
-    //sort spare to dense 
-
-    std::sort(col_num,col_num+n,[=](Node a,Node b){
-        if (a.num<b.num) return true;
-        if (a.num==b.num && a.x < b.x) return true;
-        return false;
+    // Sort columns by their sparsity level
+    std::vector<int> col_indices(n);
+    std::iota(col_indices.begin(), col_indices.end(), 0);
+    std::sort(col_indices.begin(), col_indices.end(), [&](int i, int j) {
+        if (col_num[i] != col_num[j]) {
+            return col_num[i] < col_num[j];
+        } else {
+            return i < j;
+        }
     });
 
 
@@ -91,7 +88,7 @@ void CSR_DenseCSR(const KernelMatrix &k_mat, DenseData &dense,SparseData &sparse
        
     long long row_sum_num=0; //for calculating ratio
 
-    bool* densefg = new bool[n];
+    std::vector<bool> densefg(n, 0);
     for (int i=0;i<n;i++) densefg[i]=true;
 
 
@@ -104,19 +101,20 @@ void CSR_DenseCSR(const KernelMatrix &k_mat, DenseData &dense,SparseData &sparse
     double ratio;
     for (int i = 0; i < n; ++i)
     {
-        total_csr+=col_num[i].num;
+
+        total_csr+=col_num[col_indices[i]];
         total_dense-=m;
 
         row_sum_num+=m;
 
         ratio = 1.0l*total_csr/row_sum_num;
 
-        if (ratio > 0.05 || 1.0l*col_num[i].num/m > 0.5 ||total_csr * 4 > total_dense){
+        if (ratio > 0.05 || 1.0l*col_num[col_indices[i]]/m > 0.5 ||total_csr * 4 > total_dense){
             break;
         }
 
         densecolnum--;
-        densefg[col_num[i].x]= false;
+        densefg[col_indices[i]]= false;
     }
 
     //initialization dense and sparse
@@ -129,6 +127,8 @@ void CSR_DenseCSR(const KernelMatrix &k_mat, DenseData &dense,SparseData &sparse
         dense.is_use = true;
 
         kernel_type *h_dense = dense.val.host_data();
+
+        // std::vector<float_type> tmp_dense(m*densecolnum);
         
         for (int i=0,p_row=0;i<n;i++){
             if (densefg[i]==true){
@@ -148,11 +148,20 @@ void CSR_DenseCSR(const KernelMatrix &k_mat, DenseData &dense,SparseData &sparse
             for (int j=csr_row_begin;j<csr_row_end;j++) {
                 if (densefg[csr_col_ind[j]] == true) {
 
-                    h_dense[i * densecolnum + dense.Ttable[csr_col_ind[j]]] = csr_val[j];
+                    h_dense[i * densecolnum + dense.Ttable[csr_col_ind[j]]] = csr_val[j];  //row major
+                    // h_dense[i + m*dense.Ttable[csr_col_ind[j]]] = csr_val[j];  //col major
+
+
                     
                 }
             }
         }
+
+        // for(int i=0;i<densecolnum;i++){
+        //     for(int j = 0;j<m;j++){
+        //         h_dense[i*m+j] = tmp_dense[j*densecolnum+i];
+        //     }
+        // }
 
         int count = 0;
         for(int i=0;i<m*densecolnum;i++){
@@ -179,14 +188,12 @@ void CSR_DenseCSR(const KernelMatrix &k_mat, DenseData &dense,SparseData &sparse
 
     //map from original col to new col
 
-    int *tmp_sparse_col_map = new int[n];
-
+    std::vector<int> tmp_sparse_col_map(n);
     for(int i= 0 ,p_row = 0;i<n;i++){
-        if (densefg[col_num[i].x]==false){
+        if (densefg[col_indices[i]]==false){
 
-            tmp_sparse_col_map[col_num[i].x]=p_row;
+            tmp_sparse_col_map[col_indices[i]]=p_row;
             p_row++;
-            
                
         }   
     }
@@ -220,9 +227,6 @@ void CSR_DenseCSR(const KernelMatrix &k_mat, DenseData &dense,SparseData &sparse
     }
     
 
-    delete[] col_num;
-    delete[] densefg;
-    delete[] tmp_sparse_col_map;
 
 }
 
