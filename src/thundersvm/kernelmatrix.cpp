@@ -116,6 +116,121 @@ void KernelMatrix::get_rows(const SyncArray<int> &idx,
     }
 }
 
+
+
+//new method 
+
+void KernelMatrix::get_sparse_dense_rows(const SyncArray<int> &idx, SparseData &sparse,DenseData &dense,SyncArray<kernel_type> &kernel_rows) const {
+     CHECK_GE(kernel_rows.size(), idx.size() * n_instances_) << "kernel_rows memory is too small";
+
+
+    //check values 
+    // LOG(INFO)<<" check sparse matrix shape is "<<sparse.row<<" "<<sparse.col<<" "<<sparse.is_use;
+#ifdef USE_CUDA
+    
+    get_dot_product_dns_csr_dns_dns(idx, sparse,dense,kernel_rows);
+    
+#else
+    LOG(INFO)<<"no implementing !!!!!!!!!!!!!";
+//    get_dot_product_dns_dns(idx, kernel_rows);
+#endif
+    TDEF(kernel)
+    TSTART(kernel)
+    switch (param.kernel_type) {
+        case SvmParam::RBF:
+        case SvmParam::PRECOMPUTED://precomputed uses rbf as default
+            RBF_kernel(idx, self_dot_, kernel_rows, idx.size(), n_instances_, param.gamma);
+            break;
+        case SvmParam::LINEAR:
+            //do nothing
+            break;
+        case SvmParam::POLY:
+            poly_kernel(kernel_rows, param.gamma, param.coef0, param.degree, kernel_rows.size());
+            break;
+        case SvmParam::SIGMOID:
+            sigmoid_kernel(kernel_rows, param.gamma, param.coef0, kernel_rows.size());
+            break;
+    }
+    cudaDeviceSynchronize();
+    TEND(kernel)
+    time3+=TINT(kernel);
+}
+
+void KernelMatrix::get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,SparseData &sparse,DenseData &dense,SyncArray<kernel_type> &dot_product) const{
+    
+    
+    //首先分别得到用来和稀疏矩阵和稠密矩阵相乘的两个稠密矩阵
+    
+    SyncArray<kernel_type> sparse_data_rows(idx.size() * sparse.col);
+    sparse_data_rows.mem_set(0);
+    
+    
+
+    //for sparse
+    TDEF(sparse)
+    TSTART(sparse)
+
+    TDEF(working_set)
+    TSTART(working_set)
+    get_working_set_ins(sparse.val_, sparse.col_ind_, sparse.row_ptr_, idx, sparse_data_rows, idx.size(), sparse.col); //col-major
+    cudaDeviceSynchronize();
+    TEND(working_set)
+    time4+=TINT(working_set);
+
+    dns_csr_mul_part(sparse_data_rows, idx.size(), sparse,dot_product);
+    
+    
+    
+
+    TEND(sparse)
+    time1+=TINT(sparse);
+
+    if(dense.is_use){
+        
+        SyncArray<kernel_type> dense_data_rows(idx.size() * dense.col);
+        dense_data_rows.mem_set(0);
+
+
+        TDEF(dense)
+        TSTART(dense)
+
+        TDEF(working_set)
+        TSTART(working_set)
+        get_working_set_ins_dns(dense.val, idx, dense_data_rows, idx.size(), dense.col,dense.row); //col-major
+        cudaDeviceSynchronize();
+        TEND(working_set)
+        time4+=TINT(working_set);
+        //计算得到结果
+        kernel_type beta = 1.0;
+        dns_dns_mul_part(dense_data_rows,idx.size(),dense,dot_product,beta);
+
+        cudaDeviceSynchronize();
+
+        TEND(dense)
+        time2+=TINT(dense);
+
+    }
+    
+    
+
+}
+
+void KernelMatrix::dns_csr_mul_part(const SyncArray<kernel_type> &dense_mat, int n_rows, SparseData &sparse,SyncArray<kernel_type> &result) const{
+    CHECK_EQ(dense_mat.size(), n_rows * sparse.col) << "dense matrix features doesn't match";
+
+    svm_kernel::dns_csr_mul(n_instances_, n_rows, sparse.col, dense_mat, sparse.val_, sparse.row_ptr_, sparse.col_ind_, sparse.val_.size(), result);
+}
+
+void KernelMatrix::dns_dns_mul_part(const SyncArray<kernel_type> &dense_mat, int n_rows,DenseData &dense,SyncArray<kernel_type> &result,kernel_type beta) const{
+
+    svm_kernel::dns_dns_mul(n_instances_, n_rows, dense.col, dense.val,dense_mat,beta,result);
+}
+
+
+
+
+//bsr
+
 void KernelMatrix::get_dot_product_dns_bsr(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product,
                                             SyncArray<kernel_type> &bsr_val,SyncArray<int> &bsr_offset,SyncArray<int> &bsr_col) const{
     SyncArray<kernel_type> data_rows(idx.size() * n_features_);
@@ -161,104 +276,78 @@ void KernelMatrix::get_rows_bsr(const SyncArray<int> &idx, SyncArray<kernel_type
 
 }
 
+//get bsr format
 
-//new method 
+void KernelMatrix::get_bsr(int blockSize,SyncArray<kernel_type> &bsr_val,SyncArray<int> &bsr_offset,SyncArray<int> &bsr_col) const{
 
-void KernelMatrix::get_sparse_dense_rows(const SyncArray<int> &idx, SparseData &sparse,DenseData &dense,SyncArray<kernel_type> &kernel_rows) const {
-     CHECK_GE(kernel_rows.size(), idx.size() * n_instances_) << "kernel_rows memory is too small";
+    cusparseMatDescr_t descrA;
+    cusparseCreateMatDescr(&descrA);
+    cusparseSetMatType(descrA, CUSPARSE_MATRIX_TYPE_GENERAL );
 
+    cusparseMatDescr_t descrC;
+    cusparseCreateMatDescr(&descrC);
+    cusparseSetMatType(descrC, CUSPARSE_MATRIX_TYPE_GENERAL );
 
-    //check values 
-    // LOG(INFO)<<" check sparse matrix shape is "<<sparse.row<<" "<<sparse.col<<" "<<sparse.is_use;
-#ifdef USE_CUDA
-    
-    get_dot_product_dns_csr_dns_dns(idx, sparse,dense,kernel_rows);
-    
-#else
-    LOG(INFO)<<"no implementing !!!!!!!!!!!!!";
-//    get_dot_product_dns_dns(idx, kernel_rows);
-#endif
-    TDEF(kernel)
-    TSTART(kernel)
-    switch (param.kernel_type) {
-        case SvmParam::RBF:
-        case SvmParam::PRECOMPUTED://precomputed uses rbf as default
-            RBF_kernel(idx, self_dot_, kernel_rows, idx.size(), n_instances_, param.gamma);
-            break;
-        case SvmParam::LINEAR:
-            //do nothing
-            break;
-        case SvmParam::POLY:
-            poly_kernel(kernel_rows, param.gamma, param.coef0, param.degree, kernel_rows.size());
-            break;
-        case SvmParam::SIGMOID:
-            sigmoid_kernel(kernel_rows, param.gamma, param.coef0, kernel_rows.size());
-            break;
+    cusparseDirection_t dir = CUSPARSE_DIRECTION_COLUMN;
+
+    //n_instances_ for row ,n_features_ for col
+    //block row and block col
+    int mb = (n_instances_ + blockSize-1)/blockSize;
+    int nb = (n_features_+blockSize-1)/blockSize;
+
+    int bufferSize;
+    int base, nnzb;
+
+    void *pBuffer;
+
+    cusparseHandle_t handle = NULL;
+    cusparseCreate(&handle);
+
+    cusparseScsr2gebsr_bufferSize(handle, dir, n_instances_, n_features_,descrA, 
+                                    val_.device_data(), row_ptr_.device_data(), col_ind_.device_data(),
+                                    blockSize, blockSize,&bufferSize);
+    cudaMalloc((void**)&pBuffer, bufferSize);
+
+    //cudaMalloc((void**)&bsrRowPtrC, sizeof(int) *(mb+1));
+    bsr_offset.resize(mb+1);
+    int* d_bsr_offset = bsr_offset.device_data();
+
+    int *nnzTotalDevHostPtr = &nnzb;
+    cusparseXcsr2gebsrNnz(handle, dir, n_instances_, n_features_,
+                            descrA, row_ptr_.device_data(), col_ind_.device_data(),
+                            descrC, d_bsr_offset, blockSize, blockSize,
+                            nnzTotalDevHostPtr,
+                            pBuffer);
+
+    if (NULL != nnzTotalDevHostPtr){
+        nnzb = *nnzTotalDevHostPtr;
     }
-    cudaDeviceSynchronize();
-    TEND(kernel)
-    time3+=TINT(kernel);
-}
-
-void KernelMatrix::get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,SparseData &sparse,DenseData &dense,SyncArray<kernel_type> &dot_product) const{
-    
-    
-    //首先分别得到用来和稀疏矩阵和稠密矩阵相乘的两个稠密矩阵
-    TDEF(dot_product)
-    TSTART(dot_product)
-    SyncArray<kernel_type> sparse_data_rows(idx.size() * sparse.col);
-    sparse_data_rows.mem_set(0);
-    
-
-    //for sparse
-    TDEF(sparse)
-    TSTART(sparse)
-    get_working_set_ins(sparse.val_, sparse.col_ind_, sparse.row_ptr_, idx, sparse_data_rows, idx.size(), sparse.col); //col-major
-    dns_csr_mul_part(sparse_data_rows, idx.size(), sparse,dot_product);
-    
-    
-    cudaDeviceSynchronize();
-
-    TEND(sparse)
-    time1+=TINT(sparse);
-    //for dense 先简单的cpu实现
-
-    if(dense.is_use){
-        
-        SyncArray<kernel_type> dense_data_rows(idx.size() * dense.col);
-        dense_data_rows.mem_set(0);
-
-
-        TDEF(dense)
-        TSTART(dense)
-        get_working_set_ins_dns(dense.val, idx, dense_data_rows, idx.size(), dense.col);
-        //计算得到结果
-        kernel_type beta = 1.0;
-        dns_dns_mul_part(dense_data_rows,idx.size(),dense,dot_product,beta);
-
-        cudaDeviceSynchronize();
-
-        TEND(dense)
-        time2+=TINT(dense);
-
+    else{
+        cudaMemcpy(&nnzb, d_bsr_offset+mb, sizeof(int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(&base, d_bsr_offset, sizeof(int), cudaMemcpyDeviceToHost);
+        nnzb -= base;
     }
-    
-    
+    LOG(INFO)<<"blockSize is "<<blockSize<<" mb is "<<mb<<" nb is "<<nb<<" nnzb is "<<nnzb;
+    // cudaMalloc((void**)&bsrColIndC, sizeof(int)*nnzb);
+    // cudaMalloc((void**)&bsrValC, sizeof(float)*(rowBlockDim*colBlockDim)*nnzb);
+    bsr_col.resize(nnzb);
+    bsr_val.resize((blockSize*blockSize)*nnzb);
+    kernel_type* d_bsr_val = bsr_val.device_data();
+    int* d_bsr_col = bsr_col.device_data();
+
+    cusparseScsr2gebsr(handle, dir, n_instances_, n_features_,
+                        descrA,
+                        val_.device_data(), row_ptr_.device_data(), col_ind_.device_data(),
+                        descrC,
+                        d_bsr_val, d_bsr_offset, d_bsr_col,
+                        blockSize, blockSize,
+                        pBuffer);
+
+    cudaDeviceSynchronize();
+    cudaFree(pBuffer);
+    cusparseDestroy(handle);
 
 }
-
-void KernelMatrix::dns_csr_mul_part(const SyncArray<kernel_type> &dense_mat, int n_rows, SparseData &sparse,SyncArray<kernel_type> &result) const{
-    CHECK_EQ(dense_mat.size(), n_rows * sparse.col) << "dense matrix features doesn't match";
-
-    svm_kernel::dns_csr_mul(n_instances_, n_rows, sparse.col, dense_mat, sparse.val_, sparse.row_ptr_, sparse.col_ind_, sparse.val_.size(), result);
-}
-
-void KernelMatrix::dns_dns_mul_part(const SyncArray<kernel_type> &dense_mat, int n_rows,DenseData &dense,SyncArray<kernel_type> &result,kernel_type beta) const{
-
-    svm_kernel::dns_dns_mul(n_instances_, n_rows, dense.col, dense.val,dense_mat,beta,result);
-}
-
-
 
 
 

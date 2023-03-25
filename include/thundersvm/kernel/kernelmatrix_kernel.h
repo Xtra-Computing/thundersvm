@@ -57,7 +57,7 @@ namespace svm_kernel {
                                               SyncArray<kernel_type> &result);
     void
         get_working_set_ins_dns(const SyncArray<kernel_type> &val, 
-                                    const SyncArray<int> &data_row_idx, SyncArray<kernel_type> &data_rows, int m, int n);
+                                    const SyncArray<int> &data_row_idx, SyncArray<kernel_type> &data_rows, int m, int n,int n_instances);
     
 
 #ifndef USE_CUDA

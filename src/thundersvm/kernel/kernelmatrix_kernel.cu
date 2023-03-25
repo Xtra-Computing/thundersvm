@@ -31,12 +31,7 @@ namespace svm_kernel {
                 int col = col_ind[j];
                 data_rows[col * m + i] = val[j]; // col-major for cuSPARSE
             }
-            //replace col-major to row-major
-            //int row = data_row_idx[i];
-            //for (int j = row_ptr[row]; j < row_ptr[row + 1]; ++j) {
-            //    int col = col_ind[j];
-            //    data_rows[i*n+col] = val[j]; // row-major for cuSPARSE
-            //}
+
         }
     }
 
@@ -44,14 +39,17 @@ namespace svm_kernel {
     __global__ void
     kernel_get_working_set_ins_dns(const kernel_type *val, const int *data_row_idx,
                                kernel_type *data_rows,
-                               int m, int n) {
+                               int m, int n,int n_instances) {
         KERNEL_LOOP(i, m) {
             int row = data_row_idx[i];
             for (int j = 0; j < n; ++j) {
 
                 //data_rows[i*n + j] = val[row*n+j]; // row-major for cublas
 
-                data_rows[i + j*m] = val[row*n+j]; // col-major for cublas
+                // data_rows[i + j*m] = val[row*n+j]; // col-major for cublas
+
+                data_rows[i + j*m] = val[row+j*n_instances]; // col-major for cublas, val col major
+
             }
         }
     }
@@ -143,10 +141,10 @@ namespace svm_kernel {
 
     void
     get_working_set_ins_dns(const SyncArray<kernel_type> &val, 
-                            const SyncArray<int> &data_row_idx, SyncArray<kernel_type> &data_rows, int m, int n){
+                            const SyncArray<int> &data_row_idx, SyncArray<kernel_type> &data_rows, int m, int n,int n_instances){
 
         SAFE_KERNEL_LAUNCH(kernel_get_working_set_ins_dns, val.device_data(),
-                           data_row_idx.device_data(), data_rows.device_data(), m, n);
+                           data_row_idx.device_data(), data_rows.device_data(), m, n,n_instances);
     }
 
     void
@@ -272,7 +270,8 @@ namespace svm_kernel {
         // cublasSgemm(handle_blas,CUBLAS_OP_T,CUBLAS_OP_N, m, n, k,&alpha,dense_a.device_data(), k, dense_b.device_data(), k,&beta, result.device_data(), m);
 
         //dense b :k*n
-        cublasSgemm(handle_blas,CUBLAS_OP_T,CUBLAS_OP_T, m, n, k,&alpha,dense_a.device_data(), k, dense_b.device_data(), n,&beta, result.device_data(), m);
+        // cublasSgemm(handle_blas,CUBLAS_OP_T,CUBLAS_OP_T, m, n, k,&alpha,dense_a.device_data(), k, dense_b.device_data(), n,&beta, result.device_data(), m);
+        cublasSgemm(handle_blas,CUBLAS_OP_N,CUBLAS_OP_T, m, n, k,&alpha,dense_a.device_data(), m, dense_b.device_data(), n,&beta, result.device_data(), m);
         
 
     }

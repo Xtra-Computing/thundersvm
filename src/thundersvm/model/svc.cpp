@@ -7,6 +7,13 @@
 #include <thundersvm/model/svc.h>
 #include <thundersvm/solver/csmosolver.h>
 
+typedef std::chrono::high_resolution_clock Clock;
+#define TDEF(x_) std::chrono::high_resolution_clock::time_point x_##_t0, x_##_t1;
+#define TSTART(x_) x_##_t0 = Clock::now();
+#define TEND(x_) x_##_t1 = Clock::now();
+#define TPRINT(x_, str) printf("%-20s \t%.6f\t sec\n", str, std::chrono::duration_cast<std::chrono::microseconds>(x_##_t1 - x_##_t0).count()/1e6);
+#define TINT(x_) std::chrono::duration_cast<std::chrono::microseconds>(x_##_t1 - x_##_t0).count()
+
 using std::ofstream;
 using std::endl;
 using std::setprecision;
@@ -47,6 +54,8 @@ void SVC::train(const DataSet &dataset, SvmParam param) {
     vector<bool> is_sv(dataset_.n_instances(), false);
 
     int k = 0;
+    TDEF(total)
+    TSTART(total)
     for (int i = 0; i < n_classes; ++i) {
         for (int j = i + 1; j < n_classes; ++j) {
             train_binary(dataset_, i, j, alpha[k], rho.host_data()[k]);
@@ -59,6 +68,8 @@ void SVC::train(const DataSet &dataset, SvmParam param) {
             k++;
         }
     }
+    TEND(total)
+    TPRINT(total,"total training time is ")
 
     for (int i = 0; i < dataset_.n_classes(); ++i) {
         vector<int> original_index = dataset_.original_index(i);

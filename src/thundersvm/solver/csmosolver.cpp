@@ -127,8 +127,6 @@ void CSR_DenseCSR(const KernelMatrix &k_mat, DenseData &dense,SparseData &sparse
         dense.is_use = true;
 
         kernel_type *h_dense = dense.val.host_data();
-
-        // std::vector<float_type> tmp_dense(m*densecolnum);
         
         for (int i=0,p_row=0;i<n;i++){
             if (densefg[i]==true){
@@ -148,8 +146,8 @@ void CSR_DenseCSR(const KernelMatrix &k_mat, DenseData &dense,SparseData &sparse
             for (int j=csr_row_begin;j<csr_row_end;j++) {
                 if (densefg[csr_col_ind[j]] == true) {
 
-                    h_dense[i * densecolnum + dense.Ttable[csr_col_ind[j]]] = csr_val[j];  //row major
-                    // h_dense[i + m*dense.Ttable[csr_col_ind[j]]] = csr_val[j];  //col major
+                    // h_dense[i * densecolnum + dense.Ttable[csr_col_ind[j]]] = csr_val[j];  //row major
+                    h_dense[i + m*dense.Ttable[csr_col_ind[j]]] = csr_val[j];  //col major
 
 
                     
@@ -157,11 +155,6 @@ void CSR_DenseCSR(const KernelMatrix &k_mat, DenseData &dense,SparseData &sparse
             }
         }
 
-        // for(int i=0;i<densecolnum;i++){
-        //     for(int j = 0;j<m;j++){
-        //         h_dense[i*m+j] = tmp_dense[j*densecolnum+i];
-        //     }
-        // }
 
         int count = 0;
         for(int i=0;i<m*densecolnum;i++){
@@ -300,11 +293,11 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
     LOG(INFO)<<"matrix partition time is  "<<part/1e6;
     LOG(INFO)<<"sparse ratio is "<<100.0*k_mat.nnz()/(n_instances*k_mat.n_features());
 
-    //csr to dsr convert
+    //csr to bsr convert
     //SyncArray<int> bsr_col(1);
     //SyncArray<int> bsr_offset(1);
     //SyncArray<kernel_type> bsr_val(1);
-    //int blockSize = 2;
+    //int blockSize = 4;
     //TDEF(bsr)
     //TSTART(bsr)
     //k_mat.get_bsr(blockSize,bsr_val,bsr_offset,bsr_col);
@@ -438,7 +431,7 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
     
     LOG(INFO)<<"get rows time is "<<get_rows_time/1e6;
     LOG(INFO)<<"    select rows time is "<<select_rows/1e6;
-    LOG(INFO)<<"    dot product time is "<<time4/1e6;
+    LOG(INFO)<<"    working_set get dense time is "<<time4/1e6;
     LOG(INFO)<<"    sparse rows time is "<<time1/1e6;
     LOG(INFO)<<"    dense rows time is "<<time2/1e6;
     LOG(INFO)<<"    kernel func time is "<<time3/1e6;
