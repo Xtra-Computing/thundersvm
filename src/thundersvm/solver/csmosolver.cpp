@@ -281,7 +281,7 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
     //根据矩阵的稀疏程度以及数据的样本数和特征维度数目，动态选择计算方法
     float sparse_ratio = 100.0*k_mat.nnz()/(n_instances*k_mat.n_features());
     int method_flag = 0;//0 for origin , 1 for partition to dns and csr, 2 for bsr
-    LOG(INFO)<<"sparse ratio is "<<sparse_ratio;
+    LOG(INFO)<<"instance num is "<<n_instances<<" feature num is "<<k_mat.n_features()<<" nnz is "<<k_mat.nnz()<<" sparse ratio is "<<sparse_ratio;
 
 
     SparseData sparse_mat;
@@ -307,7 +307,12 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
         if(sparse_ratio >90)
             blockSize = 16;
         k_mat.get_bsr(blockSize,bsr_val,bsr_offset,bsr_col);
+        float block_ratio = blockSize*blockSize*bsr_col.size()*1.0/k_mat.nnz();
+        LOG(INFO)<<"block ratio is "<<block_ratio;
+        if(block_ratio>=2.0)
+            method_flag = 0;
     }
+    LOG(INFO)<<"using mehod "<<method_flag;
 
     
     
