@@ -297,10 +297,16 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
 
     if(n_instances>100000 || k_mat.n_features()>n_instances){
         method_flag = 1;
+        TDEF(part)
+        TSTART(part)
         CSR_DenseCSR(k_mat,dense_mat,sparse_mat);
-        LOG(INFO)<<"sparse matrix shape is "<<sparse_mat.row<<" "<<sparse_mat.col<<" "<<sparse_mat.is_use;
+        TEND(part)
+        TPRINT(part,"sparse matrix partitioning time is ")
+
+        LOG(INFO)<<"sparse matrix shape is "<<sparse_mat.row<<" "<<sparse_mat.col<<" sparse part nnz is "<<sparse_mat.val_.size()<<" if sparse part is use "<<sparse_mat.is_use;
         LOG(INFO)<<"    part sparse matrix ratio is "<<100.0*sparse_mat.val_.size()/(n_instances*k_mat.n_features());
         LOG(INFO)<<"dense matrix shape is "<<dense_mat.row<<" "<<dense_mat.col<<" "<<dense_mat.is_use;
+
     }
     else if(sparse_ratio>10){
         method_flag = 2;
@@ -312,7 +318,7 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
         if(block_ratio>=2.0)
             method_flag = 0;
     }
-    LOG(INFO)<<"using mehod "<<method_flag;
+    LOG(INFO)<<"using method "<<method_flag;
 
     
     

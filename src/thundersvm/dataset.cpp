@@ -75,7 +75,7 @@ void DataSet::load_from_file(string file_name) {
                 while (ss >> tuple) {
                     int i;
                     float v;
-                    CHECK_EQ(sscanf(tuple.c_str(), "%d:%f", &i, &v), 2) << "read error, using [index]:[value] format";
+                    CHECK_EQ(sscanf(tuple.c_str(), "%d:%f", &i, &v), 2) << "read error, using [index]:[value] format now is "<<tuple.c_str();
                     instances_thread[tid].back().emplace_back(i, v);
 					if(i == 0 && zero_based == 0) zero_based = 1;
                     if (i > local_feature[tid]) local_feature[tid] = i;

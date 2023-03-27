@@ -69,7 +69,7 @@ fi
 if [ $1 -eq 8 ];then
 echo "run epsilon_normalized"
 ./bin/thundersvm-train -c 0.01 -g 1 ../dataset/epsilon_normalized
-./bin/thundersvm-predict ../dataset/epsilon_normalized epsilon_normalized.model epsilon_normalized.predict
+#./bin/thundersvm-predict ../dataset/epsilon_normalized epsilon_normalized.model epsilon_normalized.predict
 rm -rf epsilon_normalized*
 fi
 

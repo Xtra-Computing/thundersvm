@@ -233,6 +233,9 @@ void KernelMatrix::dns_dns_mul_part(const SyncArray<kernel_type> &dense_mat, int
 
 void KernelMatrix::get_dot_product_dns_bsr(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product,
                                             SyncArray<kernel_type> &bsr_val,SyncArray<int> &bsr_offset,SyncArray<int> &bsr_col) const{
+    
+    TDEF(sparse)
+    TSTART(sparse)
     SyncArray<kernel_type> data_rows(idx.size() * n_features_);
     data_rows.mem_set(0);
     get_working_set_ins(val_, col_ind_, row_ptr_, idx, data_rows, idx.size(), n_features_);
@@ -240,6 +243,9 @@ void KernelMatrix::get_dot_product_dns_bsr(const SyncArray<int> &idx, SyncArray<
     svm_kernel::bsr_dns_mul(n_instances_, idx.size(), n_features_, data_rows, bsr_val,
                      bsr_offset, bsr_col,
                      dot_product);
+    cudaDeviceSynchronize();
+    TEND(sparse)
+    time1+=TINT(sparse);
 
 }
 //bsr dns mul
@@ -343,7 +349,6 @@ void KernelMatrix::get_bsr(int blockSize,SyncArray<kernel_type> &bsr_val,SyncArr
                         blockSize, blockSize,
                         pBuffer);
 
-    cudaDeviceSynchronize();
     cudaFree(pBuffer);
     cusparseDestroy(handle);
 

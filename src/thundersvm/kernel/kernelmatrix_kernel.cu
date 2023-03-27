@@ -40,6 +40,7 @@ namespace svm_kernel {
     kernel_get_working_set_ins_dns(const kernel_type *val, const int *data_row_idx,
                                kernel_type *data_rows,
                                int m, int n,int n_instances) {
+        
         KERNEL_LOOP(i, m) {
             int row = data_row_idx[i];
             for (int j = 0; j < n; ++j) {
@@ -52,6 +53,7 @@ namespace svm_kernel {
 
             }
         }
+            
     }
 
     __global__ void
