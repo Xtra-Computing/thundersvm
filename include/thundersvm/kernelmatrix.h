@@ -26,16 +26,13 @@ struct DenseData{
     SyncArray<kernel_type> val;
     int row = 0;
     int col = 0;
-    int* Ttable;
+    // int* Ttable;
     // int* Ftable;
     bool is_use = false;
 };
 
 
-struct Node{
-    int num;
-    int x; //for col
-};
+
 /**
  * @brief The management class of kernel values.
  */
@@ -86,11 +83,12 @@ class KernelMatrix{
         void get_bsr(int blockSize,SyncArray<kernel_type> &bsr_val,SyncArray<int> &bsr_offset,SyncArray<int> &bsr_col) const;
         void get_rows_bsr(const SyncArray<int> &idx, SyncArray<kernel_type> &kernel_rows,
                                         SyncArray<kernel_type> &bsr_val,SyncArray<int> &bsr_offset,SyncArray<int> &bsr_col) const;
-        //csc 
-        void get_csc(SyncArray<kernel_type> &csc_val,SyncArray<int> &csc_offset,SyncArray<int> &csc_col) const;
 
-        void get_rows_csc(const SyncArray<int> &idx, SyncArray<kernel_type> &kernel_rows,
-                                        SyncArray<kernel_type> &csc_val,SyncArray<int> &csc_offset,SyncArray<int> &csc_col) const;
+        //get sparse and dense
+        // const SparseData get_sparse_part() const {return sparse_mat;}
+        // const DenseData get_dense_part() const {return dense_mat;}
+        // const int get_method_flag() const {return method_flag_;}
+        
 
     private:
         KernelMatrix &operator=(const KernelMatrix &) const;
@@ -102,6 +100,18 @@ class KernelMatrix{
         SyncArray<int> row_ptr_;
         SyncArray<kernel_type> diag_;
         SyncArray<kernel_type> self_dot_;
+
+        //get sparse and dense
+        SparseData sparse_mat_;
+        DenseData dense_mat_;
+
+        //multiplication method 
+        int method_flag_ ;
+        
+        //bsr
+        size_t nnzb_;
+        
+
         size_t nnz_;
         size_t n_instances_;
         size_t n_features_;
@@ -125,9 +135,10 @@ class KernelMatrix{
         void get_dot_product_sparse(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const;
         
         //new
-        void get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,SparseData &sparse,DenseData &dense,SyncArray<kernel_type> &dot_product) const;
-        void dns_csr_mul_part(const SyncArray<kernel_type> &dense_mat, int n_rows,SparseData &sparse,SyncArray<kernel_type> &result) const;
-        void dns_dns_mul_part(const SyncArray<kernel_type> &dense_mat, int n_rows,DenseData &dense,SyncArray<kernel_type> &result,kernel_type beta) const;
+        void get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,const SparseData &sparse,const DenseData &dense,SyncArray<kernel_type> &dot_product) const;
+        void dns_csr_mul_part(const SyncArray<kernel_type> &dense_mat, int n_rows,const SparseData &sparse,SyncArray<kernel_type> &result) const;
+        void dns_dns_mul_part(const SyncArray<kernel_type> &dense_mat, int n_rows,const DenseData &dense,SyncArray<kernel_type> &result,kernel_type beta) const;
+        
         void get_dot_product_csr_csr_cuda(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const;
         void get_dot_product_dns_bsr(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product,
                                                     SyncArray<kernel_type> &bsr_val,SyncArray<int> &bsr_offset,SyncArray<int> &bsr_col) const;

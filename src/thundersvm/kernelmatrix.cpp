@@ -5,7 +5,7 @@
 #include "thundersvm/kernelmatrix.h"
 #include "thundersvm/kernel/kernelmatrix_kernel.h"
 #include <cusparse.h>
-
+#include <numeric> 
 #include <chrono>
 typedef std::chrono::high_resolution_clock Clock;
 #define TDEF(x_) std::chrono::high_resolution_clock::time_point x_##_t0, x_##_t1;
@@ -19,11 +19,178 @@ extern long long time1;
 extern long long time2;
 extern long long time3;
 extern long long time4;
+
+
+void CSR_DenseCSR(size_t m,size_t n,vector<kernel_type> &csr_val,vector<int> &csr_row_ptr,vector<int> &csr_col_ind, DenseData &dense,SparseData &sparse){
+
+
+    /*计算每一列的稀疏程度
+    然后根据阈值划分为稀疏矩阵和稠密矩阵*/
+
+    // Calculate the number of non-zero elements in each column
+    std::vector<int> col_num(n, 0);
+    #pragma omp parallel for
+    for (int i = 0; i < m; i++) {
+        for (int j = csr_row_ptr[i]; j < csr_row_ptr[i + 1]; j++) {
+            #pragma omp atomic
+            col_num[csr_col_ind[j]]++;
+        }
+    }
+
+    // Sort columns by their sparsity level
+    std::vector<int> col_indices(n);
+    std::iota(col_indices.begin(), col_indices.end(), 0);
+    std::sort(col_indices.begin(), col_indices.end(), [&](int i, int j) {
+        if (col_num[i] != col_num[j]) {
+            return col_num[i] < col_num[j];
+        } else {
+            return i < j;
+        }
+    });
+
+
+    //start partition       
+    long long row_sum_num=0; //for calculating ratio
+
+    std::vector<bool> densefg(n, 0);
+    for (int i=0;i<n;i++) densefg[i]=true;
+
+
+    int densecolnum=n;
+
+    long long total_csr=0;
+
+    long long total_dense=m*n;
+
+    double ratio;
+    for (int i = 0; i < n; ++i)
+    {
+
+        total_csr+=col_num[col_indices[i]];
+        total_dense-=m;
+
+        row_sum_num+=m;
+
+        ratio = 1.0l*total_csr/row_sum_num;
+
+        if (ratio > 0.05 || 1.0l*col_num[col_indices[i]]/m > 0.5 ||total_csr * 4 > total_dense){
+            break;
+        }
+
+        densecolnum--;
+        densefg[col_indices[i]]= false;
+    }
+
+
+    //initialization dense and sparse
+    int dense_data_count=0;
+    if(densecolnum>0){
+        dense.val.resize(m*densecolnum);
+        dense.row=m;
+        dense.col=densecolnum;
+        // int* Ttable=new int[n];
+        std::vector<int> Ttable(n,0);
+        dense.is_use = true;
+
+        kernel_type *h_dense = dense.val.host_data();
+        
+        for (int i=0,p_row=0;i<n;i++){
+            if (densefg[i]==true){
+
+                Ttable[i]=p_row;
+                p_row++;
+               
+            }
+        }
+
+        #pragma omp parallel for 
+        for (int i=0;i<m;i++){
+            int csr_row_begin = csr_row_ptr[i];
+            int csr_row_end = csr_row_ptr[i+1];
+
+            for (int j=csr_row_begin;j<csr_row_end;j++) {
+                if (densefg[csr_col_ind[j]] == true) {
+
+                    // h_dense[i * densecolnum + dense.Ttable[csr_col_ind[j]]] = csr_val[j];  //row major
+                    h_dense[i + m*Ttable[csr_col_ind[j]]] = csr_val[j];  //col major
+     
+                }
+            }
+        }
+
+        for(int i =0;i<m*densecolnum;i++){
+            if(h_dense[i]!=0){
+                dense_data_count++;
+            }
+        }
+        LOG(INFO)<<"    dense part dense ratio is "<<100.0*dense_data_count/(m*densecolnum);
+    }
+
+    
+
+    
+    
+    //sparse
+    std::vector<kernel_type> val_data;
+    std::vector<int> row_ptr;
+    std::vector<int> col_ptr;
+
+    val_data.clear();
+    col_ptr.clear();
+    row_ptr.clear();
+    row_ptr.push_back(0);
+
+    sparse.row=m;
+    sparse.col=n;
+    // sparse.col = n - densecolnum;
+
+    //map from original col to new col
+
+    // std::vector<int> tmp_sparse_col_map(n);
+    // for(int i= 0 ,p_row = 0;i<n;i++){
+    //     if (densefg[col_indices[i]]==false){
+
+    //         tmp_sparse_col_map[col_indices[i]]=p_row;
+    //         p_row++;
+               
+    //     }   
+    // }
+
+    //csr
+    if(densecolnum<n && dense_data_count!=csr_val.size()){
+        sparse.is_use = true;
+        for (int i=0;i<m;i++){
+            int csr_row_begin = csr_row_ptr[i];
+            int csr_row_end = csr_row_ptr[i+1];
+            for (int j=csr_row_begin;j<csr_row_end;j++){
+                if (densefg[csr_col_ind[j]]==false){
+
+                    val_data.push_back(csr_val[j]);
+                    col_ptr.push_back(csr_col_ind[j]);
+                    // col_ptr.push_back(tmp_sparse_col_map[csr_col_ind[j]]);
+                    
+                }
+            }
+            row_ptr.push_back(val_data.size());   
+
+        }
+        sparse.val_.resize(val_data.size());
+        sparse.col_ind_.resize(col_ptr.size());
+        sparse.row_ptr_.resize(row_ptr.size());
+
+        sparse.val_.copy_from(val_data.data(), val_data.size());
+        sparse.col_ind_.copy_from(col_ptr.data(), col_ptr.size());
+        sparse.row_ptr_.copy_from(row_ptr.data(), row_ptr.size());
+    }
+    
+}
+
+//
 KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
     n_instances_ = instances.size();
     n_features_ = 0;
     this->param = param;
-
+    
     //three arrays for csr representation
     vector<kernel_type> csr_val;
     vector<int> csr_col_ind;//index of each value of all the instances
@@ -43,10 +210,21 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
     }
     n_features_++;
 
+    //matrix partitioning 
+    CSR_DenseCSR(n_instances_, n_features_,csr_val, csr_row_ptr, csr_col_ind, dense_mat_,sparse_mat_);
+    method_flag_ = 1;
+    LOG(INFO)<<"sparse part is use "<<sparse_mat_.is_use<<" dense part is use "<<dense_mat_.is_use;
+    //output matrix information
+    LOG(INFO)<<"original csr nnz is "<<csr_val.size()<<" row is "<<n_instances_<<" col is "<<n_features_;
+    LOG(INFO)<<"after partitioning: ";
+    LOG(INFO)<<"    sparse part nnz is "<<sparse_mat_.val_.size()<<" row is "<<n_instances_<<" col is "<<n_features_;
+    LOG(INFO)<<"    dense part row is "<<dense_mat_.row<<" col is "<<dense_mat_.col;
     //three arrays (on GPU/CPU) for csr representation
     val_.resize(csr_val.size());
     col_ind_.resize(csr_col_ind.size());
     row_ptr_.resize(csr_row_ptr.size());
+
+
     //copy data to the three arrays
     val_.copy_from(csr_val.data(), val_.size());
     col_ind_.copy_from(csr_col_ind.data(), col_ind_.size());
@@ -90,7 +268,8 @@ void KernelMatrix::get_rows(const SyncArray<int> &idx,
     //check values 
     //LOG(INFO)<<idx.size()<<" "<<n_instances_<<" "<<n_features_<<" "<<nnz_;
 #ifdef USE_CUDA
-    get_dot_product_dns_csr(idx, kernel_rows);
+    get_dot_product_dns_csr_dns_dns(idx, sparse_mat_,dense_mat_,kernel_rows);
+    // get_dot_product_dns_csr(idx, kernel_rows);
     //get_dot_product_csr_csr_cuda(idx, kernel_rows);
 #else
 	if(n_features_ < 1000000)
@@ -156,7 +335,7 @@ void KernelMatrix::get_sparse_dense_rows(const SyncArray<int> &idx, SparseData &
     time3+=TINT(kernel);
 }
 
-void KernelMatrix::get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,SparseData &sparse,DenseData &dense,SyncArray<kernel_type> &dot_product) const{
+void KernelMatrix::get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,const SparseData &sparse,const DenseData &dense,SyncArray<kernel_type> &dot_product) const{
     
     
     //首先分别得到用来和稀疏矩阵和稠密矩阵相乘的两个稠密矩阵
@@ -164,26 +343,27 @@ void KernelMatrix::get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,Spa
     SyncArray<kernel_type> sparse_data_rows(idx.size() * sparse.col);
     sparse_data_rows.mem_set(0);
     
-    
+    kernel_type beta = 0.0;
+    if(sparse.is_use)
+    {   
+        beta = 1.0;
+        //for sparse
+        TDEF(sparse)
+        TSTART(sparse)
 
-    //for sparse
-    TDEF(sparse)
-    TSTART(sparse)
+        TDEF(working_set)
+        TSTART(working_set)
+        get_working_set_ins(sparse.val_, sparse.col_ind_, sparse.row_ptr_, idx, sparse_data_rows, idx.size(), sparse.col); //col-major
+        cudaDeviceSynchronize();
+        TEND(working_set)
+        time4+=TINT(working_set);
 
-    TDEF(working_set)
-    TSTART(working_set)
-    get_working_set_ins(sparse.val_, sparse.col_ind_, sparse.row_ptr_, idx, sparse_data_rows, idx.size(), sparse.col); //col-major
-    cudaDeviceSynchronize();
-    TEND(working_set)
-    time4+=TINT(working_set);
+        dns_csr_mul_part(sparse_data_rows, idx.size(), sparse,dot_product);
+        
 
-    dns_csr_mul_part(sparse_data_rows, idx.size(), sparse,dot_product);
-    
-    
-    
-
-    TEND(sparse)
-    time1+=TINT(sparse);
+        TEND(sparse)
+        time1+=TINT(sparse);
+    }
 
     if(dense.is_use){
         
@@ -201,7 +381,7 @@ void KernelMatrix::get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,Spa
         TEND(working_set)
         time4+=TINT(working_set);
         //计算得到结果
-        kernel_type beta = 1.0;
+        
         dns_dns_mul_part(dense_data_rows,idx.size(),dense,dot_product,beta);
 
         cudaDeviceSynchronize();
@@ -215,13 +395,13 @@ void KernelMatrix::get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,Spa
 
 }
 
-void KernelMatrix::dns_csr_mul_part(const SyncArray<kernel_type> &dense_mat, int n_rows, SparseData &sparse,SyncArray<kernel_type> &result) const{
+void KernelMatrix::dns_csr_mul_part(const SyncArray<kernel_type> &dense_mat, int n_rows,const  SparseData &sparse,SyncArray<kernel_type> &result) const{
     CHECK_EQ(dense_mat.size(), n_rows * sparse.col) << "dense matrix features doesn't match";
 
     svm_kernel::dns_csr_mul(n_instances_, n_rows, sparse.col, dense_mat, sparse.val_, sparse.row_ptr_, sparse.col_ind_, sparse.val_.size(), result);
 }
 
-void KernelMatrix::dns_dns_mul_part(const SyncArray<kernel_type> &dense_mat, int n_rows,DenseData &dense,SyncArray<kernel_type> &result,kernel_type beta) const{
+void KernelMatrix::dns_dns_mul_part(const SyncArray<kernel_type> &dense_mat, int n_rows,const DenseData &dense,SyncArray<kernel_type> &result,kernel_type beta) const{
 
     svm_kernel::dns_dns_mul(n_instances_, n_rows, dense.col, dense.val,dense_mat,beta,result);
 }
@@ -451,6 +631,7 @@ void KernelMatrix::get_dot_product(const DataSet::node2d &instances, SyncArray<k
         }
     }
     dns_csr_mul(dense_ins, instances.size(), dot_product);
+
 }
 #ifndef USE_CUDA
 void KernelMatrix::get_dot_product_csr_csr(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const {

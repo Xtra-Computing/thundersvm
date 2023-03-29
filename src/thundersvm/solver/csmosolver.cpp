@@ -20,213 +20,6 @@ long long time3 = 0;
 long long time4 = 0;
 
 
-// //csr to csr part and dense part
-// struct SparseData{
-//     SyncArray<kernel_type> val_;
-//     SyncArray<int> col_ind_;
-//     SyncArray<int> row_ptr_;
-//     // int* table;
-//     int row;
-//     int col;
-//     bool is_use = false;
-// };
-
-
-// struct DenseData{
-//     SyncArray<kernel_type> val;
-//     int row;
-//     int col;
-//     int* Ttable;
-//     // int* Ftable;
-//     bool is_use = false;
-// };
-
-
-// struct Node{
-//     int num;
-//     int x; //for col
-// };
-void CSR_DenseCSR(const KernelMatrix &k_mat, DenseData &dense,SparseData &sparse){
-    const long long m = k_mat.n_instances();
-
-    const long long n = k_mat.n_features();
-
-
-    const kernel_type * csr_val = k_mat.get_val_host();
-    const int * csr_row_ptr = k_mat.get_row_host();
-    const int * csr_col_ind = k_mat.get_col_host();
-
-
-
-    /*计算每一列的稀疏程度
-    然后根据阈值划分为稀疏矩阵和稠密矩阵*/
-
-    // Calculate the number of non-zero elements in each column
-    std::vector<int> col_num(n, 0);
-    #pragma omp parallel for
-    for (int i = 0; i < m; i++) {
-        for (int j = csr_row_ptr[i]; j < csr_row_ptr[i + 1]; j++) {
-            #pragma omp atomic
-            col_num[csr_col_ind[j]]++;
-        }
-    }
-
-    // Sort columns by their sparsity level
-    std::vector<int> col_indices(n);
-    std::iota(col_indices.begin(), col_indices.end(), 0);
-    std::sort(col_indices.begin(), col_indices.end(), [&](int i, int j) {
-        if (col_num[i] != col_num[j]) {
-            return col_num[i] < col_num[j];
-        } else {
-            return i < j;
-        }
-    });
-
-
-    //start partition
-
-       
-    long long row_sum_num=0; //for calculating ratio
-
-    std::vector<bool> densefg(n, 0);
-    for (int i=0;i<n;i++) densefg[i]=true;
-
-
-    int densecolnum=n;
-
-    long long total_csr=0;
-
-    long long total_dense=m*n;
-
-    double ratio;
-    for (int i = 0; i < n; ++i)
-    {
-
-        total_csr+=col_num[col_indices[i]];
-        total_dense-=m;
-
-        row_sum_num+=m;
-
-        ratio = 1.0l*total_csr/row_sum_num;
-
-        if (ratio > 0.05 || 1.0l*col_num[col_indices[i]]/m > 0.5 ||total_csr * 4 > total_dense){
-            break;
-        }
-
-        densecolnum--;
-        densefg[col_indices[i]]= false;
-    }
-
-    //initialization dense and sparse
-
-    if(densecolnum>0){
-        dense.val.resize(m*densecolnum);
-        dense.row=m;
-        dense.col=densecolnum;
-        dense.Ttable=new int[n];
-        dense.is_use = true;
-
-        kernel_type *h_dense = dense.val.host_data();
-        
-        for (int i=0,p_row=0;i<n;i++){
-            if (densefg[i]==true){
-
-                dense.Ttable[i]=p_row;
-                p_row++;
-               
-            }
-        }
-
-
-        #pragma omp parallel for 
-        for (int i=0;i<m;i++){
-            int csr_row_begin = csr_row_ptr[i];
-            int csr_row_end = csr_row_ptr[i+1];
-
-            for (int j=csr_row_begin;j<csr_row_end;j++) {
-                if (densefg[csr_col_ind[j]] == true) {
-
-                    // h_dense[i * densecolnum + dense.Ttable[csr_col_ind[j]]] = csr_val[j];  //row major
-                    h_dense[i + m*dense.Ttable[csr_col_ind[j]]] = csr_val[j];  //col major
-
-
-                    
-                }
-            }
-        }
-
-
-        int count = 0;
-        for(int i=0;i<m*densecolnum;i++){
-            if(h_dense[i]!=0){
-                count++;
-            }
-        }
-        LOG(INFO)<<"    part dense matrix dense ratio is "<<100.0*count/(m*densecolnum);
-    }
-    
-    //sparse
-    std::vector<kernel_type> val_data;
-    std::vector<int> row_ptr;
-    std::vector<int> col_ptr;
-
-    val_data.clear();
-    col_ptr.clear();
-    row_ptr.clear();
-    row_ptr.push_back(0);
-
-    sparse.row=m;
-    // sparse.col=n;
-    sparse.col = n - densecolnum;
-
-    //map from original col to new col
-
-    std::vector<int> tmp_sparse_col_map(n);
-    for(int i= 0 ,p_row = 0;i<n;i++){
-        if (densefg[col_indices[i]]==false){
-
-            tmp_sparse_col_map[col_indices[i]]=p_row;
-            p_row++;
-               
-        }   
-    }
-
-    //csr
-    if(densecolnum<n){
-        sparse.is_use = true;
-        for (int i=0;i<m;i++){
-            int csr_row_begin = csr_row_ptr[i];
-            int csr_row_end = csr_row_ptr[i+1];
-            for (int j=csr_row_begin;j<csr_row_end;j++){
-                if (densefg[csr_col_ind[j]]==false){
-
-                    val_data.push_back(csr_val[j]);
-                    // col_ptr.push_back(csr_col_ind[j]);
-                    col_ptr.push_back(tmp_sparse_col_map[csr_col_ind[j]]);
-                    
-                }
-            }
-
-            row_ptr.push_back(val_data.size());   
-
-        }
-        sparse.val_.resize(val_data.size());
-        sparse.col_ind_.resize(col_ptr.size());
-        sparse.row_ptr_.resize(row_ptr.size());
-
-        sparse.val_.copy_from(val_data.data(), val_data.size());
-        sparse.col_ind_.copy_from(col_ptr.data(), col_ptr.size());
-        sparse.row_ptr_.copy_from(row_ptr.data(), row_ptr.size());
-    }
-    
-
-
-}
-
-
-
-
-
 void
 CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<float_type> &alpha, float_type &rho,
                   SyncArray<float_type> &f_val, float_type eps, float_type Cp, float_type Cn, int ws_size,
@@ -279,50 +72,48 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
    
 
     //根据矩阵的稀疏程度以及数据的样本数和特征维度数目，动态选择计算方法
-    float sparse_ratio = 100.0*k_mat.nnz()/(n_instances*k_mat.n_features());
-    int method_flag = 0;//0 for origin , 1 for partition to dns and csr, 2 for bsr
-    LOG(INFO)<<"instance num is "<<n_instances<<" feature num is "<<k_mat.n_features()<<" nnz is "<<k_mat.nnz()<<" sparse ratio is "<<sparse_ratio;
+    // float sparse_ratio = 100.0*k_mat.nnz()/(n_instances*k_mat.n_features());
+    // int method_flag = 0;//0 for origin , 1 for partition to dns and csr, 2 for bsr
+    // LOG(INFO)<<"instance num is "<<n_instances<<" feature num is "<<k_mat.n_features()<<" nnz is "<<k_mat.nnz()<<" sparse ratio is "<<sparse_ratio;
 
 
-    SparseData sparse_mat;
-    DenseData dense_mat;
+    // LOG(INFO)<<"!!!!!!!!!!!!!!! sparse_mat in k_mat row and col is "<<k_mat.get_sparse_part().row<<" "<<k_mat.get_dense_part().col;
+    // SparseData sparse_mat;
+    // DenseData dense_mat;
 
-    SyncArray<int> bsr_col(1);
-    SyncArray<int> bsr_offset(1);
-    SyncArray<kernel_type> bsr_val(1);
-    int blockSize = 4;
+    // SyncArray<int> bsr_col(1);
+    // SyncArray<int> bsr_offset(1);
+    // SyncArray<kernel_type> bsr_val(1);
+    // int blockSize = 4;
 
+    // //首先根据数据规模
+    // //test matrix partitioning so set true
+    // if(n_instances>100000 || k_mat.n_features()>n_instances||true){
+    //     method_flag = 1;
+    //     TDEF(part)
+    //     TSTART(part)
+    //     CSR_DenseCSR(k_mat,dense_mat,sparse_mat);
+    //     TEND(part)
+    //     TPRINT(part,"sparse matrix partitioning time is ")
 
-    //首先根据数据规模
+    //     LOG(INFO)<<"sparse matrix shape is "<<sparse_mat.row<<" "<<sparse_mat.col<<" sparse part nnz is "<<sparse_mat.val_.size()<<" if sparse part is use "<<sparse_mat.is_use;
+    //     LOG(INFO)<<"    part sparse matrix ratio is "<<100.0*sparse_mat.val_.size()/(n_instances*k_mat.n_features());
+    //     LOG(INFO)<<"dense matrix shape is "<<dense_mat.row<<" "<<dense_mat.col<<" "<<dense_mat.is_use;
 
-    if(n_instances>100000 || k_mat.n_features()>n_instances){
-        method_flag = 1;
-        TDEF(part)
-        TSTART(part)
-        CSR_DenseCSR(k_mat,dense_mat,sparse_mat);
-        TEND(part)
-        TPRINT(part,"sparse matrix partitioning time is ")
-
-        LOG(INFO)<<"sparse matrix shape is "<<sparse_mat.row<<" "<<sparse_mat.col<<" sparse part nnz is "<<sparse_mat.val_.size()<<" if sparse part is use "<<sparse_mat.is_use;
-        LOG(INFO)<<"    part sparse matrix ratio is "<<100.0*sparse_mat.val_.size()/(n_instances*k_mat.n_features());
-        LOG(INFO)<<"dense matrix shape is "<<dense_mat.row<<" "<<dense_mat.col<<" "<<dense_mat.is_use;
-
-    }
-    else if(sparse_ratio>10){
-        method_flag = 2;
-        if(sparse_ratio >90)
-            blockSize = 16;
-        k_mat.get_bsr(blockSize,bsr_val,bsr_offset,bsr_col);
-        float block_ratio = blockSize*blockSize*bsr_col.size()*1.0/k_mat.nnz();
-        LOG(INFO)<<"block ratio is "<<block_ratio;
-        if(block_ratio>=2.0)
-            method_flag = 0;
-    }
-    LOG(INFO)<<"using method "<<method_flag;
+    // }
+    // else if(sparse_ratio>10){
+    //     method_flag = 2;
+    //     if(sparse_ratio >90)
+    //         blockSize = 16;
+    //     k_mat.get_bsr(blockSize,bsr_val,bsr_offset,bsr_col);
+    //     float block_ratio = blockSize*blockSize*bsr_col.size()*1.0/k_mat.nnz();
+    //     LOG(INFO)<<"block ratio is "<<block_ratio;
+    //     if(block_ratio>=2.0)
+    //         method_flag = 0;
+    // }
+    // LOG(INFO)<<"using method "<<method_flag;
 
     
-    
-
 
     long long select_time = 0;
     long long local_smo_time = 0;
@@ -351,38 +142,38 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
             TEND(select_rows)
             select_rows+=TINT(select_rows);
 
-            if(method_flag==0){
-                k_mat.get_rows(working_set, k_mat_rows);
-            }
-            else if(method_flag==1){
-                k_mat.get_sparse_dense_rows(working_set,sparse_mat,dense_mat,k_mat_rows);
-            }
-            else{
-                k_mat.get_rows_bsr(working_set, k_mat_rows,bsr_val,bsr_offset,bsr_col);
-            }
-            
+            k_mat.get_rows(working_set, k_mat_rows);
+           
             
         } else {
-            working_set_first_half.copy_from(working_set_last_half);
+
+            // working_set_first_half.copy_from(working_set_last_half);
             int *working_set_data = working_set.host_data();
             for (int i = 0; i < q; ++i) {
                 ws_indicator[working_set_data[i]] = 1;
             }
             TSTART(select_rows)
-            select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set_last_half);
-            TEND(select_rows)
-            select_rows+=TINT(select_rows);
-            k_mat_rows_first_half.copy_from(k_mat_rows_last_half);
-
-            if(method_flag==0){
-                k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
-            }
-            else if(method_flag==1){
-                k_mat.get_sparse_dense_rows(working_set_last_half,sparse_mat,dense_mat,k_mat_rows_last_half);
+            if(iter%2==0){
+                select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set_last_half);
             }
             else{
-                k_mat.get_rows_bsr(working_set_last_half, k_mat_rows_last_half,bsr_val,bsr_offset,bsr_col);
-            }  
+                select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set_first_half);
+            }
+
+            // select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set_last_half);
+            TEND(select_rows)
+            select_rows+=TINT(select_rows);
+            // k_mat_rows_first_half.copy_from(k_mat_rows_last_half);
+            
+            // k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
+
+            if(iter%2==0){
+                k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
+            }
+            else{
+                k_mat.get_rows(working_set_first_half, k_mat_rows_first_half);
+            }
+            
             
             
         }
