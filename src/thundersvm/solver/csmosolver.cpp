@@ -147,32 +147,32 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
             
         } else {
 
-            // working_set_first_half.copy_from(working_set_last_half);
+            working_set_first_half.copy_from(working_set_last_half);
             int *working_set_data = working_set.host_data();
             for (int i = 0; i < q; ++i) {
                 ws_indicator[working_set_data[i]] = 1;
             }
             TSTART(select_rows)
-            if(iter%2==0){
-                select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set_last_half);
-            }
-            else{
-                select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set_first_half);
-            }
+            //if(iter%2==0){
+            //    select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set_last_half);
+            //}
+            //else{
+            //    select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set_first_half);
+            //}
 
-            // select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set_last_half);
+            select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set_last_half);
             TEND(select_rows)
             select_rows+=TINT(select_rows);
-            // k_mat_rows_first_half.copy_from(k_mat_rows_last_half);
+            k_mat_rows_first_half.copy_from(k_mat_rows_last_half);
             
-            // k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
+            k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
 
-            if(iter%2==0){
-                k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
-            }
-            else{
-                k_mat.get_rows(working_set_first_half, k_mat_rows_first_half);
-            }
+            //if(iter%2==0){
+            //    k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
+            //}
+            //else{
+            //    k_mat.get_rows(working_set_first_half, k_mat_rows_first_half);
+            //}
             
             
             
