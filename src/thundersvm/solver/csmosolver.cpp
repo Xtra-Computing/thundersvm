@@ -71,49 +71,6 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
     float_type second_last_local_diff = INFINITY;
    
 
-    //根据矩阵的稀疏程度以及数据的样本数和特征维度数目，动态选择计算方法
-    // float sparse_ratio = 100.0*k_mat.nnz()/(n_instances*k_mat.n_features());
-    // int method_flag = 0;//0 for origin , 1 for partition to dns and csr, 2 for bsr
-    // LOG(INFO)<<"instance num is "<<n_instances<<" feature num is "<<k_mat.n_features()<<" nnz is "<<k_mat.nnz()<<" sparse ratio is "<<sparse_ratio;
-
-
-    // LOG(INFO)<<"!!!!!!!!!!!!!!! sparse_mat in k_mat row and col is "<<k_mat.get_sparse_part().row<<" "<<k_mat.get_dense_part().col;
-    // SparseData sparse_mat;
-    // DenseData dense_mat;
-
-    // SyncArray<int> bsr_col(1);
-    // SyncArray<int> bsr_offset(1);
-    // SyncArray<kernel_type> bsr_val(1);
-    // int blockSize = 4;
-
-    // //首先根据数据规模
-    // //test matrix partitioning so set true
-    // if(n_instances>100000 || k_mat.n_features()>n_instances||true){
-    //     method_flag = 1;
-    //     TDEF(part)
-    //     TSTART(part)
-    //     CSR_DenseCSR(k_mat,dense_mat,sparse_mat);
-    //     TEND(part)
-    //     TPRINT(part,"sparse matrix partitioning time is ")
-
-    //     LOG(INFO)<<"sparse matrix shape is "<<sparse_mat.row<<" "<<sparse_mat.col<<" sparse part nnz is "<<sparse_mat.val_.size()<<" if sparse part is use "<<sparse_mat.is_use;
-    //     LOG(INFO)<<"    part sparse matrix ratio is "<<100.0*sparse_mat.val_.size()/(n_instances*k_mat.n_features());
-    //     LOG(INFO)<<"dense matrix shape is "<<dense_mat.row<<" "<<dense_mat.col<<" "<<dense_mat.is_use;
-
-    // }
-    // else if(sparse_ratio>10){
-    //     method_flag = 2;
-    //     if(sparse_ratio >90)
-    //         blockSize = 16;
-    //     k_mat.get_bsr(blockSize,bsr_val,bsr_offset,bsr_col);
-    //     float block_ratio = blockSize*blockSize*bsr_col.size()*1.0/k_mat.nnz();
-    //     LOG(INFO)<<"block ratio is "<<block_ratio;
-    //     if(block_ratio>=2.0)
-    //         method_flag = 0;
-    // }
-    // LOG(INFO)<<"using method "<<method_flag;
-
-    
 
     long long select_time = 0;
     long long local_smo_time = 0;
@@ -153,12 +110,7 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
                 ws_indicator[working_set_data[i]] = 1;
             }
             TSTART(select_rows)
-            //if(iter%2==0){
-            //    select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set_last_half);
-            //}
-            //else{
-            //    select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set_first_half);
-            //}
+            
 
             select_working_set(ws_indicator, f_idx2sort, y, alpha, Cp, Cn, working_set_last_half);
             TEND(select_rows)
@@ -167,13 +119,6 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
             
             k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
 
-            //if(iter%2==0){
-            //    k_mat.get_rows(working_set_last_half, k_mat_rows_last_half);
-            //}
-            //else{
-            //    k_mat.get_rows(working_set_first_half, k_mat_rows_first_half);
-            //}
-            
             
             
         }
@@ -253,6 +198,7 @@ CSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncArray<int> &
     int p_left = 0;
     int p_right = n_instances - 1;
     int n_selected = 0;
+
     const int *index = f_idx2sort.host_data();
     const int *y_data = y.host_data();
     const float_type *alpha_data = alpha.host_data();
@@ -270,6 +216,7 @@ CSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncArray<int> &
             if (p_left < n_instances) {
                 working_set_data[n_selected++] = i;
                 ws_indicator[i] = 1;
+                
             }
         }
         if (p_right >= 0) {
@@ -283,10 +230,12 @@ CSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncArray<int> &
             if (p_right >= 0) {
                 working_set_data[n_selected++] = i;
                 ws_indicator[i] = 1;
+    
             }
         }
 
     }
+    
 }
 
 float_type

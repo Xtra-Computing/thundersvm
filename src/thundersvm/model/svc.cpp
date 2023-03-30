@@ -6,7 +6,7 @@
 #include <thundersvm/kernel/smo_kernel.h>
 #include <thundersvm/model/svc.h>
 #include <thundersvm/solver/csmosolver.h>
-
+#include <numeric> 
 typedef std::chrono::high_resolution_clock Clock;
 #define TDEF(x_) std::chrono::high_resolution_clock::time_point x_##_t0, x_##_t1;
 #define TSTART(x_) x_##_t0 = Clock::now();
@@ -19,6 +19,8 @@ using std::endl;
 using std::setprecision;
 using std::ifstream;
 using std::stringstream;
+int one_class_num = 0;
+
 
 void SVC::model_setup(const DataSet &dataset, SvmParam &param) {
 
@@ -163,14 +165,53 @@ void SVC::train_binary(const DataSet &dataset, int i, int j, SyncArray<float_typ
     alpha.mem_set(0);
     int *y_data = y.host_data();
     float_type *f_val_data = f_val.host_data();
+
+    vector<int> tmp_y(ins.size());
+    vector<int> tmp_f(ins.size());
+
     for (int l = 0; l < dataset.count()[i]; ++l) {
-        y_data[l] = +1;
-        f_val_data[l] = -1;
+        // y_data[l] = +1;
+        // f_val_data[l] = -1;
+
+        tmp_y[l] = +1;
+        tmp_f[l] = -1;
     }
     for (int l = 0; l < dataset.count()[j]; ++l) {
-        y_data[dataset.count()[i] + l] = -1;
-        f_val_data[dataset.count()[i] + l] = +1;
+        // y_data[dataset.count()[i] + l] = -1;
+        // f_val_data[dataset.count()[i] + l] = +1;
+
+        tmp_y[dataset.count()[i] + l] = -1;
+        tmp_f[dataset.count()[i] + l] = +1;
     }
+
+    
+    
+    one_class_num = dataset.count()[i];
+    //sort instances
+    //count instance feature number
+    vector<int> ins_fea_num(ins.size(),0);
+    for(int i=0;i<ins.size();i++){
+        ins_fea_num[i] = ins[i].size();
+    }
+    //instance sort and map
+    std::vector<int> instances_map(ins.size());
+    std::iota(instances_map.begin(), instances_map.end(), 0);
+    std::sort(instances_map.begin(), instances_map.end(), [&](int i, int j) {
+        if (ins_fea_num[i] != ins_fea_num[j]) {
+            return ins_fea_num[i] < ins_fea_num[j];
+        } else {
+            return i < j;
+        }
+    });
+
+
+    for (int l = 0; l < ins.size(); ++l) {
+        y_data[l] = tmp_y[instances_map[l]];
+        f_val_data[l] = tmp_f[instances_map[l]];
+
+    }
+
+
     KernelMatrix k_mat(ins, param);
     int ws_size = get_working_set_size(ins.size(), k_mat.n_features());
     CSMOSolver solver;

@@ -20,6 +20,7 @@ extern long long time2;
 extern long long time3;
 extern long long time4;
 
+extern int one_class_num;
 
 void CSR_DenseCSR(size_t m,size_t n,vector<kernel_type> &csr_val,vector<int> &csr_row_ptr,vector<int> &csr_col_ind, DenseData &dense,SparseData &sparse){
 
@@ -123,7 +124,6 @@ void CSR_DenseCSR(size_t m,size_t n,vector<kernel_type> &csr_val,vector<int> &cs
                 dense_data_count++;
             }
         }
-        LOG(INFO)<<"    dense part dense ratio is "<<100.0*dense_data_count/(m*densecolnum);
     }
 
     
@@ -196,9 +196,31 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
     vector<int> csr_col_ind;//index of each value of all the instances
     vector<int> csr_row_ptr(1, 0);//the start positions of the instances
 
+
     vector<kernel_type> csr_self_dot;
-    for (int i = 0; i < n_instances_; ++i) {//convert libsvm format to csr format
+
+    LOG(INFO)<<"first class num is "<<one_class_num;
+    //count instance feature number
+    int tmp_sort_num = n_instances_;
+    vector<int> ins_fea_num(n_instances_,0);
+    for(int i=0;i<n_instances_;i++){
+        ins_fea_num[i] = instances[i].size();
+    }
+
+    //instance sort and map
+    std::vector<int> instances_map(tmp_sort_num);
+    std::iota(instances_map.begin(), instances_map.end(), 0);
+    std::sort(instances_map.begin(), instances_map.end(), [&](int i, int j) {
+        if (ins_fea_num[i] != ins_fea_num[j]) {
+            return ins_fea_num[i] < ins_fea_num[j];
+        } else {
+            return i < j;
+        }
+    });
+
+    for (int ind = 0; ind < tmp_sort_num; ++ind) {//convert libsvm format to csr format
         float_type self_dot = 0;
+        int i = instances_map[ind];
         for (int j = 0; j < instances[i].size(); ++j) {
             csr_val.push_back(instances[i][j].value);
             self_dot += instances[i][j].value * instances[i][j].value;
@@ -208,17 +230,30 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
         csr_row_ptr.push_back(csr_row_ptr.back() + instances[i].size());
         csr_self_dot.push_back(self_dot);
     }
+
+
+    // for (int i = 0; i < n_instances_; ++i) {//convert libsvm format to csr format
+    //     float_type self_dot = 0;
+    //     for (int j = 0; j < instances[i].size(); ++j) {
+    //         csr_val.push_back(instances[i][j].value);
+    //         self_dot += instances[i][j].value * instances[i][j].value;
+    //         csr_col_ind.push_back(instances[i][j].index);//libSVM data format is one-based, convert to zero-based
+    //         if (instances[i][j].index > n_features_) n_features_ = instances[i][j].index;
+    //     }
+    //     csr_row_ptr.push_back(csr_row_ptr.back() + instances[i].size());
+    //     csr_self_dot.push_back(self_dot);
+    // }
     n_features_++;
+
+    //42695
+    // Row_sort(csr_val, csr_row_ptr, csr_col_ind,csr_self_dot);
+    
 
     //matrix partitioning 
     CSR_DenseCSR(n_instances_, n_features_,csr_val, csr_row_ptr, csr_col_ind, dense_mat_,sparse_mat_);
-    method_flag_ = 1;
+    // method_flag_ = 1;
     LOG(INFO)<<"sparse part is use "<<sparse_mat_.is_use<<" dense part is use "<<dense_mat_.is_use;
-    //output matrix information
-    LOG(INFO)<<"original csr nnz is "<<csr_val.size()<<" row is "<<n_instances_<<" col is "<<n_features_;
-    LOG(INFO)<<"after partitioning: ";
-    LOG(INFO)<<"    sparse part nnz is "<<sparse_mat_.val_.size()<<" row is "<<n_instances_<<" col is "<<n_features_;
-    LOG(INFO)<<"    dense part row is "<<dense_mat_.row<<" col is "<<dense_mat_.col;
+
     //three arrays (on GPU/CPU) for csr representation
     val_.resize(csr_val.size());
     col_ind_.resize(csr_col_ind.size());
