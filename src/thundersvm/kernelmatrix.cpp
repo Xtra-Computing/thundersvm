@@ -142,19 +142,19 @@ void CSR_DenseCSR(size_t m,size_t n,vector<kernel_type> &csr_val,vector<int> &cs
 
     sparse.row=m;
     sparse.col=n;
-    // sparse.col = n - densecolnum;
+    sparse.col = n - densecolnum;
 
     //map from original col to new col
 
-    // std::vector<int> tmp_sparse_col_map(n);
-    // for(int i= 0 ,p_row = 0;i<n;i++){
-    //     if (densefg[col_indices[i]]==false){
+    std::vector<int> tmp_sparse_col_map(n);
+    for(int i= 0 ,p_row = 0;i<n;i++){
+        if (densefg[col_indices[i]]==false){
 
-    //         tmp_sparse_col_map[col_indices[i]]=p_row;
-    //         p_row++;
-               
-    //     }   
-    // }
+            tmp_sparse_col_map[col_indices[i]]=p_row;
+            p_row++;
+            
+        }   
+    }
 
     //csr
     if(densecolnum<n && dense_data_count!=csr_val.size()){
@@ -166,8 +166,8 @@ void CSR_DenseCSR(size_t m,size_t n,vector<kernel_type> &csr_val,vector<int> &cs
                 if (densefg[csr_col_ind[j]]==false){
 
                     val_data.push_back(csr_val[j]);
-                    col_ptr.push_back(csr_col_ind[j]);
-                    // col_ptr.push_back(tmp_sparse_col_map[csr_col_ind[j]]);
+                    //col_ptr.push_back(csr_col_ind[j]);
+                    col_ptr.push_back(tmp_sparse_col_map[csr_col_ind[j]]);
                     
                 }
             }
