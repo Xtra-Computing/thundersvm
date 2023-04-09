@@ -105,7 +105,8 @@ class KernelMatrix{
         //get sparse and dense
         SparseData sparse_mat_;
         DenseData dense_mat_;
-
+        SparseData bsr_sparse;
+        SparseData csr_sparse;
         //multiplication method 
         int method_flag_ ;
         

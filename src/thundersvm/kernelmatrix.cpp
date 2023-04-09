@@ -147,10 +147,18 @@ void CSR_DenseCSR(size_t m,size_t n,vector<kernel_type> &csr_val,vector<int> &cs
     //map from original col to new col
 
     std::vector<int> tmp_sparse_col_map(n);
-    for(int i= 0 ,p_row = 0;i<n;i++){
-        if (densefg[col_indices[i]]==false){
+    // for(int i= 0 ,p_row = 0;i<n;i++){
+    //     if (densefg[col_indices[i]]==false){
 
-            tmp_sparse_col_map[col_indices[i]]=p_row;
+    //         tmp_sparse_col_map[col_indices[i]]=p_row;
+    //         p_row++;
+            
+    //     }   
+    // }
+    for(int i= 0 ,p_row = 0;i<n;i++){
+        if (densefg[i]==false){
+
+            tmp_sparse_col_map[i]=p_row;
             p_row++;
             
         }   
@@ -183,6 +191,107 @@ void CSR_DenseCSR(size_t m,size_t n,vector<kernel_type> &csr_val,vector<int> &cs
         sparse.row_ptr_.copy_from(row_ptr.data(), row_ptr.size());
     }
     
+}
+
+void csr2bsr(   int blockSize,int m, int n,
+                SyncArray<kernel_type> &val_,SyncArray<int> &row_ptr_,SyncArray<int> &col_ind_,
+                SyncArray<kernel_type> &bsr_val,SyncArray<int> &bsr_offset,SyncArray<int> &bsr_col) {
+
+    cusparseMatDescr_t descrA;
+    cusparseCreateMatDescr(&descrA);
+    cusparseSetMatType(descrA, CUSPARSE_MATRIX_TYPE_GENERAL );
+
+    cusparseMatDescr_t descrC;
+    cusparseCreateMatDescr(&descrC);
+    cusparseSetMatType(descrC, CUSPARSE_MATRIX_TYPE_GENERAL );
+
+    cusparseDirection_t dir = CUSPARSE_DIRECTION_COLUMN;
+
+    //block row and block col
+    int mb = (m + blockSize-1)/blockSize;
+    int nb = (n+blockSize-1)/blockSize;
+
+    
+    int bufferSize;
+    int base, nnzb;
+
+    void *pBuffer;
+
+    cusparseHandle_t handle = NULL;
+    cusparseCreate(&handle);
+
+    cusparseScsr2gebsr_bufferSize(handle, dir, m, n,descrA, 
+                                    val_.device_data(), row_ptr_.device_data(), col_ind_.device_data(),
+                                    blockSize, blockSize,&bufferSize);
+    cudaMalloc((void**)&pBuffer, bufferSize);
+
+    //cudaMalloc((void**)&bsrRowPtrC, sizeof(int) *(mb+1));
+    bsr_offset.resize(mb+1);
+    int* d_bsr_offset = bsr_offset.device_data();
+
+    int *nnzTotalDevHostPtr = &nnzb;
+    cusparseXcsr2gebsrNnz(handle, dir, m, n,
+                            descrA, row_ptr_.device_data(), col_ind_.device_data(),
+                            descrC, d_bsr_offset, blockSize, blockSize,
+                            nnzTotalDevHostPtr,
+                            pBuffer);
+
+    if (NULL != nnzTotalDevHostPtr){
+        nnzb = *nnzTotalDevHostPtr;
+    }
+    else{
+        cudaMemcpy(&nnzb, d_bsr_offset+mb, sizeof(int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(&base, d_bsr_offset, sizeof(int), cudaMemcpyDeviceToHost);
+        nnzb -= base;
+    }
+    LOG(INFO)<<"blockSize is "<<blockSize<<" mb is "<<mb<<" nb is "<<nb<<" nnzb is "<<nnzb;
+    // cudaMalloc((void**)&bsrColIndC, sizeof(int)*nnzb);
+    // cudaMalloc((void**)&bsrValC, sizeof(float)*(rowBlockDim*colBlockDim)*nnzb);
+    bsr_col.resize(nnzb);
+    bsr_val.resize((blockSize*blockSize)*nnzb);
+    kernel_type* d_bsr_val = bsr_val.device_data();
+    int* d_bsr_col = bsr_col.device_data();
+
+    cusparseScsr2gebsr(handle, dir, m, n,
+                        descrA,
+                        val_.device_data(), row_ptr_.device_data(), col_ind_.device_data(),
+                        descrC,
+                        d_bsr_val, d_bsr_offset, d_bsr_col,
+                        blockSize, blockSize,
+                        pBuffer);
+
+    cudaFree(pBuffer);
+    cusparseDestroy(handle);
+
+}
+
+void rest_csr(   int bsr_row,int m, int n,
+                SyncArray<kernel_type> &val_,SyncArray<int> &row_ptr_,SyncArray<int> &col_ind_,
+                SyncArray<kernel_type> &csr_val,SyncArray<int> &csr_offset,SyncArray<int> &csr_col){
+
+    int rest_row = m-bsr_row;
+    csr_offset.resize(rest_row+1);
+
+    int* d_row_ptr = row_ptr_.host_data();
+    int* d_csr_offset = csr_offset.host_data();
+
+    
+    int total_bsr_element = d_row_ptr[bsr_row];
+    int nnz = d_row_ptr[m] - total_bsr_element;
+
+    csr_val.resize(nnz);
+    csr_col.resize(nnz);
+
+    csr_val.set_host_data(&val_.host_data()[total_bsr_element]);
+    csr_col.set_host_data(&col_ind_.host_data()[total_bsr_element]);
+
+
+    d_csr_offset[0] = 0;
+    for (int i = 1; i < rest_row+1; ++i)
+    {
+        d_csr_offset[i] = d_row_ptr[i+bsr_row]-total_bsr_element;
+    }
+
 }
 
 //new consturctor
@@ -237,6 +346,28 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param, vec
     // method_flag_ = 1;
     LOG(INFO)<<"sparse part is use "<<sparse_mat_.is_use<<" dense part is use "<<dense_mat_.is_use;
 
+
+
+    //part sparse using bsr format
+
+    // int blockSize = 2;
+    // int bsr_row = 100;
+    // bsr_sparse.row = bsr_row;
+    // bsr_sparse.col = sparse_mat_.col;
+    // csr2bsr(blockSize,bsr_row,sparse_mat_.col,
+    //         sparse_mat_.val_, sparse_mat_.row_ptr_, sparse_mat_.col_ind_,
+    //         bsr_sparse.val_, bsr_sparse.row_ptr_, bsr_sparse.col_ind_);
+
+    // csr_sparse.row = sparse_mat_.row-bsr_row;
+    // csr_sparse.col = sparse_mat_.col;
+
+    
+    // rest_csr(bsr_row,sparse_mat_.row,sparse_mat_.col,
+    //         sparse_mat_.val_, sparse_mat_.row_ptr_, sparse_mat_.col_ind_,
+    //         csr_sparse.val_, csr_sparse.row_ptr_, csr_sparse.col_ind_);
+
+
+
     //three arrays (on GPU/CPU) for csr representation
     val_.resize(csr_val.size());
     col_ind_.resize(csr_col_ind.size());
@@ -247,6 +378,8 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param, vec
     val_.copy_from(csr_val.data(), val_.size());
     col_ind_.copy_from(csr_col_ind.data(), col_ind_.size());
     row_ptr_.copy_from(csr_row_ptr.data(), row_ptr_.size());
+
+
 
     self_dot_.resize(n_instances_);
     self_dot_.copy_from(csr_self_dot.data(), self_dot_.size());
@@ -453,8 +586,15 @@ void KernelMatrix::get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,con
         TEND(working_set)
         time4+=TINT(working_set);
 
+        //分成两部分，bsr和csr
+
         dns_csr_mul_part(sparse_data_rows, idx.size(), sparse,dot_product);
         
+        // bsr_dns_mul(bsr_sparse.row, idx.size(), bsr_sparse.col,
+        //             sparse_data_rows,
+        //             bsr_sparse.val_, bsr_sparse.row_ptr_, bsr_sparse.col_ind_,
+        //             dot_product);
+
 
         TEND(sparse)
         time1+=TINT(sparse);
@@ -576,6 +716,7 @@ void KernelMatrix::get_bsr(int blockSize,SyncArray<kernel_type> &bsr_val,SyncArr
     int mb = (n_instances_ + blockSize-1)/blockSize;
     int nb = (n_features_+blockSize-1)/blockSize;
 
+    LOG(INFO)<<"run here!!!";
     int bufferSize;
     int base, nnzb;
 
