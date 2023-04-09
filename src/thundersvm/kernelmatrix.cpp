@@ -20,7 +20,7 @@ extern long long time2;
 extern long long time3;
 extern long long time4;
 
-extern int one_class_num;
+
 
 void CSR_DenseCSR(size_t m,size_t n,vector<kernel_type> &csr_val,vector<int> &csr_row_ptr,vector<int> &csr_col_ind, DenseData &dense,SparseData &sparse){
 
@@ -185,8 +185,8 @@ void CSR_DenseCSR(size_t m,size_t n,vector<kernel_type> &csr_val,vector<int> &cs
     
 }
 
-//
-KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
+//new consturctor
+KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param, vector<int> &instances_map) {
     n_instances_ = instances.size();
     n_features_ = 0;
     this->param = param;
@@ -196,29 +196,27 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
     vector<int> csr_col_ind;//index of each value of all the instances
     vector<int> csr_row_ptr(1, 0);//the start positions of the instances
 
-
     vector<kernel_type> csr_self_dot;
 
-    LOG(INFO)<<"first class num is "<<one_class_num;
-    //count instance feature number
-    int tmp_sort_num = n_instances_;
-    vector<int> ins_fea_num(n_instances_,0);
-    for(int i=0;i<n_instances_;i++){
-        ins_fea_num[i] = instances[i].size();
-    }
+    // //count instance feature number
+    // int tmp_sort_num = n_instances_;
+    // vector<int> ins_fea_num(n_instances_,0);
+    // for(int i=0;i<n_instances_;i++){
+    //     ins_fea_num[i] = instances[i].size();
+    // }
 
-    //instance sort and map
-    std::vector<int> instances_map(tmp_sort_num);
-    std::iota(instances_map.begin(), instances_map.end(), 0);
-    std::sort(instances_map.begin(), instances_map.end(), [&](int i, int j) {
-        if (ins_fea_num[i] != ins_fea_num[j]) {
-            return ins_fea_num[i] < ins_fea_num[j];
-        } else {
-            return i < j;
-        }
-    });
+    // //instance sort and map
+    // std::vector<int> instances_map(tmp_sort_num);
+    // std::iota(instances_map.begin(), instances_map.end(), 0);
+    // std::sort(instances_map.begin(), instances_map.end(), [&](int i, int j) {
+    //     if (ins_fea_num[i] != ins_fea_num[j]) {
+    //         return ins_fea_num[i] < ins_fea_num[j];
+    //     } else {
+    //         return i < j;
+    //     }
+    // });
 
-    for (int ind = 0; ind < tmp_sort_num; ++ind) {//convert libsvm format to csr format
+    for (int ind = 0; ind < n_instances_; ++ind) {//convert libsvm format to csr format
         float_type self_dot = 0;
         int i = instances_map[ind];
         for (int j = 0; j < instances[i].size(); ++j) {
@@ -232,17 +230,79 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
     }
 
 
-    // for (int i = 0; i < n_instances_; ++i) {//convert libsvm format to csr format
-    //     float_type self_dot = 0;
-    //     for (int j = 0; j < instances[i].size(); ++j) {
-    //         csr_val.push_back(instances[i][j].value);
-    //         self_dot += instances[i][j].value * instances[i][j].value;
-    //         csr_col_ind.push_back(instances[i][j].index);//libSVM data format is one-based, convert to zero-based
-    //         if (instances[i][j].index > n_features_) n_features_ = instances[i][j].index;
-    //     }
-    //     csr_row_ptr.push_back(csr_row_ptr.back() + instances[i].size());
-    //     csr_self_dot.push_back(self_dot);
-    // }
+    n_features_++;
+
+    //matrix partitioning 
+    CSR_DenseCSR(n_instances_, n_features_,csr_val, csr_row_ptr, csr_col_ind, dense_mat_,sparse_mat_);
+    // method_flag_ = 1;
+    LOG(INFO)<<"sparse part is use "<<sparse_mat_.is_use<<" dense part is use "<<dense_mat_.is_use;
+
+    //three arrays (on GPU/CPU) for csr representation
+    val_.resize(csr_val.size());
+    col_ind_.resize(csr_col_ind.size());
+    row_ptr_.resize(csr_row_ptr.size());
+
+
+    //copy data to the three arrays
+    val_.copy_from(csr_val.data(), val_.size());
+    col_ind_.copy_from(csr_col_ind.data(), col_ind_.size());
+    row_ptr_.copy_from(csr_row_ptr.data(), row_ptr_.size());
+
+    self_dot_.resize(n_instances_);
+    self_dot_.copy_from(csr_self_dot.data(), self_dot_.size());
+
+    nnz_ = csr_val.size();//number of nonzero
+    //pre-compute diagonal elements
+
+    diag_.resize(n_instances_);
+    switch (param.kernel_type) {
+        case SvmParam::RBF:
+        case SvmParam::PRECOMPUTED://precomputed uses rbf as default
+            for (int i = 0; i < n_instances_; ++i) {
+                diag_.host_data()[i] = 1;//rbf kernel
+            }
+            break;
+        case SvmParam::LINEAR:
+            diag_.copy_from(self_dot_);
+            break;
+        case SvmParam::POLY:
+            diag_.copy_from(self_dot_);
+            poly_kernel(diag_, param.gamma, param.coef0, param.degree, diag_.size());
+            break;
+        case SvmParam::SIGMOID:
+            diag_.copy_from(self_dot_);
+            sigmoid_kernel(diag_, param.gamma, param.coef0, diag_.size());
+        default:
+            break;
+    }
+
+}
+
+
+KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
+    n_instances_ = instances.size();
+    n_features_ = 0;
+    this->param = param;
+    
+    //three arrays for csr representation
+    vector<kernel_type> csr_val;
+    vector<int> csr_col_ind;//index of each value of all the instances
+    vector<int> csr_row_ptr(1, 0);//the start positions of the instances
+
+    vector<kernel_type> csr_self_dot;
+
+
+    for (int i = 0; i < n_instances_; ++i) {//convert libsvm format to csr format
+        float_type self_dot = 0;
+        for (int j = 0; j < instances[i].size(); ++j) {
+            csr_val.push_back(instances[i][j].value);
+            self_dot += instances[i][j].value * instances[i][j].value;
+            csr_col_ind.push_back(instances[i][j].index);//libSVM data format is one-based, convert to zero-based
+            if (instances[i][j].index > n_features_) n_features_ = instances[i][j].index;
+        }
+        csr_row_ptr.push_back(csr_row_ptr.back() + instances[i].size());
+        csr_self_dot.push_back(self_dot);
+    }
     n_features_++;
 
     //42695

@@ -45,6 +45,7 @@ class KernelMatrix{
          */
         explicit KernelMatrix(const DataSet::node2d &instances, SvmParam param);
 
+        explicit KernelMatrix(const DataSet::node2d &instances, SvmParam param,vector<int> &instances_map);
         /**
          * return specific rows in kernel matrix
          * @param [in] idx the indices of the rows

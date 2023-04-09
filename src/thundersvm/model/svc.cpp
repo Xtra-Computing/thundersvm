@@ -19,7 +19,7 @@ using std::endl;
 using std::setprecision;
 using std::ifstream;
 using std::stringstream;
-int one_class_num = 0;
+
 
 
 void SVC::model_setup(const DataSet &dataset, SvmParam &param) {
@@ -167,7 +167,7 @@ void SVC::train_binary(const DataSet &dataset, int i, int j, SyncArray<float_typ
     float_type *f_val_data = f_val.host_data();
 
     vector<int> tmp_y(ins.size());
-    vector<int> tmp_f(ins.size());
+    vector<float_type> tmp_f(ins.size());
 
     for (int l = 0; l < dataset.count()[i]; ++l) {
         // y_data[l] = +1;
@@ -183,10 +183,7 @@ void SVC::train_binary(const DataSet &dataset, int i, int j, SyncArray<float_typ
         tmp_y[dataset.count()[i] + l] = -1;
         tmp_f[dataset.count()[i] + l] = +1;
     }
-
     
-    
-    one_class_num = dataset.count()[i];
     //sort instances
     //count instance feature number
     vector<int> ins_fea_num(ins.size(),0);
@@ -204,19 +201,44 @@ void SVC::train_binary(const DataSet &dataset, int i, int j, SyncArray<float_typ
         }
     });
 
-
     for (int l = 0; l < ins.size(); ++l) {
         y_data[l] = tmp_y[instances_map[l]];
         f_val_data[l] = tmp_f[instances_map[l]];
 
     }
 
-
-    KernelMatrix k_mat(ins, param);
+    KernelMatrix k_mat(ins, param,instances_map);
     int ws_size = get_working_set_size(ins.size(), k_mat.n_features());
     CSMOSolver solver;
     solver.solve(k_mat, y, alpha, rho, f_val, param.epsilon, param.C * c_weight[i], param.C * c_weight[j], ws_size,
                  max_iter);
+
+    //map back to original order
+
+    int *y_data_back = y.host_data();
+    float_type *alpha_data_back = alpha.host_data();
+    std::vector<int> back_instances_map(ins.size());
+
+    for(int l=0;l<ins.size();++l){
+        back_instances_map[instances_map[l]] = l;
+
+    }
+
+    for(int l=0; l < ins.size();++l){
+        tmp_y[l] = y_data_back[l];
+        tmp_f[l] = alpha_data_back[l];
+    }
+    
+
+    for(int l = 0;l<ins.size();++l){
+        y_data_back[l] = tmp_y[back_instances_map[l]];
+        alpha_data_back[l] = tmp_f[back_instances_map[l]];
+    }
+
+    
+    
+    
+
     LOG(INFO) << "rho = " << rho;
     int n_sv = 0;
     y_data = y.host_data();
