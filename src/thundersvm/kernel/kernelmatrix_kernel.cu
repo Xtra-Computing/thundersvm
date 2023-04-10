@@ -187,6 +187,8 @@ namespace svm_kernel {
             cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);
             cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
             cusparse_init = true;
+
+            
         }
         kernel_type one(1);
         kernel_type zero(0);
@@ -202,27 +204,57 @@ namespace svm_kernel {
         cudaDataType data_type = CUDA_R_32F;
 #endif  
 
+        
         cusparseCreateCsr(&matA, m, k, nnz, (void*)csr_row_ptr.device_data(), (void*)csr_col_ind.device_data(),
                           (void*)csr_val.device_data(), CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
                           CUSPARSE_INDEX_BASE_ZERO, data_type);
-        cusparseCreateDnMat(&matB, n, k, n, (void*)dense_mat.device_data(), data_type, CUSPARSE_ORDER_COL);
-        cusparseCreateDnMat(&matC, m, n, m, (void*)result.device_data(), data_type, CUSPARSE_ORDER_COL);
+        // cusparseCreateDnMat(&matB, n, k, n, (void*)dense_mat.device_data(), data_type, CUSPARSE_ORDER_COL);
+        // cusparseCreateDnMat(&matC, m, n, m, (void*)result.device_data(), data_type, CUSPARSE_ORDER_COL);
+        
         
        
         
+        // size_t buffer_size = 0;
+        // cusparseSpMM_bufferSize(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
+        //                        &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1,
+        //                        &buffer_size);
+
+        // void *p_buffer = nullptr;
+        
+        // cudaMalloc((void**)&p_buffer, buffer_size);
+        
+        // cusparseSpMM_preprocess(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
+        //            &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1, p_buffer);
+        // cusparseSpMM(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
+        //            &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1, p_buffer);
+
+
+
+        cusparseCreateDnMat(&matB, k, n, n, (void*)dense_mat.device_data(), data_type, CUSPARSE_ORDER_ROW);
+
+        SyncArray<kernel_type> tmp_res(m*n);
+        cusparseCreateDnMat(&matC, m, n, n, (void*)tmp_res.device_data(), data_type, CUSPARSE_ORDER_ROW);
+
         size_t buffer_size = 0;
-        cusparseSpMM_bufferSize(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
-                               &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1,
+        cusparseSpMM_bufferSize(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE,
+                               &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG2,
                                &buffer_size);
 
         void *p_buffer = nullptr;
         
         cudaMalloc((void**)&p_buffer, buffer_size);
         
-        cusparseSpMM_preprocess(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
-                   &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1, p_buffer);
-        cusparseSpMM(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
-                   &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG1, p_buffer);
+        cusparseSpMM(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE,
+                   &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG2, p_buffer);
+
+        cublasHandle_t handle2;
+        cublasCreate(&handle2);
+
+        cublasStatus_t success=cublasSgeam( handle2, CUBLAS_OP_T, CUBLAS_OP_N, m, n, 
+                                            &one, tmp_res.device_data(), n, &zero, tmp_res.device_data(), m, 
+                                            result.device_data(), m);
+
+
         
         cudaFree(p_buffer);
         
@@ -230,7 +262,7 @@ namespace svm_kernel {
         cusparseDestroyDnMat(matB);
         cusparseDestroyDnMat(matC);
 
-        cudaDeviceSynchronize();    
+            
 
 #else
 

@@ -205,7 +205,7 @@ void csr2bsr(   int blockSize,int m, int n,
     cusparseCreateMatDescr(&descrC);
     cusparseSetMatType(descrC, CUSPARSE_MATRIX_TYPE_GENERAL );
 
-    cusparseDirection_t dir = CUSPARSE_DIRECTION_COLUMN;
+    cusparseDirection_t dir = CUSPARSE_DIRECTION_ROW;//CUSPARSE_DIRECTION_COLUMN;//CUSPARSE_DIRECTION_ROW
 
     //block row and block col
     int mb = (m + blockSize-1)/blockSize;
@@ -350,21 +350,21 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param, vec
 
     //part sparse using bsr format
 
-    // int blockSize = 2;
-    // int bsr_row = 100;
-    // bsr_sparse.row = bsr_row;
-    // bsr_sparse.col = sparse_mat_.col;
-    // csr2bsr(blockSize,bsr_row,sparse_mat_.col,
-    //         sparse_mat_.val_, sparse_mat_.row_ptr_, sparse_mat_.col_ind_,
-    //         bsr_sparse.val_, bsr_sparse.row_ptr_, bsr_sparse.col_ind_);
+    int blockSize = 2;
+    int bsr_row = 100;
+    bsr_sparse.row = bsr_row;
+    bsr_sparse.col = sparse_mat_.col;
+    csr2bsr(blockSize,bsr_row,sparse_mat_.col,
+            sparse_mat_.val_, sparse_mat_.row_ptr_, sparse_mat_.col_ind_,
+            bsr_sparse.val_, bsr_sparse.row_ptr_, bsr_sparse.col_ind_);
 
-    // csr_sparse.row = sparse_mat_.row-bsr_row;
-    // csr_sparse.col = sparse_mat_.col;
+    csr_sparse.row = sparse_mat_.row-bsr_row;
+    csr_sparse.col = sparse_mat_.col;
 
     
-    // rest_csr(bsr_row,sparse_mat_.row,sparse_mat_.col,
-    //         sparse_mat_.val_, sparse_mat_.row_ptr_, sparse_mat_.col_ind_,
-    //         csr_sparse.val_, csr_sparse.row_ptr_, csr_sparse.col_ind_);
+    rest_csr(bsr_row,sparse_mat_.row,sparse_mat_.col,
+            sparse_mat_.val_, sparse_mat_.row_ptr_, sparse_mat_.col_ind_,
+            csr_sparse.val_, csr_sparse.row_ptr_, csr_sparse.col_ind_);
 
 
 
