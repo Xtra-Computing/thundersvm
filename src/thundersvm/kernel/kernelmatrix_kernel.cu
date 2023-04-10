@@ -177,6 +177,7 @@ namespace svm_kernel {
     cusparseHandle_t handle;
     cusparseMatDescr_t descr;
     bool cusparse_init;
+    cublasHandle_t handle2;
     //m for instance; n for get_rows num; k for feature num; nnz for number of nonzero
     void dns_csr_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_mat, const SyncArray<kernel_type> &csr_val,
                      const SyncArray<int> &csr_row_ptr, const SyncArray<int> &csr_col_ind, int nnz,
@@ -188,7 +189,7 @@ namespace svm_kernel {
             cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
             cusparse_init = true;
 
-            
+            cublasCreate(&handle2);
         }
         kernel_type one(1);
         kernel_type zero(0);
@@ -247,15 +248,12 @@ namespace svm_kernel {
         cusparseSpMM(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE,
                    &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG2, p_buffer);
 
-        cublasHandle_t handle2;
-        cublasCreate(&handle2);
-
+        
         cublasStatus_t success=cublasSgeam( handle2, CUBLAS_OP_T, CUBLAS_OP_N, m, n, 
                                             &one, tmp_res.device_data(), n, &zero, tmp_res.device_data(), m, 
                                             result.device_data(), m);
 
 
-        
         cudaFree(p_buffer);
         
         cusparseDestroySpMat(matA);

@@ -147,22 +147,22 @@ void CSR_DenseCSR(size_t m,size_t n,vector<kernel_type> &csr_val,vector<int> &cs
     //map from original col to new col
 
     std::vector<int> tmp_sparse_col_map(n);
-    // for(int i= 0 ,p_row = 0;i<n;i++){
-    //     if (densefg[col_indices[i]]==false){
-
-    //         tmp_sparse_col_map[col_indices[i]]=p_row;
-    //         p_row++;
-            
-    //     }   
-    // }
     for(int i= 0 ,p_row = 0;i<n;i++){
-        if (densefg[i]==false){
+        if (densefg[col_indices[i]]==false){
 
-            tmp_sparse_col_map[i]=p_row;
+            tmp_sparse_col_map[col_indices[i]]=p_row;
             p_row++;
             
         }   
     }
+    // for(int i= 0 ,p_row = 0;i<n;i++){
+    //     if (densefg[i]==false){
+
+    //         tmp_sparse_col_map[i]=p_row;
+    //         p_row++;
+            
+    //     }   
+    // }
 
     //csr
     if(densecolnum<n && dense_data_count!=csr_val.size()){
@@ -205,7 +205,7 @@ void csr2bsr(   int blockSize,int m, int n,
     cusparseCreateMatDescr(&descrC);
     cusparseSetMatType(descrC, CUSPARSE_MATRIX_TYPE_GENERAL );
 
-    cusparseDirection_t dir = CUSPARSE_DIRECTION_ROW;//CUSPARSE_DIRECTION_COLUMN;//CUSPARSE_DIRECTION_ROW
+    cusparseDirection_t dir = CUSPARSE_DIRECTION_COLUMN;//CUSPARSE_DIRECTION_COLUMN;//CUSPARSE_DIRECTION_ROW
 
     //block row and block col
     int mb = (m + blockSize-1)/blockSize;
@@ -350,21 +350,21 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param, vec
 
     //part sparse using bsr format
 
-    int blockSize = 2;
-    int bsr_row = 100;
-    bsr_sparse.row = bsr_row;
-    bsr_sparse.col = sparse_mat_.col;
-    csr2bsr(blockSize,bsr_row,sparse_mat_.col,
-            sparse_mat_.val_, sparse_mat_.row_ptr_, sparse_mat_.col_ind_,
-            bsr_sparse.val_, bsr_sparse.row_ptr_, bsr_sparse.col_ind_);
+    // int blockSize = 2;
+    // int bsr_row = 100;
+    // bsr_sparse.row = bsr_row;
+    // bsr_sparse.col = sparse_mat_.col;
+    // csr2bsr(blockSize,bsr_row,sparse_mat_.col,
+    //         sparse_mat_.val_, sparse_mat_.row_ptr_, sparse_mat_.col_ind_,
+    //         bsr_sparse.val_, bsr_sparse.row_ptr_, bsr_sparse.col_ind_);
 
-    csr_sparse.row = sparse_mat_.row-bsr_row;
-    csr_sparse.col = sparse_mat_.col;
+    // csr_sparse.row = sparse_mat_.row-bsr_row;
+    // csr_sparse.col = sparse_mat_.col;
 
     
-    rest_csr(bsr_row,sparse_mat_.row,sparse_mat_.col,
-            sparse_mat_.val_, sparse_mat_.row_ptr_, sparse_mat_.col_ind_,
-            csr_sparse.val_, csr_sparse.row_ptr_, csr_sparse.col_ind_);
+    // rest_csr(bsr_row,sparse_mat_.row,sparse_mat_.col,
+    //         sparse_mat_.val_, sparse_mat_.row_ptr_, sparse_mat_.col_ind_,
+    //         csr_sparse.val_, csr_sparse.row_ptr_, csr_sparse.col_ind_);
 
 
 
@@ -586,7 +586,7 @@ void KernelMatrix::get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,con
         TEND(working_set)
         time4+=TINT(working_set);
 
-        //分成两部分，bsr和csr
+        //分成两部分，bsr和csr,这里需要先得到m*n的结果然后再转置结果矩阵。
 
         dns_csr_mul_part(sparse_data_rows, idx.size(), sparse,dot_product);
         

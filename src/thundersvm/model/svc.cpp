@@ -193,13 +193,13 @@ void SVC::train_binary(const DataSet &dataset, int i, int j, SyncArray<float_typ
     //instance sort and map
     std::vector<int> instances_map(ins.size());
     std::iota(instances_map.begin(), instances_map.end(), 0);
-    std::sort(instances_map.begin(), instances_map.end(), [&](int i, int j) {
-        if (ins_fea_num[i] != ins_fea_num[j]) {
-            return ins_fea_num[i] < ins_fea_num[j];
-        } else {
-            return i < j;
-        }
-    });
+    //std::sort(instances_map.begin(), instances_map.end(), [&](int i, int j) {
+    //    if (ins_fea_num[i] != ins_fea_num[j]) {
+    //        return ins_fea_num[i] < ins_fea_num[j];
+    //    } else {
+    //        return i < j;
+    //    }
+    //});
 
     for (int l = 0; l < ins.size(); ++l) {
         y_data[l] = tmp_y[instances_map[l]];
