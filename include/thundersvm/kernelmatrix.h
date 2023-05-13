@@ -10,6 +10,29 @@
 #include "dataset.h"
 #include "svmparam.h"
 
+
+//csr to csr part and dense part
+struct SparseData{
+    SyncArray<kernel_type> val_;
+    SyncArray<int> col_ind_;
+    SyncArray<int> row_ptr_;
+    // int* table;
+    int row;
+    int col;
+    bool is_use = false;
+};
+
+
+struct DenseData{
+    SyncArray<kernel_type> val;
+    int row = 0;
+    int col = 0;
+    // int* Ttable;
+    // int* Ftable;
+    bool is_use = false;
+};
+
+
 /**
  * @brief The management class of kernel values.
  */
@@ -57,6 +80,14 @@ private:
     SyncArray<int> row_ptr_;
     SyncArray<kernel_type> diag_;
     SyncArray<kernel_type> self_dot_;
+
+    //get sparse and dense
+    SparseData sparse_mat_;
+    DenseData dense_mat_;
+    SparseData bsr_sparse;
+    SparseData csr_sparse;
+
+
     size_t nnz_;
     size_t n_instances_;
     size_t n_features_;
@@ -77,5 +108,10 @@ private:
     void get_dot_product(const DataSet::node2d &instances, SyncArray<kernel_type> &dot_product) const;
 
     void get_dot_product_sparse(const SyncArray<int> &idx, SyncArray<kernel_type> &dot_product) const;
+
+    //function for matrix partitioning
+    void get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,const SparseData &sparse,const DenseData &dense,SyncArray<kernel_type> &dot_product) const;
+    void dns_csr_mul_part(const SyncArray<kernel_type> &dense_mat, int n_rows,const SparseData &sparse,SyncArray<kernel_type> &result) const;
+    void dns_dns_mul_part(const SyncArray<kernel_type> &dense_mat, int n_rows,const DenseData &dense,SyncArray<kernel_type> &result,kernel_type beta) const;
 };
 #endif //THUNDERSVM_KERNELMATRIX_H

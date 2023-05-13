@@ -6,6 +6,9 @@
 #include "thundersvm/kernel/kernelmatrix_kernel.h"
 #include <thundersvm/config.h>
 
+#include <cublas_v2.h>
+#include <cub/cub.cuh>
+
 namespace svm_kernel {
     __global__ void
     kernel_get_working_set_ins(const kernel_type *val, const int *col_ind, const int *row_ptr, const int *data_row_idx,
@@ -19,6 +22,27 @@ namespace svm_kernel {
             }
         }
     }
+    
+    __global__ void
+    kernel_get_working_set_ins_dns(const kernel_type *val, const int *data_row_idx,
+                               kernel_type *data_rows,
+                               int m, int n,int n_instances) {
+        
+        KERNEL_LOOP(i, m) {
+            int row = data_row_idx[i];
+            for (int j = 0; j < n; ++j) {
+
+                //data_rows[i*n + j] = val[row*n+j]; // row-major for cublas
+
+                // data_rows[i + j*m] = val[row*n+j]; // col-major for cublas
+
+                data_rows[i + j*m] = val[row+j*n_instances]; // col-major for cublas, val col major
+
+            }
+        }
+            
+    }
+
 
     __global__ void
     kernel_RBF_kernel(const kernel_type *self_dot0, const kernel_type *self_dot1, kernel_type *dot_product, int m, int n,
@@ -104,6 +128,14 @@ namespace svm_kernel {
     }
 
     void
+    get_working_set_ins_dns(const SyncArray<kernel_type> &val,
+                            const SyncArray<int> &data_row_idx, SyncArray<kernel_type> &data_rows, int m, int n,int n_instances){
+
+        SAFE_KERNEL_LAUNCH(kernel_get_working_set_ins_dns, val.device_data(),
+                           data_row_idx.device_data(), data_rows.device_data(), m, n,n_instances);
+    }
+
+    void
     RBF_kernel(const SyncArray<kernel_type> &self_dot0, const SyncArray<kernel_type> &self_dot1,
                SyncArray<kernel_type> &dot_product, int m,
                int n,
@@ -131,6 +163,7 @@ namespace svm_kernel {
     cusparseHandle_t handle;
     cusparseMatDescr_t descr;
     bool cusparse_init;
+    cublasHandle_t handle2;
 
     void dns_csr_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_mat, const SyncArray<kernel_type> &csr_val,
                      const SyncArray<int> &csr_row_ptr, const SyncArray<int> &csr_col_ind, int nnz,
@@ -141,6 +174,7 @@ namespace svm_kernel {
             cusparseSetMatIndexBase(descr, CUSPARSE_INDEX_BASE_ZERO);
             cusparseSetMatType(descr, CUSPARSE_MATRIX_TYPE_GENERAL);
             cusparse_init = true;
+            cublasCreate(&handle2);
         }
         kernel_type one(1);
         kernel_type zero(0);
@@ -157,19 +191,42 @@ namespace svm_kernel {
         cusparseCreateCsr(&matA, m, k, nnz, (void*)csr_row_ptr.device_data(), (void*)csr_col_ind.device_data(),
                           (void*)csr_val.device_data(), CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
                           CUSPARSE_INDEX_BASE_ZERO, data_type);
-        cusparseCreateDnMat(&matB, n, k, n, (void*)dense_mat.device_data(), data_type, CUSPARSE_ORDER_COL);
-        cusparseCreateDnMat(&matC, m, n, m, (void*)result.device_data(), data_type, CUSPARSE_ORDER_COL);
+        //cusparseCreateDnMat(&matB, n, k, n, (void*)dense_mat.device_data(), data_type, CUSPARSE_ORDER_COL);
+        //cusparseCreateDnMat(&matC, m, n, m, (void*)result.device_data(), data_type, CUSPARSE_ORDER_COL);
+
+        //size_t buffer_size = 0;
+        //cusparseSpMM_bufferSize(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
+        //                        &one, matA, matB, &zero, matC, data_type, CUSPARSE_CSRMM_ALG1,
+        //                        &buffer_size);
+
+        //void *p_buffer = nullptr;
+        //cudaMalloc((void**)&p_buffer, buffer_size);
+
+        //cusparseSpMM(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
+        //            &one, matA, matB, &zero, matC, data_type, CUSPARSE_CSRMM_ALG1, p_buffer);
+
+        
+        cusparseCreateDnMat(&matB, k, n, n, (void*)dense_mat.device_data(), data_type, CUSPARSE_ORDER_ROW);
+
+        SyncArray<kernel_type> tmp_res(m*n);
+        cusparseCreateDnMat(&matC, m, n, n, (void*)tmp_res.device_data(), data_type, CUSPARSE_ORDER_ROW);
 
         size_t buffer_size = 0;
-        cusparseSpMM_bufferSize(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
-                                &one, matA, matB, &zero, matC, data_type, CUSPARSE_CSRMM_ALG1,
-                                &buffer_size);
+        cusparseSpMM_bufferSize(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE,
+                               &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG2,
+                               &buffer_size);
 
         void *p_buffer = nullptr;
+        
         cudaMalloc((void**)&p_buffer, buffer_size);
+        
+        cusparseSpMM(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE,
+                   &one, matA, matB, &zero, matC, data_type, CUSPARSE_SPMM_CSR_ALG2, p_buffer);
 
-        cusparseSpMM(handle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
-                    &one, matA, matB, &zero, matC, data_type, CUSPARSE_CSRMM_ALG1, p_buffer);
+        
+        cublasStatus_t success=cublasSgeam( handle2, CUBLAS_OP_T, CUBLAS_OP_N, m, n, 
+                                            &one, tmp_res.device_data(), n, &zero, tmp_res.device_data(), m, 
+                                            result.device_data(), m);
 
         cudaFree(p_buffer);
         cusparseDestroySpMat(matA);
@@ -193,5 +250,30 @@ namespace svm_kernel {
 #endif // ifdef USE_DOUBLE
 
 #endif // if CUDART_VERSION >= 11000
+    }
+
+
+    //dns dns mul
+    cublasHandle_t handle_blas;
+    bool cublas_init;
+    void dns_dns_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_a,const SyncArray<kernel_type> &dense_b,kernel_type beta,
+                     SyncArray<kernel_type> &result){
+
+        if (!cublas_init) {
+            cublasCreate(&handle_blas);
+            cublas_init = true;
+        }
+
+        kernel_type alpha=1.0;
+        const kernel_type* d_dense_a = dense_a.device_data();
+        const kernel_type* d_dense_b = dense_b.device_data();
+
+        // cublasSgemm(handle_blas,CUBLAS_OP_T,CUBLAS_OP_N, m, n, k,&alpha,dense_a.device_data(), k, dense_b.device_data(), k,&beta, result.device_data(), m);
+
+        //dense b :k*n
+        // cublasSgemm(handle_blas,CUBLAS_OP_T,CUBLAS_OP_T, m, n, k,&alpha,dense_a.device_data(), k, dense_b.device_data(), n,&beta, result.device_data(), m);
+        cublasSgemm(handle_blas,CUBLAS_OP_N,CUBLAS_OP_T, m, n, k,&alpha,dense_a.device_data(), m, dense_b.device_data(), n,&beta, result.device_data(), m);
+
+
     }
 }
