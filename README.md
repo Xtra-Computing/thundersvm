@@ -113,6 +113,7 @@ If you use ThunderSVM in your paper, please cite our work ([full version](https:
 ## Other publications
 * Zeyi Wen, Jiashuai Shi, Bingsheng He, Yawen Chen, and Jian Chen. Efficient Multi-Class Probabilistic SVMs on GPUs. IEEE Transactions on Knowledge and Data Engineering (TKDE), 2018.
 * Zeyi Wen, Bingsheng He, Kotagiri Ramamohanarao, Shengliang Lu, and Jiashuai Shi. Efficient Gradient Boosted Decision Tree Training on GPUs. The 32nd IEEE International Parallel and Distributed Processing Symposium (IPDPS), pages 234-243, 2018.
+* Borui Xu, Zeyi Wen, Lifeng Yan, Zhan Zhao, Zekun Yin, Weiguo Liu, Bingsheng He. Leveraging Data Density and Sparsity for Efficient SVM Training on GPUs. The 23rd IEEE International Conference on Data Mining (ICDM), 2023.
 
 ## Related websites
 * [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) | [SVM<sup>light</sup>](http://svmlight.joachims.org/) | [OHD-SVM](https://github.com/OrcusCZ/OHD-SVM) | [NVIDIA Machine Learning](http://www.nvidia.com/object/machine-learning.html) | [ThunderGBM](https://github.com/Xtra-Computing/thundergbm)
