@@ -12,12 +12,16 @@
 #include <thundersvm/util/metric.h>
 #include "thundersvm/cmdparser.h"
 
+#include "chrono"
+
 #ifdef _WIN32
 INITIALIZE_EASYLOGGINGPP
 #endif
 
 int main(int argc, char **argv) {
     try {
+        el::Loggers::reconfigureAllLoggers(el::ConfigurationType::Format, "%datetime %level %fbase:%line : %msg");
+        el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
 		el::Loggers::addFlag(el::LoggingFlag::FixedTimeFormat);
         CMDParser parser;
         parser.parse_command_line(argc, argv);
@@ -82,7 +86,12 @@ int main(int argc, char **argv) {
         if (parser.do_cross_validation) {
             predict_y = model->cross_validation(train_dataset, parser.param_cmd, parser.nr_fold);
         } else {
+            std::chrono::high_resolution_clock timer;
+            auto start = timer.now();
             model->train(train_dataset, parser.param_cmd);
+            auto stop = timer.now();
+            std::chrono::duration<float> training_time = stop - start;
+            LOG(INFO) << "all training time = " << training_time.count();
             LOG(INFO) << "training finished";
             model->save_to_file(parser.model_file_name);
          //   LOG(INFO) << "evaluating training score";
