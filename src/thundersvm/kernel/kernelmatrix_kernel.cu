@@ -89,7 +89,7 @@ namespace svm_kernel {
                     for (int l = 0; l < cj; ++l) {
                         sum += coef2[sj + l] * k_values[sj + l];
                     }
-                    dec_values[idx * n_binary_models + k] = sum - rho[k];
+                    dec_values[(size_t)idx * n_binary_models + k] = sum - rho[k];
                     k++;
                 }
             }
