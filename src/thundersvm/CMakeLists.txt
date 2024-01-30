@@ -1,6 +1,3 @@
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_NO_DEFAULT_LOG_FILE")
 
 #file(GLOB_RECURSE SRC *)
@@ -23,6 +20,12 @@ else ()
     add_executable(${PROJECT_NAME}-predict thundersvm-predict.cpp ${COMMON_INCLUDES})
 endif ()
 
+
+target_include_directories(${PROJECT_NAME}
+        PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../include>
+        PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../..>
+        )
+
 target_link_libraries(${PROJECT_NAME}-train ${LINK_LIBRARY} ${PROJECT_LIB_NAME})
 target_link_libraries(${PROJECT_NAME}-predict ${LINK_LIBRARY} ${PROJECT_LIB_NAME})
 
@@ -37,7 +40,7 @@ write_basic_package_version_file(
     COMPATIBILITY AnyNewerVersion)
 
 configure_package_config_file(
-    ${CMAKE_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/${PROJECT_NAME}Config.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}Config.cmake
     INSTALL_DESTINATION lib/cmake/)
 
@@ -51,8 +54,8 @@ install(TARGETS ${PROJECT_NAME}
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
     INCLUDES DESTINATION include)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/thundersvm DESTINATION include/)
-install(FILES ${CMAKE_BINARY_DIR}/thundersvm/config.h DESTINATION include/thundersvm/)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../include/thundersvm DESTINATION include/)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/../../thundersvm/config.h DESTINATION include/thundersvm/)
 
 install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}Config.cmake
