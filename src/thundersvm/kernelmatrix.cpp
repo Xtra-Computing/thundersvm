@@ -6,6 +6,7 @@
 #include "thundersvm/kernel/kernelmatrix_kernel.h"
 #include <cusparse.h>
 #include <numeric> 
+#include "cuda_runtime_api.h"
 using namespace svm_kernel;
 
 void CSR_DenseCSR(size_t m,size_t n,vector<kernel_type> &csr_val,vector<int> &csr_row_ptr,vector<int> &csr_col_ind, DenseData &dense,SparseData &sparse){
@@ -179,6 +180,7 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
     n_instances_ = instances.size();
     n_features_ = 0;
     this->param = param;
+    
 
     //three arrays for csr representation
     vector<kernel_type> csr_val;
@@ -202,7 +204,6 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
 
     //matrix partitioning
     CSR_DenseCSR(n_instances_, n_features_,csr_val, csr_row_ptr, csr_col_ind, dense_mat_,sparse_mat_);
-
     //three arrays (on GPU/CPU) for csr representation
     val_.resize(csr_val.size());
     col_ind_.resize(csr_col_ind.size());
@@ -317,7 +318,6 @@ void KernelMatrix::get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,con
     
     SyncArray<kernel_type> sparse_data_rows(idx.size() * sparse.col);
     sparse_data_rows.mem_set(0);
-    
     kernel_type beta = 0.0;
     if(sparse.is_use)
     {   
@@ -339,7 +339,7 @@ void KernelMatrix::get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,con
 }
 
 void KernelMatrix::dns_csr_mul_part(const SyncArray<kernel_type> &dense_mat, int n_rows,const  SparseData &sparse,SyncArray<kernel_type> &result) const{
-    CHECK_EQ(dense_mat.size(), n_rows * sparse.col) << "dense matrix features doesn't match";
+    CHECK_EQ(dense_mat.size(), (size_t)n_rows * sparse.col) << "dense matrix features doesn't match";
 
     svm_kernel::dns_csr_mul(n_instances_, n_rows, sparse.col, dense_mat, sparse.val_, sparse.row_ptr_, sparse.col_ind_, sparse.val_.size(), result);
 }
@@ -353,7 +353,7 @@ void KernelMatrix::dns_dns_mul_part(const SyncArray<kernel_type> &dense_mat, int
 
 void
 KernelMatrix::dns_csr_mul(const SyncArray<kernel_type> &dense_mat, int n_rows, SyncArray<kernel_type> &result) const {
-    CHECK_EQ(dense_mat.size(), n_rows * n_features_) << "dense matrix features doesn't match";
+    CHECK_EQ(dense_mat.size(), (size_t)n_rows * n_features_) << "dense matrix features doesn't match";
     svm_kernel::dns_csr_mul(n_instances_, n_rows, n_features_, dense_mat, val_, row_ptr_, col_ind_, nnz_, result);
 }
 #ifndef USE_CUDA

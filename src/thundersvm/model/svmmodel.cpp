@@ -384,7 +384,15 @@ const bool SvmModel::is_prob() const{
 }
 
 int SvmModel::get_working_set_size(int n_instances, int n_features) {
+    //TODO use system api to get free cuda memory
+    //szie_t type is positive, if total_mem is larger, may something error;
+    if(param.max_mem_size<SyncMem::get_total_memory_size()){
+       throw std::bad_alloc(); 
+    }
+
     size_t free_mem = param.max_mem_size - SyncMem::get_total_memory_size();
+    LOG(INFO) <<"total memory size is "<<SyncMem::get_total_memory_size()/1024.0/1024/1024 <<" max mem size is " << param.max_mem_size/1024.0/1024/1024;
+    LOG(INFO)<<"free mem is "<<free_mem/1024.0/1024/1024;
     int ws_size = min(max2power(n_instances),
                       (int) min(max2power(free_mem / sizeof(kernel_type) / (n_instances + n_features)), size_t(1024)));
     LOG(INFO) << "working set size = " << ws_size;

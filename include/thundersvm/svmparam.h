@@ -23,7 +23,9 @@ struct SvmParam {
         nr_weight = 0;
         degree = 3;
         coef0 = 0;
-        max_mem_size = static_cast<size_t>(8192) << 20;
+        max_mem_size = static_cast<size_t>(8192) << 22;
+
+
     }
 
     /// SVM type
