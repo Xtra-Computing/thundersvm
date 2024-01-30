@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.4)
 
+cmake_policy(SET CMP0146 OLD)
 cmake_policy(SET CMP0048 NEW)
 cmake_policy(SET CMP0042 NEW)
 project(thundersvm VERSION 0.1.0 LANGUAGES C CXX)
