@@ -177,9 +177,22 @@ void SVC::train_binary(const DataSet &dataset, int i, int j, SyncArray<float_typ
 }
 
 vector<float_type> SVC::predict(const DataSet::node2d &instances, int batch_size) {
+    if(n_binary_models>10000)
+    return predict_instant(instances,batch_size);
     dec_values.resize(instances.size() * n_binary_models);
     predict_dec_values(instances, dec_values, batch_size);
     return predict_label(dec_values, instances.size());
+}
+
+vector<float_type> SVC::predict_instant(const DataSet::node2d &instances, int batch_size) {
+    SyncArray<float_type> predict_label(instances.size());
+    //dec_values.resize(instances.size() * n_binary_models);
+    predict_dec_values_instant(instances, predict_label, batch_size);
+    float_type* predict_label_host = predict_label.host_data();
+    vector<float_type> predict_label_vector(predict_label.size());
+   for(int i=0;i<predict_label.size();++i)
+    predict_label_vector[i]=(double) this->label[predict_label_host[i]];
+    return predict_label_vector;
 }
 
 float_type sigmoidPredict(float_type dec_value, float_type A, float_type B) {

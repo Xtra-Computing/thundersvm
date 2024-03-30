@@ -39,6 +39,12 @@ namespace svm_kernel {
                            const SyncArray<kernel_type> &k_mat,
                            SyncArray<float_type> &dec_values, int n_classes, int n_instances);
 
+    void sum_kernel_values_instant(const SyncArray<float_type> &coef, int total_sv, const SyncArray<int> &sv_start,
+                           const SyncArray<int> &sv_count, const SyncArray<float_type> &rho,
+                           const SyncArray<kernel_type> &k_mat,
+                           SyncArray<float_type> &predict_instant, int n_classes, int n_instances, SyncArray<float_type> &vote_device);
+
+
     void dns_csr_mul(int m, int n, int k, const SyncArray<kernel_type> &dense_mat, const SyncArray<kernel_type> &csr_val,
                      const SyncArray<int> &csr_row_ptr, const SyncArray<int> &csr_col_ind, int nnz,
                      SyncArray<kernel_type> &result);

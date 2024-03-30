@@ -97,6 +97,48 @@ namespace svm_kernel {
     }
 
     __global__ void
+    kernel_sum_kernel_values_instant(const float_type *coef, int total_sv, const int *sv_start, const int *sv_count,
+                             const float_type *rho,
+                             const kernel_type *k_mat, float_type *predict_instant, int n_classes, int n_instances,float_type *vote_device) {
+        KERNEL_LOOP(idx, n_instances) {
+            size_t k = 0;
+            for (size_t i = 0; i < n_classes; ++i) {
+                     vote_device[idx*n_classes+i] = 0;
+            }
+            for (size_t i = 0; i < n_classes; ++i) {
+                for (size_t j = i + 1; j < n_classes; ++j) {
+                    int si = sv_start[i];
+                    int sj = sv_start[j];
+                    int ci = sv_count[i];
+                    int cj = sv_count[j];
+                    const float_type *coef1 = &coef[(j - 1) * total_sv];
+                    const float_type *coef2 = &coef[i * total_sv];
+                    const kernel_type *k_values = &k_mat[idx * total_sv];
+                    double sum = 0;
+                    for (int l = 0; l < ci; ++l) {
+                        sum += coef1[si + l] * k_values[si + l];
+                    }
+                    for (int l = 0; l < cj; ++l) {
+                        sum += coef2[sj + l] * k_values[sj + l];
+                    }
+                    if (sum - rho[k]> 0)
+                        vote_device[idx*n_classes+i]++;
+                    else
+                        vote_device[idx*n_classes+j]++;
+                    k++;
+                }
+            }
+            size_t maxVoteClass = 0;
+            for (size_t i = 1; i < n_classes; ++i) {
+                if (vote_device[idx*n_classes+i] > vote_device[idx*n_classes+maxVoteClass])
+                    maxVoteClass = i;
+            }
+            predict_instant[idx]=maxVoteClass;
+        }
+    }
+
+
+    __global__ void
     kernel_poly_kernel(kernel_type *dot_product, kernel_type gamma, kernel_type coef0, int degree, int mn) {
         KERNEL_LOOP(idx, mn) {
             dot_product[idx] = powf(gamma * dot_product[idx] + coef0, degree);
@@ -116,6 +158,16 @@ namespace svm_kernel {
         SAFE_KERNEL_LAUNCH(kernel_sum_kernel_values, coef.device_data(), total_sv, sv_start.device_data(),
                            sv_count.device_data(), rho.device_data(), k_mat.device_data(), dec_values.device_data(),
                            n_classes, n_instances);
+
+    }
+
+    void sum_kernel_values_instant(const SyncArray<float_type> &coef, int total_sv, const SyncArray<int> &sv_start,
+                           const SyncArray<int> &sv_count, const SyncArray<float_type> &rho,
+                           const SyncArray<kernel_type> &k_mat,
+                           SyncArray<float_type> &predict_instant, int n_classes, int n_instances,SyncArray<float_type>&vote_device) {
+        SAFE_KERNEL_LAUNCH(kernel_sum_kernel_values_instant, coef.device_data(), total_sv, sv_start.device_data(),
+                           sv_count.device_data(), rho.device_data(), k_mat.device_data(), predict_instant.device_data(),
+                           n_classes, n_instances,vote_device.device_data());
 
     }
 

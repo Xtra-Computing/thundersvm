@@ -13,6 +13,7 @@ using std::setprecision;
 using std::ifstream;
 using std::stringstream;
 using svm_kernel::sum_kernel_values;
+using svm_kernel::sum_kernel_values_instant;
 
 const char *SvmParam::kernel_type_name[6] = {"linear", "polynomial", "rbf", "sigmoid", "precomputed", "NULL"};
 const char *SvmParam::svm_type_name[6] = {"c_svc", "nu_svc", "one_class", "epsilon_svr", "nu_svr",
@@ -115,6 +116,44 @@ SvmModel::predict_dec_values(const DataSet::node2d &instances, SyncArray<float_t
     }
 }
 
+void
+SvmModel::predict_dec_values_instant(const DataSet::node2d &instances, SyncArray<float_type> &predict_instant,
+                             int batch_size) const {
+    SyncArray<int> sv_start(n_classes);//start position of SVs in each class
+    sv_start.host_data()[0] = 0;
+    for (int i = 1; i < n_classes; ++i) {
+        sv_start.host_data()[i] = sv_start.host_data()[i - 1] + n_sv.host_data()[i - 1];
+    }
+    //compute kernel values
+    KernelMatrix k_mat(sv, param);
+    if (batch_size == -1) {
+        size_t free_mem = param.max_mem_size - SyncMem::get_total_memory_size();
+        batch_size = min(size_t(free_mem / sizeof(float_type) / (sv.size() + k_mat.n_features())), size_t(10000));
+    }
+    auto batch_start = instances.begin();
+    auto batch_end = batch_start;
+    while (batch_end != instances.end()) {
+        while (batch_end != instances.end() && batch_end - batch_start < batch_size) {
+            batch_end++;
+        }
+        DataSet::node2d batch_ins(batch_start, batch_end);//get a batch of instances
+        LOG(INFO)<<batch_ins.size();
+        SyncArray<float_type> instance_predict(batch_ins.size());
+        instance_predict.set_device_data(
+                &predict_instant.device_data()[batch_start - instances.begin()]);
+        SyncArray<float_type> vote_device(batch_ins.size()*n_classes);
+        SyncArray<kernel_type> kernel_values(batch_ins.size() * sv.size());
+        k_mat.get_rows(batch_ins, kernel_values);
+        sum_kernel_values_instant(coef, sv.size(), sv_start, n_sv, rho, kernel_values,instance_predict, n_classes,
+                          batch_ins.size(),vote_device);
+        if ((instances.end() - batch_start) <= batch_size)
+            batch_start = instances.end();
+        else
+            batch_start += batch_size;
+    }
+}
+
+
 vector<float_type> SvmModel::predict(const DataSet::node2d &instances, int batch_size = -1) {
 //    param.max_mem_size
     dec_values.resize(instances.size() * n_binary_models);
@@ -130,6 +169,18 @@ vector<float_type> SvmModel::predict(const DataSet::node2d &instances, int batch
     memcpy(dec_values_vec.data(), dec_values_host, dec_values.size() * sizeof(float_type));
     return dec_values_vec;
 }
+
+vector<float_type> SvmModel::predict_instant(const DataSet::node2d &instances, int batch_size) {
+    SyncArray<float_type> predict_label(instances.size());
+    //dec_values.resize(instances.size() * n_binary_models);
+    predict_dec_values_instant(instances, predict_label, batch_size);
+    float_type* predict_label_host = predict_label.host_data();
+    vector<float_type> predict_label_vector(predict_label.size());
+      for(int i=0;i<predict_label.size();++i)
+    predict_label_vector[i]=(float) this->label[predict_label_host[i]];
+    return predict_label_vector;
+}
+
 
 void SvmModel::save_to_file(string path) {
     ofstream fs_model;

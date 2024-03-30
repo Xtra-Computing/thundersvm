@@ -32,6 +32,8 @@ public:
      */
     virtual vector<float_type> predict(const DataSet::node2d &instances, int batch_size);
 
+    virtual vector<float_type> predict_instant(const DataSet::node2d &instances, int batch_size);
+
     /**
      * predict decision values.
      * @param [in] instances instances used
@@ -39,6 +41,8 @@ public:
      * @param [in] batch_size the number of instances to predict parallel, higher value needs more memory
      */
     void predict_dec_values(const DataSet::node2d &instances, SyncArray<float_type> &dec_values, int batch_size) const;
+
+    void predict_dec_values_instant(const DataSet::node2d &instances, SyncArray<float_type> &predict_instant,int batch_size) const;
 
     /**
      * performing cross-validation.

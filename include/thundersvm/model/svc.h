@@ -21,6 +21,8 @@ public:
 
     vector<float_type> predict(const DataSet::node2d &instances, int batch_size) override;
 
+    vector<float_type> predict_instant(const DataSet::node2d &instances, int batch_size)override;
+
     ~SVC() override = default;
 protected:
     /**
