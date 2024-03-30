@@ -4,9 +4,13 @@
 #include <thundersvm/svmparam.h>
 #include "thundersvm/kernelmatrix.h"
 #include "thundersvm/kernel/kernelmatrix_kernel.h"
-#include <cusparse.h>
+
 #include <numeric> 
+#ifdef USE_CUDA
+#include <cusparse.h>
+//#include <numeric> 
 #include "cuda_runtime_api.h"
+#endif
 using namespace svm_kernel;
 
 void CSR_DenseCSR(size_t m,size_t n,vector<kernel_type> &csr_val,vector<int> &csr_row_ptr,vector<int> &csr_col_ind, DenseData &dense,SparseData &sparse){
