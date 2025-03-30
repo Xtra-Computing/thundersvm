@@ -56,6 +56,12 @@ namespace thunder {
     }
 
     void SyncMem::to_host() {
+        cudaDeviceSynchronize();
+        __to_host();
+    }
+
+    void SyncMem::__to_host() {
+        CHRONE();
         switch (head_) {
             case UNINITIALIZED:
                 malloc_host(&host_ptr, size_);
@@ -82,6 +88,12 @@ namespace thunder {
     }
 
     void SyncMem::to_device() {
+        cudaDeviceSynchronize();
+        __to_device();
+    }
+
+    void SyncMem::__to_device() {
+        CHRONE();
 #ifdef USE_CUDA
         switch (head_) {
             case UNINITIALIZED:

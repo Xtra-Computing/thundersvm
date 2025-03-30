@@ -56,6 +56,9 @@ else ()
     endif ()
 endif ()
 
+# For the chrones library (profiler)
+include_directories(/usr/users/gpusvm/plowiecki_sta/.local/lib/python3.8/site-packages/Chrones/instrumentation/cpp)
+
 if (CMAKE_VERSION VERSION_LESS "3.1")
     add_compile_options("-std=c++11")
 else ()

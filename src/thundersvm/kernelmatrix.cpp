@@ -181,6 +181,7 @@ void CSR_DenseCSR(size_t m,size_t n,vector<kernel_type> &csr_val,vector<int> &cs
 }
 
 KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
+    CHRONE();
     n_instances_ = instances.size();
     n_features_ = 0;
     this->param = param;
@@ -250,6 +251,7 @@ KernelMatrix::KernelMatrix(const DataSet::node2d &instances, SvmParam param) {
 
 void KernelMatrix::get_rows(const SyncArray<int> &idx,
                             SyncArray<kernel_type> &kernel_rows) const {//compute multiple rows of kernel matrix according to idx
+    CHRONE();
     CHECK_GE(kernel_rows.size(), idx.size() * n_instances_) << "kernel_rows memory is too small";
 #ifdef USE_CUDA
     get_dot_product_dns_csr_dns_dns(idx, sparse_mat_,dense_mat_,kernel_rows);
@@ -316,7 +318,7 @@ const SyncArray<kernel_type> &KernelMatrix::diag() const {
 }
 
 void KernelMatrix::get_dot_product_dns_csr_dns_dns(const SyncArray<int> &idx,const SparseData &sparse,const DenseData &dense,SyncArray<kernel_type> &dot_product) const{
-    
+    CHRONE();
     
     //get sparse part result matrix and dense part result matrix
     

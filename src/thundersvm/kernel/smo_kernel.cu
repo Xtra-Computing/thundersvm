@@ -257,6 +257,7 @@ namespace svm_kernel {
                 const SyncArray<int> &working_set, float_type Cp, float_type Cn, const SyncArray<kernel_type> &k_mat_rows,
                 const SyncArray<kernel_type> &k_mat_diag, int row_len, float_type eps, SyncArray<float_type> &diff,
                 int max_iter) {
+        CHRONE();
         size_t ws_size = working_set.size();
         size_t smem_size = 0;
         smem_size += ws_size * sizeof(int); //f_idx2reduce
@@ -291,9 +292,9 @@ namespace svm_kernel {
                     int n_instances) {
         //"n_instances" equals to the number of rows of the whole kernel matrix for both SVC and SVR.
         KERNEL_LOOP(idx, n_instances) {//one thread to update multiple fvalues.
-            double sum_diff = 0;
+            float_type sum_diff = 0;
             for (int i = 0; i < ws_size; ++i) {
-                double d = alpha_diff[i];
+                float_type d = alpha_diff[i];
                 if (d != 0) {
                     sum_diff += d * k_mat_rows[i * n_instances + idx];
                 }
@@ -305,6 +306,7 @@ namespace svm_kernel {
     void
     update_f(SyncArray<float_type> &f, const SyncArray<float_type> &alpha_diff, const SyncArray<kernel_type> &k_mat_rows,
              int n_instances) {
+        CHRONE();
         SAFE_KERNEL_LAUNCH(update_f_kernel, f.device_data(), alpha_diff.size(), alpha_diff.device_data(),
                            k_mat_rows.device_data(), n_instances);
     }

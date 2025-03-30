@@ -200,6 +200,7 @@ namespace svm_kernel {
     RBF_kernel(const SyncArray<int> &self_dot0_idx, const SyncArray<kernel_type> &self_dot1,
                SyncArray<kernel_type> &dot_product, int m,
                int n, kernel_type gamma) {
+        CHRONE();
         SAFE_KERNEL_LAUNCH(kernel_RBF_kernel, self_dot0_idx.device_data(), self_dot1.device_data(),
                            dot_product.device_data(), m, n, gamma);
     }

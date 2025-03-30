@@ -6,6 +6,7 @@
 #define THUNDERSVM_SYNCMEM_H
 
 #include <thundersvm/thundersvm.h>
+#include <chrones.hpp>
 
 namespace thunder {
     inline void malloc_host(void **ptr, size_t size) {
@@ -25,6 +26,7 @@ namespace thunder {
     }
 
     inline void device_mem_copy(void *dst, const void *src, size_t size) {
+        CHRONE();
 #ifdef USE_CUDA
         CUDA_CHECK(cudaMemcpy(dst, src, size, cudaMemcpyDefault));
 #else
@@ -68,9 +70,11 @@ namespace thunder {
 
         ///transfer data to host
         void to_host();
+        void __to_host();
 
         ///transfer data to device
         void to_device();
+        void __to_device();
 
         ///return the size of memory
         size_t size() const;

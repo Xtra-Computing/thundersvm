@@ -5,12 +5,15 @@
 #include <thundersvm/kernel/smo_kernel.h>
 #include <climits>
 
+CHRONABLE("smosolver");
+
 using namespace svm_kernel;
 
 void
 CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<float_type> &alpha, float_type &rho,
                   SyncArray<float_type> &f_val, float_type eps, float_type Cp, float_type Cn, int ws_size,
                   int out_max_iter) const {
+    CHRONE();
     int n_instances = k_mat.n_instances();
     int q = ws_size / 2;
 
@@ -57,6 +60,7 @@ CSMOSolver::solve(const KernelMatrix &k_mat, const SyncArray<int> &y, SyncArray<
     float_type second_last_local_diff = INFINITY;
 
     for (int iter = 0;; ++iter) {
+        CHRONE("iteration", iter);
         //select working set
         f_idx2sort.copy_from(f_idx);
         f_val2sort.copy_from(f_val);
@@ -124,6 +128,7 @@ void
 CSMOSolver::select_working_set(vector<int> &ws_indicator, const SyncArray<int> &f_idx2sort, const SyncArray<int> &y,
                                const SyncArray<float_type> &alpha, float_type Cp, float_type Cn,
                                SyncArray<int> &working_set) const {
+    CHRONE();
     int n_instances = ws_indicator.size();
     int p_left = 0;
     int p_right = n_instances - 1;

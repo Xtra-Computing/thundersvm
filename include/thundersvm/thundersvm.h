@@ -13,7 +13,7 @@
 #include "util/common.h"
 using std::string;
 using std::vector;
-typedef double float_type;
+typedef float float_type;
 
 #ifdef USE_DOUBLE
 typedef double kernel_type;

@@ -39,6 +39,7 @@ void SVC::model_setup(const DataSet &dataset, SvmParam &param) {
 }
 
 void SVC::train(const DataSet &dataset, SvmParam param) {
+    CHRONE();
     DataSet dataset_ = dataset;
     dataset_.group_classes();
     model_setup(dataset_, param);
@@ -49,6 +50,7 @@ void SVC::train(const DataSet &dataset, SvmParam param) {
     int k = 0;
     for (int i = 0; i < n_classes; ++i) {
         for (int j = i + 1; j < n_classes; ++j) {
+            CHRONE("binary", (i+1)*j);
             train_binary(dataset_, i, j, alpha[k], rho.host_data()[k]);
             vector<int> original_index = dataset_.original_index(i, j);
             CHECK_EQ(original_index.size(), alpha[k].size());
